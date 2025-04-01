@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_root"
-    style="?attr/materialCardViewFilledStyle"  <!-- 或者使用 elevated/outlined 风格 -->
+    style="?attr/materialCardViewFilledStyle"
     android:layout_width="150dp"
     android:layout_height="200dp"
     android:clickable="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    app:cardForegroundColor="@android:color/transparent" <!-- 确保波纹效果可见 -->
-    app:shapeAppearanceOverlay="@style/Vod.Grid"> <!-- 将圆角应用于卡片 -->
+    app:cardForegroundColor="@android:color/transparent"
+    app:shapeAppearanceOverlay="@style/Vod.Grid">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -21,13 +21,13 @@
             android:id="@+id/image"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="?attr/colorSurfaceVariant" <!-- 占位背景色 -->
-            android:scaleType="centerCrop" <!-- CenterCrop 通常在卡片中效果更好 -->
+            android:background="?attr/colorSurfaceVariant"
+            android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/Vod.Grid" <!-- 为图片本身保留圆角，以备不时之需 -->
+            app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:src="@drawable/ic_img_loading" />
 
         <!-- 底部文字对比度遮罩层 -->
