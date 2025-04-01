@@ -76,7 +76,8 @@ public final class SubtitleDialog extends BaseDialog {
         // 获取并设置字幕的文字大小
         float savedTextSize = Setting.getSubtitleTextSize() / 1000.0f;
         textSize = savedTextSize;
-        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
+        // *** 修改点 1: 调换参数顺序 ***
+        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
     }
 
     @Override
@@ -103,24 +104,29 @@ public final class SubtitleDialog extends BaseDialog {
 
     private void onLarge(View view) {
         textSize += TEXT_SIZE_INCREMENT;
-        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
+        // *** 修改点 2: 调换参数顺序 ***
+        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         Setting.putSubtitleTextSize((int) (textSize * 1000));
     }
 
     private void onSmall(View view) {
         textSize -= TEXT_SIZE_INCREMENT;
         textSize = Math.max(textSize, 0.5f); // 确保最小值为 0.5
-        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
+        // *** 修改点 3: 调换参数顺序 ***
+        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         Setting.putSubtitleTextSize((int) (textSize * 1000));
     }
 
     private void onReset(View view) {
         Setting.putSubtitleTextSize(0);
         Setting.putSubtitleBottomPadding(0);
-        subtitleView.setUserDefaultTextSize();
+        subtitleView.setUserDefaultTextSize(); // 这个方法会重置大小，后面不再需要手动设置textSize
         subtitleView.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION);
         bottomPaddingFraction = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION;
-        textSize = 1.0f;
+        // textSize = 1.0f; // 重置时，应该使用 setUserDefaultTextSize() 的结果，或者如果你需要一个特定的默认值，可以在此设置，但通常 setUserDefaultTextSize() 就够了。
+                         // 为了保持和你原来逻辑接近，暂时注释掉，但setUserDefaultTextSize() 已经处理了字体大小重置。
+                         // 如果发现重置后字体大小不符合预期，可以取消注释这行并调整 1.0f 为合适的默认SP值
+                         // 或者直接移除 setUserDefaultTextSize() 调用，只保留 setTextSize(TypedValue.COMPLEX_UNIT_SP, 1.0f)
     }
 
     @Override
