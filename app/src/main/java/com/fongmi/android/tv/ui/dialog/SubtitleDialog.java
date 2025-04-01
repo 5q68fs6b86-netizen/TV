@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.util.TypedValue; // Import TypedValue
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,11 +22,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 @UnstableApi
 public final class SubtitleDialog extends BaseDialog {
 
-    // --- Constants for Text Size in SP ---
-    private static final float DEFAULT_TEXT_SIZE_SP = 16f; // 默认字体大小 (SP)
-    private static final float TEXT_SIZE_STEP_SP = 1f;   // 调整字体大小的步长 (SP)
-    private static final float MIN_TEXT_SIZE_SP = 10f;  // 最小字体大小 (SP)
-    private static final float MAX_TEXT_SIZE_SP = 30f;  // 最大字体大小 (SP)
     // --- Constants for Padding Fraction ---
     private static final float PADDING_STEP = 0.01f; // 调整底部边距的步长（占视图高度的比例）
     private static final float MIN_PADDING_FRACTION = 0.0f;  // 最小边距比例
@@ -40,7 +34,6 @@ public final class SubtitleDialog extends BaseDialog {
     private boolean full;
 
     // 当前设置的值
-    private float currentTextSizeSp; // 当前字体大小 (SP)
     private float currentPaddingFraction; // 当前底部边距比例
 
     public static SubtitleDialog create() {
@@ -80,14 +73,18 @@ public final class SubtitleDialog extends BaseDialog {
 
     @Override
     protected void initView() {
-        applySettings(); // 应用保存的设置
+        applySettings(); // 应用保存的边距设置
+
+        // --- 移除或禁用字体大小调整按钮 ---
+        binding.large.setVisibility(View.GONE); // 隐藏增大按钮
+        binding.small.setVisibility(View.GONE); // 隐藏减小按钮
 
         if (full) {
             int white = MDColor.WHITE;
             setTint(binding.up, white);
             setTint(binding.down, white);
-            setTint(binding.large, white);
-            setTint(binding.small, white);
+            // setTint(binding.large, white); // 不再需要
+            // setTint(binding.small, white); // 不再需要
             setTint(binding.reset, white);
         }
     }
@@ -98,40 +95,32 @@ public final class SubtitleDialog extends BaseDialog {
         }
     }
 
-    // 应用保存的设置到 SubtitleView
+    // 应用保存的设置到 SubtitleView (只处理边距)
     private void applySettings() {
         if (subtitleView == null) return;
 
-        // 获取并应用字体大小设置 (现在是 SP 值)
-        // *** 重要: 假设 Setting.getSubtitleTextSize() 现在返回 SP 值 ***
-        // *** 如果它返回的是旧的比例值，需要在这里做转换或修改 Setting 类 ***
-        currentTextSizeSp = Setting.getSubtitleTextSize();
-        if (currentTextSizeSp <= 0) { // 0 或无效值表示使用默认
-            currentTextSizeSp = DEFAULT_TEXT_SIZE_SP;
-            subtitleView.setUserDefaultTextSize(); // 让 View 使用其内部默认值
-        } else {
-            // 确保加载的值在合理范围内
-            currentTextSizeSp = Math.max(MIN_TEXT_SIZE_SP, Math.min(MAX_TEXT_SIZE_SP, currentTextSizeSp));
-            // 使用 setTextSize 设置 SP 值
-            subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentTextSizeSp);
-        }
-
-        // 获取并应用底部边距设置 (保持比例方式)
+        // 获取并应用底部边距设置
         currentPaddingFraction = Setting.getSubtitleBottomPadding();
-        if (currentPaddingFraction < MIN_PADDING_FRACTION || currentPaddingFraction > MAX_PADDING_FRACTION ) { // 处理无效值或表示默认的值(如0或负数)
+        // 使用一个不太可能由用户设置的值（比如-1）来判断是否是“未设置”或“使用默认”
+        if (currentPaddingFraction < MIN_PADDING_FRACTION || currentPaddingFraction > MAX_PADDING_FRACTION ) {
              currentPaddingFraction = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION;
         }
-        // 确保加载的值在合理范围内
-        currentPaddingFraction = Math.max(MIN_PADDING_FRACTION, Math.min(MAX_PADDING_FRACTION, currentPaddingFraction));
+        // 确保加载的值在合理范围内（这一步可能不需要了，如果上面已经设为默认）
+        // currentPaddingFraction = Math.max(MIN_PADDING_FRACTION, Math.min(MAX_PADDING_FRACTION, currentPaddingFraction));
         subtitleView.setBottomPaddingFraction(currentPaddingFraction);
+
+        // 字体大小由系统或默认值决定，不由我们控制
+        // 可以考虑调用一次 setUserDefaultTextSize() 确保应用系统设置，但这取决于产品需求
+        // subtitleView.setUserDefaultTextSize();
     }
 
     @Override
     protected void initEvent() {
         binding.up.setOnClickListener(this::onUp);
         binding.down.setOnClickListener(this::onDown);
-        binding.large.setOnClickListener(this::onLarge);
-        binding.small.setOnClickListener(this::onSmall);
+        // --- 移除字体大小按钮的监听器 ---
+        // binding.large.setOnClickListener(this::onLarge);
+        // binding.small.setOnClickListener(this::onSmall);
         binding.reset.setOnClickListener(this::onReset);
     }
 
@@ -151,44 +140,26 @@ public final class SubtitleDialog extends BaseDialog {
         Setting.putSubtitleBottomPadding(currentPaddingFraction);
     }
 
-    // 增大字体 (使用 SP)
-    private void onLarge(View view) {
-        if (subtitleView == null) return;
-        // 基于当前 SP 值计算新值，并限制范围
-        currentTextSizeSp = Math.min(MAX_TEXT_SIZE_SP, currentTextSizeSp + TEXT_SIZE_STEP_SP);
-        // 应用新 SP 值
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentTextSizeSp);
-        // 保存新的 SP 值到 Setting
-        // *** 重要: 确保 Setting.putSubtitleTextSize 可以接收 SP 值 ***
-        Setting.putSubtitleTextSize(currentTextSizeSp);
-    }
+    // --- onLarge 和 onSmall 方法已移除 ---
+    // private void onLarge(View view) { ... }
+    // private void onSmall(View view) { ... }
 
-    // 减小字体 (使用 SP)
-    private void onSmall(View view) {
-        if (subtitleView == null) return;
-        // 基于当前 SP 值计算新值，并限制范围
-        currentTextSizeSp = Math.max(MIN_TEXT_SIZE_SP, currentTextSizeSp - TEXT_SIZE_STEP_SP);
-        // 应用新 SP 值
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentTextSizeSp);
-        // 保存新的 SP 值到 Setting
-        // *** 重要: 确保 Setting.putSubtitleTextSize 可以接收 SP 值 ***
-        Setting.putSubtitleTextSize(currentTextSizeSp);
-    }
-
-    // 重置设置
+    // 重置设置 (现在只重置位置)
     private void onReset(View view) {
         if (subtitleView == null) return;
-        // 将 Setting 设为 0 表示默认
-        Setting.putSubtitleTextSize(0);
-        Setting.putSubtitleBottomPadding(0); // 或者保存 SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
+        // 将 Setting 中的边距值设为 0 或其他表示默认的值
+        Setting.putSubtitleBottomPadding(0);
+        // --- 不再需要清除字体大小设置 ---
+        // Setting.putSubtitleTextSize(0);
 
-        // 更新内部状态为默认值
-        currentTextSizeSp = DEFAULT_TEXT_SIZE_SP;
+        // 更新内部状态为默认边距值
         currentPaddingFraction = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION;
 
-        // 应用到 View
-        subtitleView.setUserDefaultTextSize(); // 重置大小
-        subtitleView.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION); // 重置边距
+        // 应用到 View (重置边距)
+        subtitleView.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION);
+
+        // 调用 setUserDefaultTextSize() 是可选的，取决于“重置”是否也意味着字体大小恢复系统默认
+        // subtitleView.setUserDefaultTextSize();
     }
 
     @Override
