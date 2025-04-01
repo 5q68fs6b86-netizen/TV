@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.os.Bundle;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +24,6 @@ public final class SubtitleDialog extends BaseDialog {
     private SubtitleView subtitleView;
     private boolean full;
 
-    private float bottomPaddingFraction = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION;
-    private float textSize = 1.0f; // 初始大小，可以根据需求调整
-    private static final float PADDING_INCREMENT = 0.005f;
-    private static final float TEXT_SIZE_INCREMENT = 0.002f;
-
     public static SubtitleDialog create() {
         return new SubtitleDialog();
     }
@@ -46,8 +39,7 @@ public final class SubtitleDialog extends BaseDialog {
     }
 
     public void show(FragmentActivity activity) {
-        for (Fragment f : activity.getSupportFragmentManager().getFragments())
-            if (f instanceof BottomSheetDialogFragment) return;
+        for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
         show(activity.getSupportFragmentManager(), null);
     }
 
@@ -64,20 +56,7 @@ public final class SubtitleDialog extends BaseDialog {
     @Override
     protected void initView() {
         int count = binding.getRoot().getChildCount();
-        if (full)
-            for (int i = 0; i < count; i++)
-                ((ImageView) binding.getRoot().getChildAt(i)).getDrawable().setTint(MDColor.WHITE);
-
-        // 获取并设置字幕的底部间距
-        float savedPadding = Setting.getSubtitleBottomPadding() / 1000.0f;
-        bottomPaddingFraction = savedPadding;
-        subtitleView.setBottomPaddingFraction(bottomPaddingFraction);
-
-        // 获取并设置字幕的文字大小
-        float savedTextSize = Setting.getSubtitleTextSize() / 1000.0f;
-        textSize = savedTextSize;
-        // *** 修改点 1: 调换参数顺序 ***
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        if (full) for (int i = 0; i < count; i++) ((ImageView) binding.getRoot().getChildAt(i)).getDrawable().setTint(MDColor.WHITE);
     }
 
     @Override
@@ -90,43 +69,30 @@ public final class SubtitleDialog extends BaseDialog {
     }
 
     private void onUp(View view) {
-        bottomPaddingFraction += PADDING_INCREMENT;
-        subtitleView.setBottomPaddingFraction(bottomPaddingFraction);
-        Setting.putSubtitleBottomPadding((int) (bottomPaddingFraction * 1000));
+        subtitleView.addBottomPadding(0.005f);
+        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
     }
 
     private void onDown(View view) {
-        bottomPaddingFraction -= PADDING_INCREMENT;
-        if (bottomPaddingFraction < 0) bottomPaddingFraction = 0;
-        subtitleView.setBottomPaddingFraction(bottomPaddingFraction);
-        Setting.putSubtitleBottomPadding((int) (bottomPaddingFraction * 1000));
+        subtitleView.subBottomPadding(0.005f);
+        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
     }
 
     private void onLarge(View view) {
-        textSize += TEXT_SIZE_INCREMENT;
-        // *** 修改点 2: 调换参数顺序 ***
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        Setting.putSubtitleTextSize((int) (textSize * 1000));
+        subtitleView.addTextSize(0.002f);
+        Setting.putSubtitleTextSize(subtitleView.getTextSize());
     }
 
     private void onSmall(View view) {
-        textSize -= TEXT_SIZE_INCREMENT;
-        textSize = Math.max(textSize, 0.5f); // 确保最小值为 0.5
-        // *** 修改点 3: 调换参数顺序 ***
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        Setting.putSubtitleTextSize((int) (textSize * 1000));
+        subtitleView.subTextSize(0.002f);
+        Setting.putSubtitleTextSize(subtitleView.getTextSize());
     }
 
     private void onReset(View view) {
         Setting.putSubtitleTextSize(0);
         Setting.putSubtitleBottomPadding(0);
-        subtitleView.setUserDefaultTextSize(); // 这个方法会重置大小，后面不再需要手动设置textSize
+        subtitleView.setUserDefaultTextSize();
         subtitleView.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION);
-        bottomPaddingFraction = SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION;
-        // textSize = 1.0f; // 重置时，应该使用 setUserDefaultTextSize() 的结果，或者如果你需要一个特定的默认值，可以在此设置，但通常 setUserDefaultTextSize() 就够了。
-                         // 为了保持和你原来逻辑接近，暂时注释掉，但setUserDefaultTextSize() 已经处理了字体大小重置。
-                         // 如果发现重置后字体大小不符合预期，可以取消注释这行并调整 1.0f 为合适的默认SP值
-                         // 或者直接移除 setUserDefaultTextSize() 调用，只保留 setTextSize(TypedValue.COMPLEX_UNIT_SP, 1.0f)
     }
 
     @Override
