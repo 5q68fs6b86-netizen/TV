@@ -16,7 +16,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- 主要图片 -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/image"
             android:layout_width="0dp"
@@ -30,7 +29,6 @@
             app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:src="@drawable/ic_img_loading" />
 
-        <!-- 底部文字对比度遮罩层 -->
         <View
             android:id="@+id/bottom_scrim"
             android:layout_width="0dp"
@@ -40,7 +38,6 @@
             app:layout_constraintHeight_percent="0.3"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- 名称文本 -->
         <TextView
             android:id="@+id/name"
             android:layout_width="0dp"
@@ -59,7 +56,6 @@
             app:layout_constraintStart_toStartOf="@id/bottom_scrim"
             tools:text="蜘蛛侠：英雄无归 加长版测试名称" />
 
-        <!-- 备注文本 -->
         <TextView
             android:id="@+id/remark"
             android:layout_width="0dp"
@@ -75,9 +71,8 @@
             app:layout_constraintBottom_toTopOf="@+id/name"
             app:layout_constraintEnd_toEndOf="@id/bottom_scrim"
             app:layout_constraintStart_toStartOf="@id/bottom_scrim"
-            tools:text="1080p" /> <!-- 示例文字 -->
+            tools:text="1080p" />
 
-        <!-- 年份标签 -->
         <TextView
             android:id="@+id/year"
             android:layout_width="wrap_content"
@@ -100,35 +95,33 @@
             tools:text="2022"
             tools:visibility="visible" />
 
-        <!-- 站点标签 -->
         <TextView
             android:id="@+id/site"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
-            android:background="@drawable/shape_tag_background_md3" <!-- 使用带主题色的 Drawable -->
-            android:backgroundTint="?attr/colorTertiaryContainer" <!-- 使用主题容器色 -->
+            android:background="@drawable/shape_tag_background_md3"
+            android:backgroundTint="?attr/colorTertiaryContainer"
             android:ellipsize="end"
             android:paddingStart="6dp"
             android:paddingTop="2dp"
             android:paddingEnd="6dp"
             android:paddingBottom="2dp"
             android:singleLine="true"
-            android:textAppearance="?attr/textAppearanceLabelSmall" <!-- 使用 MD3 文本样式 -->
-            android:textColor="?attr/colorOnTertiaryContainer" <!-- 对应容器色的文本色 -->
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnTertiaryContainer"
             android:visibility="gone"
             app:layout_constraintStart_toEndOf="@+id/year"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="泥巴" <!-- 示例文字 -->
+            tools:text="泥巴"
             tools:visibility="visible" />
 
-        <!-- 删除覆盖层 -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/delete"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="?attr/scrimBackground" <!-- 定义此属性或使用带透明度的主题色 -->
+            android:background="?attr/scrimBackground"
             android:scaleType="center"
             android:src="@drawable/ic_vod_delete"
             android:visibility="gone"
@@ -136,7 +129,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/Vod.Grid" <!-- 确保覆盖层也有圆角 -->
+            app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
