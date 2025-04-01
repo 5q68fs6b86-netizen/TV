@@ -76,7 +76,7 @@ public final class SubtitleDialog extends BaseDialog {
         // 获取并设置字幕的文字大小
         float savedTextSize = Setting.getSubtitleTextSize() / 1000.0f;
         textSize = savedTextSize;
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
     }
 
     @Override
@@ -103,14 +103,14 @@ public final class SubtitleDialog extends BaseDialog {
 
     private void onLarge(View view) {
         textSize += TEXT_SIZE_INCREMENT;
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
         Setting.putSubtitleTextSize((int) (textSize * 1000));
     }
 
     private void onSmall(View view) {
         textSize -= TEXT_SIZE_INCREMENT;
         textSize = Math.max(textSize, 0.5f); // 确保最小值为 0.5
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+        subtitleView.setTextSize(textSize, TypedValue.COMPLEX_UNIT_SP);
         Setting.putSubtitleTextSize((int) (textSize * 1000));
     }
 
