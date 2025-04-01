@@ -35,10 +35,9 @@
             android:id="@+id/bottom_scrim"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@drawable/shape_scrim_bottom_md3" <!-- 定义一个渐变 Drawable -->
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@drawable/shape_scrim_bottom_md3"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.3" <!-- 按需调整高度百分比 -->
+            app:layout_constraintHeight_percent="0.3"
             app:layout_constraintStart_toStartOf="parent" />
 
         <!-- 名称文本 -->
@@ -50,15 +49,15 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:ellipsize="marquee"
-            android:gravity="center_vertical|start" <!-- MD 中左对齐更常见 -->
+            android:gravity="center_vertical|start"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
-            android:textAppearance="?attr/textAppearanceTitleSmall" <!-- 使用 MD3 文本样式 -->
-            android:textColor="?attr/colorOnPrimaryInverse" <!-- 适合放在深色遮罩层上的颜色 -->
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnPrimaryInverse"
             app:layout_constraintBottom_toBottomOf="@id/bottom_scrim"
             app:layout_constraintEnd_toEndOf="@id/bottom_scrim"
             app:layout_constraintStart_toStartOf="@id/bottom_scrim"
-            tools:text="蜘蛛侠：英雄无归 加长版测试名称" /> <!-- 示例文字 -->
+            tools:text="蜘蛛侠：英雄无归 加长版测试名称" />
 
         <!-- 备注文本 -->
         <TextView
@@ -71,8 +70,8 @@
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
-            android:textAppearance="?attr/textAppearanceLabelMedium" <!-- 使用 MD3 文本样式 -->
-            android:textColor="?attr/colorOnPrimaryInverse" <!-- 适合放在深色遮罩层上的颜色 -->
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnPrimaryInverse"
             app:layout_constraintBottom_toTopOf="@+id/name"
             app:layout_constraintEnd_toEndOf="@id/bottom_scrim"
             app:layout_constraintStart_toStartOf="@id/bottom_scrim"
@@ -85,16 +84,16 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:background="@drawable/shape_tag_background_md3" <!-- 使用带主题色的 Drawable -->
-            android:backgroundTint="?attr/colorSecondaryContainer" <!-- 使用主题容器色 -->
+            android:background="@drawable/shape_tag_background_md3"
+            android:backgroundTint="?attr/colorSecondaryContainer"
             android:ellipsize="end"
             android:paddingStart="6dp"
             android:paddingTop="2dp"
             android:paddingEnd="6dp"
             android:paddingBottom="2dp"
             android:singleLine="true"
-            android:textAppearance="?attr/textAppearanceLabelSmall" <!-- 使用 MD3 文本样式 -->
-            android:textColor="?attr/colorOnSecondaryContainer" <!-- 对应容器色的文本色 -->
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSecondaryContainer"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
