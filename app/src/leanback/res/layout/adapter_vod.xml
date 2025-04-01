@@ -1,93 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_root"
+    style="?attr/materialCardViewFilledStyle"  <!-- 或者使用 elevated/outlined 风格 -->
     android:layout_width="150dp"
     android:layout_height="200dp"
+    android:clickable="true"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    app:cardForegroundColor="@android:color/transparent" <!-- 确保波纹效果可见 -->
+    app:shapeAppearanceOverlay="@style/Vod.Grid"> <!-- 将圆角应用于卡片 -->
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black_20"
-        android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:src="@drawable/ic_img_loading" />
+        android:layout_height="match_parent">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/delete"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black_50"
-        android:scaleType="center"
-        android:src="@drawable/ic_vod_delete"
-        android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:visibility="visible" />
+        <!-- 主要图片 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/image"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="?attr/colorSurfaceVariant" <!-- 占位背景色 -->
+            android:scaleType="centerCrop" <!-- CenterCrop 通常在卡片中效果更好 -->
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/Vod.Grid" <!-- 为图片本身保留圆角，以备不时之需 -->
+            tools:src="@drawable/ic_img_loading" />
 
-    <TextView
-        android:id="@+id/year"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="#CC2196F3"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        android:visibility="gone"
-        tools:text="2022"
-        tools:visibility="visible" />
+        <!-- 底部文字对比度遮罩层 -->
+        <View
+            android:id="@+id/bottom_scrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/shape_scrim_bottom_md3" <!-- 定义一个渐变 Drawable -->
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.3" <!-- 按需调整高度百分比 -->
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
-        android:id="@+id/site"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="#CCF44336"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        android:visibility="gone"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+        <!-- 名称文本 -->
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="marquee"
+            android:gravity="center_vertical|start" <!-- MD 中左对齐更常见 -->
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceTitleSmall" <!-- 使用 MD3 文本样式 -->
+            android:textColor="?attr/colorOnPrimaryInverse" <!-- 适合放在深色遮罩层上的颜色 -->
+            app:layout_constraintBottom_toBottomOf="@id/bottom_scrim"
+            app:layout_constraintEnd_toEndOf="@id/bottom_scrim"
+            app:layout_constraintStart_toStartOf="@id/bottom_scrim"
+            tools:text="蜘蛛侠：英雄无归 加长版测试名称" /> <!-- 示例文字 -->
 
-    <TextView
-        android:id="@+id/remark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="#CC177535"
-        android:ellipsize="marquee"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        tools:text="1080p" />
+        <!-- 备注文本 -->
+        <TextView
+            android:id="@+id/remark"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="4dp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceLabelMedium" <!-- 使用 MD3 文本样式 -->
+            android:textColor="?attr/colorOnPrimaryInverse" <!-- 适合放在深色遮罩层上的颜色 -->
+            app:layout_constraintBottom_toTopOf="@+id/name"
+            app:layout_constraintEnd_toEndOf="@id/bottom_scrim"
+            app:layout_constraintStart_toStartOf="@id/bottom_scrim"
+            tools:text="1080p" /> <!-- 示例文字 -->
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        <!-- 年份标签 -->
+        <TextView
+            android:id="@+id/year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/shape_tag_background_md3" <!-- 使用带主题色的 Drawable -->
+            android:backgroundTint="?attr/colorSecondaryContainer" <!-- 使用主题容器色 -->
+            android:ellipsize="end"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceLabelSmall" <!-- 使用 MD3 文本样式 -->
+            android:textColor="?attr/colorOnSecondaryContainer" <!-- 对应容器色的文本色 -->
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="2022"
+            tools:visibility="visible" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/selector_vod"
-        android:duplicateParentState="true" />
+        <!-- 站点标签 -->
+        <TextView
+            android:id="@+id/site"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/shape_tag_background_md3" <!-- 使用带主题色的 Drawable -->
+            android:backgroundTint="?attr/colorTertiaryContainer" <!-- 使用主题容器色 -->
+            android:ellipsize="end"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceLabelSmall" <!-- 使用 MD3 文本样式 -->
+            android:textColor="?attr/colorOnTertiaryContainer" <!-- 对应容器色的文本色 -->
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@+id/year"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="泥巴" <!-- 示例文字 -->
+            tools:visibility="visible" />
 
-</RelativeLayout>
+        <!-- 删除覆盖层 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/delete"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="?attr/scrimBackground" <!-- 定义此属性或使用带透明度的主题色 -->
+            android:scaleType="center"
+            android:src="@drawable/ic_vod_delete"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/Vod.Grid" <!-- 确保覆盖层也有圆角 -->
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
