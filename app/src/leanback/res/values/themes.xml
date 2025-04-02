@@ -1,3 +1,0 @@
-<style name="Theme.YourApp" parent="Theme.Material3.DayNight.NoActionBar">
-    <item name="scrimBackground">#99000000</item>
-</style>
