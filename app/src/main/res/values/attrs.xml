@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- 保留你原有的 CustomRecyclerView 属性 -->
     <declare-styleable name="CustomRecyclerView">
         <attr name="maxHeight" format="dimension" />
     </declare-styleable>
+
+    <!-- 添加缺失的主题属性 -->
+    <!-- 用于在“主色反色”背景上显示的文本/图标颜色 -->
+    <attr name="colorOnPrimaryInverse" format="#ffffff" />
+
+    <!-- 用于覆盖层（如删除提示）的背景颜色或 Drawable -->
+    <attr name="scrimBackground" format="#000000" />
+
 </resources>
