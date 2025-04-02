@@ -33,12 +33,23 @@ jobs:
       run: chmod +x ./gradlew
 
     - name: Build APKs
+      run: ./gradlew assembleRelease
+
+    - name: Verify APKs exist
+      id: apk-check
       run: |
-        ./gradlew assembleLeanbackPythonArm64_v8aRelease
-        ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
+        ls app/build/outputs/apk
+        if ls app/build/outputs/apk/**/*release/*.apk 1> /dev/null 2>&1; then
+          echo "apk_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "APK not found!" >&2
+          exit 1
+        fi
 
     - name: Upload APKs
+      if: steps.apk-check.outputs.apk_exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: Release-APKs
+        path: app/build/outputs/apk/**/*release/*.apk
         retention-days: 7
