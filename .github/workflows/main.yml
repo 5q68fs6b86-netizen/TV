@@ -37,29 +37,8 @@ jobs:
         ./gradlew assembleLeanbackPythonArm64_v8aRelease
         ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
 
-    - name: Verify APKs exist
-      id: apk-check
-      run: |
-        apk_exists=false
-        if [ -f app/build/outputs/apk/leanback/python/arm64_v8a/release/leanback-python-arm64_v8a.apk ]; then
-          echo "Found leanback-python-arm64_v8a.apk"
-          apk_exists=true
-        fi
-        if [ -f app/build/outputs/apk/leanback/python/armeabi_v7a/release/leanback-python-armeabi_v7a.apk ]; then
-          echo "Found leanback-python-armeabi_v7a.apk"
-          apk_exists=true
-        fi
-        if [ "$apk_exists" = "true" ]; then
-          echo "apk_exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "Required APKs not found!" >&2
-          exit 1
-        fi
-
     - name: Upload APKs
-      if: steps.apk-check.outputs.apk_exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: Release-APKs
-        path: app/build/outputs/apk/leanback/python/*/release/leanback-python-*.apk
         retention-days: 7
