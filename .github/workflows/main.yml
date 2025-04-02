@@ -33,7 +33,9 @@ jobs:
       run: chmod +x ./gradlew
 
     - name: Build APKs
-      run: ./gradlew assembleRelease
+      run: |
+         ./gradlew assembleLeanbackPythonArm64_v8aRelease
+         ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
 
     - name: Verify APKs exist
       id: apk-check
