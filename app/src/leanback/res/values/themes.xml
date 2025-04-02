@@ -1,6 +1,6 @@
 <style name="Theme.YourApp" parent="Theme.Material3.DayNight.NoActionBar">
     <!-- ... 其他主题属性 ... -->
-    <item name="colorOnPrimaryInverse">#99ffffff</item>  <!-- 修正后的行 -->
+    <item name="colorOnPrimaryInverse">#99ffffff</item>
     <item name="scrimBackground">#99000000</item>
     <!-- ... 其他主题属性 ... -->
 </style>
