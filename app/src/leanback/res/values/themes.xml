@@ -1,5 +1,5 @@
 <style name="Theme.YourApp" parent="Theme.Material3.DayNight.NoActionBar">
     <!-- ... 其他主题属性 ... -->
-    <item name="colorOnPrimaryInverse">@android:color/white</item>
+    <item name="colorOnPrimaryInverse"#99ffffff</item>
     <item name="scrimBackground">#99000000</item>
 </style>
