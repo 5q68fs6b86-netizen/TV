@@ -99,7 +99,7 @@ public class Vod implements Parcelable {
     private Site site;
 
     // --- Constant for Removal ---
-    private static final String STRING_TO_REMOVE = "公众号关注：《《王二小放牛娃》》";
+    private static final String STRING_TO_REMOVE = "公众号关注:《《王二小放牛娃》》";
 
     // --- Static Method (no changes here) ---
     public static List<Vod> arrayFrom(String str) {
