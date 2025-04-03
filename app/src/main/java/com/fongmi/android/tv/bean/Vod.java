@@ -262,13 +262,29 @@ public class Vod implements Parcelable {
 
     public void trans() {
         if (Trans.pass()) return;
+        String target = "公众号关注：《《王二小放牛娃》》";
         this.vodName = Trans.s2t(vodName);
         this.vodArea = Trans.s2t(vodArea);
         this.typeName = Trans.s2t(typeName);
         this.vodRemarks = Trans.s2t(vodRemarks);
-        if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
-        if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
-        if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
+        if (vodActor != null) {
+            this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
+            if (this.vodActor.contains(target)) {
+                this.vodActor = this.vodActor.replace(target, "").trim();
+            }
+        }
+        if (vodContent != null) {
+            this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
+            if (this.vodContent.contains(target)) {
+                this.vodContent = this.vodContent.replace(target, "").trim();
+            }
+        }
+        if (vodDirector != null) {
+            this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
+            if (this.vodDirector.contains(target)) {
+                this.vodDirector = this.vodDirector.replace(target, "").trim();
+            }
+        }
     }
 
     public void setVodFlags() {
