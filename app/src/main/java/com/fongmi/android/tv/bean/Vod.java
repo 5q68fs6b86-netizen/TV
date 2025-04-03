@@ -97,6 +97,8 @@ public class Vod implements Parcelable {
 
     private Site site;
 
+    private static final String STRING_TO_REMOVE = "公众号关注：《《王二小放牛娃》》"; // Define the string to remove
+
     public static List<Vod> arrayFrom(String str) {
         Type listType = new TypeToken<List<Vod>>() {}.getType();
         List<Vod> items = App.gson().fromJson(str, listType);
@@ -146,16 +148,22 @@ public class Vod implements Parcelable {
         return TextUtils.isEmpty(vodArea) ? "" : vodArea.trim();
     }
 
+    // MODIFIED METHOD
     public String getVodDirector() {
-        return TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
+        String originalValue = TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
+        return originalValue.replace(STRING_TO_REMOVE, ""); // Remove the target string
     }
 
+    // MODIFIED METHOD
     public String getVodActor() {
-        return TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
+        String originalValue = TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
+        return originalValue.replace(STRING_TO_REMOVE, ""); // Remove the target string
     }
 
+    // MODIFIED METHOD
     public String getVodContent() {
-        return TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
+        String originalValue = TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
+        return originalValue.replace(STRING_TO_REMOVE, ""); // Remove the target string
     }
 
     public String getVodPlayFrom() {
@@ -262,29 +270,15 @@ public class Vod implements Parcelable {
 
     public void trans() {
         if (Trans.pass()) return;
-        String target = "公众号关注：《《王二小放牛娃》》";
         this.vodName = Trans.s2t(vodName);
         this.vodArea = Trans.s2t(vodArea);
         this.typeName = Trans.s2t(typeName);
         this.vodRemarks = Trans.s2t(vodRemarks);
-        if (vodActor != null) {
-            this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
-            if (this.vodActor.contains(target)) {
-                this.vodActor = this.vodActor.replace(target, "").trim();
-            }
-        }
-        if (vodContent != null) {
-            this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
-            if (this.vodContent.contains(target)) {
-                this.vodContent = this.vodContent.replace(target, "").trim();
-            }
-        }
-        if (vodDirector != null) {
-            this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
-            if (this.vodDirector.contains(target)) {
-                this.vodDirector = this.vodDirector.replace(target, "").trim();
-            }
-        }
+        // Note: The trans() method operates on the field directly.
+        // The getters will still remove the unwanted string from the *output* of trans() if it's present.
+        if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
+        if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
+        if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
     }
 
     public void setVodFlags() {
@@ -324,9 +318,9 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodRemarks);
         dest.writeString(this.vodYear);
         dest.writeString(this.vodArea);
-        dest.writeString(this.vodDirector);
-        dest.writeString(this.vodActor);
-        dest.writeString(this.vodContent);
+        dest.writeString(this.vodDirector); // Writes the original field value
+        dest.writeString(this.vodActor);    // Writes the original field value
+        dest.writeString(this.vodContent);  // Writes the original field value
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
         dest.writeString(this.vodTag);
@@ -348,9 +342,9 @@ public class Vod implements Parcelable {
         this.vodRemarks = in.readString();
         this.vodYear = in.readString();
         this.vodArea = in.readString();
-        this.vodDirector = in.readString();
-        this.vodActor = in.readString();
-        this.vodContent = in.readString();
+        this.vodDirector = in.readString(); // Reads the original field value
+        this.vodActor = in.readString();    // Reads the original field value
+        this.vodContent = in.readString();  // Reads the original field value
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
         this.vodTag = in.readString();
