@@ -102,7 +102,7 @@ public class Vod implements Parcelable {
     private Site site;
 
     // --- Constants for Removal and Replacement ---
-    private static final String STRING_TO_REMOVE = "关注公众号:《《王二小放牛娃》》";
+    private static final String STRING_TO_REMOVE = "公众号关注:《《王二小放牛娃》》";
     // URL Replacements (Define as constants for clarity, though applied directly below)
     private static final String OLD_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
     private static final String NEW_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
