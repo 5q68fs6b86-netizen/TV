@@ -103,9 +103,14 @@ public class Vod implements Parcelable {
 
     // --- Constants for Removal and Replacement ---
     private static final String STRING_TO_REMOVE = "关注公众号:《《王二小放牛娃》》";
-    private static final String OLD_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
-    private static final String NEW_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
-    // Constants for new replacements are not strictly needed as they are applied directly in helpers
+    // URL Replacements (Define as constants for clarity, though applied directly below)
+    private static final String OLD_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
+    private static final String NEW_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
+    private static final String OLD_URL_2 = "https://uchat.cn-bj.ufileos.com/rw_1ce85ffd-1540-4eb2-b724-6d29e4a0bc99_123.png";
+    private static final String NEW_URL_2 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741743563/86043B79-CAE8-4408-BE6D-78DC9C7312B2.png";
+    private static final String OLD_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1740327617800/tyyun.png";
+    private static final String NEW_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
+    // Other text replacements applied directly
 
     // --- Static Method ---
     public static List<Vod> arrayFrom(String str) {
@@ -125,13 +130,15 @@ public class Vod implements Parcelable {
             return "";
         }
         // Apply all replacements in sequence
-        return input.replace(STRING_TO_REMOVE, "") // Existing removal
-                  .replace(OLD_URL, NEW_URL)        // Existing URL replacement
-                  .replace("迅蕾", "迅雷")        // New replacement 1
-                  .replace("优熙", "UC")         // New replacement 2
-                  .replace("跨壳", "夸克")        // New replacement 3
-                  .replace("天逸", "天翼")        // New replacement 4
-                  .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
+        return input.replace(STRING_TO_REMOVE, "")
+                  .replace(OLD_URL_1, NEW_URL_1) // URL 1
+                  .replace(OLD_URL_2, NEW_URL_2) // URL 2 (NEW)
+                  .replace(OLD_URL_3, NEW_URL_3) // URL 3 (NEW)
+                  .replace("迅蕾", "迅雷")
+                  .replace("优熙", "UC")
+                  .replace("跨壳", "夸克")
+                  .replace("天逸", "天翼")
+                  .replace("TJ搜索服务器", "TG搜索服务器");
     }
 
     // Helper to trim first, then apply all replacements
@@ -140,13 +147,15 @@ public class Vod implements Parcelable {
             return "";
         }
         // Trim first, then apply all replacements
-        return input.trim().replace(STRING_TO_REMOVE, "") // Existing removal
-                       .replace(OLD_URL, NEW_URL)        // Existing URL replacement
-                       .replace("迅蕾", "迅雷")        // New replacement 1
-                       .replace("优熙", "UC")         // New replacement 2
-                       .replace("跨壳", "夸克")        // New replacement 3
-                       .replace("天逸", "天翼")        // New replacement 4
-                       .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
+        return input.trim().replace(STRING_TO_REMOVE, "")
+                       .replace(OLD_URL_1, NEW_URL_1) // URL 1
+                       .replace(OLD_URL_2, NEW_URL_2) // URL 2 (NEW)
+                       .replace(OLD_URL_3, NEW_URL_3) // URL 3 (NEW)
+                       .replace("迅蕾", "迅雷")
+                       .replace("优熙", "UC")
+                       .replace("跨壳", "夸克")
+                       .replace("天逸", "天翼")
+                       .replace("TJ搜索服务器", "TG搜索服务器");
     }
     // --- END MODIFICATION ---
 
@@ -180,8 +189,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPic() {
-        // Uses processTrimmedString, applies all replacements including URL fix
-        return processTrimmedString(this.vodPic);
+        return processTrimmedString(this.vodPic); // Applies all replacements
     }
 
     public String getVodPic(String pic) {
@@ -223,13 +231,15 @@ public class Vod implements Parcelable {
         // Trim, handle newline first
         String processed = this.vodContent.trim().replace("\n", "<br>");
         // Then apply all replacements
-        return processed.replace(STRING_TO_REMOVE, "") // Existing removal
-                      .replace(OLD_URL, NEW_URL)        // Existing URL replacement
-                      .replace("迅蕾", "迅雷")        // New replacement 1
-                      .replace("优熙", "UC")         // New replacement 2
-                      .replace("跨壳", "夸克")        // New replacement 3
-                      .replace("天逸", "天翼")        // New replacement 4
-                      .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
+        return processed.replace(STRING_TO_REMOVE, "")
+                      .replace(OLD_URL_1, NEW_URL_1) // URL 1
+                      .replace(OLD_URL_2, NEW_URL_2) // URL 2 (NEW)
+                      .replace(OLD_URL_3, NEW_URL_3) // URL 3 (NEW)
+                      .replace("迅蕾", "迅雷")
+                      .replace("优熙", "UC")
+                      .replace("跨壳", "夸克")
+                      .replace("天逸", "天翼")
+                      .replace("TJ搜索服务器", "TG搜索服务器");
     }
     // --- END MODIFICATION ---
 
@@ -306,7 +316,6 @@ public class Vod implements Parcelable {
     }
 
     // --- Visibility and boolean checks (rely on modified getters, no changes needed) ---
-    // These methods use the modified getters, so they automatically benefit from the cleaning.
     public int getSiteVisible() {
         return getSite() == null ? View.GONE : View.VISIBLE;
     }
@@ -351,7 +360,7 @@ public class Vod implements Parcelable {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
-        // Cleaning via helpers (including new replacements) happens in getters
+        // Cleaning via helpers (including all replacements) happens in getters
     }
 
     // setVodFlags() relies on getters and processExistingFlagItem, which are updated
@@ -396,7 +405,9 @@ public class Vod implements Parcelable {
                  // Apply trim + all replacements
                  String cleanedFlag = item.getFlag().trim()
                                          .replace(STRING_TO_REMOVE, "")
-                                         .replace(OLD_URL, NEW_URL)
+                                         .replace(OLD_URL_1, NEW_URL_1) // URL 1
+                                         .replace(OLD_URL_2, NEW_URL_2) // URL 2 (NEW)
+                                         .replace(OLD_URL_3, NEW_URL_3) // URL 3 (NEW)
                                          .replace("迅蕾", "迅雷")
                                          .replace("优熙", "UC")
                                          .replace("跨壳", "夸克")
@@ -415,7 +426,9 @@ public class Vod implements Parcelable {
             // Apply all replacements to the bulk URL string
              String cleanedUrls = item.getUrls()
                                      .replace(STRING_TO_REMOVE, "")
-                                     .replace(OLD_URL, NEW_URL)
+                                     .replace(OLD_URL_1, NEW_URL_1) // URL 1
+                                     .replace(OLD_URL_2, NEW_URL_2) // URL 2 (NEW)
+                                     .replace(OLD_URL_3, NEW_URL_3) // URL 3 (NEW)
                                      .replace("迅蕾", "迅雷")
                                      .replace("优熙", "UC")
                                      .replace("跨壳", "夸克")
@@ -440,7 +453,7 @@ public class Vod implements Parcelable {
         if (this == obj) return true;
         if (!(obj instanceof Vod)) return false;
         Vod it = (Vod) obj;
-        // Comparison uses getVodId() which applies cleaning (including new replacements if any were relevant to IDs)
+        // Comparison uses getVodId() which applies cleaning
         return getVodId().equals(it.getVodId());
     }
 
