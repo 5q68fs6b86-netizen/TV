@@ -20,15 +20,14 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects; // Import Objects for equals/hashCode if needed, though current equals uses vodId
+import java.util.Objects; // Import Objects for equals/hashCode
 
-// Assuming Episode and Flag classes are in the same package or imported correctly
-// Assuming Site, Cate, Style classes are also accessible
+// Assuming Episode, Flag, Site, Cate, Style classes are accessible
 
 @Root(strict = false)
 public class Vod implements Parcelable {
 
-    // --- Fields (Original fields remain unchanged) ---
+    // --- Fields ---
     @Element(name = "id", required = false)
     @SerializedName("vod_id")
     private String vodId;
@@ -103,41 +102,55 @@ public class Vod implements Parcelable {
     private Site site;
 
     // --- Constants for Removal and Replacement ---
-    private static final String STRING_TO_REMOVE = "公众号关注:《《王二小放牛娃》》";
+    private static final String STRING_TO_REMOVE = "关注公众号:《《王二小放牛娃》》";
     private static final String OLD_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
     private static final String NEW_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
+    // Constants for new replacements are not strictly needed as they are applied directly in helpers
 
-    // --- Static Method (no changes here) ---
+    // --- Static Method ---
     public static List<Vod> arrayFrom(String str) {
         Type listType = new TypeToken<List<Vod>>() {}.getType();
         List<Vod> items = App.gson().fromJson(str, listType);
         return items == null ? Collections.emptyList() : items;
     }
 
-    // --- Constructor (no changes here) ---
+    // --- Constructor ---
     public Vod() {
     }
 
-    // --- Helper methods for processing strings ---
-    // Helper to apply both replacements (removal + URL) without trimming
+    // --- MODIFIED: Helper methods for processing strings with ALL replacements ---
+    // Helper to apply all replacements without trimming
     private String processString(String input) {
         if (TextUtils.isEmpty(input)) {
             return "";
         }
-        // Apply both replacements
-        return input.replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+        // Apply all replacements in sequence
+        return input.replace(STRING_TO_REMOVE, "") // Existing removal
+                  .replace(OLD_URL, NEW_URL)        // Existing URL replacement
+                  .replace("迅蕾", "迅雷")        // New replacement 1
+                  .replace("优熙", "UC")         // New replacement 2
+                  .replace("跨壳", "夸克")        // New replacement 3
+                  .replace("天逸", "天翼")        // New replacement 4
+                  .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
     }
 
-    // Helper to trim first, then apply both replacements
+    // Helper to trim first, then apply all replacements
     private String processTrimmedString(String input) {
         if (TextUtils.isEmpty(input)) {
             return "";
         }
-        // Trim first, then apply both replacements
-        return input.trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+        // Trim first, then apply all replacements
+        return input.trim().replace(STRING_TO_REMOVE, "") // Existing removal
+                       .replace(OLD_URL, NEW_URL)        // Existing URL replacement
+                       .replace("迅蕾", "迅雷")        // New replacement 1
+                       .replace("优熙", "UC")         // New replacement 2
+                       .replace("跨壳", "夸克")        // New replacement 3
+                       .replace("天逸", "天翼")        // New replacement 4
+                       .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
     }
+    // --- END MODIFICATION ---
 
-    // --- Getters and Setters (Getters MODIFIED to use helpers for cleaning) ---
+    // --- Getters and Setters (Getters use helpers, automatically applying all replacements) ---
 
     public String getVodId() {
         return processTrimmedString(this.vodId);
@@ -167,6 +180,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPic() {
+        // Uses processTrimmedString, applies all replacements including URL fix
         return processTrimmedString(this.vodPic);
     }
 
@@ -201,28 +215,38 @@ public class Vod implements Parcelable {
         return processTrimmedString(this.vodActor);
     }
 
+    // --- MODIFIED: getVodContent applies all replacements after custom processing ---
     public String getVodContent() {
         if (TextUtils.isEmpty(this.vodContent)) {
             return "";
         }
+        // Trim, handle newline first
         String processed = this.vodContent.trim().replace("\n", "<br>");
-        return processed.replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+        // Then apply all replacements
+        return processed.replace(STRING_TO_REMOVE, "") // Existing removal
+                      .replace(OLD_URL, NEW_URL)        // Existing URL replacement
+                      .replace("迅蕾", "迅雷")        // New replacement 1
+                      .replace("优熙", "UC")         // New replacement 2
+                      .replace("跨壳", "夸克")        // New replacement 3
+                      .replace("天逸", "天翼")        // New replacement 4
+                      .replace("TJ搜索服务器", "TG搜索服务器"); // New replacement 5
     }
+    // --- END MODIFICATION ---
 
     public String getVodPlayFrom() {
-        return processString(this.vodPlayFrom);
+        return processString(this.vodPlayFrom); // Uses helper
     }
 
     public String getVodPlayUrl() {
-        return processString(this.vodPlayUrl);
+        return processString(this.vodPlayUrl); // Uses helper
     }
 
     public String getVodTag() {
-        return processString(this.vodTag);
+        return processString(this.vodTag); // Uses helper
     }
 
     public String getAction() {
-        return processString(this.action);
+        return processString(this.action); // Uses helper
     }
 
     // --- Other Methods (Getters potentially returning strings also modified) ---
@@ -253,6 +277,7 @@ public class Vod implements Parcelable {
 
     public void setVodFlags(List<Flag> vodFlags) {
         this.vodFlags = vodFlags;
+        // Reprocess flags when set externally to ensure cleaning
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
                 processExistingFlagItem(item);
@@ -271,16 +296,17 @@ public class Vod implements Parcelable {
     public String getSiteName() {
         Site currentSite = getSite();
         if (currentSite == null) return "";
-        return processString(currentSite.getName());
+        return processString(currentSite.getName()); // Uses helper
     }
 
     public String getSiteKey() {
         Site currentSite = getSite();
         if (currentSite == null) return "";
-        return processString(currentSite.getKey());
+        return processString(currentSite.getKey()); // Uses helper
     }
 
     // --- Visibility and boolean checks (rely on modified getters, no changes needed) ---
+    // These methods use the modified getters, so they automatically benefit from the cleaning.
     public int getSiteVisible() {
         return getSite() == null ? View.GONE : View.VISIBLE;
     }
@@ -315,6 +341,7 @@ public class Vod implements Parcelable {
         return getStyle() != null ? getStyle() : style != null ? style : Style.rect();
     }
 
+    // trans() modifies fields directly, getters handle cleaning on retrieval
     public void trans() {
         if (Trans.pass()) return;
         this.vodName = Trans.s2t(vodName);
@@ -324,10 +351,10 @@ public class Vod implements Parcelable {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
-        // Cleaning via STRING_TO_REMOVE and OLD_URL happens in getters
+        // Cleaning via helpers (including new replacements) happens in getters
     }
 
-    // Modified setVodFlags() to use cleaned data and clean existing flags
+    // setVodFlags() relies on getters and processExistingFlagItem, which are updated
     public void setVodFlags() {
         String playFromData = getVodPlayFrom(); // Already cleaned via getter
         String playUrlData = getVodPlayUrl();   // Already cleaned via getter
@@ -343,9 +370,10 @@ public class Vod implements Parcelable {
 
             for (int i = 0; i < playFlags.length; i++) {
                 if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-                String flagName = processTrimmedString(playFlags[i]); // Apply trim + full cleaning
+                // Uses processTrimmedString which includes all replacements
+                String flagName = processTrimmedString(playFlags[i]);
                 Flag item = Flag.create(flagName);
-                // URLs are already cleaned by getVodPlayUrl(), pass them directly to createEpisode
+                // URLs are already cleaned by getVodPlayUrl() which includes all replacements
                 item.createEpisode(playUrls[i]);
                 getVodFlags().add(item);
             }
@@ -354,43 +382,49 @@ public class Vod implements Parcelable {
         // Always process flags that might have been populated via XML (or added manually)
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
-                processExistingFlagItem(item); // Clean flags potentially from XML or other sources
+                processExistingFlagItem(item); // This method now applies all replacements
             }
         }
     }
 
-    // --- MODIFIED: Helper method to process existing flag items (potentially from XML or Parcel) ---
+    // --- MODIFIED: processExistingFlagItem applies ALL replacements ---
     private void processExistingFlagItem(Flag item) {
         if (item == null) return;
         // Clean flag name (Assuming Flag.setFlag exists and is public)
         if (item.getFlag() != null) {
-            // Apply trim + both replacements
-            try { // Added try-catch just in case Flag.setFlag doesn't exist or isn't accessible
-                 item.setFlag(item.getFlag().trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+            try {
+                 // Apply trim + all replacements
+                 String cleanedFlag = item.getFlag().trim()
+                                         .replace(STRING_TO_REMOVE, "")
+                                         .replace(OLD_URL, NEW_URL)
+                                         .replace("迅蕾", "迅雷")
+                                         .replace("优熙", "UC")
+                                         .replace("跨壳", "夸克")
+                                         .replace("天逸", "天翼")
+                                         .replace("TJ搜索服务器", "TG搜索服务器");
+                 item.setFlag(cleanedFlag);
             } catch (Exception e) {
-                 // Log error or handle gracefully if setFlag is problematic
                  System.err.println("Warning: Could not clean flag name for item: " + item + " - " + e.getMessage());
             }
         }
 
-        // --- REMOVED --- Attempting to clean Episode URL and Name in-place
-        // The Episode class likely does not have public setUrl() or setName() methods.
-        // Cleaning of vodPlayUrl happens *before* splitting into episodes in setVodFlags()
-        // for API responses, which is the primary source.
+        // REMOVED attempt to clean Episode internals directly
 
-        // If Flag has a way to get/set Episodes directly AND Episode needs cleaning,
-        // alternative approaches might be needed (e.g., creating new Episode instances),
-        // but removing the problematic lines is the safest fix without Episode.java code.
-        // Re-applying createEpisode based on cleaned getUrls() if it exists might be an option,
-        // but only if getUrls() reflects the underlying episodes accurately.
+        // Re-create episodes from cleaned bulk URL string if available
         if (item.getUrls() != null) {
-            String cleanedUrls = item.getUrls().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+            // Apply all replacements to the bulk URL string
+             String cleanedUrls = item.getUrls()
+                                     .replace(STRING_TO_REMOVE, "")
+                                     .replace(OLD_URL, NEW_URL)
+                                     .replace("迅蕾", "迅雷")
+                                     .replace("优熙", "UC")
+                                     .replace("跨壳", "夸克")
+                                     .replace("天逸", "天翼")
+                                     .replace("TJ搜索服务器", "TG搜索服务器");
+
             // Check if cleaning actually changed the string before potentially overwriting episodes
             if (!cleanedUrls.equals(item.getUrls())) {
-                 // Re-create episodes from the cleaned bulk URL string if Flag supports this well.
-                 // WARNING: This assumes createEpisode correctly handles replacing existing episodes.
-                 // And it only works if the <dd> tag had the 'url' attribute format, not nested <episode> tags.
-                 try { // Added try-catch for createEpisode as well
+                 try {
                      item.createEpisode(cleanedUrls);
                  } catch (Exception e) {
                      System.err.println("Warning: Could not re-create episodes from cleaned URL string for item: " + item + " - " + e.getMessage());
@@ -406,17 +440,17 @@ public class Vod implements Parcelable {
         if (this == obj) return true;
         if (!(obj instanceof Vod)) return false;
         Vod it = (Vod) obj;
-        // Comparison uses getVodId() which cleans the ID
+        // Comparison uses getVodId() which applies cleaning (including new replacements if any were relevant to IDs)
         return getVodId().equals(it.getVodId());
     }
 
-    // Consider implementing hashCode if equals is overridden, using the same field(s)
     @Override
     public int hashCode() {
-        return Objects.hash(getVodId()); // Use cleaned vodId for hashcode consistency
+        // Use cleaned vodId for hashcode consistency
+        return Objects.hash(getVodId());
     }
 
-    // --- Parcelable implementation (writes/reads raw fields, getters handle cleaning on retrieval) ---
+    // --- Parcelable implementation (writes/reads raw fields, getters/processing handle cleaning) ---
     @Override
     public int describeContents() {
         return 0;
@@ -424,7 +458,7 @@ public class Vod implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        // Write raw field data. Cleaning happens via getters when data is accessed later.
+        // Write raw field data. Cleaning happens via getters/processing when data is accessed/used.
         dest.writeString(this.vodId);
         dest.writeString(this.vodName);
         dest.writeString(this.typeName);
@@ -475,7 +509,7 @@ public class Vod implements Parcelable {
         // Ensure flags read from a Parcel are also processed/cleaned.
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
-                processExistingFlagItem(item);
+                processExistingFlagItem(item); // This method now applies all replacements
             }
         }
     }
