@@ -28,11 +28,12 @@
         android:nextFocusRight="@id/timeBar"
         android:nextFocusUp="@id/next"
         android:nextFocusDown="@id/timeBar"
-        app:buffered_color="@color/blue_200"
-        app:played_color="@color/blue_500"
-        app:scrubber_color="@color/blue_500"
-        app:unplayed_color="@color/grey_500"
+        app:buffered_color="#59ffffff"
+        app:played_color="#ffffff"
+        app:scrubber_color="#ffffff"
+        app:unplayed_color="#26ffffff"
         app:bar_height="12dp"
+        android:progressDrawable="@drawable/roundprogress"
         app:scrubber_dragged_size="12dp" />
 
     <TextView
