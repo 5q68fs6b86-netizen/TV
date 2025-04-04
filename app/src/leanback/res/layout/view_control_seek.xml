@@ -31,7 +31,9 @@
         app:buffered_color="@color/blue_200"
         app:played_color="@color/blue_500"
         app:scrubber_color="@color/blue_500"
-        app:unplayed_color="@color/grey_500" />
+        app:unplayed_color="@color/grey_500"
+        app:bar_height="12dp"
+        app:scrubber_dragged_size="12dp" />
 
     <TextView
         android:id="@+id/duration"
