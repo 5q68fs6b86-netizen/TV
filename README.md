@@ -170,12 +170,3 @@ scheme://username:password@host:port
 [點播-本地](other/sample/vod/offline.json)  
 [直播-線上](other/sample/live/online.json)  
 [直播-本地](other/sample/live/offline.json)
-
-### 飛機群
-
-[討論群組](https://t.me/fongmi_offical)  
-[發布頻道](https://t.me/fongmi_release)
-
-### 贊助
-
-![photo_2024-01-10_11-39-12](https://github.com/FongMi/TV/assets/3471963/fdc12771-386c-4d5d-9a4d-d0bec0276fa7)
