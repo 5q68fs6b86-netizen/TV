@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern; // Import Pattern for Regex
 
 // Assuming Episode, Flag, Site, Cate, Style classes are accessible
 
@@ -42,7 +43,7 @@ public class Vod implements Parcelable {
 
     @Element(name = "pic", required = false)
     @SerializedName("vod_pic")
-    private String vodPic;
+    private String vodPic; // Raw data
 
     @Element(name = "note", required = false)
     @SerializedName("vod_remarks")
@@ -115,6 +116,24 @@ public class Vod implements Parcelable {
     private static final String NEW_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
     private static final String[] OTHER_REPLACEMENTS_OLD = {"迅蕾", "优熙", "跨壳", "天逸", "TJ搜索服务器"};
     private static final String[] OTHER_REPLACEMENTS_NEW = {"迅雷", "UC", "夸克", "天翼", "TG搜索服务器"};
+
+    // --- NEW: Specific vodPic replacement ---
+    // Regex to match https://www.leijing1.com/file/avatar/{anything}/null OR https://www.leijing1.com/file/avatar/{anything}/{anything}.png
+    // Explanation:
+    // ^                                      - Start of the string
+    // https://www\.leijing1\.com/file/avatar/ - Literal prefix (dots escaped)
+    // [^/]+                                  - Matches one or more characters that are NOT a slash (the first {anything})
+    // /                                      - Literal slash separator
+    // (                                      - Start of group for OR condition
+    //   null                                 - Matches the literal "null"
+    //   |                                    - OR
+    //   [^/]+\.png                           - Matches one or more non-slash chars (second {anything}) followed by literal ".png" (dot escaped)
+    // )                                      - End of group
+    // $                                      - End of the string
+    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://www\\.leijing1\\.com/file/avatar/[^/]+/(null|[^/]+\\.png)$");
+    // The replacement URL for the matched patterns
+    private static final String NEW_AVATAR_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
+    // --- END NEW ---
 
     // --- Static Method ---
     public static List<Vod> arrayFrom(String str) {
@@ -228,11 +247,24 @@ public class Vod implements Parcelable {
         return processTrimmedStringStandardRemove(this.typeName);
     }
 
+    // --- MODIFIED: getVodPic applies specific pattern replacement AFTER standard cleaning ---
     public String getVodPic() {
-         return processTrimmedStringStandardRemove(this.vodPic);
+         // 1. Apply standard cleaning (trim, remove target string, common replacements)
+         String pic = processTrimmedStringStandardRemove(this.vodPic);
+
+         // 2. Check if the cleaned string matches the specific leijing avatar pattern
+         if (!TextUtils.isEmpty(pic) && LEIJING_AVATAR_PATTERN.matcher(pic).matches()) {
+             // 3. If it matches, return the predefined replacement URL
+             return NEW_AVATAR_URL;
+         }
+
+         // 4. Otherwise, return the standard cleaned string
+         return pic;
     }
+    // --- END MODIFICATION ---
 
     public String getVodPic(String pic) {
+        // This helper method now also benefits from the logic in getVodPic()
         if (getVodPic().isEmpty()) {
             setVodPic(pic);
         }
@@ -520,7 +552,7 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodId);
         dest.writeString(this.vodName);
         dest.writeString(this.typeName);
-        dest.writeString(this.vodPic);
+        dest.writeString(this.vodPic); // Write raw
         dest.writeString(this.vodRemarks);
         dest.writeString(this.vodYear);
         dest.writeString(this.vodArea);
@@ -545,7 +577,7 @@ public class Vod implements Parcelable {
         this.vodId = in.readString();
         this.vodName = in.readString();
         this.typeName = in.readString();
-        this.vodPic = in.readString();
+        this.vodPic = in.readString(); // Read raw
         this.vodRemarks = in.readString();
         this.vodYear = in.readString();
         this.vodArea = in.readString();
@@ -570,6 +602,8 @@ public class Vod implements Parcelable {
                 processExistingFlagItemStandard(item);
             }
         }
+        // Note: The specific vodPic pattern replacement happens in the getter,
+        // so it will be applied when getVodPic() is called after reading from Parcel.
     }
 
     public static final Creator<Vod> CREATOR = new Creator<>() {
