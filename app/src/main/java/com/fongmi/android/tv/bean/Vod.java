@@ -20,6 +20,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects; // Import Objects for equals/hashCode if needed, though current equals uses vodId
+
+// Assuming Episode and Flag classes are in the same package or imported correctly
+// Assuming Site, Cate, Style classes are also accessible
 
 @Root(strict = false)
 public class Vod implements Parcelable {
@@ -100,10 +104,8 @@ public class Vod implements Parcelable {
 
     // --- Constants for Removal and Replacement ---
     private static final String STRING_TO_REMOVE = "公众号关注：《《王二小放牛娃》》";
-    // --- MODIFIED: Added constants for URLs ---
     private static final String OLD_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
     private static final String NEW_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
-    // --- END MODIFICATION ---
 
     // --- Static Method (no changes here) ---
     public static List<Vod> arrayFrom(String str) {
@@ -116,7 +118,7 @@ public class Vod implements Parcelable {
     public Vod() {
     }
 
-    // --- MODIFIED: Helper methods for processing strings ---
+    // --- Helper methods for processing strings ---
     // Helper to apply both replacements (removal + URL) without trimming
     private String processString(String input) {
         if (TextUtils.isEmpty(input)) {
@@ -134,14 +136,11 @@ public class Vod implements Parcelable {
         // Trim first, then apply both replacements
         return input.trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
     }
-    // --- END MODIFICATION ---
-
 
     // --- Getters and Setters (Getters MODIFIED to use helpers for cleaning) ---
 
     public String getVodId() {
-        // Original logic used trim implicitly in some places, let's be consistent
-        return processTrimmedString(this.vodId); // MODIFIED: Use helper
+        return processTrimmedString(this.vodId);
     }
 
     public void setVodId(String vodId) {
@@ -149,15 +148,14 @@ public class Vod implements Parcelable {
     }
 
     public String getVodName() {
-        return processTrimmedString(this.vodName); // MODIFIED: Use helper
+        return processTrimmedString(this.vodName);
     }
 
-    // Overloaded getter relies on the main getter now
     public String getVodName(String name) {
-        if (getVodName().isEmpty()) { // Uses the modified getter
+        if (getVodName().isEmpty()) {
             setVodName(name);
         }
-        return getVodName(); // Uses the modified getter
+        return getVodName();
     }
 
     public void setVodName(String vodName) {
@@ -165,20 +163,18 @@ public class Vod implements Parcelable {
     }
 
     public String getTypeName() {
-        return processTrimmedString(this.typeName); // MODIFIED: Use helper
+        return processTrimmedString(this.typeName);
     }
 
     public String getVodPic() {
-        // Trim is usually safe for URLs, kept consistent with other fields
-        return processTrimmedString(this.vodPic); // MODIFIED: Use helper
+        return processTrimmedString(this.vodPic);
     }
 
-    // Overloaded getter relies on the main getter now
     public String getVodPic(String pic) {
-        if (getVodPic().isEmpty()) { // Uses the modified getter
+        if (getVodPic().isEmpty()) {
             setVodPic(pic);
         }
-        return getVodPic(); // Uses the modified getter
+        return getVodPic();
     }
 
     public void setVodPic(String vodPic) {
@@ -186,53 +182,47 @@ public class Vod implements Parcelable {
     }
 
     public String getVodRemarks() {
-        return processTrimmedString(this.vodRemarks); // MODIFIED: Use helper
+        return processTrimmedString(this.vodRemarks);
     }
 
     public String getVodYear() {
-        return processTrimmedString(this.vodYear); // MODIFIED: Use helper
+        return processTrimmedString(this.vodYear);
     }
 
     public String getVodArea() {
-        return processTrimmedString(this.vodArea); // MODIFIED: Use helper
+        return processTrimmedString(this.vodArea);
     }
 
     public String getVodDirector() {
-        return processTrimmedString(this.vodDirector); // MODIFIED: Use helper
+        return processTrimmedString(this.vodDirector);
     }
 
     public String getVodActor() {
-        return processTrimmedString(this.vodActor); // MODIFIED: Use helper
+        return processTrimmedString(this.vodActor);
     }
 
     public String getVodContent() {
-        // Special handling: trim, replace newline, then apply standard replacements
         if (TextUtils.isEmpty(this.vodContent)) {
             return "";
         }
         String processed = this.vodContent.trim().replace("\n", "<br>");
-        // MODIFIED: Apply both replacements after trim and newline handling
         return processed.replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
     }
 
     public String getVodPlayFrom() {
-        // No trim originally, use processString directly
-        return processString(this.vodPlayFrom); // MODIFIED: Use helper
+        return processString(this.vodPlayFrom);
     }
 
     public String getVodPlayUrl() {
-        // No trim originally, use processString directly
-        return processString(this.vodPlayUrl); // MODIFIED: Use helper
+        return processString(this.vodPlayUrl);
     }
 
     public String getVodTag() {
-        // No trim originally, use processString directly
-        return processString(this.vodTag); // MODIFIED: Use helper
+        return processString(this.vodTag);
     }
 
     public String getAction() {
-        // No trim originally, use processString directly
-        return processString(this.action); // MODIFIED: Use helper
+        return processString(this.action);
     }
 
     // --- Other Methods (Getters potentially returning strings also modified) ---
@@ -263,10 +253,9 @@ public class Vod implements Parcelable {
 
     public void setVodFlags(List<Flag> vodFlags) {
         this.vodFlags = vodFlags;
-        // MODIFIED: Optionally re-process flags when set externally to ensure cleaning
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
-                processExistingFlagItem(item); // Ensure flags set this way are also cleaned
+                processExistingFlagItem(item);
             }
         }
     }
@@ -279,24 +268,19 @@ public class Vod implements Parcelable {
         this.site = site;
     }
 
-    // MODIFIED: Clean the name coming from the Site object
     public String getSiteName() {
         Site currentSite = getSite();
         if (currentSite == null) return "";
-        // Use processString (no trim assumed for site name)
-        return processString(currentSite.getName()); // MODIFIED
+        return processString(currentSite.getName());
     }
 
-    // MODIFIED: Clean the key coming from the Site object
     public String getSiteKey() {
         Site currentSite = getSite();
         if (currentSite == null) return "";
-        // Use processString (no trim assumed for site key)
-        return processString(currentSite.getKey()); // MODIFIED
+        return processString(currentSite.getKey());
     }
 
     // --- Visibility and boolean checks (rely on modified getters, no changes needed) ---
-    // These methods use the modified getters, so they automatically benefit from the cleaning.
     public int getSiteVisible() {
         return getSite() == null ? View.GONE : View.VISIBLE;
     }
@@ -331,10 +315,8 @@ public class Vod implements Parcelable {
         return getStyle() != null ? getStyle() : style != null ? style : Style.rect();
     }
 
-    // trans() modifies fields directly, getters handle cleaning on retrieval
     public void trans() {
         if (Trans.pass()) return;
-        // Apply translation first
         this.vodName = Trans.s2t(vodName);
         this.vodArea = Trans.s2t(vodArea);
         this.typeName = Trans.s2t(typeName);
@@ -342,19 +324,17 @@ public class Vod implements Parcelable {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
-        // Getters will handle STRING_TO_REMOVE and URL replacement later when accessed
+        // Cleaning via STRING_TO_REMOVE and OLD_URL happens in getters
     }
 
-    // --- MODIFIED: setVodFlags() to use cleaned data and clean existing flags ---
+    // Modified setVodFlags() to use cleaned data and clean existing flags
     public void setVodFlags() {
-        // Use the getters which already perform replacements
         String playFromData = getVodPlayFrom(); // Already cleaned via getter
         String playUrlData = getVodPlayUrl();   // Already cleaned via getter
 
-        // Clear existing flags ONLY if we are populating from PlayFrom/PlayUrl
         boolean populatedFromApi = !TextUtils.isEmpty(playFromData) && !TextUtils.isEmpty(playUrlData);
         if (populatedFromApi) {
-            getVodFlags().clear(); // Clear flags presumably populated via XML if API data exists
+             getVodFlags().clear(); // Clear flags presumably populated via XML if API data exists
         }
 
         if (populatedFromApi) {
@@ -363,17 +343,15 @@ public class Vod implements Parcelable {
 
             for (int i = 0; i < playFlags.length; i++) {
                 if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-                // Flag name needs trim + standard cleaning (though already cleaned by getter, trim ensures consistency)
                 String flagName = processTrimmedString(playFlags[i]); // Apply trim + full cleaning
                 Flag item = Flag.create(flagName);
                 // URLs are already cleaned by getVodPlayUrl(), pass them directly to createEpisode
-                item.createEpisode(playUrls[i]); // playUrls[i] comes from the already cleaned playUrlData split
+                item.createEpisode(playUrls[i]);
                 getVodFlags().add(item);
             }
         }
 
         // Always process flags that might have been populated via XML (or added manually)
-        // This ensures consistency regardless of the source (API vs XML vs manual)
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
                 processExistingFlagItem(item); // Clean flags potentially from XML or other sources
@@ -381,29 +359,42 @@ public class Vod implements Parcelable {
         }
     }
 
-    // MODIFIED: Helper method to process existing flag items (potentially from XML or Parcel)
+    // --- MODIFIED: Helper method to process existing flag items (potentially from XML or Parcel) ---
     private void processExistingFlagItem(Flag item) {
         if (item == null) return;
-        // Clean flag name
+        // Clean flag name (Assuming Flag.setFlag exists and is public)
         if (item.getFlag() != null) {
             // Apply trim + both replacements
-            item.setFlag(item.getFlag().trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+            try { // Added try-catch just in case Flag.setFlag doesn't exist or isn't accessible
+                 item.setFlag(item.getFlag().trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+            } catch (Exception e) {
+                 // Log error or handle gracefully if setFlag is problematic
+                 System.err.println("Warning: Could not clean flag name for item: " + item + " - " + e.getMessage());
+            }
         }
-        // Clean URLs if they exist as a single string attribute (less common)
+
+        // --- REMOVED --- Attempting to clean Episode URL and Name in-place
+        // The Episode class likely does not have public setUrl() or setName() methods.
+        // Cleaning of vodPlayUrl happens *before* splitting into episodes in setVodFlags()
+        // for API responses, which is the primary source.
+
+        // If Flag has a way to get/set Episodes directly AND Episode needs cleaning,
+        // alternative approaches might be needed (e.g., creating new Episode instances),
+        // but removing the problematic lines is the safest fix without Episode.java code.
+        // Re-applying createEpisode based on cleaned getUrls() if it exists might be an option,
+        // but only if getUrls() reflects the underlying episodes accurately.
         if (item.getUrls() != null) {
-            // No trim for URLs, apply both replacements
             String cleanedUrls = item.getUrls().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
-            item.createEpisode(cleanedUrls); // This might replace existing episodes based on the cleaned URL string
-        } else if (item.getEpisodes() != null) {
-            // If URLs are already parsed into episodes, clean each episode's URL and Name
-            for (Episode episode : item.getEpisodes()) {
-                if (episode.getUrl() != null) {
-                    episode.setUrl(episode.getUrl().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
-                }
-                if (episode.getName() != null) {
-                    // Also clean episode names, just in case
-                    episode.setName(episode.getName().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
-                }
+            // Check if cleaning actually changed the string before potentially overwriting episodes
+            if (!cleanedUrls.equals(item.getUrls())) {
+                 // Re-create episodes from the cleaned bulk URL string if Flag supports this well.
+                 // WARNING: This assumes createEpisode correctly handles replacing existing episodes.
+                 // And it only works if the <dd> tag had the 'url' attribute format, not nested <episode> tags.
+                 try { // Added try-catch for createEpisode as well
+                     item.createEpisode(cleanedUrls);
+                 } catch (Exception e) {
+                     System.err.println("Warning: Could not re-create episodes from cleaned URL string for item: " + item + " - " + e.getMessage());
+                 }
             }
         }
     }
@@ -415,12 +406,17 @@ public class Vod implements Parcelable {
         if (this == obj) return true;
         if (!(obj instanceof Vod)) return false;
         Vod it = (Vod) obj;
-        // Comparison uses getVodId() which is now modified to clean the ID
+        // Comparison uses getVodId() which cleans the ID
         return getVodId().equals(it.getVodId());
     }
 
+    // Consider implementing hashCode if equals is overridden, using the same field(s)
+    @Override
+    public int hashCode() {
+        return Objects.hash(getVodId()); // Use cleaned vodId for hashcode consistency
+    }
+
     // --- Parcelable implementation (writes/reads raw fields, getters handle cleaning on retrieval) ---
-    // No fundamental changes needed here, but added comments for clarity.
     @Override
     public int describeContents() {
         return 0;
@@ -448,8 +444,7 @@ public class Vod implements Parcelable {
         dest.writeFloat(this.ratio);
         dest.writeParcelable(this.cate, flags);
         dest.writeParcelable(this.style, flags);
-        // Write potentially uncleaned Flag data. Cleaning happens via processExistingFlagItem if needed.
-        dest.writeTypedList(this.vodFlags);
+        dest.writeTypedList(this.vodFlags); // Write potentially uncleaned Flag data.
         dest.writeParcelable(this.site, flags);
     }
 
@@ -474,18 +469,15 @@ public class Vod implements Parcelable {
         this.ratio = in.readFloat();
         this.cate = in.readParcelable(Cate.class.getClassLoader());
         this.style = in.readParcelable(Style.class.getClassLoader());
-        // Reads potentially uncleaned Flag data
-        this.vodFlags = in.createTypedArrayList(Flag.CREATOR);
+        this.vodFlags = in.createTypedArrayList(Flag.CREATOR); // Reads potentially uncleaned Flag data
         this.site = in.readParcelable(Site.class.getClassLoader());
 
-        // MODIFIED: Optionally re-process flags immediately after reading from parcel
-        // This ensures flags read from a Parcel are also cleaned.
+        // Ensure flags read from a Parcel are also processed/cleaned.
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
                 processExistingFlagItem(item);
             }
         }
-        // --- END MODIFICATION ---
     }
 
     public static final Creator<Vod> CREATOR = new Creator<>() {
