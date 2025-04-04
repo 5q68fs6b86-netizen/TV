@@ -60,6 +60,10 @@ public class Episode implements Parcelable {
         return url;
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public int getIndex() {
         return index;
     }
