@@ -24,7 +24,7 @@ import java.util.List;
 @Root(strict = false)
 public class Vod implements Parcelable {
 
-    // --- Fields (no changes here) ---
+    // --- Fields (Original fields remain unchanged) ---
     @Element(name = "id", required = false)
     @SerializedName("vod_id")
     private String vodId;
@@ -98,8 +98,12 @@ public class Vod implements Parcelable {
 
     private Site site;
 
-    // --- Constant for Removal ---
-    private static final String STRING_TO_REMOVE = "公众号关注:《《王二小放牛娃》》";
+    // --- Constants for Removal and Replacement ---
+    private static final String STRING_TO_REMOVE = "公众号关注：《《王二小放牛娃》》";
+    // --- MODIFIED: Added constants for URLs ---
+    private static final String OLD_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
+    private static final String NEW_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
+    // --- END MODIFICATION ---
 
     // --- Static Method (no changes here) ---
     public static List<Vod> arrayFrom(String str) {
@@ -112,11 +116,32 @@ public class Vod implements Parcelable {
     public Vod() {
     }
 
-    // --- Getters and Setters (Getters MODIFIED) ---
+    // --- MODIFIED: Helper methods for processing strings ---
+    // Helper to apply both replacements (removal + URL) without trimming
+    private String processString(String input) {
+        if (TextUtils.isEmpty(input)) {
+            return "";
+        }
+        // Apply both replacements
+        return input.replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+    }
+
+    // Helper to trim first, then apply both replacements
+    private String processTrimmedString(String input) {
+        if (TextUtils.isEmpty(input)) {
+            return "";
+        }
+        // Trim first, then apply both replacements
+        return input.trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+    }
+    // --- END MODIFICATION ---
+
+
+    // --- Getters and Setters (Getters MODIFIED to use helpers for cleaning) ---
 
     public String getVodId() {
-        String originalValue = TextUtils.isEmpty(vodId) ? "" : vodId.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // Original logic used trim implicitly in some places, let's be consistent
+        return processTrimmedString(this.vodId); // MODIFIED: Use helper
     }
 
     public void setVodId(String vodId) {
@@ -124,17 +149,15 @@ public class Vod implements Parcelable {
     }
 
     public String getVodName() {
-        String originalValue = TextUtils.isEmpty(vodName) ? "" : vodName.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        return processTrimmedString(this.vodName); // MODIFIED: Use helper
     }
 
-    // Overloaded getter also modified
+    // Overloaded getter relies on the main getter now
     public String getVodName(String name) {
-        if (getVodName().isEmpty()) { // Use the modified getter here
-             setVodName(name);
+        if (getVodName().isEmpty()) { // Uses the modified getter
+            setVodName(name);
         }
-        // Return the potentially modified name from the field via the main getter
-        return getVodName();
+        return getVodName(); // Uses the modified getter
     }
 
     public void setVodName(String vodName) {
@@ -142,22 +165,20 @@ public class Vod implements Parcelable {
     }
 
     public String getTypeName() {
-        String originalValue = TextUtils.isEmpty(typeName) ? "" : typeName.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        return processTrimmedString(this.typeName); // MODIFIED: Use helper
     }
 
     public String getVodPic() {
-        String originalValue = TextUtils.isEmpty(vodPic) ? "" : vodPic.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // Trim is usually safe for URLs, kept consistent with other fields
+        return processTrimmedString(this.vodPic); // MODIFIED: Use helper
     }
 
-     // Overloaded getter also modified
+    // Overloaded getter relies on the main getter now
     public String getVodPic(String pic) {
-        if (getVodPic().isEmpty()) { // Use the modified getter here
+        if (getVodPic().isEmpty()) { // Uses the modified getter
             setVodPic(pic);
         }
-         // Return the potentially modified pic from the field via the main getter
-        return getVodPic();
+        return getVodPic(); // Uses the modified getter
     }
 
     public void setVodPic(String vodPic) {
@@ -165,153 +186,146 @@ public class Vod implements Parcelable {
     }
 
     public String getVodRemarks() {
-        String originalValue = TextUtils.isEmpty(vodRemarks) ? "" : vodRemarks.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        return processTrimmedString(this.vodRemarks); // MODIFIED: Use helper
     }
 
     public String getVodYear() {
-        String originalValue = TextUtils.isEmpty(vodYear) ? "" : vodYear.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        return processTrimmedString(this.vodYear); // MODIFIED: Use helper
     }
 
     public String getVodArea() {
-        String originalValue = TextUtils.isEmpty(vodArea) ? "" : vodArea.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        return processTrimmedString(this.vodArea); // MODIFIED: Use helper
     }
 
     public String getVodDirector() {
-        String originalValue = TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // Already MODIFIED
+        return processTrimmedString(this.vodDirector); // MODIFIED: Use helper
     }
 
     public String getVodActor() {
-        String originalValue = TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
-        return originalValue.replace(STRING_TO_REMOVE, ""); // Already MODIFIED
+        return processTrimmedString(this.vodActor); // MODIFIED: Use helper
     }
 
     public String getVodContent() {
-        // Process newline first, then remove the string
-        String processedValue = TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
-        return processedValue.replace(STRING_TO_REMOVE, ""); // Already MODIFIED (logic confirmed)
+        // Special handling: trim, replace newline, then apply standard replacements
+        if (TextUtils.isEmpty(this.vodContent)) {
+            return "";
+        }
+        String processed = this.vodContent.trim().replace("\n", "<br>");
+        // MODIFIED: Apply both replacements after trim and newline handling
+        return processed.replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
     }
 
     public String getVodPlayFrom() {
-        // Original didn't trim, so we keep it that way before replacing
-        String originalValue = TextUtils.isEmpty(vodPlayFrom) ? "" : vodPlayFrom;
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // No trim originally, use processString directly
+        return processString(this.vodPlayFrom); // MODIFIED: Use helper
     }
 
     public String getVodPlayUrl() {
-        // Original didn't trim
-        String originalValue = TextUtils.isEmpty(vodPlayUrl) ? "" : vodPlayUrl;
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // No trim originally, use processString directly
+        return processString(this.vodPlayUrl); // MODIFIED: Use helper
     }
 
     public String getVodTag() {
-        // Original didn't trim
-        String originalValue = TextUtils.isEmpty(vodTag) ? "" : vodTag;
-        return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // No trim originally, use processString directly
+        return processString(this.vodTag); // MODIFIED: Use helper
     }
 
-     public String getAction() {
-         // Original didn't trim
-         String originalValue = TextUtils.isEmpty(action) ? "" : action;
-         return originalValue.replace(STRING_TO_REMOVE, ""); // MODIFIED
-     }
+    public String getAction() {
+        // No trim originally, use processString directly
+        return processString(this.action); // MODIFIED: Use helper
+    }
 
     // --- Other Methods (Getters potentially returning strings also modified) ---
 
     public Cate getCate() {
-        return cate; // Returns Cate object, no change needed
+        return cate;
     }
 
     public Style getStyle() {
-        return style != null ? style : Style.get(getLand(), getCircle(), getRatio()); // Returns Style object, no change needed
+        return style != null ? style : Style.get(getLand(), getCircle(), getRatio());
     }
 
     public int getLand() {
-        return land; // Returns int
+        return land;
     }
 
     public int getCircle() {
-        return circle; // Returns int
+        return circle;
     }
 
     public float getRatio() {
-        return ratio; // Returns float
+        return ratio;
     }
 
     public List<Flag> getVodFlags() {
-        return vodFlags = vodFlags == null ? new ArrayList<>() : vodFlags; // Returns List, no change needed
+        return vodFlags = vodFlags == null ? new ArrayList<>() : vodFlags;
     }
 
     public void setVodFlags(List<Flag> vodFlags) {
         this.vodFlags = vodFlags;
+        // MODIFIED: Optionally re-process flags when set externally to ensure cleaning
+        if (this.vodFlags != null) {
+            for (Flag item : this.vodFlags) {
+                processExistingFlagItem(item); // Ensure flags set this way are also cleaned
+            }
+        }
     }
 
     public Site getSite() {
-        return site; // Returns Site object, no change needed
+        return site;
     }
 
     public void setSite(Site site) {
         this.site = site;
     }
 
-     // Modified to clean the name/key coming from the Site object
+    // MODIFIED: Clean the name coming from the Site object
     public String getSiteName() {
-        Site currentSite = getSite(); // Get site once
+        Site currentSite = getSite();
         if (currentSite == null) return "";
-        String originalName = currentSite.getName(); // Assume Site.getName() returns String
-        // Apply replace only if originalName is not null/empty
-        return TextUtils.isEmpty(originalName) ? "" : originalName.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        // Use processString (no trim assumed for site name)
+        return processString(currentSite.getName()); // MODIFIED
     }
 
-    // Modified to clean the name/key coming from the Site object
+    // MODIFIED: Clean the key coming from the Site object
     public String getSiteKey() {
-         Site currentSite = getSite(); // Get site once
-         if (currentSite == null) return "";
-         String originalKey = currentSite.getKey(); // Assume Site.getKey() returns String
-         // Apply replace only if originalKey is not null/empty
-         return TextUtils.isEmpty(originalKey) ? "" : originalKey.replace(STRING_TO_REMOVE, ""); // MODIFIED
+        Site currentSite = getSite();
+        if (currentSite == null) return "";
+        // Use processString (no trim assumed for site key)
+        return processString(currentSite.getKey()); // MODIFIED
     }
 
-
-    // --- Visibility and boolean checks (no changes needed here) ---
+    // --- Visibility and boolean checks (rely on modified getters, no changes needed) ---
+    // These methods use the modified getters, so they automatically benefit from the cleaning.
     public int getSiteVisible() {
         return getSite() == null ? View.GONE : View.VISIBLE;
     }
 
     public int getYearVisible() {
-        // Logic uses getVodYear() which is already modified, so this is fine
         return getSite() != null || getVodYear().length() < 4 ? View.GONE : View.VISIBLE;
     }
 
     public int getNameVisible() {
-        // Logic uses getVodName() which is already modified
         return getVodName().isEmpty() ? View.GONE : View.VISIBLE;
     }
 
     public int getRemarkVisible() {
-         // Logic uses getVodRemarks() which is already modified
         return getVodRemarks().isEmpty() ? View.GONE : View.VISIBLE;
     }
 
     public boolean isFolder() {
-        // Logic uses getVodTag() which is already modified
         return "folder".equals(getVodTag()) || getCate() != null;
     }
 
-     public boolean isAction() {
-         // Logic uses getAction() which is already modified
+    public boolean isAction() {
         return !getAction().isEmpty();
-     }
+    }
 
     public boolean isManga() {
-         // Logic uses getVodTag() which is already modified
         return "manga".equals(getVodTag());
     }
 
-    // --- Other Methods (trans, setVodFlags, equals, Parcelable - no changes needed here) ---
+    // --- Other Methods (trans, setVodFlags, equals, Parcelable) ---
 
     public Style getStyle(Style style) {
         return getStyle() != null ? getStyle() : style != null ? style : Style.rect();
@@ -328,47 +342,85 @@ public class Vod implements Parcelable {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
-        // The getters will handle removing STRING_TO_REMOVE when these fields are accessed later
+        // Getters will handle STRING_TO_REMOVE and URL replacement later when accessed
     }
 
+    // --- MODIFIED: setVodFlags() to use cleaned data and clean existing flags ---
     public void setVodFlags() {
-        // Logic uses getVodPlayFrom() and getVodPlayUrl() which are modified
-        String[] playFlags = getVodPlayFrom().split("\\$\\$\\$");
-        String[] playUrls = getVodPlayUrl().split("\\$\\$\\$");
-        // Check if flags/URLs contained the string, though unlikely for structure
-        for (int i = 0; i < playFlags.length; i++) {
-            if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-            // Clean flag name just in case
-            String cleanedFlag = playFlags[i].trim().replace(STRING_TO_REMOVE,"");
-            Flag item = Flag.create(cleanedFlag);
-            // Clean URLs segment (less likely needed but for completeness)
-            String cleanedUrls = playUrls[i].replace(STRING_TO_REMOVE,"");
-            item.createEpisode(cleanedUrls);
-            getVodFlags().add(item);
+        // Use the getters which already perform replacements
+        String playFromData = getVodPlayFrom(); // Already cleaned via getter
+        String playUrlData = getVodPlayUrl();   // Already cleaned via getter
+
+        // Clear existing flags ONLY if we are populating from PlayFrom/PlayUrl
+        boolean populatedFromApi = !TextUtils.isEmpty(playFromData) && !TextUtils.isEmpty(playUrlData);
+        if (populatedFromApi) {
+            getVodFlags().clear(); // Clear flags presumably populated via XML if API data exists
         }
-        // This loop processes flags added via XML potentially
-        for (Flag item : getVodFlags()) {
-             if (item.getUrls() == null) continue;
-             // Clean URLs provided via XML 'dd urls' attribute
-             String cleanedUrls = item.getUrls().replace(STRING_TO_REMOVE, "");
-             item.createEpisode(cleanedUrls);
-             // Clean flag name provided via XML 'dd flag' attribute
-             if (item.getFlag() != null) {
-                 item.setFlag(item.getFlag().replace(STRING_TO_REMOVE,""));
-             }
+
+        if (populatedFromApi) {
+            String[] playFlags = playFromData.split("\\$\\$\\$");
+            String[] playUrls = playUrlData.split("\\$\\$\\$");
+
+            for (int i = 0; i < playFlags.length; i++) {
+                if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
+                // Flag name needs trim + standard cleaning (though already cleaned by getter, trim ensures consistency)
+                String flagName = processTrimmedString(playFlags[i]); // Apply trim + full cleaning
+                Flag item = Flag.create(flagName);
+                // URLs are already cleaned by getVodPlayUrl(), pass them directly to createEpisode
+                item.createEpisode(playUrls[i]); // playUrls[i] comes from the already cleaned playUrlData split
+                getVodFlags().add(item);
+            }
+        }
+
+        // Always process flags that might have been populated via XML (or added manually)
+        // This ensures consistency regardless of the source (API vs XML vs manual)
+        if (this.vodFlags != null) {
+            for (Flag item : this.vodFlags) {
+                processExistingFlagItem(item); // Clean flags potentially from XML or other sources
+            }
         }
     }
+
+    // MODIFIED: Helper method to process existing flag items (potentially from XML or Parcel)
+    private void processExistingFlagItem(Flag item) {
+        if (item == null) return;
+        // Clean flag name
+        if (item.getFlag() != null) {
+            // Apply trim + both replacements
+            item.setFlag(item.getFlag().trim().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+        }
+        // Clean URLs if they exist as a single string attribute (less common)
+        if (item.getUrls() != null) {
+            // No trim for URLs, apply both replacements
+            String cleanedUrls = item.getUrls().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL);
+            item.createEpisode(cleanedUrls); // This might replace existing episodes based on the cleaned URL string
+        } else if (item.getEpisodes() != null) {
+            // If URLs are already parsed into episodes, clean each episode's URL and Name
+            for (Episode episode : item.getEpisodes()) {
+                if (episode.getUrl() != null) {
+                    episode.setUrl(episode.getUrl().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+                }
+                if (episode.getName() != null) {
+                    // Also clean episode names, just in case
+                    episode.setName(episode.getName().replace(STRING_TO_REMOVE, "").replace(OLD_URL, NEW_URL));
+                }
+            }
+        }
+    }
+    // --- END MODIFICATION ---
+
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Vod)) return false;
         Vod it = (Vod) obj;
-        // Comparison uses getVodId() which is now modified
+        // Comparison uses getVodId() which is now modified to clean the ID
         return getVodId().equals(it.getVodId());
     }
 
-    // --- Parcelable implementation (writes/reads raw fields, getters handle cleaning) ---
+    // --- Parcelable implementation (writes/reads raw fields, getters handle cleaning on retrieval) ---
+    // No fundamental changes needed here, but added comments for clarity.
     @Override
     public int describeContents() {
         return 0;
@@ -376,7 +428,7 @@ public class Vod implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        // Write raw data
+        // Write raw field data. Cleaning happens via getters when data is accessed later.
         dest.writeString(this.vodId);
         dest.writeString(this.vodName);
         dest.writeString(this.typeName);
@@ -396,12 +448,13 @@ public class Vod implements Parcelable {
         dest.writeFloat(this.ratio);
         dest.writeParcelable(this.cate, flags);
         dest.writeParcelable(this.style, flags);
+        // Write potentially uncleaned Flag data. Cleaning happens via processExistingFlagItem if needed.
         dest.writeTypedList(this.vodFlags);
         dest.writeParcelable(this.site, flags);
     }
 
     protected Vod(Parcel in) {
-        // Read raw data
+        // Read raw field data.
         this.vodId = in.readString();
         this.vodName = in.readString();
         this.typeName = in.readString();
@@ -421,9 +474,18 @@ public class Vod implements Parcelable {
         this.ratio = in.readFloat();
         this.cate = in.readParcelable(Cate.class.getClassLoader());
         this.style = in.readParcelable(Style.class.getClassLoader());
+        // Reads potentially uncleaned Flag data
         this.vodFlags = in.createTypedArrayList(Flag.CREATOR);
         this.site = in.readParcelable(Site.class.getClassLoader());
-        // Cleaning happens when getters are called on this reconstructed object
+
+        // MODIFIED: Optionally re-process flags immediately after reading from parcel
+        // This ensures flags read from a Parcel are also cleaned.
+        if (this.vodFlags != null) {
+            for (Flag item : this.vodFlags) {
+                processExistingFlagItem(item);
+            }
+        }
+        // --- END MODIFICATION ---
     }
 
     public static final Creator<Vod> CREATOR = new Creator<>() {
