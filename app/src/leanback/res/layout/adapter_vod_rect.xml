@@ -20,7 +20,8 @@
         android:id="@+id/year"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
         android:background="@drawable/round"
         android:ellipsize="end"
         android:padding="4dp"
@@ -35,7 +36,8 @@
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
         android:background="@drawable/round"
         android:ellipsize="end"
         android:padding="4dp"
@@ -48,6 +50,8 @@
 
     <TextView
         android:id="@+id/remark"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="4dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/name"
