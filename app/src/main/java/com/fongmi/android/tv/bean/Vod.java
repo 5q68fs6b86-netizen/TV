@@ -130,7 +130,7 @@ public class Vod implements Parcelable {
     //   [^/]+\.png                           - Matches one or more non-slash chars (second {anything}) followed by literal ".png" (dot escaped)
     // )                                      - End of group
     // $                                      - End of the string
-    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://www\\.leijing1\\.com/file/avatar/[^/]+/(null|[^/]+\\.png)$");
+    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://www\\.leijing1\\.com/file/avatar/[^/]+/(null|[^/]+\\.png|[^/]+\\.jpg)$");
     // The replacement URL for the matched patterns
     private static final String NEW_AVATAR_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
     // --- END NEW ---
