@@ -23,15 +23,16 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
-        android:layout_height="wrap_content" 
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:clipChildren="true"
-        app:cardCornerRadius="6dp"      
+        app:cardCornerRadius="6dp"
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="true"
-        app:cardUseCompatPadding="false">
+        app:cardUseCompatPadding="false"
+        android:background="@android:color/transparent">
 
         <!-- The actual TimeBar, now non-focusable -->
         <androidx.media3.ui.DefaultTimeBar
