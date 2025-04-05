@@ -3,9 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="40dp"
-    android:orientation="horizontal">
-
-    <TextView
+    android:orientation="horizontal"
+    android:background="@drawable/roundmenu"> <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="40dp"
