@@ -18,5 +18,11 @@
     <!-- Push -->
     <string name="push_clip">Push clipboard content</string>
     <string name="push_info">Scan QR Code or enter the URL in browser\n<xliff:g name="name">%s</xliff:g></string>
-
+    <!-- ... 其他字符串 ... -->
+    <string name="error_play_url">加载视频地址出错</string> <!-- 示例 -->
+    <string name="playback_error">播放错误指示</string>
+    <string name="play_pause_toggle">播放暂停切换</string>
+    <string name="seeking_indicator">快进快退指示</string>
+    <string name="brightness_level">亮度级别指示</string>
+    <string name="volume_level">音量级别指示</string>
 </resources>
