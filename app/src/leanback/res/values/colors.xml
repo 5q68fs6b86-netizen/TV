@@ -6,4 +6,5 @@
     <color name="grey_500">#9E9E9E</color>
     <color name="black">#000000</color>
     <!-- 其他应用主题可能需要的颜色 -->
+    <color name="white">#FFFFFFFF</color>
 </resources>
