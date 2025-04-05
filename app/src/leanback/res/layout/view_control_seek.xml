@@ -32,6 +32,7 @@
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="true"
         app:cardUseCompatPadding="false"
+        android:layout_marginTop="2dp" 
         android:background="@android:color/transparent">
 
         <!-- The actual TimeBar, now non-focusable -->
