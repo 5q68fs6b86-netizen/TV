@@ -10,7 +10,6 @@
     android:paddingTop="8dp"        
     android:paddingBottom="8dp">     
 
-    <!-- Current Playback Position TextView -->
     <TextView
         android:id="@+id/position"
         android:layout_width="wrap_content"
@@ -22,7 +21,6 @@
         android:gravity="center"         
         tools:text="00:00:00" />
 
-    <!-- CardView wrapper for rounded corners on the TimeBar -->
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="wrap_content" 
@@ -42,13 +40,8 @@
             android:layout_height="16dp"        
             android:paddingStart="0dp"          
             android:paddingEnd="0dp"            
-
-            <!-- Key Change: Prevents the TimeBar from receiving focus via D-pad -->
             android:focusable="false"
             android:focusableInTouchMode="false"
-
-            <!-- Removed nextFocus... attributes as this view is no longer focusable -->
-
             app:bar_height="12dp"
             app:buffered_color="#59ffffff"
             app:played_color="#ffffff"
@@ -60,7 +53,6 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- Total Duration TextView -->
     <TextView
         android:id="@+id/duration"
         android:layout_width="wrap_content"
