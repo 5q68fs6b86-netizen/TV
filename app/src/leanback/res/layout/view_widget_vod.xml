@@ -5,85 +5,101 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout
+    <!-- 信息区域: 使用 ConstraintLayout 可能获得更好的对齐 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/info"
-        android:visibility="invisible"
-        tools:visibility="visible"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:visibility="invisible"
+        tools:visibility="visible">
 
         <TextView
             android:id="@+id/title"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="100dp"
-            android:letterSpacing="0.02"
-            android:shadowColor="@color/grey_900"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:shadowRadius="1"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
             android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            app:layout_constraintEnd_toStartOf="@+id/placeholder_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="慶餘年第一季：第一集" />
+            <!-- 移除了 shadow 属性 -->
 
         <TextView
             android:id="@+id/size"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/title"
-            android:layout_alignStart="@+id/title"
-            android:layout_marginBottom="16dp"
-            android:shadowColor="@color/grey_900"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:shadowRadius="1"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@+id/title"
+            app:layout_constraintTop_toBottomOf="@+id/title"
             tools:text="1920 x 1080" />
+            <!-- 移除了 shadow 属性 -->
 
-    </RelativeLayout>
+        <!-- 占位符，避免标题在某些情况下触及边缘 -->
+        <Space
+            android:id="@+id/placeholder_end"
+            android:layout_width="80dp"
+            android:layout_height="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 进度条区域 -->
     <LinearLayout
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="vertical">
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:visibility="gone">
 
+        <!-- 假设 view_progress 包含一个符合 MD3 样式的 CircularProgressIndicator -->
         <include layout="@layout/view_progress" />
 
         <TextView
             android:id="@+id/traffic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
             android:textColor="@color/white"
-            android:textSize="16sp"
             android:visibility="gone"
-            tools:text="120KB/s" />
+            tools:text="120KB/s"
+            tools:visibility="visible"/>
 
     </LinearLayout>
 
+    <!-- 错误提示区域 -->
     <LinearLayout
         android:id="@+id/error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
+        android:background="@drawable/background_overlay_widget_md3"
         android:gravity="center"
+        android:minWidth="180dp"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="24dp"
         android:visibility="gone"
         tools:visibility="visible">
 
         <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_widget_error" />
+            android:src="@drawable/ic_widget_error"
+            app:tint="@color/white"
+            android:contentDescription="@string/playback_error" />
 
         <TextView
             android:id="@+id/text"
@@ -91,30 +107,37 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:gravity="center"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/white"
-            android:textSize="16sp"
             tools:text="@string/error_play_url" />
 
     </LinearLayout>
 
+    <!-- 中央操作区域 (播放/暂停/时间) -->
     <LinearLayout
         android:id="@+id/center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
+        android:background="@drawable/background_overlay_widget_md3"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
         android:visibility="gone"
         tools:visibility="visible">
 
         <ImageView
             android:id="@+id/action"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_widget_play" />
+            android:src="@drawable/ic_widget_play"
+            app:tint="@color/white"
+            android:contentDescription="@string/play_pause_toggle"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -125,100 +148,131 @@
                 android:id="@+id/exo_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="@color/white"
-                android:textSize="16sp"
                 tools:text="00:00:00" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:includeFontPadding="false"
                 android:text="/"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="@color/white" />
 
             <TextView
                 android:id="@+id/exo_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="@color/white"
-                android:textSize="16sp"
-                tools:text="00:00:00" />
+                tools:text="00:45:30" />
 
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 速度指示器 (快进/快退) -->
     <ImageView
         android:id="@+id/speed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="top|center"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:src="@drawable/ic_widget_forward"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:tint="@color/white"
+        tools:visibility="visible"
+        android:contentDescription="@string/seeking_indicator"/>
 
+
+    <!-- 亮度控制 -->
     <LinearLayout
         android:id="@+id/bright"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
-        android:gravity="center"
+        android:background="@drawable/background_overlay_widget_md3"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingStart="20dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
         android:visibility="gone"
         tools:visibility="visible">
 
         <ImageView
             android:id="@+id/brightIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginEnd="16dp"
-            tools:src="@drawable/ic_widget_bright_high" />
+            app:tint="@color/white"
+            tools:src="@drawable/ic_widget_bright_high"
+            android:contentDescription="@string/brightness_level"/>
+
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/brightProgress"
-            android:layout_width="200dp"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"
+            android:max="100"
             app:indicatorColor="@color/white"
-            app:trackColor="@color/grey_500" />
+            app:trackColor="@color/grey_500"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="4dp"
+            tools:progress="75"/>
 
     </LinearLayout>
 
+    <!-- 音量控制 -->
     <LinearLayout
         android:id="@+id/volume"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
-        android:gravity="center"
+        android:background="@drawable/background_overlay_widget_md3"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingStart="20dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
         android:visibility="gone"
         tools:visibility="visible">
 
         <ImageView
             android:id="@+id/volumeIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginEnd="16dp"
-            tools:src="@drawable/ic_widget_volume_high" />
+            app:tint="@color/white"
+            tools:src="@drawable/ic_widget_volume_high"
+            android:contentDescription="@string/volume_level"/>
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/volumeProgress"
-            android:layout_width="200dp"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"
+            android:max="100"
             app:indicatorColor="@color/white"
-            app:trackColor="@color/grey_500" />
+            app:trackColor="@color/grey_500"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="4dp"
+            tools:progress="60"/>
 
     </LinearLayout>
 
+    <!-- 预览图像 (拖动进度条时的预览) -->
     <ImageView
         android:id="@+id/preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitCenter"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:importantForAccessibility="no" />
 
 </FrameLayout>
