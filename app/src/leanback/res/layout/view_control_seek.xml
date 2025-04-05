@@ -33,7 +33,7 @@
         app:cardPreventCornerOverlap="true"
         app:cardUseCompatPadding="false"
         android:layout_marginTop="2dp" 
-        android:background="@android:color/transparent">
+        app:cardBackgroundColor="@android:color/transparent">
 
         <!-- The actual TimeBar, now non-focusable -->
         <androidx.media3.ui.DefaultTimeBar
