@@ -195,7 +195,8 @@ public class Vod implements Parcelable {
     }
 
     /**
-     * Applies SPECIAL processing for vodPlayFrom: Apply common replacements, THEN specific REPLACEMENT.
+     * Applies SPECIAL processing for vodPlayFrom: Apply common replacements, specific REPLACEMENT,
+     * and remove text matching the pattern "digits + 分享不见了".
      */
     private String processVodPlayFrom(String input) {
         if (TextUtils.isEmpty(input)) {
@@ -204,7 +205,17 @@ public class Vod implements Parcelable {
         // Apply common replacements first
         String processed = applyCommonReplacements(input);
         // THEN apply the SPECIAL replacement rule for THIS field
-        return processed.replace(TARGET_STRING, VOD_PLAY_FROM_REPLACEMENT);
+        processed = processed.replace(TARGET_STRING, VOD_PLAY_FROM_REPLACEMENT);
+
+        // *** 使用正则表达式移除 "数字+分享不见了" 模式的文本 ***
+        if (processed != null) {
+             // 正则表达式 \\d+ 匹配一个或多个数字
+             // 所以 \\d+分享不见了 匹配 "1分享不见了", "23分享不见了" 等模式
+             processed = processed.replaceAll("\\d+分享不见了", ""); // 移除匹配模式的文本
+        }
+        // *** 移除结束 ***
+
+        return processed; // 返回处理后的结果
     }
 
 
@@ -299,7 +310,7 @@ public class Vod implements Parcelable {
 
     // --- vodPlayFrom Getter ---
     public String getVodPlayFrom() {
-        // Uses its specific helper for REPLACEMENT
+        // Uses its specific helper for REPLACEMENT and removing "数字+分享不见了"
         return processVodPlayFrom(this.vodPlayFrom);
     }
 
@@ -431,11 +442,12 @@ public class Vod implements Parcelable {
 
     /**
      * Populates or updates the vodFlags list based on vodPlayFrom and vodPlayUrl fields.
-     * It uses the specific getters which apply the correct cleaning rules (replacement for From, removal for Url).
+     * It uses the specific getters which apply the correct cleaning rules (replacement for From, removal for Url,
+     * and removal of "digits+分享不见了" pattern from From).
      * It then ensures *all* flags (newly created or pre-existing from XML) undergo standard cleaning.
      */
     public void setVodFlags() {
-        String playFromData = getVodPlayFrom(); // Gets data with SPECIAL replacement rule applied
+        String playFromData = getVodPlayFrom(); // Gets data with SPECIAL replacement, pattern removal applied
         String playUrlData = getVodPlayUrl();   // Gets data with STANDARD removal rule applied
 
         boolean populatedFromApi = !TextUtils.isEmpty(playFromData) && !TextUtils.isEmpty(playUrlData);
@@ -444,15 +456,15 @@ public class Vod implements Parcelable {
         getVodFlags().clear(); // Clear the main list before potentially adding API flags
 
         if (populatedFromApi) {
-            String[] playFlags = playFromData.split("\\$\\$\\$"); // Already processed flags
-            String[] playUrls = playUrlData.split("\\$\\$\\$");   // Already processed urls
+            String[] playFlags = playFromData.split("\\$\\$\\$"); // Already processed flags (names cleaned)
+            String[] playUrls = playUrlData.split("\\$\\$\\$");   // Already processed urls (target string removed)
 
             for (int i = 0; i < playFlags.length; i++) {
                 if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
 
-                String flagName = playFlags[i]; // Use directly (contains "播放列表" if applicable)
+                String flagName = playFlags[i]; // Use directly (cleaned name)
                 Flag apiFlag = Flag.create(flagName);
-                apiFlag.createEpisode(playUrls[i]); // Use directly (TARGET_STRING removed if applicable)
+                apiFlag.createEpisode(playUrls[i]); // Use directly (cleaned urls)
                 getVodFlags().add(apiFlag); // Add the flag created from API data
             }
         } else {
@@ -463,7 +475,7 @@ public class Vod implements Parcelable {
         // IMPORTANT: Ensure ALL flags in the final list (whether from API or XML)
         // undergo the STANDARD cleaning process. This primarily ensures common replacements
         // are applied and that any TARGET_STRING in XML-loaded flags is REMOVED.
-        // It will NOT affect "播放列表" because that doesn't match TARGET_STRING.
+        // It will NOT affect "播放列表" or the result of removing "数字+分享不见了".
         if (this.vodFlags != null) {
             for (Flag item : this.vodFlags) {
                 processExistingFlagItemStandard(item);
@@ -505,7 +517,6 @@ public class Vod implements Parcelable {
              }
         } else {
             // If URLs are null but episodes exist, try cleaning individual episode URLs/names (less common)
-            // This part might be omitted if flags always have a bulk URL string when needing cleaning.
              if (item.getEpisodes() != null) {
                  for(Episode episode : item.getEpisodes()) {
                      if (episode.getName() != null) {
@@ -601,12 +612,12 @@ public class Vod implements Parcelable {
                 processExistingFlagItemStandard(item);
             }
         }
-        // Note: The specific vodPic pattern replacement and vodRemarks replacement
-        // happen in their respective getters, so they will be applied when
-        // getVodPic() or getVodRemarks() is called after reading from Parcel.
+        // Note: The specific vodPic pattern replacement, vodRemarks replacement,
+        // and vodPlayFrom "数字+分享不见了" removal happen in their respective getters,
+        // so they will be applied when those getters are called after reading from Parcel.
     }
 
-    public static final Creator<Vod> CREATOR = new Creator<>() {
+    public static final Parcelable.Creator<Vod> CREATOR = new Parcelable.Creator<>() {
         @Override
         public Vod createFromParcel(Parcel source) {
             return new Vod(source);
