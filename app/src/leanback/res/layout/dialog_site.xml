@@ -28,44 +28,36 @@
             app:singleSelection="true"
             app:selectionRequired="false" > <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSearchMode"
-                style="?attr/materialIconButtonOutlinedStyle"
-                android:layout_width="wrap_content"
+                style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:icon="@drawable/ic_site_search"
-                app:iconTint="?attr/colorOnSurfaceVariant" android:contentDescription="@string/cd_search_mode" /> <com.google.android.material.button.MaterialButton
+                app:iconTint="?attr/colorOnSurfaceVariant" /> <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonChangeMode"
-                style="?attr/materialIconButtonOutlinedStyle"
-                android:layout_width="wrap_content"
+                style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp" app:icon="@drawable/ic_site_change"
-                app:iconTint="?attr/colorOnSurfaceVariant" android:contentDescription="@string/cd_change_mode" /> </com.google.android.material.button.MaterialButtonToggleGroup>
+                app:iconTint="?attr/colorOnSurfaceVariant" /> </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/select"
-            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
             app:icon="@drawable/ic_site_select"
-            app:iconTint="?attr/colorOnSecondaryContainer" android:contentDescription="@string/cd_select_all" android:focusable="true"
+            app:iconTint="?attr/colorOnSecondaryContainer" /> android:focusable="true"
             android:nextFocusUp="@id/modeToggleGroup"
             android:nextFocusDown="@id/cancel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel"
-            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" app:icon="@drawable/ic_site_cancel"
-            app:iconTint="?attr/colorOnSecondaryContainer" android:contentDescription="@string/cd_cancel_all" android:focusable="true"
+            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:icon="@drawable/ic_site_cancel"
+            app:iconTint="?attr/colorOnSecondaryContainer" /> android:focusable="true"
             android:nextFocusUp="@id/select"
             android:nextFocusDown="@id/mode" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/mode"
-            style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:icon="@drawable/ic_site_list" app:iconTint="?attr/colorOnSurfaceVariant"
-            android:contentDescription="@string/cd_toggle_view_mode" android:focusable="true"
+            style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            app:icon="@drawable/ic_site_list" app:iconTint="?attr/colorOnSurfaceVariant" />
+            android:focusable="true"
             android:nextFocusUp="@id/cancel"
             android:nextFocusDown="@id/mode" tools:icon="@drawable/ic_site_grid"/> </LinearLayout>
 </LinearLayout>
