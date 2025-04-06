@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"> <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        app:maxHeight="264dp"
+        android:clipToPadding="false" android:paddingBottom="8dp" tools:itemCount="5"
+        tools:listitem="@layout/adapter_site" />
+
+    <LinearLayout
+        android:id="@+id/action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_marginStart="16dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal" android:visibility="gone" tools:visibility="visible">
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/modeToggleGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            app:selectionRequired="false" > <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonSearchMode"
+                style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:icon="@drawable/ic_site_search"
+                app:iconTint="?attr/colorOnSurfaceVariant" /> <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonChangeMode"
+                style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" app:icon="@drawable/ic_site_change"
+                app:iconTint="?attr/colorOnSurfaceVariant" /> </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/select"
+            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            app:icon="@drawable/ic_site_select"
+            app:iconTint="?attr/colorOnSecondaryContainer" /> android:focusable="true"
+            android:nextFocusUp="@id/modeToggleGroup"
+            android:nextFocusDown="@id/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancel"
+            style="?attr/materialIconButtonFilledTonalStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:icon="@drawable/ic_site_cancel"
+            app:iconTint="?attr/colorOnSecondaryContainer" /> android:focusable="true"
+            android:nextFocusUp="@id/select"
+            android:nextFocusDown="@id/mode" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/mode"
+            style="?attr/materialIconButtonOutlinedStyle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            app:icon="@drawable/ic_site_list" app:iconTint="?attr/colorOnSurfaceVariant" />
+            android:focusable="true"
+            android:nextFocusUp="@id/cancel"
+            android:nextFocusDown="@id/mode" tools:icon="@drawable/ic_site_grid"/> </LinearLayout>
+</LinearLayout>
