@@ -252,7 +252,8 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         }
 
         binding.mode.setEnabled(enableToggle); // 设置按钮是否可点击
-        binding.mode.setImageResource(getIcon()); // 根据当前模式设置按钮图标
+        binding.mode.setIconResource(getIcon()); // *** 修改这里 ***
+ // 根据当前模式设置按钮图标
     }
 
     /**
