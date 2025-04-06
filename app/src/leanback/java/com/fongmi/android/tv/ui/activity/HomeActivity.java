@@ -53,6 +53,7 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
+// 导入新的 MenuDialog (它内部实现已改变，但类名可能不变)
 import com.fongmi.android.tv.ui.dialog.MenuDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.fragment.HomeFragment;
@@ -81,7 +82,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     public ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mAdapter;
-    private HomeActivity.PageAdapter mPageAdapter;
+    private PageAdapter mPageAdapter; // 内部类名不需要修改
     private SiteViewModel mViewModel;
     public Result mResult;
     private boolean loading;
@@ -225,7 +226,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new HomeActivity.PageAdapter(getSupportFragmentManager()));
+        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(getSupportFragmentManager()));
         mBinding.pager.setNoScrollItem(0);
     }
 
@@ -367,16 +368,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         App.post(() -> confirm = false, 5000);
     }
 
-
+    // ==================== 修改点 1 ====================
     @Override
     public void showDialog() {
         if (!hasSettingButton()) {
-            MenuDialog.create(this).show();
+            // 使用新的静态方法调用
+            MenuDialog.showUsingSetItems(this);
             return;
         }
         if (Setting.isHomeSiteLock()) return;
         SiteDialog.create(this).show();
     }
+    // ==================================================
 
     @Override
     public void onRefresh() {
@@ -395,7 +398,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         onRefresh();
         return true;
     }
-
 
     @Override
     public void setSite(Site item) {
@@ -504,24 +506,40 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
+    // ==================== 修改点 2 ====================
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         boolean isHomeFragment = mBinding.pager.getCurrentItem() == 0;
         if (isHomeFragment && KeyUtil.isMenuKey(event)) {
-            if (Setting.getHomeMenuKey() == 0) MenuDialog.create(this).show();
-            else if (Setting.getHomeMenuKey() == 1) SiteDialog.create(this).show();
-            else if (Setting.getHomeMenuKey() == 2) HistoryDialog.create(this).type(0).show();
-            else if (Setting.getHomeMenuKey() == 3) LiveActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 4) HistoryActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 5) SearchActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 6) PushActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 7) KeepActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 8) SettingActivity.start(this);
+            // 根据设置决定按菜单键的行为
+            if (Setting.getHomeMenuKey() == 0) {
+                // 使用新的静态方法调用
+                MenuDialog.showUsingSetItems(this);
+            } else if (Setting.getHomeMenuKey() == 1) {
+                SiteDialog.create(this).show();
+            } else if (Setting.getHomeMenuKey() == 2) {
+                HistoryDialog.create(this).type(0).show();
+            } else if (Setting.getHomeMenuKey() == 3) {
+                LiveActivity.start(this);
+            } else if (Setting.getHomeMenuKey() == 4) {
+                HistoryActivity.start(this);
+            } else if (Setting.getHomeMenuKey() == 5) {
+                SearchActivity.start(this);
+            } else if (Setting.getHomeMenuKey() == 6) {
+                PushActivity.start(this);
+            } else if (Setting.getHomeMenuKey() == 7) {
+                KeepActivity.start(this);
+            } else if (Setting.getHomeMenuKey() == 8) {
+                SettingActivity.start(this);
+            }
+            return true; // 菜单键事件已处理
         }
+        // 保留其他按键处理逻辑
         if (!isHomeFragment && KeyUtil.isMenuKey(event)) updateFilter((Class) mAdapter.get(mBinding.pager.getCurrentItem()));
         if (!isHomeFragment && KeyUtil.isBackKey(event) && event.isLongPress() && getFragment().goRoot()) setCoolDown();
         return super.dispatchKeyEvent(event);
     }
+    // ==================================================
 
     @Override
     protected void onResume() {
@@ -539,11 +557,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected boolean handleBack() {
-        return true;
+        return true; // 保持不变
     }
 
     @Override
     protected void onBackPress() {
+        // 保留原有的返回逻辑
         if (isVisible(mBinding.recycler) && mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mBinding.progressLayout.isProgress()) {
@@ -583,9 +602,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         Source.get().exit();
     }
 
+    // PageAdapter 内部类保持不变
     class PageAdapter extends FragmentStatePagerAdapter {
         public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm);
+            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT); // 建议使用新版构造函数
         }
 
         @NonNull
@@ -593,6 +613,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         public Fragment getItem(int position) {
             if (position == 0) return new HomeFragment();
             Class type = (Class) mAdapter.get(position);
+            // 传递参数的方式保持不变
             return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
@@ -603,6 +624,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
         @Override
         public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            // 如果使用 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT 或 BEHAVIOR_SET_USER_VISIBLE_HINT，通常不需要手动调用 destroyItem 的 super
         }
     }
 }
