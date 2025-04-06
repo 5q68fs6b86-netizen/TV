@@ -28,21 +28,12 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:clipChildren="true"
-        app:cardCornerRadius="6dp"  />
-        <!-- 圆角设置在这里 -->
-        <!-- app:cardElevation="0dp" -->
-        <!-- app:cardPreventCornerOverlap="true" -->
-        <!-- app:cardUseCompatPadding="false" -->
-        <!-- android:layout_marginTop="2dp" -->
-        <!-- app:cardBackgroundColor="@android:color/transparent" -->
-
-        <!-- 给 CardView 添加 Padding -->
-        <!-- 水平方向的 Padding 尤其重要，值可以根据圆角大小调整 -->
+        app:cardCornerRadius="6dp"
+        app:cardBackgroundColor="@android:color/transparent"
         android:paddingStart="6dp"
         android:paddingEnd="6dp"
         android:paddingTop="2dp"
-        <!-- 垂直方向也加一点，确保不贴边 -->
-        android:paddingBottom="2dp">
+        android:paddingBottom="2dp">  />
 
         <!-- DefaultTimeBar 保持不变 -->
         <androidx.media3.ui.DefaultTimeBar
