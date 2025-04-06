@@ -19,6 +19,7 @@
     <string name="push_clip">Push clipboard content</string>
     <string name="push_info">Scan QR Code or enter the URL in browser\n<xliff:g name="name">%s</xliff:g></string>
     <!-- ... 其他字符串 ... -->
+    <string name="setting_vod_menu">你的标题文本</string>
     <string name="error_play_url">加载视频地址出错</string> <!-- 示例 -->
     <string name="playback_error">播放错误指示</string>
     <string name="play_pause_toggle">播放暂停切换</string>
