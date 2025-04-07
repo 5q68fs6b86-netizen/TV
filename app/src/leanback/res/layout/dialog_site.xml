@@ -28,6 +28,7 @@
         android:visibility="gone"
         tools:visibility="visible">
 
+        <!-- 注意：样式已从主题属性改为直接引用具体样式 -->
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/modeToggleGroup"
             android:layout_width="wrap_content"
@@ -37,59 +38,59 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSearchMode"
-                style="?attr/materialIconButtonOutlinedStyle"
+                style="@style/Widget.Material3.Button.IconButton.Outlined" <!-- 原: ?attr/materialIconButtonOutlinedStyle -->
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:icon="@drawable/ic_site_search"
-                app:iconTint="?attr/colorOnSurfaceVariant" />
+                app:iconTint="#FF49454F" /> <!-- 原: ?attr/colorOnSurfaceVariant -->
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonChangeMode"
-                style="?attr/materialIconButtonOutlinedStyle"
+                style="@style/Widget.Material3.Button.IconButton.Outlined" <!-- 原: ?attr/materialIconButtonOutlinedStyle -->
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 app:icon="@drawable/ic_site_change"
-                app:iconTint="?attr/colorOnSurfaceVariant" />
+                app:iconTint="#FF49454F" /> <!-- 原: ?attr/colorOnSurfaceVariant -->
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/select"
-            style="?attr/materialIconButtonFilledTonalStyle"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal" <!-- 原: ?attr/materialIconButtonFilledTonalStyle -->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:focusable="true"                         
-            android:nextFocusUp="@id/modeToggleGroup"        
-            android:nextFocusDown="@id/cancel"              
+            android:focusable="true"
+            android:nextFocusUp="@id/modeToggleGroup"
+            android:nextFocusDown="@id/cancel"
             app:icon="@drawable/ic_site_select"
-            app:iconTint="?attr/colorOnSecondaryContainer" />
+            app:iconTint="#FF1D192B" /> <!-- 原: ?attr/colorOnSecondaryContainer -->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel"
-            style="?attr/materialIconButtonFilledTonalStyle"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal" <!-- 原: ?attr/materialIconButtonFilledTonalStyle -->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:focusable="true"                         
-            android:nextFocusUp="@id/select"                 
-            android:nextFocusDown="@id/mode"                 
+            android:focusable="true"
+            android:nextFocusUp="@id/select"
+            android:nextFocusDown="@id/mode"
             app:icon="@drawable/ic_site_cancel"
-            app:iconTint="?attr/colorOnSecondaryContainer" />
+            app:iconTint="#FF1D192B" /> <!-- 原: ?attr/colorOnSecondaryContainer -->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/mode"
-            style="?attr/materialIconButtonOutlinedStyle"
+            style="@style/Widget.Material3.Button.IconButton.Outlined" <!-- 原: ?attr/materialIconButtonOutlinedStyle -->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:focusable="true"                        
-            android:nextFocusUp="@id/cancel"                
-            android:nextFocusDown="@id/mode"                
+            android:focusable="true"
+            android:nextFocusUp="@id/cancel"
+            android:nextFocusDown="@id/mode"
             app:icon="@drawable/ic_site_list"
-            app:iconTint="?attr/colorOnSurfaceVariant"
-            tools:icon="@drawable/ic_site_grid"/>           
+            app:iconTint="#FF49454F"           
+            tools:icon="@drawable/ic_site_grid"/> <!-- 原 iconTint: ?attr/colorOnSurfaceVariant -->
 
     </LinearLayout>
 </LinearLayout>
