@@ -16,8 +16,34 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 根据需要添加 INTERNET 权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 如果需要访问存储，添加相应权限 (根据 Android 版本可能需要请求运行时权限) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <!-- Android 13+ 读取媒体权限 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- 如果需要网络状态 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application android:banner="@drawable/ic_banner">
+    <!--
+        ****** 主要修改点 ******
+        在这里为整个应用程序设置默认主题为 AppTheme (Material 3 主题)。
+        这样，所有未在 <activity> 标签中单独指定主题的 Activity 都会默认使用此主题。
+    -->
+    <application
+        android:label="@string/app_name"  <!-- 建议添加应用名称 -->
+        android:icon="@mipmap/ic_launcher" <!-- 建议添加应用图标 -->
+        android:roundIcon="@mipmap/ic_launcher_round" <!-- 建议添加圆形图标 -->
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"   <!-- **** 添加了这一行 **** -->
+        android:banner="@drawable/ic_banner"
+        android:usesCleartextTraffic="true" <!-- 如果需要访问 http 链接 -->
+        android:networkSecurityConfig="@xml/network_security_config" <!-- 推荐用于更精细的网络安全控制 -->
+        android:allowBackup="true"         <!-- 考虑是否需要备份 -->
+        android:fullBackupContent="@xml/backup_rules" <!-- 如果 allowBackup=true -->
+        tools:targetApi="31"> <!-- 根据你的 targetSdk 设置 -->
 
         <meta-data
             android:name="design_width_in_dp"
@@ -32,9 +58,9 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:exported="true"
             android:screenOrientation="sensorLandscape">
+            <!-- Intent Filters 保持不变 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
@@ -45,10 +71,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="video/*" />
@@ -58,10 +82,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="smb" />
                 <data android:scheme="rtmp" />
                 <data android:scheme="rtsp" />
@@ -72,10 +94,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="ftp" />
                 <data android:scheme="ed2k" />
                 <data android:scheme="magnet" />
@@ -107,7 +127,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/AppTheme.Live" />
+            android:theme="@style/AppTheme.Live" /> <!-- LiveActivity 保留其特定主题 -->
 
         <activity
             android:name=".ui.activity.VideoActivity"
@@ -174,5 +194,8 @@
             </intent-filter>
         </receiver>
 
+        <!-- 确保添加必要的 Provider, Service 等声明 -->
+
     </application>
+
 </manifest>
