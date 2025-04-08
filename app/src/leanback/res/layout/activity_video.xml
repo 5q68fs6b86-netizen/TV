@@ -7,63 +7,74 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <FrameLayout
-        android:id="@+id/video"
+    <!-- 使用 CardView 包裹 FrameLayout 来实现圆角 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/video"  
         android:layout_width="400dp"
         android:layout_height="225dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="12dp"
-        android:background="@color/black"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:foreground="@drawable/selector_video"
-        android:nextFocusLeft="@id/video"
-        android:nextFocusRight="@id/desc"
-        android:nextFocusUp="@id/video"
-        android:nextFocusDown="@id/flag">
+        app:cardBackgroundColor="@color/black" <!-- 背景色移到 CardView -->
+        app:cardCornerRadius="8dp"         <!-- 设置圆角半径，根据需要调整 -->
+        app:cardElevation="0dp"             <!-- 不需要阴影 -->
+        android:focusable="true"            <!-- 焦点属性移到 CardView -->
+        android:focusableInTouchMode="true" <!-- 焦点属性移到 CardView -->
+        android:foreground="@drawable/selector_video" <!-- 前景选择器移到 CardView -->
+        android:nextFocusLeft="@id/video"   <!-- 焦点导航移到 CardView -->
+        android:nextFocusRight="@id/desc"  <!-- 焦点导航移到 CardView -->
+        android:nextFocusUp="@id/video"    <!-- 焦点导航移到 CardView -->
+        android:nextFocusDown="@id/flag">   <!-- 焦点导航移到 CardView -->
 
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/exo"
-            style="@style/Player.Vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <!-- 内部的 FrameLayout，用于容纳播放器和其他控件 -->
+        <FrameLayout
+            android:layout_width="match_parent"  <!-- 宽度填满 CardView -->
+            android:layout_height="match_parent" <!-- 高度填满 CardView -->
+            > <!-- 不再需要 ID、背景、焦点等属性 -->
 
-        <tv.danmaku.ijk.media.player.ui.IjkVideoView
-            android:id="@+id/ijk"
-            style="@style/Player.Vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/exo"
+                style="@style/Player.Vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        <master.flame.danmaku.ui.widget.DanmakuView
-            android:id="@+id/danmaku"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
+            <tv.danmaku.ijk.media.player.ui.IjkVideoView
+                android:id="@+id/ijk"
+                style="@style/Player.Vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
 
-        <include
-            android:id="@+id/widget"
-            layout="@layout/view_widget_vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            <master.flame.danmaku.ui.widget.DanmakuView
+                android:id="@+id/danmaku"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
 
-        <include
-            android:id="@+id/display"
-            layout="@layout/view_widget_display"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            <include
+                android:id="@+id/widget"
+                layout="@layout/view_widget_vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        <include
-            android:id="@+id/control"
-            layout="@layout/view_control_vod"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:visibility="gone" />
+            <include
+                android:id="@+id/display"
+                layout="@layout/view_widget_display"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-    </FrameLayout>
+            <include
+                android:id="@+id/control"
+                layout="@layout/view_control_vod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:visibility="gone" />
 
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 以下是视频信息和其他控件 -->
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
@@ -71,7 +82,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_toEndOf="@+id/video"
+        android:layout_toEndOf="@+id/video" <!-- 引用 CardView 的 ID -->
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="24sp"
@@ -191,7 +202,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/name"
-        android:layout_alignBottom="@+id/video"
+        android:layout_alignBottom="@+id/video" <!-- 引用 CardView 的 ID -->
         android:orientation="horizontal">
 
         <TextView
@@ -251,7 +262,7 @@
         android:id="@+id/flag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/video"
+        android:layout_below="@+id/video" <!-- 引用 CardView 的 ID -->
         android:clipChildren="false"
         android:clipToPadding="false"
         android:layout_marginBottom="12dp"
