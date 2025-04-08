@@ -84,6 +84,10 @@
             android:singleLine="true"
             android:text="@string/dialog_positive"
             android:textColor="@color/white"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:textSize="14sp" />
 
         <TextView
@@ -98,6 +102,10 @@
             android:singleLine="true"
             android:text="@string/dialog_negative"
             android:textColor="@color/white"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:textSize="14sp" />
 
     </LinearLayout>
