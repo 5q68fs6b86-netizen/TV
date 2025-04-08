@@ -11,9 +11,10 @@
         android:layout_height="wrap_content"
         android:stepSize="1"
         android:valueFrom="1"
-        android:valueTo="15"
-        app:thumbColor="@color/blue_500"
-        app:trackColorActive="@color/blue_500"
-        app:trackColorInactive="@color/blue_50" />
+        android:valueTo="15" />
+        <!-- 移除了 app:thumbColor -->
+        <!-- 移除了 app:trackColorActive -->
+        <!-- 移除了 app:trackColorInactive -->
+        <!-- Slider 现在将使用 Material 3 主题中定义的默认颜色 -->
 
 </FrameLayout>
