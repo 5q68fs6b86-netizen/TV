@@ -9,28 +9,36 @@
 
     <!-- 使用 CardView 包裹 FrameLayout 来实现圆角 -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/video"  
+        android:id="@+id/video"
         android:layout_width="400dp"
         android:layout_height="225dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="@color/black" <!-- 背景色移到 CardView -->
-        app:cardCornerRadius="8dp"         <!-- 设置圆角半径，根据需要调整 -->
-        app:cardElevation="0dp"             <!-- 不需要阴影 -->
-        android:focusable="true"            <!-- 焦点属性移到 CardView -->
-        android:focusableInTouchMode="true" <!-- 焦点属性移到 CardView -->
-        android:foreground="@drawable/selector_video" <!-- 前景选择器移到 CardView -->
-        android:nextFocusLeft="@id/video"   <!-- 焦点导航移到 CardView -->
-        android:nextFocusRight="@id/desc"  <!-- 焦点导航移到 CardView -->
-        android:nextFocusUp="@id/video"    <!-- 焦点导航移到 CardView -->
-        android:nextFocusDown="@id/flag">   <!-- 焦点导航移到 CardView -->
+        <!-- 背景色设置在 CardView -->
+        app:cardBackgroundColor="@color/black"
+        <!-- 设置圆角半径，根据需要调整 -->
+        app:cardCornerRadius="8dp"
+        <!-- 不需要阴影 -->
+        app:cardElevation="0dp"
+        <!-- 焦点属性设置在 CardView -->
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        <!-- 前景选择器设置在 CardView -->
+        android:foreground="@drawable/selector_video"
+        <!-- 焦点导航设置在 CardView -->
+        android:nextFocusLeft="@id/video"
+        android:nextFocusRight="@id/desc"
+        android:nextFocusUp="@id/video"
+        android:nextFocusDown="@id/flag">
 
         <!-- 内部的 FrameLayout，用于容纳播放器和其他控件 -->
+        <!-- 不再需要 ID、背景、焦点等属性 -->
         <FrameLayout
-            android:layout_width="match_parent"  <!-- 宽度填满 CardView -->
-            android:layout_height="match_parent" <!-- 高度填满 CardView -->
-            > <!-- 不再需要 ID、背景、焦点等属性 -->
+            <!-- 宽度填满 CardView -->
+            android:layout_width="match_parent"
+            <!-- 高度填满 CardView -->
+            android:layout_height="match_parent">
 
             <androidx.media3.ui.PlayerView
                 android:id="@+id/exo"
@@ -82,7 +90,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_toEndOf="@+id/video" <!-- 引用 CardView 的 ID -->
+        <!-- 引用 CardView 的 ID -->
+        android:layout_toEndOf="@+id/video"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="24sp"
@@ -202,7 +211,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/name"
-        android:layout_alignBottom="@+id/video" <!-- 引用 CardView 的 ID -->
+        <!-- 引用 CardView 的 ID -->
+        android:layout_alignBottom="@+id/video"
         android:orientation="horizontal">
 
         <TextView
@@ -262,7 +272,8 @@
         android:id="@+id/flag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/video" <!-- 引用 CardView 的 ID -->
+        <!-- 引用 CardView 的 ID -->
+        android:layout_below="@+id/video"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:layout_marginBottom="12dp"
