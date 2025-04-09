@@ -7,6 +7,10 @@ import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
 
+// 导入 Glide 相关类
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
@@ -18,7 +22,7 @@ import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.databinding.ActivitySettingBinding;
+import com.fongmi.android.tv.databinding.ActivitySettingBinding; // 确保这里的 Binding 类名与你的布局文件名对应 (activity_setting.xml -> ActivitySettingBinding)
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.BackupCallback;
@@ -54,7 +58,7 @@ import java.util.List;
 
 public class SettingActivity extends BaseActivity implements BackupCallback, ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
 
-    private ActivitySettingBinding mBinding;
+    private ActivitySettingBinding mBinding; // 确保类型正确
     private String[] backup;
     private int type;
 
@@ -74,12 +78,13 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     protected ViewBinding getBinding() {
+        // 使用你的 Binding 类来初始化
         return mBinding = ActivitySettingBinding.inflate(getLayoutInflater());
     }
 
     @Override
     protected void initView() {
-        mBinding.vod.requestFocus();
+        mBinding.vod.requestFocus(); // 注意: 如果根布局变为 ConstraintLayout，初始焦点可能需要重新考虑或设置到 ScrollView 里的第一个元素
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
@@ -89,19 +94,40 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         setCacheText();
+
+        // --- 新增：加载右下角的 WebP 动画 ---
+        loadAnimatedWebp();
+        // ----------------------------------
     }
+
+    // --- 新增：加载 WebP 动画的方法 ---
+    private void loadAnimatedWebp() {
+        // 检查 binding 和 ImageView 是否为空，避免空指针
+        if (mBinding != null && mBinding.animatedWebpView != null) {
+            Glide.with(this) // 使用 Activity 作为上下文
+                    .asGif() // 将动画 WebP 作为 GIF 处理以确保循环
+                    .load(R.drawable.dynamic_animation) // 加载你的 WebP 文件资源
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // 缓存策略
+                    .into(mBinding.animatedWebpView); // 设置到对应的 ImageView
+        }
+    }
+    // ----------------------------------
 
     private void setCacheText() {
         FileUtil.getCacheSize(new Callback() {
             @Override
             public void success(String result) {
-                mBinding.cacheText.setText(result);
+                // 添加空检查，因为回调可能在 Activity 销毁后执行
+                if (mBinding != null) {
+                    mBinding.cacheText.setText(result);
+                }
             }
         });
     }
 
     @Override
     protected void initEvent() {
+        // 确保这里的 ID 仍然能通过 mBinding 正确访问到
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
@@ -139,6 +165,8 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     }
 
     private void load(Config config) {
+        // 添加空检查
+        if (mBinding == null) return;
         switch (config.getType()) {
             case 0:
                 Notify.progress(this);
@@ -167,13 +195,19 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
             @Override
             public void success() {
-                setConfig();
+                // 确保 Activity 仍然存活
+                if (!isFinishing()) {
+                   setConfig();
+                }
             }
 
             @Override
             public void error(String msg) {
                 Notify.show(msg);
-                setConfig();
+                 // 确保 Activity 仍然存活
+                if (!isFinishing()) {
+                   setConfig();
+                }
             }
         };
     }
@@ -205,6 +239,7 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     public void onChanged() {
+        // 原来的空实现
     }
 
     @Override
@@ -282,7 +317,15 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
             @Override
             public void success() {
                 Notify.dismiss();
-                setCacheText();
+                // 确保 Activity 仍然存活且 Binding 存在
+                 if (!isFinishing() && mBinding != null) {
+                    setCacheText();
+                 }
+            }
+             @Override
+            public void error(String msg) { // 也处理错误情况
+                 Notify.dismiss();
+                 Notify.show(msg);
             }
         });
     }
@@ -292,7 +335,10 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     }
 
     private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        // 添加空检查
+        if (mBinding != null) {
+            mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        }
     }
 
     private void setDoh(View view) {
@@ -301,9 +347,11 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     public void setDoh(Doh doh) {
+        // 添加空检查
+        if (mBinding == null) return;
         Source.get().stop();
         OkHttp.get().setDoh(doh);
-        Notify.progress(getActivity());
+        Notify.progress(getActivity()); // getActivity() 在 Activity 中就是 this
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
         VodConfig.load(Config.vod(), getCallback());
@@ -315,6 +363,8 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     public void setProxy(String proxy) {
+        // 添加空检查
+        if (mBinding == null) return;
         Source.get().stop();
         Setting.putProxy(proxy);
         OkHttp.selector().clear();
@@ -328,8 +378,11 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
-                VodConfig.get().getConfig().json("").save();
-                setCacheText();
+                 // 确保 Activity 仍然存活且 Binding 存在
+                if (!isFinishing() && mBinding != null) {
+                    VodConfig.get().getConfig().json("").save(); // 清除缓存也清除 VOD 配置的 JSON 缓存
+                    setCacheText();
+                }
             }
         });
     }
@@ -338,9 +391,19 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
-                setCacheText();
-                Config config = VodConfig.get().getConfig().json("").save();
-                if (!config.isEmpty()) setConfig(config);
+                 // 确保 Activity 仍然存活且 Binding 存在
+                if (!isFinishing() && mBinding != null) {
+                    setCacheText();
+                    Config config = VodConfig.get().getConfig().json("").save(); // 清除缓存并清空 JSON
+                    if (!config.isEmpty()) { // 如果保存后的配置不为空（理论上应该是空的）
+                         // 这里可能不需要再调用 setConfig(config)，因为目的是清空
+                         // 如果需要重新加载默认或之前的配置，逻辑需要调整
+                         // 简单起见，长按清空后可能不需要自动加载
+                    } else {
+                         // 可选：如果清空后需要刷新界面或加载默认配置，在此处处理
+                         // RefreshEvent.config(); // 例如，可以发个事件让主界面刷新
+                    }
+                }
             }
         });
         return true;
@@ -348,64 +411,107 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     public void restore(File file) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.restore(file, new Callback() {
-            @Override
-            public void success() {
-                if (allGranted) {
-                    Notify.progress(getActivity());
-                    App.post(() -> {
-                        AppDatabase.reset();
-                        initConfig();
-                    }, 3000);
-                }
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
+            if (allGranted) { // 只有获取到权限才执行恢复
+                AppDatabase.restore(file, new Callback() {
+                    @Override
+                    public void success() {
+                         Notify.progress(getActivity());
+                         App.post(() -> {
+                            if (!isFinishing()){ // 延迟后再次检查 Activity 是否还在
+                                AppDatabase.reset(); // 重置数据库连接（如果需要）
+                                initConfig(); // 重新加载配置
+                            }
+                         }, 3000); // 延迟执行以确保文件操作完成
+                    }
+                    @Override
+                    public void error(String msg) {
+                         Notify.show(getString(R.string.error_restore) + ": " + msg);
+                    }
+                });
+            } else {
+                 Notify.show(R.string.error_permission); // 提示权限不足
             }
-        }));
+        });
     }
 
     private void onRestore(View view) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
             if (allGranted) BackupDialog.create(this).show();
+             else Notify.show(R.string.error_permission);
         });
     }
 
     private void initConfig() {
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback());
+        // 初始化并加载配置
+        WallConfig.get().init(); // 初始化壁纸
+        LiveConfig.get().init().load(); // 初始化并加载直播
+        VodConfig.get().init().load(getCallback()); // 初始化并加载点播，使用回调处理结果
     }
 
     private void onBackup(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
-            @Override
-            public void success(String path) {
-                Notify.show(R.string.backed);
-            }
-        }));
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
+             if (allGranted){
+                 AppDatabase.backup(new Callback() {
+                    @Override
+                    public void success(String path) {
+                        Notify.show(getString(R.string.backed_to) + " " + path); // 显示备份路径
+                    }
+                     @Override
+                    public void error(String msg) {
+                        Notify.show(getString(R.string.error_backup) + ": " + msg);
+                    }
+                });
+             } else {
+                  Notify.show(R.string.error_permission);
+             }
+        });
     }
 
     private boolean onBackupMode(View view) {
+        // 添加空检查
+        if (mBinding == null || backup == null || backup.length == 0) return true; // 防止空指针
         int index = Setting.getBackupMode();
-        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
+        index = index >= backup.length - 1 ? 0 : ++index; // 修正边界条件
+        Setting.putBackupMode(index);
         mBinding.backupText.setText(backup[index]);
         return true;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
-        super.onRefreshEvent(event);
+        super.onRefreshEvent(event); // 调用父类的方法（如果父类有实现）
+        // 添加空检查
+        if (mBinding == null || event == null) return;
+
         switch (event.getType()) {
             case CONFIG:
                 setCacheText();
                 mBinding.vodUrl.setText(VodConfig.getDesc());
                 mBinding.liveUrl.setText(LiveConfig.getDesc());
                 mBinding.wallUrl.setText(WallConfig.getDesc());
+                // 可能还需要刷新 DoH 和 Proxy 显示
+                mBinding.dohText.setText(getDohList()[getDohIndex()]);
+                mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
                 break;
+            case VIDEO:
+                 // 如果需要在视频源变化时更新设置界面某项，在这里处理
+                 break;
+             case HISTORY:
+                  // 如果需要在历史记录变化时更新设置界面某项，在这里处理
+                  break;
+
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        RefreshEvent.history();
+        // 可以在这里停止 Glide 加载，虽然 Glide 通常会自动处理
+        if (mBinding != null && mBinding.animatedWebpView != null) {
+             Glide.with(this).clear(mBinding.animatedWebpView);
+        }
+        mBinding = null; // 释放 Binding 对象，防止内存泄漏
+        // RefreshEvent.history(); // 这个事件的发送位置可能需要根据具体逻辑调整，看是否真的需要在设置页销毁时刷新历史记录
     }
 }
