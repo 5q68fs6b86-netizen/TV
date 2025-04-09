@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="48dp">
+    android:orientation="vertical"
+    android:padding="?attr/dialogPreferredPadding"> <!-- 使用 M3 标准内边距 -->
 
+    <!-- 核心组件：M3 Slider -->
     <com.google.android.material.slider.Slider
         android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:stepSize="1"
-        android:valueFrom="1"
-        android:valueTo="15" />
-        <!-- 移除了 app:thumbColor -->
-        <!-- 移除了 app:trackColorActive -->
-        <!-- 移除了 app:trackColorInactive -->
-        <!-- Slider 现在将使用 Material 3 主题中定义的默认颜色 -->
+        android:valueFrom="0"
+        android:valueTo="15"  />
+        <!-- 根据你的需要调整 valueFrom, valueTo, stepSize -->
+        <!-- android:stepSize="1" -->
+        <!-- 不需要指定 style，让 M3 主题处理 -->
 
-</FrameLayout>
+</LinearLayout>
