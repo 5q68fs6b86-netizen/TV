@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <!-- 使用 CardView 包裹 FrameLayout 来实现圆角 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/video"
         android:layout_width="400dp"
@@ -15,29 +14,19 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="12dp"
-        <!-- 背景色设置在 CardView -->
         app:cardBackgroundColor="@color/black"
-        <!-- 设置圆角半径，根据需要调整 -->
         app:cardCornerRadius="8dp"
-        <!-- 不需要阴影 -->
         app:cardElevation="0dp"
-        <!-- 焦点属性设置在 CardView -->
         android:focusable="true"
         android:focusableInTouchMode="true"
-        <!-- 前景选择器设置在 CardView -->
         android:foreground="@drawable/selector_video"
-        <!-- 焦点导航设置在 CardView -->
         android:nextFocusLeft="@id/video"
         android:nextFocusRight="@id/desc"
         android:nextFocusUp="@id/video"
-        android:nextFocusDown="@id/flag">
+        android:nextFocusDown="@id/flag"> <!-- **** 这里加上了缺失的 > **** -->
 
-        <!-- 内部的 FrameLayout，用于容纳播放器和其他控件 -->
-        <!-- 不再需要 ID、背景、焦点等属性 -->
         <FrameLayout
-            <!-- 宽度填满 CardView -->
             android:layout_width="match_parent"
-            <!-- 高度填满 CardView -->
             android:layout_height="match_parent">
 
             <androidx.media3.ui.PlayerView
@@ -82,7 +71,6 @@
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 以下是视频信息和其他控件 -->
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
@@ -90,7 +78,6 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        <!-- 引用 CardView 的 ID -->
         android:layout_toEndOf="@+id/video"
         android:singleLine="true"
         android:textColor="@color/white"
@@ -211,7 +198,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/name"
-        <!-- 引用 CardView 的 ID -->
         android:layout_alignBottom="@+id/video"
         android:orientation="horizontal">
 
@@ -272,7 +258,6 @@
         android:id="@+id/flag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        <!-- 引用 CardView 的 ID -->
         android:layout_below="@+id/video"
         android:clipChildren="false"
         android:clipToPadding="false"
