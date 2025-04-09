@@ -11,7 +11,7 @@
         android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:valueFrom="0"
+        android:valueFrom="1"
         android:valueTo="15"  />
         <!-- 根据你的需要调整 valueFrom, valueTo, stepSize -->
         <!-- android:stepSize="1" -->
