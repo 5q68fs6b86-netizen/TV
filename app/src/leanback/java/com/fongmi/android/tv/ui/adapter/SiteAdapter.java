@@ -110,8 +110,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
         // 根据设置的站点显示模式 (列表或网格) 设置文本对齐方式
         //holder.binding.text.setGravity(Setting.getSiteMode() == 0 ? Gravity.CENTER : Gravity.START);
-        holder.binding.text.setGravity(Setting.getSiteMode() == 0 ? Gravity.START : Gravity.CENTER);
-
+        holder.binding.text.setGravity(Gravity.CENTER);
     }
 
     /**
