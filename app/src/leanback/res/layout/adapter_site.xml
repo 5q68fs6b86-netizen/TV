@@ -19,7 +19,6 @@
         android:singleLine="true"
         android:textColor="@color/text"
         android:textSize="18sp"
-        android:paddingEnd="36dp"  
         tools:ignore="RtlSymmetry" 
         tools:text="泥巴" />
 
