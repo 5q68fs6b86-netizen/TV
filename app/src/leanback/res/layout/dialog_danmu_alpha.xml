@@ -11,9 +11,6 @@
         android:layout_height="wrap_content"
         android:stepSize="5"
         android:valueFrom="10"
-        android:valueTo="100"
-        app:thumbColor="@color/blue_500"
-        app:trackColorActive="@color/blue_500"
-        app:trackColorInactive="@color/blue_50" />
+        android:valueTo="100"/>
 
 </FrameLayout>
