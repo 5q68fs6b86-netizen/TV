@@ -20,6 +20,7 @@ android {
                 install "pyquery"
                 install "requests"
                 install "jsonpath"
+                install "cachetools"
                 install 'pycryptodome'
                 install 'beautifulsoup4'
             }
