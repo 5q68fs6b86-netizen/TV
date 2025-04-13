@@ -78,12 +78,15 @@ android {
     }
 
     android.applicationVariants.all { variant ->
-        if (variant.buildType.name == 'release' && variant.productFlavors[0].name == 'mobile') {
-            variant.mergeAssets.doLast {
-                delete(fileTree(dir: variant.mergeAssets.outputDir, includes: ['x5.tbs.apk']))
-            }
-        }
-    }
+         // 不再需要 if 条件判断，对所有变体都执行
+
+         variant.mergeAssets.doLast {
+             // 在 mergeAssets 任务完成后执行
+             delete(fileTree(dir: variant.mergeAssets.outputDir, includes: ['x5.tbs.apk']))
+             // 删除 mergeAssets 输出目录中的 x5.tbs.apk 文件
+             println "Removed x5.tbs.apk from assets for variant: ${variant.name}" // 添加日志方便确认
+         }
+     }
 
     configurations.configureEach {
         resolutionStrategy {
