@@ -74,10 +74,10 @@ public class Spider extends com.github.catvod.crawler.Spider {
         return app.callAttr("playerContent", obj, flag, id, gson.toJson(vipFlags)).toString();
     }
 
-    @Override
-    public String liveContent(String url) {
-        return app.callAttr("liveContent", obj, url).toString();
-    }
+//    @Override
+//    public String liveContent(String url) {
+//        return app.callAttr("liveContent", obj, url).toString();
+//    }
 
     @Override
     public boolean manualVideoCheck() {
