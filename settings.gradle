@@ -25,6 +25,7 @@ dependencyResolutionManagement {
     }
 }
 include ':app'
+include ':chaquo'
 include ':hook'
 include ':tvbus'
 include ':zlive'
