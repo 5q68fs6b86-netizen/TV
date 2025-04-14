@@ -27,6 +27,7 @@ dependencyResolutionManagement {
 include ':app'
 include ':hook'
 include ':tvbus'
+include ':pyramid'
 include ':zlive'
 include ':catvod'
 include ':quickjs'
