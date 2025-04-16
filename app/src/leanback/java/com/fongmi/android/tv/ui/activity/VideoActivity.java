@@ -631,10 +631,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setText(TextView view, int resId, String text) {
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(MDColor.YELLOW_500);
+    // 将链接文本颜色设置为白色 (使用颜色值)
+        view.setLinkTextColor(0xFFFFFFFF);
         CustomMovement.bind(view);
         view.setTag(text);
     }
+
 
     private SpannableStringBuilder getSpan(int resId, String text) {
         if (resId > 0) text = getString(resId, text);
