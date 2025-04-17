@@ -1,6 +1,29 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/shape_item_focused" android:state_focused="true" />
-    <item android:drawable="@drawable/shape_item_activated" android:state_activated="true" />
-    <item android:drawable="@drawable/shape_item_normal" />
-</selector>
+<!-- res/drawable/item_background.xml -->
+<animated-selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 普通状态 -->
+    <item
+        android:id="@+id/normal"
+        android:drawable="@drawable/shape_item_normal" />
+
+    <!-- 焦点状态 -->
+    <item
+        android:id="@+id/focused"
+        android:state_focused="true"
+        android:drawable="@drawable/shape_item_focused" />
+
+    <!-- 动画：从普通到焦点 -->
+    <transition
+        android:fromId="@id/normal"
+        android:toId="@id/focused"
+        android:reversible="true"
+        android:drawable="@drawable/shape_item_focused" />
+
+    <!-- 动画：从焦点回普通 -->
+    <transition
+        android:fromId="@id/focused"
+        android:toId="@id/normal"
+        android:reversible="true"
+        android:drawable="@drawable/shape_item_normal" />
+
+</animated-selector>
