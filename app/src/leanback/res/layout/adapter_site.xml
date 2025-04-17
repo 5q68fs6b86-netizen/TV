@@ -29,7 +29,8 @@
         android:layout_marginStart="12dp"
         android:buttonTint="@color/white"
         android:clickable="false"
-        android:enabled="false"
+        android:enabled="false"android:paddingEnd="8dp"
+        android:paddingEnd="16dp"
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
