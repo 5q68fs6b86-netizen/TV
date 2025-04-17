@@ -30,6 +30,7 @@
         android:focusableInTouchMode="true"
         android:padding="8dp"
         android:scaleType="fitCenter"
+        android:tint="?attr/colorSecondary"
         android:src="@drawable/ic_setting_delete" />
 
 </LinearLayout>
