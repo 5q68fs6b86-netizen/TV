@@ -16,8 +16,10 @@
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorSecondary"
         android:textSize="18sp"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
         tools:text="https://fongmi.github.io/cat.json" />
 
     <ImageView
@@ -25,7 +27,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="12dp"
-        android:background="@drawable/selector_text"
+        android:background="@drawable/delete_24px"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
