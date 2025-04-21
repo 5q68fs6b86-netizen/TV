@@ -1849,11 +1849,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopSearch();
-        mClock.release();
-        mPlayers.release();
-        Source.get().stop();
-        RefreshEvent.history();
-        App.removeCallbacks(mR1, mR2, mR3, mR4);
+    stopSearch();
+    mClock.release();
+    mPlayers.release();
+    Source.get().stop();
+    RefreshEvent.history();
+    App.removeCallbacks(mR1, mR2, mR3, mR4);
+    // 添加这行代码来清除与此 Activity 相关的所有待处理和活跃的 Glide 请求
+    Glide.with(this).clear(mBinding.video); // 或者如果您想清除与 Activity 相关的所有资源，可以使用：Glide.with(this).onStop();
     }
 }
