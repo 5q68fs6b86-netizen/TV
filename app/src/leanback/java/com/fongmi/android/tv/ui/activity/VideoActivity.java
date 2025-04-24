@@ -1849,13 +1849,44 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    stopSearch();
-    mClock.release();
-    mPlayers.release();
-    Source.get().stop();
-    RefreshEvent.history();
-    App.removeCallbacks(mR1, mR2, mR3, mR4);
-    // 添加这行代码来清除与此 Activity 相关的所有待处理和活跃的 Glide 请求
-    Glide.with(this).clear(mBinding.video); // 或者如果您想清除与 Activity 相关的所有资源，可以使用：Glide.with(this).onStop();
+        stopSearch();
+        mClock.release();
+        mPlayers.release();
+        Source.get().stop();
+        RefreshEvent.history();
+        App.removeCallbacks(mR1, mR2, mR3, mR4);
+
+        // Explicitly destroy the RequestManager for this Activity.
+        // This cancels all requests associated with it.
+        // This is the primary recommendation from Glide documentation.
+        try {
+             Glide.with(this).onDestroy();
+        } catch (Exception e) {
+             // Log the exception but don't re-throw during destruction
+             e.printStackTrace();
+        }
+
+        // Additional defensive clearing for specific views that might still be active.
+        // This helps ensure no loads targeting these views are attempted after destruction.
+        try {
+            // 清除加载到 ExoPlayer 视图的任何请求
+            if (mBinding.exo != null) {
+                 Glide.with(this).clear(mBinding.exo);
+            }
+            // 清除加载到 IjkVideoView 的任何请求
+            if (mBinding.ijk != null) {
+                 Glide.with(this).clear(mBinding.ijk);
+            }
+            // 清除加载到预览图 ImageView 的任何请求
+            if (mBinding.widget != null && mBinding.widget.preview != null) {
+                Glide.with(this).clear(mBinding.widget.preview);
+            }
+            // 作为最后的防御，清除加载到整个播放器容器的请求
+            if (mBinding.video != null) {
+                 Glide.with(this).clear(mBinding.video);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
