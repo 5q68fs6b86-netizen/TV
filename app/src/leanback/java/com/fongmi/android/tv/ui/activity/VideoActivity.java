@@ -331,6 +331,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     protected void initView() {
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
+        mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
         mClock = Clock.create(mBinding.display.clock);
         mDanmakuContext = DanmakuContext.create();
         mPlayers = Players.create(this);
@@ -856,6 +857,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        mBinding.video.setBackground(null);
         mBinding.flag.setSelectedPosition(getFlagPosition());
         mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
         mKeyDown.setFull(true);
@@ -867,6 +869,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void exitFullscreen() {
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
+        mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
