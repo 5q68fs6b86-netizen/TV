@@ -465,6 +465,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         ExoUtil.setSubtitleView(mBinding.exo);
         IjkUtil.setSubtitleView(mBinding.ijk);
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
+        mBinding.exo.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        mBinding.ijk.setBackgroundColor(android.graphics.Color.TRANSPARENT);
     }
 
     private void setDanmuViewSettings() {
