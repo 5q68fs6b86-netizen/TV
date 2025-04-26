@@ -1098,6 +1098,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void showProgress() {
         mBinding.widget.progress.setVisibility(View.VISIBLE);
+        mBinding.widget.progress.setBackgroundResource(R.drawable.rounded_corners);
         App.post(mR3, 0);
         hideError();
     }
