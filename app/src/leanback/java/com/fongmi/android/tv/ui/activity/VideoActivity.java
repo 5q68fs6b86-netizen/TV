@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.graphics.Outline;
+import android.view.ViewOutlineProvider;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
