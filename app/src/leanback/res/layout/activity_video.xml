@@ -18,6 +18,7 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:foreground="@drawable/selector_video"
+        android:background="@drawable/rounded_corners"
         android:nextFocusLeft="@id/video"
         android:nextFocusRight="@id/desc"
         android:nextFocusUp="@id/video"
