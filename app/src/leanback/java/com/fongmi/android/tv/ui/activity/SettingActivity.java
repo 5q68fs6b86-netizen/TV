@@ -407,5 +407,10 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     protected void onDestroy() {
         super.onDestroy();
         RefreshEvent.history();
+        try {
+            Glide.with(this).onDestroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+    }
     }
 }
