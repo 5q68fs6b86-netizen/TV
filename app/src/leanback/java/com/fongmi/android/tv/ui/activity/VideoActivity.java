@@ -332,6 +332,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
         mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
+                // --- 添加以下代码来强制裁剪圆角 ---
+        // 获取圆角半径，假设是 8dp，请根据你的 rounded_corners drawable 实际半径调整
+        final float cornerRadius = ResUtil.dp2px(8); // 或者从 dimens.xml 获取
+
+        mBinding.video.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                // 设置圆角矩形轮廓，范围就是视图的边界
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+            }
+        });
+        mBinding.video.setClipToOutline(true); // 启用根据轮廓进行裁剪
+        // ------------------------------------
         mClock = Clock.create(mBinding.display.clock);
         mDanmakuContext = DanmakuContext.create();
         mPlayers = Players.create(this);
@@ -861,6 +874,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.video.setBackgroundColor(android.graphics.Color.BLACK); // 设置背景为黑色
+        mBinding.video.setClipToOutline(false); // <-- 全屏时禁用裁剪
         mBinding.flag.setSelectedPosition(getFlagPosition());
         mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
         mKeyDown.setFull(true);
@@ -873,6 +887,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
         mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
+        final float cornerRadius = ResUtil.dp2px(8); // 再次获取半径
+        mBinding.video.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+            }
+        });
+        mBinding.video.setClipToOutline(true); // <-- 退出全屏时重新启用裁剪
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
