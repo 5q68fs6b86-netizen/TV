@@ -564,6 +564,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         showProgress();
         setMetadata();
         hidePreview();
+        hidePreview(); // <-- 在加载开始时立即隐藏预览图
         hideCenter();
     }
 
@@ -1098,7 +1099,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void showProgress() {
         mBinding.widget.progress.setVisibility(View.VISIBLE);
-        mBinding.widget.progress.setBackgroundResource(R.drawable.rounded_corners);
         App.post(mR3, 0);
         hideError();
     }
