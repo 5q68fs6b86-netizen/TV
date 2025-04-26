@@ -859,7 +859,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-        mBinding.video.setBackground(R.drawable.unfull);
+        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK); // 设置背景为黑色
         mBinding.flag.setSelectedPosition(getFlagPosition());
         mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
         mKeyDown.setFull(true);
