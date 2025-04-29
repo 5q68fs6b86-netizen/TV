@@ -45,6 +45,7 @@ import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
 
+import com.bumptech.glide.Glide;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -407,5 +408,10 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     protected void onDestroy() {
         super.onDestroy();
         RefreshEvent.history();
+        try {
+            Glide.with(this).onDestroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+    }
     }
 }
