@@ -3,8 +3,8 @@
     <!-- 其他已有的尺寸定义 -->
 
     <!-- 添加下面这行 -->
-    <dimen name="detail_logo_height">100dp</dimen>
+    <dimen name="detail_logo_height">50dp</dimen>
 
-    <dimen name="detail_title_area_height">100dp</dimen>
+    <dimen name="detail_title_area_height">50dp</dimen>
     <!-- 其他已有的尺寸定义 -->
 </resources>
