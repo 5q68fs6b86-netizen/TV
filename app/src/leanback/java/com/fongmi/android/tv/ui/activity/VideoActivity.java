@@ -124,6 +124,10 @@ import okhttp3.Call;
 import okhttp3.Response;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
+import com.fongmi.android.tv.Constant; // 如果 API Key 在这里
+import com.fongmi.android.tv.utils.TmdbHelper; // 导入 TmdbHelper
+import android.widget.ImageView; // 导入 ImageView
+
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
     private ActivityVideoBinding mBinding;
@@ -163,6 +167,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private View mFocus1;
     private View mFocus2;
     private boolean hasKeyEvent;
+    private String currentVodName = "";
+    private String currentLogoUrl = null;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -569,8 +575,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
-        mBinding.widget.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
-        mBinding.display.title.setText(mBinding.widget.title.getText());
+        String combinedTitle = getString(R.string.detail_title, currentVodName, episode.getName());
+        mBinding.widget.title.setText(combinedTitle); // 使用组合文字标题
+        mBinding.display.title.setText(combinedTitle); // 使用组合文字标题
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         updateHistory(episode, replay);
@@ -620,7 +627,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setDetail(Vod item) {
         mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
-        mBinding.name.setText(item.getVodName(getName()));
+        //mBinding.name.setText(item.getVodName(getName()));
+        currentVodName = item.getVodName(getName());
+        currentLogoUrl = null; // 重置 logo url
+        // 2. 移除或注释掉对旧 mBinding.name 的 setText 调用
+        // mBinding.name.setText(currentVodName); // <--- 移除或注释掉这行
+        // 3. 设置主界面的初始标题状态：显示文字后备
+        mBinding.logoImageView.setVisibility(View.GONE);
+        mBinding.nameTextView.setVisibility(View.VISIBLE);
+        mBinding.nameTextView.setText(currentVodName);
         setText(mBinding.remark, 0, item.getVodRemarks());
         setText(mBinding.year, R.string.detail_year, item.getVodYear());
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
@@ -635,9 +650,54 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setArtwork(item.getVodPic());
         getPart(item.getVodName());
         App.removeCallbacks(mR4);
+        fetchTmdbLogo(currentVodName, item.getVodYear(), item.getTypeName());
         checkHistory(item);
         checkFlag(item);
         checkKeep();
+    }
+    // 5. 添加获取 TMDB Logo 的方法
+    private void fetchTmdbLogo(String title, String year, String typeName) {
+        // 检查 API Key 是否设置
+        if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
+            Log.e("VideoActivity", "TMDB API Key not set!");
+            // 不执行搜索，保持显示文字标题
+            mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.nameTextView.setVisibility(View.VISIBLE);
+            mBinding.nameTextView.setText(currentVodName);
+            return;
+        }
+
+        TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
+            @Override
+            public void onLogoFound(@NonNull String logoUrl) {
+                 currentLogoUrl = logoUrl;
+                 // 仅更新主界面的 Logo 显示
+                 mBinding.nameTextView.setVisibility(View.GONE);
+                 mBinding.logoImageView.setVisibility(View.VISIBLE);
+                 Glide.with(VideoActivity.this)
+                      .load(logoUrl)
+                      .placeholder(R.drawable.ic_placeholder) // 建议添加占位图资源
+                      .error(R.drawable.ic_error)       // 建议添加错误图资源
+                      .into(mBinding.logoImageView);
+                 // 注意：不修改 mBinding.widget.title 和 mBinding.display.title
+            }
+
+            @Override
+            public void onLogoNotFound() {
+                currentLogoUrl = null;
+                // 仅更新主界面的文字后备显示
+                mBinding.logoImageView.setVisibility(View.GONE);
+                mBinding.nameTextView.setVisibility(View.VISIBLE);
+                mBinding.nameTextView.setText(currentVodName);
+                 // 注意：不修改 mBinding.widget.title 和 mBinding.display.title
+            }
+
+             @Override
+             public void onError() {
+                // 网络错误等同于未找到
+                onLogoNotFound();
+             }
+        });
     }
 
     private int getMaxLines() {
