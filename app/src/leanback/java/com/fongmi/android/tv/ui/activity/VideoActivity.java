@@ -1035,15 +1035,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK); // 设置背景为黑色
-        mBinding.video.setClipToOutline(false); // <-- 全屏时禁用裁剪
+        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
+        mBinding.video.setClipToOutline(false);
         mBinding.flag.setSelectedPosition(getFlagPosition());
-        if(Setting.getDanmuSize() != 0){ // Avoid multiplying by zero
-            mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
-        }
+        if(Setting.getDanmuSize() != 0) mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
         mKeyDown.setFull(true);
         setFullscreen(true);
         mFocus2 = null;
+
+        // --- 添加：隐藏非播放视图 ---
+        hideDetailViews();
+        // --- 结束添加 ---
+
         onPlay();
     }
 
@@ -1051,26 +1054,71 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
         mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
-        final float cornerRadius = ResUtil.dp2px(8); // 再次获取半径
+        final float cornerRadius = ResUtil.dp2px(8);
         mBinding.video.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                if (view != null && outline != null) { // Add null checks
-                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
-                }
-            }
-        });
-        mBinding.video.setClipToOutline(true); // <-- 退出全屏时重新启用裁剪
-        if(Setting.getDanmuSize() != 0) { // Avoid multiplying by zero
-           mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
-        }
-        if (getFocus1() != null) getFocus1().requestFocus(); // Add null check
+             @Override
+             public void getOutline(View view, Outline outline) {
+                 if (view != null && outline != null) {
+                     outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+                 }
+             }
+         });
+        mBinding.video.setClipToOutline(true);
+        if(Setting.getDanmuSize() != 0) mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
+        if (getFocus1() != null) getFocus1().requestFocus();
         mKeyDown.setFull(false);
         setFullscreen(false);
         mFocus2 = null;
+
+        // --- 添加：显示非播放视图 ---
+        showDetailViews();
+        // --- 结束添加 ---
+
         hideInfo();
     }
 
+    // --- 添加：辅助方法 ---
+    private void hideDetailViews() {
+        // 隐藏标题区域 (Logo 或文字)
+        mBinding.logoImageView.setVisibility(View.GONE);
+        mBinding.nameTextView.setVisibility(View.GONE);
+        // 如果你用了 titleContainer (策略二)，可以隐藏容器
+        // if (mBinding.titleContainer != null) mBinding.titleContainer.setVisibility(View.GONE);
+
+        // 隐藏其他详情
+        mBinding.remark.setVisibility(View.GONE);
+        mBinding.row1.setVisibility(View.GONE); // 包含 site, year, area, type
+        mBinding.director.setVisibility(View.GONE);
+        mBinding.actor.setVisibility(View.GONE);
+        mBinding.content.setVisibility(View.GONE);
+        mBinding.row2.setVisibility(View.GONE); // 包含 desc, keep, change1
+        mBinding.flag.setVisibility(View.GONE);
+        mBinding.scroll.setVisibility(View.GONE); // 隐藏包含下方列表的滚动视图
+    }
+
+    private void showDetailViews() {
+        // 根据 Logo 是否加载成功，决定显示 Logo 还是文字
+        if (currentLogoUrl != null) {
+            mBinding.logoImageView.setVisibility(View.VISIBLE);
+            mBinding.nameTextView.setVisibility(View.GONE);
+        } else {
+            mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.nameTextView.setVisibility(View.VISIBLE);
+        }
+        // 如果你用了 titleContainer (策略二)，显示容器
+        // if (mBinding.titleContainer != null) mBinding.titleContainer.setVisibility(View.VISIBLE);
+
+        // 显示其他详情 (注意判空和内容是否为空)
+        setText(mBinding.remark, 0, Objects.toString(mBinding.remark.getTag(), "")); // 从 Tag 恢复文本
+        mBinding.row1.setVisibility(View.VISIBLE); // 总是显示行？或根据内部内容判断
+        setText(mBinding.director, 0, Objects.toString(mBinding.director.getTag(), ""));
+        setText(mBinding.actor, 0, Objects.toString(mBinding.actor.getTag(), ""));
+        setText(mBinding.content, 0, Objects.toString(mBinding.content.getTag(), ""));
+        mBinding.row2.setVisibility(View.VISIBLE); // 总是显示按钮行
+        mBinding.flag.setVisibility(mFlagAdapter.size() > 0 ? View.VISIBLE : View.GONE); // 根据数据判断
+        mBinding.scroll.setVisibility(View.VISIBLE); // 总是显示滚动区域
+    }
+    // --- 结束添加 ---
     private void onDesc() {
         CharSequence desc = mBinding.content.getText();
         if (desc != null && desc.length() > 3) { // Add null check
