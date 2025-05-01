@@ -127,6 +127,7 @@ import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 import com.fongmi.android.tv.Constant; // 如果 API Key 在这里
 import com.fongmi.android.tv.utils.TmdbHelper; // 导入 TmdbHelper
 import android.widget.ImageView; // 导入 ImageView
+import android.util.Log;       // --- Add this import ---
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
