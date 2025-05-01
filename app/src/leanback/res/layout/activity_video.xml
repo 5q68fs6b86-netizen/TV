@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
+    <!-- 视频播放器区域 (保持不变) -->
     <FrameLayout
         android:id="@+id/video"
         android:layout_width="400dp"
@@ -64,6 +65,10 @@
 
     </FrameLayout>
 
+    <!-- ==================== 布局修改区域 开始 ==================== -->
+
+    <!-- 1. 移除或注释掉原来的 TextView android:id="@+id/name" -->
+    <!--
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
@@ -77,13 +82,48 @@
         android:textSize="24sp"
         android:textStyle="bold"
         tools:text="慶餘年第二季" />
+    -->
 
+    <!-- 2. 添加 ImageView 用于显示 Logo -->
+    <ImageView
+        android:id="@+id/logoImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/detail_logo_height"  
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_toEndOf="@+id/video"
+        android:scaleType="fitStart"
+        android:adjustViewBounds="true"
+        android:visibility="gone"  /> 
+        
+    <!-- 3. 添加 TextView 作为 Logo 的后备，ID 设为 nameTextView -->
+    <TextView
+        android:id="@+id/nameTextView"
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_toEndOf="@+id/video"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="庆余年第二季 (Fallback)"
+        tools:visibility="visible"/> 
+
+    <!-- ==================== 布局修改区域 结束 ==================== -->
+
+
+    <!-- 4. 更新下方元素的约束，将原来依赖 @id/name 的改为依赖 @id/nameTextView -->
     <TextView
         android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/name"
-        android:layout_alignStart="@+id/name"
+        android:layout_below="@+id/nameTextView"   
+        android:layout_alignStart="@+id/nameTextView" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:singleLine="true"
@@ -96,7 +136,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/remark"
-        android:layout_alignStart="@+id/remark"
+        android:layout_alignStart="@+id/remark" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:orientation="horizontal">
@@ -147,7 +187,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/row1"
-        android:layout_alignStart="@+id/name"
+        android:layout_alignStart="@+id/nameTextView" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:nextFocusDown="@id/actor"
@@ -161,7 +201,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/director"
-        android:layout_alignStart="@+id/name"
+        android:layout_alignStart="@+id/nameTextView" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:nextFocusDown="@id/content"
@@ -175,7 +215,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/actor"
-        android:layout_alignStart="@+id/name"
+        android:layout_alignStart="@+id/nameTextView" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:ellipsize="end"
@@ -190,7 +230,7 @@
         android:id="@+id/row2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/name"
+        android:layout_alignStart="@+id/nameTextView" 
         android:layout_alignBottom="@+id/video"
         android:orientation="horizontal">
 
@@ -247,6 +287,7 @@
 
     </LinearLayout>
 
+    <!-- 下方 GridView 等区域 (保持不变) -->
     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
         android:id="@+id/flag"
         android:layout_width="match_parent"

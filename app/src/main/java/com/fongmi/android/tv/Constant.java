@@ -2,7 +2,12 @@ package com.fongmi.android.tv;
 
 public class Constant {
     //快進時間單位
-    public static final int INTERVAL_SEEK = 10 * 1000;
+
+    public static final int // In Constant.java or TmdbHelper.java
+    public static final String TMDB_API_KEY = "在此填入你的TMDB_API密钥";
+    public static final String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
+    public static final String TMDB_IMG_BASE_URL = "https://image.tmdb.org/t/p/";
+    public static final String TMDB_LOGO_SIZE = "w500"; // Logo 图片尺寸INTERVAL_SEEK = 10 * 1000;
     //控件隱藏時間
     public static final int INTERVAL_HIDE = 5 * 1000;
     //網路偵測間隔
