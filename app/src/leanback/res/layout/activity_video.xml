@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <!-- 视频播放器区域 (保持不变) -->
     <FrameLayout
         android:id="@+id/video"
         android:layout_width="400dp"
@@ -23,7 +22,7 @@
         android:nextFocusRight="@id/desc"
         android:nextFocusUp="@id/video"
         android:nextFocusDown="@id/flag">
-        <!-- Exo, Ijk, Danmaku, Widget, Display, Control includes 不变 -->
+        
         <androidx.media3.ui.PlayerView
             android:id="@+id/exo"
             style="@style/Player.Vod"
@@ -59,34 +58,33 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <!-- ==================== 策略二 开始 ==================== -->
-    <!-- 1. 添加一个固定高度的容器 FrameLayout -->
+    
     <FrameLayout
         android:id="@+id/titleContainer"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/detail_title_area_height" <!-- 在 dimens.xml 定义, e.g., 50dp -->
+        android:layout_height="@dimen/detail_title_area_height" 
         android:layout_toEndOf="@id/video"
         android:layout_alignTop="@id/video"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginTop="24dp">
 
-        <!-- Logo ImageView 放在容器内 -->
+        
         <ImageView
             android:id="@+id/logoImageView"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" <!-- 填充容器高度 -->
-            android:layout_gravity="start|center_vertical" <!-- 左侧垂直居中 -->
+            android:layout_height="match_parent" 
+            android:layout_gravity="start|center_vertical" 
             android:adjustViewBounds="true"
-            android:scaleType="fitStart" <!-- 或 centerInside -->
+            android:scaleType="fitStart" 
             android:visibility="gone" />
 
-        <!-- Fallback TextView 放在容器内 -->
+        
         <TextView
             android:id="@+id/nameTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical" <!-- 左侧垂直居中 -->
+            android:layout_gravity="start|center_vertical" 
             android:ellipsize="end"
             android:gravity="start|center_vertical"
             android:maxLines="1"
@@ -94,35 +92,34 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:visibility="gone"
-            tools:text="庆余年第二季 (Fallback)"
-            tools:visibility="visible"/>
+            />
 
     </FrameLayout>
 
-    <!-- 2. 修改下方所有元素的顶部依赖，改为依赖 titleContainer -->
+    
     <TextView
         android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/titleContainer" <!-- 依赖容器 -->
-        android:layout_alignStart="@id/titleContainer" <!-- 依赖容器 -->
+        android:layout_below="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        tools:text="更新到第二季" />
+        />
 
     <LinearLayout
         android:id="@+id/row1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/remark"
-        android:layout_alignStart="@id/titleContainer" <!-- 依赖容器 -->
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:orientation="horizontal">
-        <!-- row1 内部 TextView 不变 -->
+        
         <TextView
             android:id="@+id/site"
             android:layout_width="wrap_content"
@@ -131,7 +128,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-            tools:text="站源：泥巴" />
+             />
         <TextView
             android:id="@+id/year"
             android:layout_width="wrap_content"
@@ -140,7 +137,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-            tools:text="年份：2022" />
+             />
         <TextView
             android:id="@+id/area"
             android:layout_width="wrap_content"
@@ -149,7 +146,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-            tools:text="地區：台灣" />
+             />
         <TextView
             android:id="@+id/type"
             android:layout_width="wrap_content"
@@ -157,7 +154,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-            tools:text="類型：科幻" />
+             />
     </LinearLayout>
 
     <TextView
@@ -165,35 +162,35 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/row1"
-        android:layout_alignStart="@id/titleContainer" <!-- 依赖容器 -->
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:nextFocusDown="@id/actor"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        tools:text="導演：FongMi" />
+        />
 
     <TextView
         android:id="@+id/actor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/director"
-        android:layout_alignStart="@id/titleContainer" <!-- 依赖容器 -->
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:nextFocusDown="@id/content"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        tools:text="演員：FongMi" />
+        />
 
     <TextView
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/actor"
-        android:layout_alignStart="@id/titleContainer" <!-- 依赖容器 -->
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:ellipsize="end"
@@ -202,16 +199,16 @@
         android:nextFocusDown="@id/desc"
         android:textColor="@color/white"
         android:textSize="16sp"
-        tools:text="簡介：" />
+         />
 
     <LinearLayout
         android:id="@+id/row2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@id/titleContainer" <!-- 对齐容器左侧 -->
+        android:layout_alignStart="@id/titleContainer" 
         android:layout_alignBottom="@+id/video"
         android:orientation="horizontal">
-        <!-- row2 内部 TextView 不变 -->
+        
          <TextView
             android:id="@+id/desc"
             android:layout_width="wrap_content"
@@ -262,7 +259,7 @@
             app:drawableStartCompat="@drawable/ic_detail_change" />
     </LinearLayout>
 
-    <!-- Flag GridView: 顶部约束到 Video 底部 -->
+    
     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
         android:id="@+id/flag"
         android:layout_width="match_parent"
@@ -275,7 +272,7 @@
         android:paddingEnd="24dp"
         android:visibility="gone" />
 
-    <!-- ScrollView containing other grids: 顶部约束到 Flag -->
+    
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
@@ -289,7 +286,7 @@
             android:layout_height="wrap_content" 
             android:orientation="vertical"
             android:paddingBottom="24dp"> 
-            <!-- Grids inside ScrollView -->
+            
              <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/quality"
                 android:layout_width="match_parent"
@@ -359,6 +356,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ==================== 策略二 结束 ==================== -->
+    
 
 </com.fongmi.android.tv.ui.custom.ProgressLayout>
