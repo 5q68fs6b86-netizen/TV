@@ -689,21 +689,42 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         }
 
         TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
-            @Override
-            public void onLogoFound(@NonNull String logoUrl) {
-                 currentLogoUrl = logoUrl;
-                 // Only update the main logo view
-                 mBinding.nameTextView.setVisibility(View.GONE); // Hide text fallback
-                 mBinding.logoImageView.setVisibility(View.VISIBLE); // Show logo
-                 Glide.with(VideoActivity.this)
-                      .load(logoUrl)
-                      .placeholder(R.drawable.ic_placeholder) // Make sure ic_placeholder exists
-                      .error(R.drawable.ic_error)
-                      .dontAnimate()// Make sure ic_error exists
-                      .into(mBinding.logoImageView);
-                 // Do NOT update widget or display titles here
-            }
+        @Override
+        public void onLogoFound(@NonNull String logoUrl) {
+             currentLogoUrl = logoUrl;
+             mBinding.nameTextView.setVisibility(View.GONE); // Hide text fallback
+             mBinding.logoImageView.setVisibility(View.VISIBLE); // Show logo ImageView
 
+             // --- Glide 加载逻辑修改开始 ---
+
+             // 1. 获取你在 dimens.xml 中为 titleContainer 设置的高度对应的像素值
+             //    确保 @dimen/detail_title_area_height 在 dimens.xml 中已定义 (例如 70dp)
+             int targetPixelHeight = getResources().getDimensionPixelSize(R.dimen.detail_title_area_height);
+             // 或者，如果你不想依赖 dimen 文件，可以直接用 ResUtil 计算：
+             // int targetPixelHeight = ResUtil.dp2px(70); // 使用你期望的目标显示高度 dp 值
+
+             // 2. 估算一个足够大的目标宽度，避免 Glide 解码超大宽度的图片。
+             //    这里用高度的 8 倍作为示例，你可以调整这个倍数。
+             //    或者直接设一个固定的大像素值，如 1500。
+             int targetPixelWidth = targetPixelHeight * 8; // Example width calculation
+
+             Log.d("VideoActivity", "Glide override target size: " + targetPixelWidth + "x" + targetPixelHeight);
+
+             Glide.with(VideoActivity.this)
+                  .load(logoUrl)
+                  .placeholder(R.drawable.ic_placeholder) // Make sure ic_placeholder exists
+                  .error(R.drawable.ic_error)           // Make sure ic_error exists
+                  .override(targetPixelWidth, targetPixelHeight) // <--- 添加 override
+                  .fitCenter() // <--- 使用 fitCenter 控制缩放和居中（或用 centerCrop）
+                  .into(mBinding.logoImageView);
+
+             // --- Glide 加载逻辑修改结束 ---
+
+             // 注意：此时 ImageView 的 android:scaleType 属性基本失效了，
+             // 图片的缩放和对齐由 Glide 的 .override() 和 .fitCenter() 控制。
+             // 但 ImageView 的 layout_width="wrap_content", layout_height="match_parent",
+             // adjustViewBounds="true" (可选) 仍然需要保持，以确保 ImageView 在布局中尺寸正确。
+        }
             @Override
             public void onLogoNotFound() {
                 currentLogoUrl = null;
