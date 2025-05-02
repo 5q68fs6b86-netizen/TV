@@ -678,6 +678,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     // --- Added fetchTmdbLogo Method ---
     private void fetchTmdbLogo(String title, String year, String typeName) {
+        if (isFinishing() || isDestroyed()) return;
         // Check if API Key is configured
         if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
             Log.e("VideoActivity", "TMDB API Key not set! Skipping logo fetch.");
@@ -691,6 +692,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
         @Override
         public void onLogoFound(@NonNull String logoUrl) {
+            if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                 Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoFound, skipping Glide load.");
+                 return; // Activity 无效，直接返回，不执行后续操作
+             }
+             // --- 结束检查 ---
              currentLogoUrl = logoUrl;
              mBinding.nameTextView.setVisibility(View.GONE); // Hide text fallback
              mBinding.logoImageView.setVisibility(View.VISIBLE); // Show logo ImageView
@@ -727,6 +733,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         }
             @Override
             public void onLogoNotFound() {
+                if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                  Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound, skipping UI update.");
+                 return;
                 currentLogoUrl = null;
                 // Only update the main fallback text view
                 mBinding.logoImageView.setVisibility(View.GONE); // Hide logo
