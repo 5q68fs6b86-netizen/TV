@@ -699,7 +699,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                       .load(logoUrl)
                       .placeholder(R.drawable.ic_placeholder) // Make sure ic_placeholder exists
                       .error(R.drawable.ic_error)
-                      .fitCenter()
                       .dontAnimate()// Make sure ic_error exists
                       .into(mBinding.logoImageView);
                  // Do NOT update widget or display titles here
