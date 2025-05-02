@@ -698,7 +698,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                  Glide.with(VideoActivity.this)
                       .load(logoUrl)
                       .placeholder(R.drawable.ic_placeholder) // Make sure ic_placeholder exists
-                      .error(R.drawable.ic_error)           // Make sure ic_error exists
+                      .error(R.drawable.ic_error)
+                      .fitCenter()
+                      .dontAnimate()// Make sure ic_error exists
                       .into(mBinding.logoImageView);
                  // Do NOT update widget or display titles here
             }
