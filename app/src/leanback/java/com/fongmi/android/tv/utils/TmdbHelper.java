@@ -108,7 +108,7 @@ public class TmdbHelper {
                     }
                     try {
                         String json = response.body().string();
-                        Log.d("TmdbHelper", "TMDB Search Response: " + json.substring(0, Math.min(json.length(), 500)) + "..."); // Log part of response
+                        // Log.d("TmdbHelper", "TMDB Search Response: " + json.substring(0, Math.min(json.length(), 500)) + "..."); // Log part of response
                         JSONObject result = new JSONObject(json);
                         JSONArray results = result.optJSONArray("results");
                         Integer foundId = null;
@@ -165,10 +165,12 @@ public class TmdbHelper {
                     }
                     try {
                         String json = response.body().string();
-                        Log.d("TmdbHelper", "TMDB Details Response: " + json.substring(0, Math.min(json.length(), 500)) + "..."); // Log part of response
+                        // Log.d("TmdbHelper", "TMDB Details Response: " + json.substring(0, Math.min(json.length(), 500)) + "..."); // Log part of response
                         JSONObject result = new JSONObject(json);
                         JSONArray logos = result.optJSONArray("logos");
-                        String bestLogoPath = findBestLogoPath(logos); // Call the findBestLogoPath method
+                        // --- MODIFIED CALL ---
+                        String bestLogoPath = findBestChineseLogoByWidth(logos); // Use the new method
+                        // --- END MODIFIED CALL ---
 
                         if (bestLogoPath != null) {
                             String fullLogoUrl = Constant.TMDB_IMG_BASE_URL + Constant.TMDB_LOGO_SIZE + bestLogoPath;
@@ -192,68 +194,83 @@ public class TmdbHelper {
         }
     }
 
-    // Function to select the best logo (e.g., prefer Chinese, then English, then first)
-    private static String findBestLogoPath(@Nullable JSONArray logos) {
+    // --- NEW METHOD: findBestChineseLogoByWidth ---
+    // Function to select the Chinese logo with the largest width.
+    // Falls back to the first English, then first other/null logo if no Chinese logo found.
+    private static String findBestChineseLogoByWidth(@Nullable JSONArray logos) {
         if (logos == null || logos.length() == 0) {
-            Log.d("TmdbHelper", "findBestLogoPath: logos array is null or empty.");
+            Log.d("TmdbHelper", "findBestChineseLogoByWidth: logos array is null or empty.");
             return null;
         }
 
-        String zhLogo = null; // Specifically look for Chinese
-        String enLogo = null;
-        String otherLogo = null;
+        String bestZhLogoPath = null;
+        int maxZhWidth = -1; // Use -1 to ensure any valid width is larger
 
-        Log.d("TmdbHelper", "findBestLogoPath: Checking " + logos.length() + " logos.");
+        String firstEnLogoPath = null;
+        String firstOtherLogoPath = null;
+
+        Log.d("TmdbHelper", "findBestChineseLogoByWidth: Checking " + logos.length() + " logos.");
         for (int i = 0; i < logos.length(); i++) {
             JSONObject logoInfo = logos.optJSONObject(i);
             if (logoInfo != null) {
                 String filePath = logoInfo.optString("file_path", null);
                 if (filePath == null) continue;
 
-                // Basic aspect ratio check to prefer wider logos (optional)
+                // Optional: Filter by aspect ratio if needed
                 double aspectRatio = logoInfo.optDouble("aspect_ratio", 1.0);
-                // Adjust this threshold as needed. Logos are often wider than 1.0.
-                if (aspectRatio < 1.0) { // Example: Skip logos significantly taller than wide
-                     Log.d("TmdbHelper", "findBestLogoPath: Skipping logo due to aspect ratio < 1.0: " + filePath);
-                     continue;
+                if (aspectRatio < 0.5) { // Example: Skip very tall logos
+                    Log.d("TmdbHelper", "findBestChineseLogoByWidth: Skipping logo due to low aspect ratio: " + filePath);
+                    continue;
                 }
 
-                String lang = logoInfo.optString("iso_639_1", "null"); // Default to "null" if key not present
+                String lang = logoInfo.optString("iso_639_1", "null");
+                int width = logoInfo.optInt("width", -1); // Get width, default to -1 if missing
 
-                 Log.d("TmdbHelper", "findBestLogoPath: Checking logo: path=" + filePath + ", lang=" + lang + ", aspect=" + aspectRatio);
+                 Log.d("TmdbHelper", "findBestChineseLogoByWidth: Checking logo: path=" + filePath + ", lang=" + lang + ", width=" + width + ", aspect=" + aspectRatio);
 
-                // Prioritize specific languages
                 if ("zh".equalsIgnoreCase(lang)) {
-                     Log.d("TmdbHelper", "findBestLogoPath: Found 'zh' logo: " + filePath);
-                     if (zhLogo == null) zhLogo = filePath; // Store first Chinese logo found
-                    // Optionally, return immediately if Chinese is the absolute priority: return zhLogo;
+                    if (width > maxZhWidth) {
+                        Log.d("TmdbHelper", "findBestChineseLogoByWidth: Found new widest 'zh' logo: " + filePath + " (width: " + width + ")");
+                        maxZhWidth = width;
+                        bestZhLogoPath = filePath;
+                    }
                 } else if ("en".equalsIgnoreCase(lang)) {
-                     if (enLogo == null) {
-                         Log.d("TmdbHelper", "findBestLogoPath: Found 'en' logo: " + filePath);
-                         enLogo = filePath; // Store first English logo
-                     }
-                } else {
-                     // Store first logo with other language or null language (often original)
-                     if (otherLogo == null) {
-                          Log.d("TmdbHelper", "findBestLogoPath: Found 'other/null' logo: " + filePath);
-                          otherLogo = filePath;
-                     }
+                    if (firstEnLogoPath == null) {
+                         Log.d("TmdbHelper", "findBestChineseLogoByWidth: Found first 'en' logo: " + filePath);
+                        firstEnLogoPath = filePath; // Store first English logo found
+                    }
+                } else { // Other languages or "null"
+                    if (firstOtherLogoPath == null) {
+                         Log.d("TmdbHelper", "findBestChineseLogoByWidth: Found first 'other/null' logo: " + filePath);
+                        firstOtherLogoPath = filePath; // Store first other/null logo found
+                    }
                 }
             }
         }
 
-        // Return in order of preference: Chinese, English, Other/Null
-        if (zhLogo != null) {
-             Log.d("TmdbHelper", "findBestLogoPath: Returning 'zh' logo: " + zhLogo);
-             return zhLogo;
+        // Return the widest Chinese logo if found, otherwise fallback
+        if (bestZhLogoPath != null) {
+            Log.d("TmdbHelper", "findBestChineseLogoByWidth: Returning widest 'zh' logo: " + bestZhLogoPath);
+            return bestZhLogoPath;
+        } else if (firstEnLogoPath != null) {
+            Log.d("TmdbHelper", "findBestChineseLogoByWidth: No 'zh' logo found. Returning first 'en' logo: " + firstEnLogoPath);
+            return firstEnLogoPath;
+        } else {
+            Log.d("TmdbHelper", "findBestChineseLogoByWidth: No 'zh' or 'en' logo found. Returning first 'other/null' logo: " + firstOtherLogoPath);
+            return firstOtherLogoPath; // Might be null if no suitable logos were found at all
         }
-        if (enLogo != null) {
-            Log.d("TmdbHelper", "findBestLogoPath: Returning 'en' logo: " + enLogo);
-            return enLogo;
-        }
-        Log.d("TmdbHelper", "findBestLogoPath: Returning 'other/null' logo: " + otherLogo);
-        return otherLogo; // This might be null if only filtered-out logos were found
     }
+    // --- END NEW METHOD ---
+
+
+    // --- REMOVE OR COMMENT OUT THE OLD findBestLogoPath METHOD ---
+    /*
+    // Function to select the best logo (e.g., prefer Chinese, then English, then first)
+    private static String findBestLogoPath(@Nullable JSONArray logos) {
+        // ... old implementation ...
+    }
+    */
+    // --- END REMOVAL ---
 
 
     // Internal interfaces for callbacks
