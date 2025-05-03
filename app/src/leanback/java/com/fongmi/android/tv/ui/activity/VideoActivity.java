@@ -677,17 +677,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // --- End Modified setDetail ---
 
     // --- Added fetchTmdbLogo Method ---
-    private void fetchTmdbLogo(String title, String year, String typeName) {
-        if (isFinishing() || isDestroyed()) return;
-        // Check if API Key is configured
-        if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
-            Log.e("VideoActivity", "TMDB API Key not set! Skipping logo fetch.");
-            // Ensure fallback text is shown if API key is missing
-            mBinding.logoImageView.setVisibility(View.GONE);
-            mBinding.nameTextView.setVisibility(View.VISIBLE);
-            mBinding.nameTextView.setText(currentVodName);
-            return;
-        }
 
 // 在 VideoActivity.java 中
 
