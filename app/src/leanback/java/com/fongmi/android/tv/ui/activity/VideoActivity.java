@@ -689,70 +689,90 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             return;
         }
 
-        TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
+// 在 VideoActivity.java 中
+
+private void fetchTmdbLogo(String title, String year, String typeName) {
+    // API Key 检查 (假设这部分代码是正确的，并且在方法开头)
+    if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
+        Log.e("VideoActivity", "TMDB API Key not set! Skipping logo fetch.");
+        // Check Activity state even here, though less likely to be needed
+        if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) return;
+        mBinding.logoImageView.setVisibility(View.GONE);
+        mBinding.nameTextView.setVisibility(View.VISIBLE);
+        mBinding.nameTextView.setText(currentVodName);
+        return;
+    }
+
+    // 调用 TmdbHelper.findLogoForVod 并传入回调
+    TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
         @Override
         public void onLogoFound(@NonNull String logoUrl) {
+            // --- 1. Activity 状态检查放在最前面 ---
             if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
                  Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoFound, skipping Glide load.");
-                 return; // Activity 无效，直接返回，不执行后续操作
-             }
-             // --- 结束检查 ---
-             currentLogoUrl = logoUrl;
-             mBinding.nameTextView.setVisibility(View.GONE); // Hide text fallback
-             mBinding.logoImageView.setVisibility(View.VISIBLE); // Show logo ImageView
-
-             // --- Glide 加载逻辑修改开始 ---
-
-             // 1. 获取你在 dimens.xml 中为 titleContainer 设置的高度对应的像素值
-             //    确保 @dimen/detail_title_area_height 在 dimens.xml 中已定义 (例如 70dp)
-             int targetPixelHeight = getResources().getDimensionPixelSize(R.dimen.detail_title_area_height);
-             // 或者，如果你不想依赖 dimen 文件，可以直接用 ResUtil 计算：
-             // int targetPixelHeight = ResUtil.dp2px(70); // 使用你期望的目标显示高度 dp 值
-
-             // 2. 估算一个足够大的目标宽度，避免 Glide 解码超大宽度的图片。
-             //    这里用高度的 8 倍作为示例，你可以调整这个倍数。
-             //    或者直接设一个固定的大像素值，如 1500。
-             int targetPixelWidth = targetPixelHeight * 8; // Example width calculation
-
-             Log.d("VideoActivity", "Glide override target size: " + targetPixelWidth + "x" + targetPixelHeight);
-
-             Glide.with(VideoActivity.this)
-                  .load(logoUrl)
-                  .placeholder(R.drawable.ic_placeholder) // Make sure ic_placeholder exists
-                  .error(R.drawable.ic_error)           // Make sure ic_error exists
-                  .override(targetPixelWidth, targetPixelHeight) // <--- 添加 override
-                  .fitCenter() // <--- 使用 fitCenter 控制缩放和居中（或用 centerCrop）
-                  .into(mBinding.logoImageView);
-
-             // --- Glide 加载逻辑修改结束 ---
-
-             // 注意：此时 ImageView 的 android:scaleType 属性基本失效了，
-             // 图片的缩放和对齐由 Glide 的 .override() 和 .fitCenter() 控制。
-             // 但 ImageView 的 layout_width="wrap_content", layout_height="match_parent",
-             // adjustViewBounds="true" (可选) 仍然需要保持，以确保 ImageView 在布局中尺寸正确。
-        }
-            @Override
-            public void onLogoNotFound() {
-                if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
-                  Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound, skipping UI update.");
-                 return;
-                currentLogoUrl = null;
-                // Only update the main fallback text view
-                mBinding.logoImageView.setVisibility(View.GONE); // Hide logo
-                mBinding.nameTextView.setVisibility(View.VISIBLE); // Show text fallback
-                mBinding.nameTextView.setText(currentVodName);
-                 // Do NOT update widget or display titles here
+                 return; // 如果 Activity 无效，直接返回
             }
+            // --- 结束检查 ---
 
-             @Override
-             public void onError() {
-                // Treat error same as not found
-                Log.w("VideoActivity", "Error fetching TMDB logo for: " + title);
-                onLogoNotFound();
-             }
-        });
-    }
-    // --- End Added fetchTmdbLogo Method ---
+            // --- 如果 Activity 有效，执行后续操作 ---
+            currentLogoUrl = logoUrl;
+            mBinding.nameTextView.setVisibility(View.GONE);
+            mBinding.logoImageView.setVisibility(View.VISIBLE);
+
+            try { // 包裹资源获取和计算，增加健壮性
+                int targetPixelHeight = getResources().getDimensionPixelSize(R.dimen.detail_title_area_height);
+                int targetPixelWidth = targetPixelHeight * 8; // Example width calculation
+                Log.d("VideoActivity", "Glide override target size: " + targetPixelWidth + "x" + targetPixelHeight);
+
+                Glide.with(VideoActivity.this) // 确认 VideoActivity.this 有效
+                     .load(logoUrl)
+                     .placeholder(R.drawable.ic_placeholder)
+                     .error(R.drawable.ic_error)
+                     .override(targetPixelWidth, targetPixelHeight)
+                     .fitCenter() // 使用 fitCenter
+                     .into(mBinding.logoImageView);
+            } catch (Exception e) {
+                 Log.e("VideoActivity", "Error during Glide load setup or execution in onLogoFound", e);
+                 // 发生异常，可以考虑回退到显示文字
+                 onLogoNotFound(); // 调用 onLogoNotFound 处理 UI 回退
+            }
+        } // <--- onLogoFound 结束大括号
+
+        @Override
+        public void onLogoNotFound() {
+            // --- 1. Activity 状态检查放在最前面 ---
+            if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                  Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound, skipping UI update.");
+                 return; // 如果 Activity 无效，直接返回
+            }
+            // --- 结束检查 ---
+
+            // --- 如果 Activity 有效，执行后续操作 ---
+            currentLogoUrl = null;
+            mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.nameTextView.setVisibility(View.VISIBLE);
+            mBinding.nameTextView.setText(currentVodName);
+        } // <--- onLogoNotFound 结束大括号
+
+         @Override
+         public void onError() {
+            // --- 1. Activity 状态检查放在最前面 ---
+            if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                  Log.w("VideoActivity", "Activity is finishing or destroyed in onError, skipping UI update.");
+                 return; // 如果 Activity 无效，直接返回
+            }
+            // --- 结束检查 ---
+
+            // --- 如果 Activity 有效，执行后续操作 ---
+            Log.w("VideoActivity", "Error fetching TMDB logo for: " + title);
+            // 调用 onLogoNotFound 来统一处理 UI 回退到显示文字的状态
+            // onLogoNotFound 内部已经包含了 Activity 状态检查，所以这里调用是安全的
+            onLogoNotFound();
+         } // <--- onError 结束大括号
+
+    }); // <--- **关键：添加了结束匿名类和方法调用的 );**
+
+} // <--- fetchTmdbLogo 方法的结束大括号-- End Added fetchTmdbLogo Method ---
 
     private int getMaxLines() {
         int lines = 1;
