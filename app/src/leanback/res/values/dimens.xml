@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 其他已有的尺寸定义 -->
+
+    <!-- 添加下面这行 -->
+    <dimen name="detail_logo_height">60dp</dimen>
+
+    <dimen name="detail_title_area_height">60dp</dimen>
+    <!-- 其他已有的尺寸定义 -->
+</resources>

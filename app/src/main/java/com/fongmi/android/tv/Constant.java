@@ -29,4 +29,10 @@ public class Constant {
     public static final int TIMEOUT_TRANSMIT = 60 * 1000;
     //搜尋線程數量
     public static final int THREAD_POOL = 10;
+
+    public static final String TMDB_API_KEY = "84158892bcf93193e0c1dbf307e4e13b";
+    public static final String TMDB_API_BASE_URL = "https://tapi.coolmarket.eu.org/3/";
+    public static final String TMDB_IMG_BASE_URL = "https://tapi.coolmarket.eu.org/t/p/";
+    public static final String TMDB_LOGO_SIZE = "original"; // Logo 图片尺寸INTERVAL_SEEK = 10 * 1000;
+
 }
