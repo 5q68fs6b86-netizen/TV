@@ -16,7 +16,7 @@
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorSecondary"
         android:textSize="18sp"
         tools:text="202201010808" />
 
@@ -29,6 +29,7 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
+        android:tint="?attr/colorSecondary"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_setting_delete" />
 
