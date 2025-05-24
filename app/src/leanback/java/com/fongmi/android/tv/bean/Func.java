@@ -70,7 +70,7 @@ public class Func {
                 this.drawable = R.drawable.ic_home_live;
                 break;
             case R.string.home_keep:
-                this.drawable = R.drawable.ic_home_keep;
+                this.drawable = R.drawable.ic_detail_keep_off;
                 break;
             case R.string.home_push:
                 this.drawable = R.drawable.ic_home_push;
