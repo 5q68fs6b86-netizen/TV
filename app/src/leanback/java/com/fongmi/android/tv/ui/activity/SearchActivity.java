@@ -105,7 +105,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private void getHot() {
         mBinding.hint.setText(R.string.search_hot);
         mWordAdapter.addAll(Hot.get(Setting.getHot()));
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+        OkHttp.newCall("https://hot.api.coolmarket.eu.org/api/douban-hot-mixed", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<String> items = Hot.get(response.body().string());
