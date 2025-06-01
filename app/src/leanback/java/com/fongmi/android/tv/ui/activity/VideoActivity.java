@@ -723,6 +723,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mBinding.nameTextView.setVisibility(View.GONE);
                 ImageView targetImageView = mBinding.logoImageView;
                 targetImageView.setVisibility(View.VISIBLE);
+                // --- 计算 Glide Override 尺寸 ---
+                // 获取你在 XML 中设置的目标视图高度 (例如 60dp)
+                int targetViewHeightPx = getResources().getDimensionPixelSize(R.dimen.detail_logo_height); // 假设你在 dimens.xml 定义了 <dimen name="your_target_logo_height">60dp</dimen>
+                // 或者直接使用 ResUtil.dp2px(60)
+                // int targetViewHeightPx = ResUtil.dp2px(60);
 
                 Glide.with(VideoActivity.this)
                         .asBitmap()
@@ -736,28 +741,21 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                                     return;
                                 }
                                 try {
-                                    // --- 创建包含辉光和 Logo 的组合 Bitmap ---
-                                    // 调整模糊半径和颜色透明度以获得最佳效果
-                                    float blurRadius = ResUtil.dp2px(20); // 调整辉光半径 (例如 10dp)
-                                    // 可以稍微降低辉光的 Alpha，让 Logo 更突出
-                                    int glowColor = Color.argb(180, 255, 255, 255); // 例如半透明白色辉光 (Alpha 180)
-
-                                    // 调用修改后的 createGlowBitmap 方法
-                                    Bitmap combinedBitmap = createGlowAndLogoBitmap(resource, blurRadius, glowColor);
+                                    // --- 创建辉光 ---
+                                    // resource 现在是 Glide 根据 override 处理过的 Bitmap
+                                    float blurRadius = ResUtil.dp2px(10); // 辉光半径可能需要根据新的图标大小调整
+                                    int glowColor = Color.argb(180, 255, 255, 255);
+                                    Bitmap combinedBitmap = createGlowAndLogoBitmap(resource, blurRadius, glowColor); // 使用处理过的 resource
 
                                     if (combinedBitmap != null) {
-                                        // --- 直接设置组合后的 Bitmap 给 ImageView ---
                                         targetImageView.setImageBitmap(combinedBitmap);
                                     } else {
-                                        // 如果创建失败，只显示原始 Logo
-                                        Log.w("VideoActivity", "Failed to create combined glow bitmap, showing original logo.");
-                                        targetImageView.setImageBitmap(resource);
+                                        Log.w("VideoActivity", "Failed to create combined glow bitmap, showing processed logo.");
+                                        targetImageView.setImageBitmap(resource); // 显示 Glide 处理后的图
                                     }
-
                                 } catch (Exception e) {
                                     Log.e("VideoActivity", "Error creating combined glow bitmap", e);
-                                    // 出现异常，也只显示原始 Logo
-                                    targetImageView.setImageBitmap(resource);
+                                    targetImageView.setImageBitmap(resource); // 异常时显示 Glide 处理后的图
                                 }
                             }
 
@@ -773,7 +771,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                             }
                         });
             }
-
+            // ... (onLogoNotFound, onError 不变) ...
             @Override
             public void onLogoNotFound() {
                 if (isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {

@@ -3,8 +3,8 @@
     <!-- 其他已有的尺寸定义 -->
     <dimen name="logo_glow_radius">8dp</dimen>
     <!-- 添加下面这行 -->
-    <dimen name="detail_logo_height">70dp</dimen>
+    <dimen name="detail_logo_height">63dp</dimen>
 
-    <dimen name="detail_title_area_height">70dp</dimen>
+    <dimen name="detail_title_area_height">63dp</dimen>
     <!-- 其他已有的尺寸定义 -->
 </resources>
