@@ -5,8 +5,10 @@
     android:id="@+id/progressLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    tools:context=".ui.activity.VideoActivity"> <!-- Added tools:context for better preview -->
 
+    <!-- Video Player Area -->
     <FrameLayout
         android:id="@+id/video"
         android:layout_width="435.5dp"
@@ -22,33 +24,38 @@
         android:nextFocusRight="@id/desc"
         android:nextFocusUp="@id/video"
         android:nextFocusDown="@id/flag">
-        
+
         <androidx.media3.ui.PlayerView
             android:id="@+id/exo"
             style="@style/Player.Vod"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
         <tv.danmaku.ijk.media.player.ui.IjkVideoView
             android:id="@+id/ijk"
             style="@style/Player.Vod"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
+
         <master.flame.danmaku.ui.widget.DanmakuView
             android:id="@+id/danmaku"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
+
         <include
             android:id="@+id/widget"
             layout="@layout/view_widget_vod"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
         <include
             android:id="@+id/display"
             layout="@layout/view_widget_display"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
         <include
             android:id="@+id/control"
             layout="@layout/view_control_vod"
@@ -58,67 +65,71 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    
+    <!-- Title Area Container (Positioned relative to video) -->
     <FrameLayout
         android:id="@+id/titleContainer"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/detail_title_area_height" 
-        android:layout_toEndOf="@id/video"
+        android:layout_width="0dp"  
+        android:layout_height="@dimen/detail_title_area_height"
         android:layout_alignTop="@id/video"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp">
+        android:layout_marginEnd="24dp"
+        android:layout_toEndOf="@id/video"
+        android:layout_alignParentEnd="true"> 
 
-        
+        <!-- Single ImageView for Logo (displays LayerDrawable with Glow) -->
         <ImageView
             android:id="@+id/logoImageView"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" 
-            android:layout_gravity="start|center_vertical" 
+            android:layout_height="match_parent"
+            android:layout_gravity="start|center_vertical"
             android:adjustViewBounds="true"
-            android:scaleType="fitStart" 
-            android:visibility="gone" />
+            android:scaleType="fitCenter"  
+            android:visibility="gone"
+            tools:src="@drawable/ic_launcher_foreground" 
+            tools:visibility="visible"/> 
 
-        
+        <!-- Fallback TextView for Title -->
         <TextView
             android:id="@+id/nameTextView"
-            android:layout_width="match_parent"
+            android:layout_width="match_parent" 
             android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical" 
+            android:layout_gravity="start|center_vertical"
             android:ellipsize="end"
-            android:gravity="start|center_vertical"
+            android:gravity="start|center_vertical" 
             android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold"
             android:visibility="gone"
-            />
+            tools:text="Example Video Title Text"
+            tools:visibility="visible" />
 
     </FrameLayout>
 
-    
+    <!-- Details Section -->
     <TextView
         android:id="@+id/remark"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
-        android:layout_below="@id/titleContainer" 
-        android:layout_alignStart="@id/titleContainer" 
+        android:layout_below="@id/titleContainer"
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignEnd="@id/titleContainer" 
         android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        />
+        tools:text="Remark: HD Episode 10"/>
 
     <LinearLayout
         android:id="@+id/row1"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_below="@id/remark"
-        android:layout_alignStart="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignEnd="@id/titleContainer"
         android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
         android:orientation="horizontal">
-        
+        <!-- Removed layout_marginEnd from inner TextViews to let LinearLayout handle spacing -->
         <TextView
             android:id="@+id/site"
             android:layout_width="wrap_content"
@@ -127,7 +138,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-             />
+            tools:text="Site Name" />
         <TextView
             android:id="@+id/year"
             android:layout_width="wrap_content"
@@ -136,7 +147,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-             />
+            tools:text="2023" />
         <TextView
             android:id="@+id/area"
             android:layout_width="wrap_content"
@@ -145,7 +156,7 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-             />
+            tools:text="Area" />
         <TextView
             android:id="@+id/type"
             android:layout_width="wrap_content"
@@ -153,208 +164,200 @@
             android:singleLine="true"
             android:textColor="@color/white"
             android:textSize="16sp"
-             />
+            tools:text="Type Name" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/director"
-        android:layout_width="match_parent"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_below="@id/row1"
-        android:layout_alignStart="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignEnd="@id/titleContainer"
         android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
+        android:ellipsize="end" 
         android:nextFocusDown="@id/actor"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        />
+        tools:text="Director: John Doe" />
 
     <TextView
         android:id="@+id/actor"
-        android:layout_width="match_parent"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_below="@id/director"
-        android:layout_alignStart="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignEnd="@id/titleContainer"
         android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
+        android:ellipsize="end" 
         android:nextFocusDown="@id/content"
         android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
-        />
+        tools:text="Actor: Jane Smith, Peter Jones" />
 
     <TextView
         android:id="@+id/content"
-        android:layout_width="match_parent"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_below="@id/actor"
-        android:layout_alignStart="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignEnd="@id/titleContainer"
         android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
         android:ellipsize="end"
         android:lineSpacingExtra="4dp"
-        android:maxLines="1"
+        android:maxLines="1" 
         android:nextFocusDown="@id/desc"
         android:textColor="@color/white"
         android:textSize="16sp"
-         />
+        tools:text="Content: This is a brief description of the video content..." />
 
+    <!-- Button Row -->
     <LinearLayout
         android:id="@+id/row2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@id/titleContainer" 
-        android:layout_alignBottom="@+id/video"
+        android:layout_alignStart="@id/titleContainer"
+        android:layout_alignBottom="@+id/video" 
         android:orientation="horizontal">
-        
-         <TextView
+
+        <TextView
             android:id="@+id/desc"
+            style="@style/Button.Detail" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:background="@drawable/selector_item"
-            android:drawablePadding="6dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
             android:nextFocusDown="@id/flag"
-            android:singleLine="true"
             android:text="@string/detail_desc"
-            android:textColor="@color/white"
-            android:textSize="16sp"
             app:drawableStartCompat="@drawable/ic_detail_desc" />
         <TextView
             android:id="@+id/keep"
+            style="@style/Button.Detail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:background="@drawable/selector_item"
-            android:drawablePadding="6dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
             android:nextFocusDown="@id/flag"
-            android:singleLine="true"
             android:text="@string/keep"
-            android:textColor="@color/white"
-            android:textSize="16sp"
             app:drawableStartCompat="@drawable/ic_detail_keep_off" />
         <TextView
             android:id="@+id/change1"
+            style="@style/Button.Detail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/selector_item"
-            android:drawablePadding="6dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
             android:nextFocusRight="@id/change1"
             android:nextFocusDown="@id/flag"
-            android:singleLine="true"
             android:text="@string/play_change"
-            android:textColor="@color/white"
-            android:textSize="16sp"
             app:drawableStartCompat="@drawable/ic_detail_change" />
     </LinearLayout>
 
-    
+    <!-- Flag List -->
     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
         android:id="@+id/flag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/video"
+        android:layout_marginBottom="12dp"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:layout_marginBottom="12dp"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:listitem="@layout/adapter_flag"/> 
 
-    
+    <!-- Scrollable Lists Area -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp" 
         android:layout_below="@+id/flag"
-        android:layout_alignParentBottom="true" 
+        android:layout_alignParentBottom="true"
         android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" 
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="24dp"> 
-            
-             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+
+            <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/quality"
+                style="@style/Widget.Leanback.GridView.Horizontal" 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:layout_marginBottom="12dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:visibility="gone" />
-             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_quality"/>
+
+            <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/episodeHori"
+                style="@style/Widget.Leanback.GridView.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:layout_marginBottom="12dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:focusable="false"
+                android:focusable="false" 
+                android:visibility="gone"
                 app:focusOutEnd="true"
                 app:focusOutFront="true"
-                android:visibility="gone" />
-             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_episode" />
+
+            <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/array"
+                style="@style/Widget.Leanback.GridView.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:layout_marginBottom="12dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:visibility="gone" />
-             <androidx.leanback.widget.VerticalGridView
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_array"/>
+
+            <androidx.leanback.widget.VerticalGridView
                 android:id="@+id/episodeVert"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
+                android:layout_height="wrap_content" 
                 android:layout_marginBottom="12dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
                 android:focusable="false"
+                android:visibility="gone"
                 app:focusOutEnd="true"
                 app:focusOutFront="true"
-                android:visibility="gone" />
-             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_episode"/>
+
+            <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/part"
+                style="@style/Widget.Leanback.GridView.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:layout_marginBottom="12dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:visibility="gone" />
-             <androidx.leanback.widget.HorizontalGridView
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_part"/>
+
+            <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/quick"
+                style="@style/Widget.Leanback.GridView.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:visibility="gone" />
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:listitem="@layout/adapter_vod_quick"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    
 
 </com.fongmi.android.tv.ui.custom.ProgressLayout>
