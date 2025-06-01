@@ -2511,22 +2511,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (event == null || event.getAction() == null || isBackground()) return;
-
-        String action = event.getAction(); // 获取 action 字符串
-
-        // 使用 if-else if 替代 switch
-        if (ActionEvent.PLAY.equals(action) || ActionEvent.PAUSE.equals(action)) {
+        if (event == null || isBackground()) return; // Add null check
+        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
             onKeyCenter();
-        } else if (ActionEvent.NEXT.equals(action)) {
-            if (mBinding.control != null && mBinding.control.next != null) {
-                mBinding.control.next.performClick();
-            }
-        } else if (ActionEvent.PREV.equals(action)) {
-            if (mBinding.control != null && mBinding.control.prev != null) {
-                mBinding.control.prev.performClick();
-            }
-        } else if (ActionEvent.STOP.equals(action)) {
+        } else if (ActionEvent.NEXT.equals(event.getAction())) {
+            mBinding.control.next.performClick();
+        } else if (ActionEvent.PREV.equals(event.getAction())) {
+            mBinding.control.prev.performClick();
+        } else if (ActionEvent.STOP.equals(event.getAction())) {
             finish();
         }
     }
