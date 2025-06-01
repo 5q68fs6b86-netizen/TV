@@ -742,8 +742,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                                     // --- 1. 创建辉光 Bitmap ---
                                     // 参数：原图, 模糊半径 (像素), 辉光颜色 (ARGB)
                                     // 调整模糊半径和颜色透明度以获得最佳效果
-                                    float blurRadius = ResUtil.dp2px(6); // 例如 6dp 的模糊半径
-                                    int glowColor = Color.argb(170, 255, 255, 255); // 半透明白色辉光
+                                    float blurRadius = ResUtil.dp2px(20); // 例如 6dp 的模糊半径
+                                    int glowColor = Color.argb(230, 255, 255, 255); // 半透明白色辉光
                                     Bitmap glowBitmap = createGlowBitmap(resource, blurRadius, glowColor);
 
                                     if (glowBitmap != null) {
