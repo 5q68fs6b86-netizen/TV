@@ -1,4 +1,5 @@
 <resources>
+    <color name="logo_glow_color">#80FFFFFF</color>
     <color name="primary">@color/black</color>
     <color name="primaryDark">@color/black</color>
     <color name="accent">@color/blue_500</color>
