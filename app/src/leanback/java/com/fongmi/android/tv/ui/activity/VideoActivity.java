@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.view.ViewParent;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -833,6 +834,22 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkKeep(); // Uses history key which includes original ID
     }
     // --- End Modified setDetail ---
+    private void onLogoNotFound() {
+        // 确保在主线程执行 UI 更新
+        runOnUiThread(() -> {
+            if (isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound (Activity level), skipping UI update.");
+                return;
+            }
+            Log.d("VideoActivity", "Logo not found or error occurred.");
+            currentLogoUrl = null;
+            // 隐藏 ImageView 并清除内容
+            mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.logoImageView.setImageDrawable(null);
+            mBinding.nameTextView.setVisibility(View.VISIBLE);
+            mBinding.nameTextView.setText(currentVodName); // 使用存储的 VOD 名称
+        });
+    }
 
     // --- fetchTmdbLogo Method with BlurMaskFilter + LayerDrawable ---
     private void fetchTmdbLogo(String title, String year, String typeName) {
@@ -1010,12 +1027,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return lines;
     }
 
-    // Helper to check if a view is gone (more readable)
-    private boolean isGone(View view) {
+    @Override // 添加 Override 注解
+    protected boolean isGone(View view) { // 改为 protected
         return view == null || view.getVisibility() == View.GONE;
     }
-    // Helper to check if a view is visible
-    private boolean isVisible(View view) {
+
+    @Override // 添加 Override 注解
+    protected boolean isVisible(View view) { // 改为 protected
         return view != null && view.getVisibility() == View.VISIBLE;
     }
 
@@ -1096,7 +1114,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
         for (int i = 0; i < mFlagAdapter.size(); i++) {
             Flag flag = (Flag) mFlagAdapter.get(i);
-            if (flag != null) flag.setActivated(flag == item); // Activate the selected one
+            if (flag != null) flag.setActivated(item); // Activate the selected one
         }
 
         if (itemIndex != -1) { // Ensure index is valid before setting selection
@@ -1678,7 +1696,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         int current = getEpisodePosition();
         int max = mEpisodeAdapter.size() - 1;
         if (current >= max) { // Already at the last episode
-             Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_prev_end : R.string.error_play_next_end);
+             int msgResId1 = (mHistory != null && mHistory.isRevPlay()) ? R.string.error_play_prev_end : R.string.error_play_next_end;
+             Notify.show(getString(msgResId1)); // <--- 修改为此行 (假设资源已添加)
             return;
         }
 
@@ -1694,8 +1713,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
         int current = getEpisodePosition();
         if (current <= 0) { // Already at the first episode
-             Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_next_end : R.string.error_play_prev_end);
-            return;
+             int msgResId2 = (mHistory != null && mHistory.isRevPlay()) ? R.string.error_play_next_end : R.string.error_play_prev_end;
+             Notify.show(getString(msgResId2)); // <--- 修改为此行 (假设资源已添加)            return;
         }
 
         int prevPos = current - 1;
@@ -2110,13 +2129,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setArtwork(String url) {
         // Check context validity before starting Glide request
-        if (!ImgUtil.isValid(this)) return;
+        //if (!ImgUtil.isValid(this)) return;
 
         ImgUtil.load(url, R.drawable.radio, new CustomTarget<Drawable>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 // Check context validity again inside the callback
-                if (!ImgUtil.isValid(VideoActivity.this)) return;
+                //if (!ImgUtil.isValid(VideoActivity.this)) return;
                 // Set artwork only if views are not null
                 if (getExo() != null) getExo().setDefaultArtwork(resource);
                 if (getIjk() != null) getIjk().setDefaultArtwork(resource);
@@ -2126,7 +2145,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             @Override
             public void onLoadFailed(@Nullable Drawable errorDrawable) {
                 // Check context validity
-                if (!ImgUtil.isValid(VideoActivity.this)) return;
+                //if (!ImgUtil.isValid(VideoActivity.this)) return;
                 // Don't set error drawable as default artwork, just hide preview
                 hidePreview();
             }
@@ -2490,29 +2509,25 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         }
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (event == null || event.getAction() == null || isBackground()) return; // Null checks and background check
+        if (event == null || event.getAction() == null || isBackground()) return;
 
-        switch (event.getAction()) {
-            case ActionEvent.PLAY:
-            case ActionEvent.PAUSE:
-                onKeyCenter(); // Simulate center key press (toggle play/pause)
-                break;
-            case ActionEvent.NEXT:
-                if (mBinding.control != null && mBinding.control.next != null) { // Null checks
-                    mBinding.control.next.performClick();
-                }
-                break;
-            case ActionEvent.PREV:
-                 if (mBinding.control != null && mBinding.control.prev != null) { // Null checks
-                    mBinding.control.prev.performClick();
-                }
-                break;
-            case ActionEvent.STOP:
-                finish(); // Close the activity
-                break;
+        String action = event.getAction(); // 获取 action 字符串
+
+        // 使用 if-else if 替代 switch
+        if (ActionEvent.PLAY.equals(action) || ActionEvent.PAUSE.equals(action)) {
+            onKeyCenter();
+        } else if (ActionEvent.NEXT.equals(action)) {
+            if (mBinding.control != null && mBinding.control.next != null) {
+                mBinding.control.next.performClick();
+            }
+        } else if (ActionEvent.PREV.equals(action)) {
+            if (mBinding.control != null && mBinding.control.prev != null) {
+                mBinding.control.prev.performClick();
+            }
+        } else if (ActionEvent.STOP.equals(action)) {
+            finish();
         }
     }
 
@@ -3538,8 +3553,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     // Helper to notify item changed with null checks
-    private void notifyItemChanged(RecyclerView view, ArrayObjectAdapter adapter) {
-        if (view != null && adapter != null && view.getAdapter() instanceof ItemBridgeAdapter) {
+    @Override // 添加 Override 注解
+    protected void notifyItemChanged(RecyclerView view, ArrayObjectAdapter adapter) { // 改为 protected        if (view != null && adapter != null && view.getAdapter() instanceof ItemBridgeAdapter) {
             ((ItemBridgeAdapter) view.getAdapter()).notifyDataSetChanged();
             // More specific notifications are better if possible, e.g.,
             // adapter.notifyArrayItemRangeChanged(0, adapter.size());

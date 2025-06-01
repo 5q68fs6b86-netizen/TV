@@ -26,4 +26,11 @@
     <string name="seeking_indicator">快进快退指示</string>
     <string name="brightness_level">亮度级别指示</string>
     <string name="volume_level">音量级别指示</string>
+    <string name="error_play_load">加载失败</string>
+    <string name="error_no_episodes">没有剧集信息</string>
+    <string name="error_play_prev_end">已经是第一集了</string>
+    <string name="error_play_next_end">已经是最后一集了</string>
+    <string name="error_play_op_fail">设置片头失败</string>
+    <string name="error_play_ed_fail">设置片尾失败</string>
+    <string name="error_keep_add_fail">收藏失败</string>
 </resources>
