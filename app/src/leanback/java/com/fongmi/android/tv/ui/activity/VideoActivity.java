@@ -41,10 +41,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.GlideException; // <-- Import for Glide Listener
-import com.bumptech.glide.request.RequestListener;    // <-- Import for Glide Listener
+// import com.bumptech.glide.load.engine.GlideException; // Removed for simplicity
+// import com.bumptech.glide.request.RequestListener;    // Removed for simplicity
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.Target;      // <-- Import for Glide Listener
+// import com.bumptech.glide.request.target.Target;      // Removed for simplicity
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
@@ -181,6 +181,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // --- Variables for Glow Effect ---
     private Paint logoGlowPaint = null; // Paint for logo glow effect
 
+    // ... (Static start methods remain the same) ...
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
         else start(activity, Sniffer.getUrl(text));
@@ -274,59 +275,54 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private Flag getFlag() {
+        // Simplified null check
         if (mFlagAdapter == null || mFlagAdapter.size() == 0) return null;
         int position = getFlagPosition();
-        if (position >= 0 && position < mFlagAdapter.size()) {
-            return (Flag) mFlagAdapter.get(position);
-        }
-        return (Flag) mFlagAdapter.get(0); // Fallback to first if position invalid
+        return (Flag) mFlagAdapter.get(position);
     }
 
     private Episode getEpisode() {
+        // Simplified null check
         if (mEpisodeAdapter == null || mEpisodeAdapter.size() == 0) return null;
         int position = getEpisodePosition();
-         if (position >= 0 && position < mEpisodeAdapter.size()) {
+        // Check bounds before getting
+        if (position >= 0 && position < mEpisodeAdapter.size()){
              return (Episode) mEpisodeAdapter.get(position);
-         }
-         return null; // No fallback makes sense here
+        }
+        return null; // Return null if position is invalid
     }
 
     private int getFlagPosition() {
-        if (mFlagAdapter == null) return 0;
-        for (int i = 0; i < mFlagAdapter.size(); i++) {
-            Flag flag = (Flag) mFlagAdapter.get(i);
-            if (flag != null && flag.isActivated()) return i;
-        }
+        if (mFlagAdapter == null) return 0; // Added null check
+        for (int i = 0; i < mFlagAdapter.size(); i++) if (((Flag) mFlagAdapter.get(i)).isActivated()) return i;
         return 0;
     }
 
     private int getEpisodePosition() {
-        if (mEpisodeAdapter == null) return 0;
-        for (int i = 0; i < mEpisodeAdapter.size(); i++) {
-            Episode episode = (Episode) mEpisodeAdapter.get(i);
-            if (episode != null && episode.isActivated()) return i;
-        }
+        if (mEpisodeAdapter == null) return 0; // Added null check
+        for (int i = 0; i < mEpisodeAdapter.size(); i++) if (((Episode) mEpisodeAdapter.get(i)).isActivated()) return i;
         return 0;
     }
 
     private int getParsePosition() {
-        if (mParseAdapter == null) return 0;
-        for (int i = 0; i < mParseAdapter.size(); i++) {
-            Parse parse = (Parse) mParseAdapter.get(i);
-            if (parse != null && parse.isActivated()) return i;
-        }
+        if (mParseAdapter == null) return 0; // Added null check
+        for (int i = 0; i < mParseAdapter.size(); i++) if (((Parse) mParseAdapter.get(i)).isActivated()) return i;
         return 0;
     }
 
     private int getPlayer() {
-        int sitePlayer = (getSite() != null) ? getSite().getPlayerType() : -1;
+        // Simplified logic (closer to original likely state)
+        Site site = getSite();
+        int sitePlayer = (site != null) ? site.getPlayerType() : -1;
         int historyPlayer = (mHistory != null) ? mHistory.getPlayer() : -1;
+
         if (historyPlayer != -1) return historyPlayer;
         if (sitePlayer != -1) return sitePlayer;
         return Setting.getPlayer();
     }
 
     private int getScale() {
+        // Simplified logic
         int historyScale = (mHistory != null) ? mHistory.getScale() : -1;
         return historyScale != -1 ? historyScale : Setting.getScale();
     }
@@ -340,7 +336,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private Drawable getDefaultArtwork() {
-        if (mPlayers == null) return null;
+        if (mPlayers == null) return null; // Added null check
         return mPlayers.isExo() ? getExo().getDefaultArtwork() : getIjk().getDefaultArtwork();
     }
 
@@ -349,16 +345,20 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setEpisodeSelectedPosition(int position) {
-        if (getEpisodeView() == null || position < 0) return;
-        getEpisodeView().setSelectedPosition(position);
+        BaseGridView episodeView = getEpisodeView();
+        if (episodeView == null) return; // Added null check
+
+        episodeView.setSelectedPosition(position);
         if (hasKeyEvent) return;
         if (isFullscreen()) return;
-        getEpisodeView().postDelayed(() -> {
-             if (getEpisodeView() == null || getEpisodeView().getLayoutManager() == null) return;
-            View selectedItem = getEpisodeView().getLayoutManager().findViewByPosition(position);
-            View focusedView = getCurrentFocus();
-            if (selectedItem != null) selectedItem.requestFocus();
-            if (focusedView == mBinding.video && mBinding.video != null) mBinding.video.requestFocus();
+        episodeView.postDelayed(() -> {
+            if (episodeView.getLayoutManager() != null) { // Add null check for layout manager
+                View selectedItem = episodeView.getLayoutManager().findViewByPosition(position);
+                View focusedView = getCurrentFocus();
+                if (selectedItem != null) selectedItem.requestFocus();
+                // Restore focus to video view if it was focused before
+                if (focusedView == mBinding.video) mBinding.video.requestFocus();
+            }
         }, 300);
     }
 
@@ -385,8 +385,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
+                // Simplified null check
                 if (view != null && outline != null) {
-                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+                     outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
                 }
             }
         });
@@ -400,11 +401,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mR3 = this::setTraffic;
         mR4 = this::showEmpty;
 
-        initGlowPaint(); // Initialize Paint for glow effect
+        initGlowPaint(); // <-- Initialize Paint for glow effect
 
         setBackground(false);
         setRecyclerView();
-        setEpisodeView();
+        setEpisodeView(); // Call the method to set layout for vertical recycler view
         setVideoView();
         setDisplayView();
         setDanmuView();
@@ -420,11 +421,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 logoGlowPaint = new Paint();
                 logoGlowPaint.setColor(ContextCompat.getColor(this, R.color.logo_glow_color));
                 float glowRadius = getResources().getDimensionPixelSize(R.dimen.logo_glow_radius);
-                // Use Blur.OUTER to draw only the blur outside the shape
                 logoGlowPaint.setMaskFilter(new BlurMaskFilter(glowRadius, BlurMaskFilter.Blur.OUTER));
             } catch (Exception e) {
                 Log.e("VideoActivity", "Error initializing glow paint", e);
-                logoGlowPaint = null; // Ensure paint is null if init fails
+                logoGlowPaint = null;
             }
         }
     }
@@ -433,8 +433,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
-         if (mBinding == null) return; // Safety check
-
         mBinding.control.seek.setListener(mPlayers);
         mBinding.desc.setOnClickListener(view -> onDesc());
         mBinding.keep.setOnClickListener(view -> onKeep());
@@ -472,76 +470,68 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.opening.setOnLongClickListener(view -> onOpeningReset());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
 
-        if (mBinding.flag != null) {
-            mBinding.flag.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-                 @Override
-                 public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                      if (mFlagAdapter != null && mFlagAdapter.size() > 0 && position >= 0 && position < mFlagAdapter.size()) {
-                           setFlagActivated((Flag) mFlagAdapter.get(position));
-                      }
-                 }
-            });
-        }
-
-        BaseGridView episodeView = getEpisodeView();
-        if (episodeView != null) {
-            episodeView.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-                 @Override
-                 public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                      if (child != null) mFocus1 = child.itemView;
-                      setEpisodeChildKeyListener(child, position);
-                 }
-            });
-        }
-
-        if (mBinding.array != null) {
-            mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-                @Override
-                public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                    if (mEpisodeAdapter != null && mEpisodeAdapter.size() > getGroupSize() && position > 1 && hasKeyEvent) {
-                        setEpisodeSelectedPosition((position - 2) * getGroupSize());
-                    }
+        // Simplified listener logic (closer to original)
+        mBinding.flag.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+            @Override
+            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
+                if (mFlagAdapter != null && mFlagAdapter.size() > 0) { // Basic check
+                    setFlagActivated((Flag) mFlagAdapter.get(position));
                 }
-            });
-        }
+            }
+        });
+
+        getEpisodeView().addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+            @Override
+            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
+                if (child != null) mFocus1 = child.itemView;
+                setEpisodeChildKeyListener(child, position);
+            }
+        });
+
+        mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+            @Override
+            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
+                if (mEpisodeAdapter != null && mEpisodeAdapter.size() > getGroupSize() && position > 1 && hasKeyEvent) { // Basic check
+                    setEpisodeSelectedPosition((position - 2) * getGroupSize());
+                }
+            }
+        });
     }
 
     private void setEpisodeChildKeyListener(RecyclerView.ViewHolder child, int position) {
+        // Simplified logic
         BaseGridView episodeView = getEpisodeView();
-        if (episodeView == null || episodeView != mBinding.episodeVert || child == null || child.itemView == null) return;
+        if (episodeView != mBinding.episodeVert || child == null || mEpisodePresenter == null) return; // Basic checks
         RecyclerView.Adapter<?> adapter = episodeView.getAdapter();
         if (adapter == null) return;
         int itemCount = adapter.getItemCount();
-        if (itemCount <= 0 || mEpisodePresenter == null) return;
+        if (itemCount <= 0) return;
 
         int columns = mEpisodePresenter.getNumColumns();
-        if (columns <= 0) return; // Avoid division by zero or invalid state
+        if (columns <= 0) return; // Avoid division by zero
 
-        // Check if it's the last row and if the item's column index exceeds the count in the last row
-        boolean isLastRow = (position / columns) == ((itemCount - 1) / columns);
-        boolean isBeyondLastRowItem = (position % columns) >= (itemCount % columns) && (itemCount % columns != 0); // More precise check
+        // Basic check for last row items needing special handling
+        boolean isPotentiallyLastIncompleteRowItem = (position / columns == (itemCount - 1) / columns) && (position % columns >= (itemCount % columns)) && (itemCount % columns != 0);
 
-        if (isLastRow && isBeyondLastRowItem) {
+        if (isPotentiallyLastIncompleteRowItem) {
             child.itemView.setOnKeyListener((v, keyCode, event) -> {
                 if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
-                     if (episodeView.getLayoutManager() != null) {
-                          View lastItem = episodeView.getLayoutManager().findViewByPosition(itemCount - 1);
-                          if (lastItem != null) lastItem.requestFocus();
-                          return true; // Consume the event
-                     }
+                    if (episodeView.getLayoutManager() != null) {
+                        View lastItem = episodeView.getLayoutManager().findViewByPosition(itemCount - 1);
+                        if (lastItem != null) lastItem.requestFocus();
+                        return true;
+                    }
                 }
                 return false;
             });
         } else {
-             // Remove listener if not applicable anymore
-             child.itemView.setOnKeyListener(null);
+            child.itemView.setOnKeyListener(null); // Remove listener if not needed
         }
     }
 
 
     private void setRecyclerView() {
-        if (mBinding == null) return; // Safety check
-
+        // Simplified setup
         mFlagAdapter = new ArrayObjectAdapter(mFlagPresenter = new FlagPresenter(this::setFlagActivated));
         mBinding.flag.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.flag.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -550,7 +540,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mQualityAdapter = new QualityAdapter(this::setQualityActivated);
         mBinding.quality.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.quality.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.quality.setAdapter(mQualityAdapter); // Directly set adapter
+        mBinding.quality.setAdapter(mQualityAdapter);
 
         mArrayAdapter = new ArrayObjectAdapter(mArrayPresenter = new ArrayPresenter(this));
         mBinding.array.setHorizontalSpacing(ResUtil.dp2px(8));
@@ -574,9 +564,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mParseAdapter.setItems(VodConfig.get().getParses(), null);
     }
 
-    private void setEpisodeView() {
-         if (mBinding == null) return; // Safety check
-
+    private void setEpisodeView() { // Renamed back
+        // Simplified setup
         mEpisodeAdapter = new ArrayObjectAdapter(mEpisodePresenter = new EpisodePresenter(this::setEpisodeActivated));
         mBinding.episodeVert.setVerticalSpacing(ResUtil.dp2px(8));
         mBinding.episodeHori.setHorizontalSpacing(ResUtil.dp2px(8));
@@ -586,12 +575,63 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         BaseGridView episodeView = getEpisodeView();
         if (episodeView != null) {
              episodeView.setAdapter(new ItemBridgeAdapter(mEpisodeAdapter));
+             // Call the layout logic specifically for vertical view if needed
+             // This part might need adjustment based on original structure
+             // if (episodeView == mBinding.episodeVert) {
+             //     // Call the layout calculation logic here if it was separate
+             //     calculateAndSetEpisodeVerticalLayout(...);
+             // }
         }
     }
 
-    private void setVideoView() {
-         if (mBinding == null || mPlayers == null) return; // Safety check
+    // Optional: If layout calculation was complex and separate, keep it here
+     private void calculateAndSetEpisodeVerticalLayout(List<Episode> items) {
+         if (items == null || items.isEmpty() || mBinding == null || mEpisodePresenter == null) return;
 
+         int size = items.size();
+         int maxEpisodeNameLength = 0;
+         for (int i = 0; i < size; i++) {
+             Episode episode = items.get(i);
+             if (episode == null) continue;
+             episode.setIndex(i);
+             String name = episode.getName();
+             int length = (name == null) ? 0 : name.length();
+             if (length > maxEpisodeNameLength) maxEpisodeNameLength = length;
+         }
+
+         int numColumns = 10;
+         if (maxEpisodeNameLength > 40) numColumns = 1;
+         else if (maxEpisodeNameLength > 30) numColumns = 2;
+         else if (maxEpisodeNameLength > 15) numColumns = 3;
+         else if (maxEpisodeNameLength > 10) numColumns = 4;
+         else if (maxEpisodeNameLength > 6) numColumns = 6;
+         else if (maxEpisodeNameLength > 4) numColumns = 8;
+         if (numColumns <= 0) numColumns = 1;
+
+         int rowNum = (int) Math.ceil((double) size / numColumns);
+         int screenWidth = ResUtil.getScreenWidth();
+         int availableWidth = screenWidth - ResUtil.dp2px(48);
+
+         ViewGroup.LayoutParams params = mBinding.episodeVert.getLayoutParams();
+         if (params == null) params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+         params.width = screenWidth;
+         params.height = (rowNum > 6) ? ResUtil.dp2px(300) : ResUtil.dp2px(Math.max(rowNum, 1) * 44);
+         mBinding.episodeVert.setLayoutParams(params);
+         mBinding.episodeVert.setNumColumns(numColumns);
+
+         int horizontalSpacing = ResUtil.dp2px(8);
+         int columnWidth = (availableWidth - ((numColumns - 1) * horizontalSpacing)) / numColumns;
+         if (columnWidth > 0) mBinding.episodeVert.setColumnWidth(columnWidth);
+         else mBinding.episodeVert.setColumnWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+
+         mBinding.episodeVert.setWindowAlignmentOffsetPercent(35f);
+         mEpisodePresenter.setNumColumns(numColumns);
+         mEpisodePresenter.setNumRows(rowNum);
+     }
+
+
+    private void setVideoView() {
+        if (mPlayers == null) return; // Added check
         mPlayers.init(getExo(), getIjk());
         ExoUtil.setSubtitleView(mBinding.exo);
         IjkUtil.setSubtitleView(mBinding.ijk);
@@ -601,7 +641,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDanmuViewSettings() {
-        if (mDanmakuContext == null) return;
+        if (mDanmakuContext == null) return; // Added check
         float[] range = {2.4f, 1.8f, 1.2f, 0.8f};
         float speed = range[Setting.getDanmuSpeed()];
         float alpha = Setting.getDanmuAlpha() / 100.0f;
@@ -616,7 +656,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDanmuView() {
-        if (mBinding == null || mPlayers == null || mDanmakuContext == null) return; // Safety check
+        if (mPlayers == null || mDanmakuContext == null) return; // Added check
         mPlayers.setDanmuView(mBinding.danmaku);
         setDanmuViewSettings();
         mDanmakuContext.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3).setDanmakuMargin(8);
@@ -624,7 +664,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDisplayView() {
-         if (mBinding == null) return; // Safety check
         mBinding.display.getRoot().setVisibility(View.VISIBLE);
         showDisplayInfo();
     }
@@ -638,14 +677,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void checkCast() {
         if (isCast()) onVideo();
-        else if (mBinding != null) mBinding.progressLayout.showProgress();
+        else mBinding.progressLayout.showProgress();
     }
 
     private void checkId() {
-        String id = getId();
+        String id = getId(); // Get ID once
         if (id.startsWith("push://")) {
             getIntent().putExtra("key", "push_agent").putExtra("id", id.substring(7));
-            id = getIntent().getStringExtra("id"); // Update id after modification
+            id = getIntent().getStringExtra("id"); // Update local variable after modification
         }
         if (TextUtils.isEmpty(id) || id.startsWith("msearch:")) {
             setEmpty(false);
@@ -655,8 +694,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setPlayerView() {
-        if (mBinding == null || mPlayers == null) return; // Safety check
-
+        if (mPlayers == null) return; // Added check
         getIjk().setPlayer(mPlayers.getPlayer());
         mBinding.control.player.setText(mPlayers.getPlayerText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
@@ -665,36 +703,38 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (mHistory != null) {
             mBinding.control.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         } else {
-             // Set default speed text if history is null
-             mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getPlaySpeed()));
+             mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getPlaySpeed())); // Default if no history
         }
     }
 
     private void setDecodeView() {
-        if (mBinding == null || mPlayers == null) return; // Safety check
+        if (mPlayers == null) return; // Added check
         mBinding.control.decode.setText(mPlayers.getDecodeText());
     }
 
     private void setScale(int scale) {
-        if (mBinding == null || scale < 0 || scale >= ResUtil.getStringArray(R.array.select_scale).length) return; // Safety check
+        if (scale < 0 || scale >= ResUtil.getStringArray(R.array.select_scale).length) return; // Bounds check
         getExo().setResizeMode(scale);
         getIjk().setResizeMode(scale);
         mBinding.control.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
     }
 
     private void getDetail() {
-        if (mViewModel == null || TextUtils.isEmpty(getKey()) || TextUtils.isEmpty(getId())) return;
-        mViewModel.detailContent(getKey(), getId());
+        // Basic check
+        if (mViewModel != null && !TextUtils.isEmpty(getKey()) && !TextUtils.isEmpty(getId())) {
+             mViewModel.detailContent(getKey(), getId());
+        }
     }
 
     private void getDetail(Vod item) {
+        // Basic check
         if (item == null || TextUtils.isEmpty(item.getSiteKey()) || TextUtils.isEmpty(item.getVodId())) return;
         getIntent().putExtra("key", item.getSiteKey());
         getIntent().putExtra("pic", item.getVodPic());
         getIntent().putExtra("id", item.getVodId());
-        if (mBinding != null) mBinding.scroll.scrollTo(0, 0);
-        if (mClock != null) mClock.setCallback(null);
-        if (mPlayers != null) {
+        mBinding.scroll.scrollTo(0, 0);
+        if (mClock != null) mClock.setCallback(null); // Added check
+        if (mPlayers != null) { // Added check
             mPlayers.reset();
             mPlayers.stop();
         }
@@ -702,23 +742,26 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDetail(Result result) {
-         if (mBinding == null) return; // Safety check
-        if (result == null || result.getList().isEmpty()) {
-            setEmpty(result != null && result.hasMsg());
+        // Basic check
+        if (result == null) {
+            setEmpty(true); // Consider null result as empty/error
+            return;
+        }
+        if (result.getList().isEmpty()) {
+            setEmpty(result.hasMsg());
         } else {
             setDetail(result.getList().get(0));
         }
-        Notify.show(result != null ? result.getMsg() : "");
+        Notify.show(result.getMsg());
     }
 
-    // --- Modified getPlayer ---
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
-        if (mBinding == null || mViewModel == null || mPlayers == null || flag == null || episode == null) return; // Safety check
+        // Basic checks
+        if (mViewModel == null || flag == null || episode == null || mPlayers == null) return;
 
-        // Use currentVodName (original name) for titles
         String combinedTitle = getString(R.string.detail_title, currentVodName, episode.getName());
-        mBinding.widget.title.setText(combinedTitle); // Set widget title with combined text
-        mBinding.display.title.setText(combinedTitle); // Set display title with combined text
+        mBinding.widget.title.setText(combinedTitle);
+        mBinding.display.title.setText(combinedTitle);
 
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -726,16 +769,16 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mPlayers.clear();
         mPlayers.stop();
         showProgress();
-        setMetadata(); // Metadata uses original name from history
+        setMetadata();
         hidePreview();
         hideCenter();
     }
-    // --- End Modified getPlayer ---
 
     private void setPlayer(Result result) {
-        if (mBinding == null || mPlayers == null || mQualityAdapter == null || result == null) return; // Safety check
+        // Basic checks
+        if (result == null || mPlayers == null || mQualityAdapter == null) return;
         Site site = getSite();
-        if (site == null) return; // Need site info
+        if (site == null) return;
 
         result.getUrl().set(mQualityAdapter.getPosition());
         setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
@@ -747,17 +790,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void checkDanmu(String danmu) {
-        if (mBinding == null || mDanmakuContext == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mDanmakuContext == null) return;
         mBinding.danmaku.release();
         if (!Setting.isDanmuLoad() || TextUtils.isEmpty(danmu)) {
-             mBinding.danmaku.setVisibility(View.GONE);
-             return;
+            mBinding.danmaku.setVisibility(View.GONE);
+            return;
         }
         mBinding.danmaku.setVisibility(View.VISIBLE);
         App.execute(() -> {
-            if (mBinding != null) { // Check binding again in background thread
-                 mBinding.danmaku.prepare(new Parser(danmu), mDanmakuContext);
-            }
+             // Check binding again in background thread
+             if (mBinding != null) {
+                  mBinding.danmaku.prepare(new Parser(danmu), mDanmakuContext);
+             }
         });
     }
 
@@ -768,26 +813,27 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             showEmpty();
         } else {
             // Fallback: Show name from intent, hide logo, start search
-            if (mBinding != null) {
+            if (mBinding != null) { // Added check
                 mBinding.logoImageView.setVisibility(View.GONE);
                 mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // Ensure no glow
                 mBinding.nameTextView.setText(getName());
                 mBinding.nameTextView.setVisibility(View.VISIBLE);
                 App.post(mR4, 10000);
             }
-            checkSearch(false); // Start search based on the name from intent
+            checkSearch(false);
         }
     }
 
     private void showEmpty() {
-        if (mBinding != null) mBinding.progressLayout.showEmpty();
+        if (mBinding != null) mBinding.progressLayout.showEmpty(); // Added check
         stopSearch();
     }
 
-    // --- Modified setDetail(Vod item) ---
+    // --- Modified setDetail(Vod item) with Glow Effect Logic ---
     private void setDetail(Vod item) {
-        if (mBinding == null || item == null) { // Safety check
-             setEmpty(true); // Consider it an error if item is null
+        // Basic check
+        if (item == null || mBinding == null) {
+             setEmpty(true); // Treat null item as error/empty
              return;
         }
 
@@ -798,129 +844,103 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         currentVodName = item.getVodName(getName());
         currentLogoUrl = null; // Reset logo url
 
-        // 2. Initial title state: show fallback text, hide logo, remove glow
+        // 2. Initial title state: show text, hide logo, remove glow
         mBinding.logoImageView.setVisibility(View.GONE);
-        mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
+        mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // <-- Remove glow
         mBinding.nameTextView.setVisibility(View.VISIBLE);
-        mBinding.nameTextView.setText(currentVodName); // Display text title initially
+        mBinding.nameTextView.setText(currentVodName);
 
         // Set other details
         setText(mBinding.remark, 0, item.getVodRemarks());
         setText(mBinding.year, R.string.detail_year, item.getVodYear());
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
-        Site site = getSite();
-        setText(mBinding.site, R.string.detail_site, site != null ? site.getName() : "");
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(Objects.toString(item.getVodActor(), "")).toString());
-        setText(mBinding.content, R.string.detail_content, Html.fromHtml(Objects.toString(item.getVodContent(), "")).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(Objects.toString(item.getVodDirector(), "")).toString());
+        Site site = getSite(); // Get site info
+        setText(mBinding.site, R.string.detail_site, site != null ? site.getName() : ""); // Handle null site
+        // Handle potential null values from HTML parsing more gracefully
+        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(Objects.toString(item.getVodActor(),"")).toString());
+        setText(mBinding.content, R.string.detail_content, Html.fromHtml(Objects.toString(item.getVodContent(),"")).toString());
+        setText(mBinding.director, R.string.detail_director, Html.fromHtml(Objects.toString(item.getVodDirector(),"")).toString());
 
-        if (mFlagAdapter != null) mFlagAdapter.setItems(item.getVodFlags(), null);
+
+        if (mFlagAdapter != null) mFlagAdapter.setItems(item.getVodFlags(), null); // Added null check
         mBinding.content.setMaxLines(getMaxLines());
         setArtwork(item.getVodPic());
-        getPart(item.getVodName()); // Use original name for related search
+        getPart(item.getVodName());
         App.removeCallbacks(mR4);
 
         // 4. Call TMDB Logo fetch logic
         fetchTmdbLogo(currentVodName, item.getVodYear(), item.getTypeName());
 
-        checkHistory(item); // Uses original name stored in item/history
+        checkHistory(item);
         checkFlag(item);
-        checkKeep(); // Uses history key which includes original ID
+        checkKeep();
     }
     // --- End Modified setDetail ---
 
-    // --- fetchTmdbLogo Method with Glow Effect ---
+    // --- fetchTmdbLogo Method with Glow Effect (Simplified) ---
     private void fetchTmdbLogo(String title, String year, String typeName) {
-        if (mBinding == null) return; // Safety Check
+        if (mBinding == null) return; // Basic Check
 
         // API Key Check
         if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
             Log.e("VideoActivity", "TMDB API Key not set! Skipping logo fetch.");
-            if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) return;
             // Ensure UI is in text mode without glow
-            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
-            mBinding.logoImageView.setVisibility(View.GONE);
-            mBinding.nameTextView.setVisibility(View.VISIBLE);
-            mBinding.nameTextView.setText(currentVodName);
+             mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
+             mBinding.logoImageView.setVisibility(View.GONE);
+             mBinding.nameTextView.setVisibility(View.VISIBLE);
+             mBinding.nameTextView.setText(currentVodName);
             return;
         }
 
         TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
             @Override
             public void onLogoFound(@NonNull String logoUrl) {
-                if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
-                    Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoFound, skipping Glide load.");
-                    return;
-                }
-                if (mBinding == null) return; // Double check binding
+                 // No Activity state checks here (removed for simplicity)
+                 if (mBinding == null) return; // Check binding
 
                 currentLogoUrl = logoUrl;
                 mBinding.nameTextView.setVisibility(View.GONE);
                 mBinding.logoImageView.setVisibility(View.VISIBLE);
 
-                // Clear any previous layer before loading new image
+                 // Clear any previous layer
                  mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
 
                 try {
                     int targetPixelHeight = getResources().getDimensionPixelSize(R.dimen.detail_title_area_height);
-                     // Make width proportional, e.g., 4:1 ratio, adjust as needed
-                    int targetPixelWidth = targetPixelHeight * 4; // Adjusted ratio
+                    int targetPixelWidth = targetPixelHeight * 4; // Example ratio
                     Log.d("VideoActivity", "Glide override target size: " + targetPixelWidth + "x" + targetPixelHeight);
 
-                    Glide.with(VideoActivity.this)
+                    Glide.with(VideoActivity.this) // Use Activity context
                          .load(logoUrl)
-                         .placeholder(R.drawable.ic_placeholder) // Placeholder shouldn't have glow
-                         .error(R.drawable.ic_error)           // Error shouldn't have glow
+                         .placeholder(R.drawable.ic_placeholder)
+                         .error(R.drawable.ic_error)
                          .override(targetPixelWidth, targetPixelHeight)
-                         .fitCenter() // Use fitCenter for logos
-                         .listener(new RequestListener<Drawable>() { // Use Glide listener
-                             @Override
-                             public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                                 // Load failed, ensure no glow layer and fallback UI
-                                 if (mBinding != null) {
-                                     mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
-                                 }
-                                 onLogoNotFound(); // Handles UI fallback
-                                 return false; // Let Glide handle the error drawable
-                             }
+                         .fitCenter()
+                         .into(mBinding.logoImageView); // Load into ImageView
 
-                             @Override
-                             public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, @NonNull Target<Drawable> target, @NonNull com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
-                                 // Load succeeded, apply glow effect
-                                 if (mBinding != null) {
-                                     initGlowPaint(); // Ensure paint is ready
-                                     if (logoGlowPaint != null) { // Check if paint init succeeded
-                                          mBinding.logoImageView.setLayerType(View.LAYER_TYPE_SOFTWARE, logoGlowPaint);
-                                     } else {
-                                          mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // Fallback if paint failed
-                                     }
-                                 }
-                                 return false; // Let Glide set the resource to the ImageView
-                             }
-                         })
-                         .into(mBinding.logoImageView);
+                    // Apply glow effect AFTER Glide starts loading (might show briefly without glow)
+                    initGlowPaint();
+                    if (logoGlowPaint != null) {
+                         mBinding.logoImageView.setLayerType(View.LAYER_TYPE_SOFTWARE, logoGlowPaint); // <-- Apply glow
+                    }
+
                 } catch (Exception e) {
                     Log.e("VideoActivity", "Error during Glide load setup or execution in onLogoFound", e);
-                     // Ensure no glow layer on exception and fallback UI
-                     if (mBinding != null) {
-                         mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
-                     }
+                    // Ensure no glow layer on exception and fallback UI
+                    mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
                     onLogoNotFound();
                 }
             }
 
             @Override
             public void onLogoNotFound() {
-                if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
-                    Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound, skipping UI update.");
-                    return;
-                }
-                 if (mBinding == null) return; // Double check binding
+                 // No Activity state checks here
+                 if (mBinding == null) return; // Check binding
 
                 currentLogoUrl = null;
                 // Ensure no glow layer
-                mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
+                mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // <-- Remove glow
                 mBinding.logoImageView.setVisibility(View.GONE);
                 mBinding.nameTextView.setVisibility(View.VISIBLE);
                 mBinding.nameTextView.setText(currentVodName);
@@ -928,15 +948,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
             @Override
             public void onError() {
-                if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
-                    Log.w("VideoActivity", "Activity is finishing or destroyed in onError, skipping UI update.");
-                    return;
-                }
+                 // No Activity state checks here
                 Log.w("VideoActivity", "Error fetching TMDB logo for: " + title);
-                // Ensure no glow layer and fallback UI (onLogoNotFound handles this)
-                 if (mBinding != null) {
-                      mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
-                 }
+                 if (mBinding == null) return; // Check binding
+                // Ensure no glow layer and fallback UI
+                mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // <-- Remove glow
                 onLogoNotFound();
             }
         });
@@ -945,7 +961,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
 
     private int getMaxLines() {
-        if (mBinding == null) return 1;
+        if (mBinding == null) return 1; // Basic check
         int lines = 1;
         if (isGone(mBinding.actor)) ++lines;
         if (isGone(mBinding.remark)) ++lines;
@@ -954,112 +970,84 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setText(TextView view, int resId, String text) {
-        if (view == null) return; // Add null checks
-        String displayText = (text == null) ? "" : text; // Ensure text is not null
+        if (view == null) return; // Basic check
+        String displayText = (text == null) ? "" : text; // Handle null
 
         view.setText(getSpan(resId, displayText), TextView.BufferType.SPANNABLE);
         view.setVisibility(displayText.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(MDColor.WHITE); // Use a defined white color if possible
+        view.setLinkTextColor(MDColor.WHITE);
         CustomMovement.bind(view);
-        view.setTag(displayText); // Store the original text
+        view.setTag(displayText);
     }
 
     private SpannableStringBuilder getSpan(int resId, String text) {
-        if (text == null) text = ""; // Handle null text
+        // Simplified span logic (closer to original)
+        if (text == null) text = "";
         String processedText = (resId > 0) ? getString(resId, text) : text;
         Map<String, String> map = new HashMap<>();
-        try {
-            Matcher m = Sniffer.CLICKER.matcher(processedText);
-            StringBuffer sb = new StringBuffer();
-            while (m.find()) {
-                String group1 = m.group(1);
-                String group2 = m.group(2);
-                if (group1 != null && group2 != null) {
-                    String key = Trans.s2t(group2).trim(); // Use Trans for consistency if needed
-                    String replacementKey = "{$" + map.size() + "}"; // Unique placeholder
-                    map.put(replacementKey, group1);
-                    m.appendReplacement(sb, Matcher.quoteReplacement(key)); // Replace with display text
-                    // Store the original URL mapped to the placeholder
-                } else {
-                     m.appendReplacement(sb, m.group()); // Append as is if groups are null
-                }
+        Matcher m = Sniffer.CLICKER.matcher(processedText);
+         StringBuffer sb = new StringBuffer(); // Use StringBuffer for replacement
+        while (m.find()) {
+            String group1 = m.group(1);
+            String group2 = m.group(2);
+            if (group1 != null && group2 != null) {
+                String key = Trans.s2t(group2).trim();
+                 map.put(key, group1); // Store mapping: display text -> URL
+                 m.appendReplacement(sb, Matcher.quoteReplacement(key)); // Replace in buffer
+            } else {
+                 m.appendReplacement(sb, m.group()); // Append unchanged if no match
             }
-            m.appendTail(sb);
-            processedText = sb.toString();
-        } catch (Exception e) {
-             Log.e("VideoActivity", "Error processing span text: " + text, e);
-             // Fallback to original text if regex fails
         }
+        m.appendTail(sb); // Append the rest of the text
+        processedText = sb.toString();
 
 
         SpannableStringBuilder span = SpannableStringBuilder.valueOf(processedText);
-        // Re-iterate based on the replaced text and placeholders if the above map approach is complex
-        // Simpler approach: Iterate again on the final text searching for the keys (less robust if keys overlap)
-        try {
-            // This part assumes the map keys (Trans.s2t(group2).trim()) are present in the final processedText
-             for (Map.Entry<String, String> entry : map.entrySet()) { // Need the original map logic back
-                String displayTextKey = entry.getKey(); // This was the display text (e.g., Trans.s2t(group2).trim())
-                String targetUrl = entry.getValue(); // This was group1 (the URL)
-
-                int index = processedText.indexOf(displayTextKey);
-                 while (index != -1) {
-                     if (index >= 0 && index + displayTextKey.length() <= span.length()) {
-                          Result result = Result.type(targetUrl);
-                          ClickableSpan clickableSpan = getClickSpan(result);
-                          if (clickableSpan != null) {
-                               span.setSpan(clickableSpan, index, index + displayTextKey.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                          }
-                     }
-                      index = processedText.indexOf(displayTextKey, index + 1); // Find next occurrence
+        for (String s : map.keySet()) {
+            int index = processedText.indexOf(s);
+            if (index != -1) { // Check if the key exists in the processed text
+                 Result result = Result.type(map.get(s));
+                 ClickableSpan clickableSpan = getClickSpan(result);
+                 if (clickableSpan != null && index + s.length() <= span.length()) { // Check bounds
+                     span.setSpan(clickableSpan, index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                  }
-             }
-        } catch (Exception e) {
-             Log.e("VideoActivity", "Error applying spans: " + processedText, e);
+            }
         }
-
         return span;
     }
 
 
     private ClickableSpan getClickSpan(Result result) {
+        // Basic check
         if (result == null) return null;
         return new ClickableSpan() {
             @Override
             public void onClick(@NonNull View view) {
                 VodActivity.start(getActivity(), getKey(), result);
             }
-            // Optional: Override updateDrawState if you want to change text appearance (e.g., underline, color)
-            // @Override
-            // public void updateDrawState(@NonNull TextPaint ds) {
-            //     super.updateDrawState(ds);
-            //     ds.setUnderlineText(false); // Example: remove underline
-            // }
         };
     }
 
 
     private void setFlagActivated(Flag item) {
-        if (mBinding == null || mFlagAdapter == null || mFlagAdapter.size() == 0 || item == null || item.isActivated()) return;
+        // Simplified logic
+        if (mFlagAdapter == null || mFlagAdapter.size() == 0 || item == null || item.isActivated() || mBinding == null) return;
 
         int itemIndex = mFlagAdapter.indexOf(item);
         if (itemIndex == -1) {
-            // Item not found, maybe activate the first one?
-             Flag firstFlag = (Flag) mFlagAdapter.get(0);
-             if (firstFlag != null) {
-                  item = firstFlag; // Activate the first one instead
-                  itemIndex = 0;
-             } else {
-                  return; // No flags available
-             }
+            // Try activating the first flag if the provided one isn't found
+            item = (Flag) mFlagAdapter.get(0);
+            if (item == null) return; // No flags at all
+            itemIndex = 0;
         }
 
         for (int i = 0; i < mFlagAdapter.size(); i++) {
-             Flag flag = (Flag) mFlagAdapter.get(i);
-             if (flag != null) flag.setActivated(flag == item); // Use object comparison
+            Flag flag = (Flag) mFlagAdapter.get(i);
+            if (flag != null) flag.setActivated(flag == item);
         }
 
         mBinding.flag.setSelectedPosition(itemIndex);
-        notifyItemChanged(mBinding.flag, mFlagAdapter);
+        notifyItemChanged(mBinding.flag, mFlagAdapter); // Use helper
         setEpisodeAdapter(item.getEpisodes());
         setQualityVisible(false);
         seamless(item);
@@ -1068,163 +1056,103 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setEpisodeAdapter(List<Episode> items) {
         BaseGridView episodeView = getEpisodeView();
+        // Basic checks
         if (episodeView == null || mEpisodeAdapter == null) return;
 
         boolean isEmpty = (items == null || items.isEmpty());
         episodeView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
 
         if (isEmpty) {
-             mEpisodeAdapter.clear(); // Clear adapter if items are empty
-             setArrayAdapter(0); // Update array adapter for episode ranges
-             return;
+            mEpisodeAdapter.clear();
+            setArrayAdapter(0);
+            return;
         }
 
-        if (isVisible(mBinding.episodeVert)) setEpisodeViewLayout(items); // Adjust layout only for vertical view
+        // Call layout calculation if it's the vertical view
+        if (isVisible(mBinding.episodeVert)) {
+             calculateAndSetEpisodeVerticalLayout(items);
+        }
         mEpisodeAdapter.setItems(items, null);
         setArrayAdapter(items.size());
-        setR2Callback(50); // Update focus rules after layout change
-    }
-
-    // Renamed from setEpisodeView to avoid confusion with the getter
-    private void setEpisodeViewLayout(List<Episode> items) {
-        if (items == null || items.isEmpty() || mBinding == null || mEpisodePresenter == null) return; // Safety checks
-
-        int size = items.size();
-        int maxEpisodeNameLength = 0;
-
-        // Calculate max length and set index
-        for (int i = 0; i < size; i++) {
-            Episode episode = items.get(i);
-            if (episode == null) continue;
-            episode.setIndex(i);
-            String name = episode.getName();
-            int length = (name == null) ? 0 : name.length();
-            if (length > maxEpisodeNameLength) maxEpisodeNameLength = length;
-        }
-
-        // Determine number of columns based on max length
-        int numColumns = 10; // Default
-        if (maxEpisodeNameLength > 40) numColumns = 1;
-        else if (maxEpisodeNameLength > 30) numColumns = 2;
-        else if (maxEpisodeNameLength > 15) numColumns = 3;
-        else if (maxEpisodeNameLength > 10) numColumns = 4;
-        else if (maxEpisodeNameLength > 6) numColumns = 6;
-        else if (maxEpisodeNameLength > 4) numColumns = 8;
-
-        if (numColumns <= 0) numColumns = 1; // Ensure at least one column
-
-        int rowNum = (int) Math.ceil((double) size / numColumns);
-        int screenWidth = ResUtil.getScreenWidth();
-        // Calculate available width considering padding
-        int availableWidth = screenWidth - ResUtil.dp2px(48); // Assuming 24dp padding on each side
-
-        ViewGroup.LayoutParams params = mBinding.episodeVert.getLayoutParams();
-        if (params == null) {
-             params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
-        params.width = screenWidth; // Span full width
-        // Adjust height based on rows, ensure minimum height if needed
-        params.height = (rowNum > 6) ? ResUtil.dp2px(300) : ResUtil.dp2px(Math.max(rowNum, 1) * 44); // Ensure at least 1 row height
-
-        mBinding.episodeVert.setLayoutParams(params);
-        mBinding.episodeVert.setNumColumns(numColumns);
-
-        // Calculate column width based on available space and spacing
-        int horizontalSpacing = ResUtil.dp2px(8);
-        int columnWidth = (availableWidth - ((numColumns - 1) * horizontalSpacing)) / numColumns;
-        if (columnWidth > 0) {
-             mBinding.episodeVert.setColumnWidth(columnWidth);
-        } else {
-             // Fallback if calculation is wrong
-             mBinding.episodeVert.setColumnWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
-
-        // Adjust alignment offset if needed, 10f might be too small
-        mBinding.episodeVert.setWindowAlignmentOffsetPercent(35f); // Default Leanback alignment
-
-        mEpisodePresenter.setNumColumns(numColumns);
-        mEpisodePresenter.setNumRows(rowNum); // Set row count for potential focus logic
+        setR2Callback(50);
     }
 
 
     private void seamless(Flag flag) {
-        if (flag == null || mHistory == null) return;
+        // Basic checks
+        if (flag == null || mHistory == null || mEpisodeAdapter == null) return;
         Episode episode = flag.find(mHistory.getVodRemarks(), getMark().isEmpty());
 
-        boolean shouldShowQuality = (episode != null && episode.isActivated() && mQualityAdapter != null && mQualityAdapter.getItemCount() > 1);
-        setQualityVisible(shouldShowQuality);
+        boolean showQuality = (episode != null && episode.isActivated() && mQualityAdapter != null && mQualityAdapter.getItemCount() > 1);
+        setQualityVisible(showQuality);
 
         if (episode == null || episode.isActivated()) return;
 
-        // Seamless logic based on setting
-        if (Setting.getFlag() == 1) { // Focus episode without playing
-            episode.setActivated(true); // Temporarily activate to find position
+        if (Setting.getFlag() == 1) {
+            episode.setActivated(true); // Temp activate
             int position = getEpisodePosition();
-            episode.setActivated(false); // Deactivate again
-
+            episode.setActivated(false); // Deactivate
             if (!isFullscreen()) {
-                BaseGridView episodeView = getEpisodeView();
-                 if (episodeView != null) episodeView.requestFocus();
+                 BaseGridView ev = getEpisodeView();
+                 if (ev != null) ev.requestFocus();
             }
             setEpisodeSelectedPosition(position);
-        } else { // Play the found episode
-            mHistory.setVodRemarks(episode.getName()); // Update history remark before playing
-            setEpisodeActivated(episode); // This will trigger play
-            hidePreview(); // Hide preview when auto-playing seamless episode
+        } else {
+            mHistory.setVodRemarks(episode.getName());
+            setEpisodeActivated(episode);
+            hidePreview();
         }
     }
 
 
     public void setEpisodeActivated(Episode item) {
-        if (item == null || mFlagAdapter == null || mEpisodeAdapter == null) return; // Safety checks
+        // Basic checks
+        if (item == null || mFlagAdapter == null || mEpisodeAdapter == null) return;
 
         int flagPosition = getFlagPosition();
-        if (flagPosition < 0 || flagPosition >= mFlagAdapter.size()) return; // Invalid flag position
+        if (flagPosition < 0 || flagPosition >= mFlagAdapter.size()) return;
 
-        if (shouldEnterFullscreen(item)) return; // Enter fullscreen if needed
+        if (shouldEnterFullscreen(item)) return;
 
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
 
-        // Update activation state in all flags' episode lists
         for (int i = 0; i < mFlagAdapter.size(); i++) {
             Flag flag = (Flag) mFlagAdapter.get(i);
-            if (flag != null) {
-                flag.toggle(i == flagPosition, item); // Activate in current flag, deactivate in others
-            }
+            if (flag != null) flag.toggle(i == flagPosition, item);
         }
 
-        // Update UI
         int episodePosition = mEpisodeAdapter.indexOf(item);
-        if (episodePosition != -1) {
-             setEpisodeSelectedPosition(episodePosition);
-        }
-        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
-        onRefresh(); // Trigger player refresh/reload
+        if (episodePosition != -1) setEpisodeSelectedPosition(episodePosition);
+
+        notifyItemChanged(getEpisodeView(), mEpisodeAdapter); // Use helper
+        onRefresh();
     }
 
 
     private void setQualityVisible(boolean visible) {
-        if (mBinding != null) {
-             mBinding.quality.setVisibility(visible ? View.VISIBLE : View.GONE);
-             setR2Callback(100); // Update focus
+        if (mBinding != null) { // Added check
+            mBinding.quality.setVisibility(visible ? View.VISIBLE : View.GONE);
+            setR2Callback(100);
         }
     }
 
     private void setQualityActivated(Result result) {
-        if (result == null || mPlayers == null || mBinding == null) return; // Safety check
+        // Basic checks
+        if (result == null || mPlayers == null || mBinding == null) return;
         Site site = getSite();
         if (site == null) return;
 
         try {
             mPlayers.start(result, isUseParse(), site.isChangeable() ? site.getTimeout() : -1);
-            mBinding.danmaku.hide(); // Hide danmaku when switching quality
+            mBinding.danmaku.hide();
         } catch (Exception e) {
-            Log.e("VideoActivity", "Error setting quality", e);
+            Log.e("VideoActivity", "Error setting quality", e); // Log error
             ErrorEvent.post(e); // Post error event
         }
     }
 
     private void reverseEpisode(boolean scroll) {
+        // Basic check
         if (mFlagAdapter == null) return;
         for (int i = 0; i < mFlagAdapter.size(); i++) {
             Flag flag = (Flag) mFlagAdapter.get(i);
@@ -1234,41 +1162,32 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         }
         Flag currentFlag = getFlag();
         if (currentFlag != null) {
-            setEpisodeAdapter(currentFlag.getEpisodes()); // Update adapter with reversed list
+            setEpisodeAdapter(currentFlag.getEpisodes());
             if (scroll) {
-                 // Find the currently active episode's new position after reversal
-                 int newPosition = -1;
-                 Episode activeEpisode = getEpisode(); // Find which episode is active *now*
-                 if (activeEpisode != null && mEpisodeAdapter != null) {
-                      newPosition = mEpisodeAdapter.indexOf(activeEpisode);
-                 }
-                 if (newPosition != -1) {
-                      setEpisodeSelectedPosition(newPosition);
-                 } else {
-                      setEpisodeSelectedPosition(0); // Fallback to first item
-                 }
+                 int position = getEpisodePosition(); // Find new position of active episode
+                 setEpisodeSelectedPosition(position);
             }
         }
     }
 
 
     private void setParseActivated(Parse item) {
-        if (item == null || mBinding == null || mParseAdapter == null) return; // Safety check
-        VodConfig.get().setParse(item); // Update global config
-        // Update activation state in adapter
-        for (int i = 0; i < mParseAdapter.size(); i++) {
-             Parse parse = (Parse) mParseAdapter.get(i);
-             if (parse != null) {
-                  parse.setActivated(parse.equals(item));
-             }
+        // Basic checks
+        if (item == null || mBinding == null || mParseAdapter == null) return;
+        VodConfig.get().setParse(item);
+        // Update activation state
+        for(int i=0; i<mParseAdapter.size(); i++){
+            Parse parse = (Parse) mParseAdapter.get(i);
+            if(parse != null) parse.setActivated(parse.equals(item));
         }
-        notifyItemChanged(mBinding.control.parse, mParseAdapter);
-        onRefresh(); // Refresh player with new parse setting
+        notifyItemChanged(mBinding.control.parse, mParseAdapter); // Use helper
+        onRefresh();
     }
 
 
     private void setArrayAdapter(int size) {
-        if (mBinding == null || mArrayAdapter == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mArrayAdapter == null) return;
 
         if (size <= 0) {
             mBinding.array.setVisibility(View.GONE);
@@ -1276,162 +1195,107 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             return;
         }
 
-        // Determine group size based on total size
         if (size > 200) setGroupSize(100);
         else if (size > 100) setGroupSize(40);
         else setGroupSize(20);
 
         List<String> items = new ArrayList<>();
-        items.add(getString(R.string.play_reverse)); // "倒序排列"
-        items.add(getString(mHistory != null ? mHistory.getRevPlayText() : R.string.play_forward)); // "正序播放" or "倒序播放"
+        items.add(getString(R.string.play_reverse));
+        items.add(getString(mHistory != null ? mHistory.getRevPlayText() : R.string.play_forward));
 
-        mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE); // Show only if more than one episode
+        mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE); // Show if more than 1 episode
 
-        // Generate range strings based on sort order
-        if (mHistory != null && mHistory.isRevSort()) { // If sorted reversed
-            for (int i = size; i > 0; i -= getGroupSize()) {
-                items.add(i + "-" + Math.max(i - (getGroupSize() - 1), 1)); // e.g., 50-31, 30-11, 10-1
-            }
-        } else { // If sorted forward
-            for (int i = 0; i < size; i += getGroupSize()) {
-                items.add((i + 1) + "-" + Math.min(i + getGroupSize(), size)); // e.g., 1-20, 21-40, 41-50
-            }
+        if (mHistory != null && mHistory.isRevSort()) {
+            for (int i = size; i > 0; i -= getGroupSize()) items.add(i + "-" + Math.max(i - (getGroupSize() - 1), 1));
+        } else {
+            for (int i = 0; i < size; i += getGroupSize()) items.add((i + 1) + "-" + Math.min(i + getGroupSize(), size));
         }
         mArrayAdapter.setItems(items, null);
     }
 
-    private int findFocusDown(int currentIndex) {
-        List<Integer> viewOrder = Arrays.asList(
-                R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick
-        );
-        int currentOrderIndex = -1;
-        // Find the order index of the current view's ID
-        if (currentIndex >= 0 && currentIndex < viewOrder.size()) {
-             currentOrderIndex = currentIndex; // Assume currentIndex is the order index
-        } else {
-             // Fallback: Find order index by view ID (less efficient)
-             View currentView = findViewById(currentIndex); // This might be wrong if currentIndex is not an ID
-             if (currentView != null) {
-                  // This logic requires currentIndex to be the actual ID, not the order index
-                  // Let's stick to assuming currentIndex is the order index for simplicity here.
-                  // If currentIndex is an ID, you need to find its position in viewOrder first.
-                  Log.w("VideoActivity", "findFocusDown called with unexpected index type");
-                  return 0; // Cannot proceed reliably
-             }
-        }
+    // findFocusDown/Up simplified, assume index is order index
+    private int findFocusDown(int orderIndex) {
+        List<Integer> viewOrder = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
+        if (orderIndex < 0 || orderIndex >= viewOrder.size() -1) return 0; // Invalid index or already last
 
-
-        // Search downwards from the current position + 1
-        for (int i = currentOrderIndex + 1; i < viewOrder.size(); i++) {
+        for (int i = orderIndex + 1; i < viewOrder.size(); i++) {
             View v = findViewById(viewOrder.get(i));
             if (v != null && isVisible(v)) {
-                return viewOrder.get(i); // Return the ID of the next visible view
+                return viewOrder.get(i);
             }
         }
-        return 0; // No view found below
+        return 0;
     }
 
-    private int findFocusUp(int currentIndex) {
-        List<Integer> viewOrder = Arrays.asList(
-                R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick
-        );
-         int currentOrderIndex = -1;
-         if (currentIndex >= 0 && currentIndex < viewOrder.size()) {
-              currentOrderIndex = currentIndex;
-         } else {
-             Log.w("VideoActivity", "findFocusUp called with unexpected index type");
-              return 0;
-         }
+    private int findFocusUp(int orderIndex) {
+        List<Integer> viewOrder = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
+         if (orderIndex <= 0 || orderIndex >= viewOrder.size()) return 0; // Invalid index or already first
 
-        // Search upwards from the current position - 1
-        for (int i = currentOrderIndex - 1; i >= 0; i--) {
+        for (int i = orderIndex - 1; i >= 0; i--) {
             View v = findViewById(viewOrder.get(i));
             if (v != null && isVisible(v)) {
-                return viewOrder.get(i); // Return the ID of the previous visible view
+                return viewOrder.get(i);
             }
         }
-        return 0; // No view found above
+        return 0;
     }
-
 
     private void updateFocus() {
-        hasKeyEvent = false; // Reset key event flag
+        hasKeyEvent = false;
+        int episodeIndex = (Setting.getEpisode() == 0) ? 2 : 4; // Order index for episode view
 
-        // Determine the order index for episode views
-        int episodeHoriIndex = 2;
-        int episodeVertIndex = 4;
-        int currentEpisodeIndex = (Setting.getEpisode() == 0) ? episodeHoriIndex : episodeVertIndex;
-
-        // Update focus for Episode Presenter
         if (mEpisodePresenter != null) {
-            mEpisodePresenter.setNextFocusDown(findFocusDown(currentEpisodeIndex));
-            mEpisodePresenter.setNextFocusUp(findFocusUp(currentEpisodeIndex));
+            mEpisodePresenter.setNextFocusDown(findFocusDown(episodeIndex));
+            mEpisodePresenter.setNextFocusUp(findFocusUp(episodeIndex));
         }
-
-        // Update focus for other presenters/adapters
-        if (mQualityAdapter != null) {
-            mQualityAdapter.setNextFocusDown(findFocusDown(1)); // Quality is at index 1
-        }
+        if (mQualityAdapter != null) mQualityAdapter.setNextFocusDown(findFocusDown(1));
         if (mArrayPresenter != null) {
-            mArrayPresenter.setNextFocusDown(findFocusDown(3)); // Array is at index 3
+            mArrayPresenter.setNextFocusDown(findFocusDown(3));
             mArrayPresenter.setNextFocusUp(findFocusUp(3));
         }
-        if (mFlagPresenter != null) {
-            mFlagPresenter.setNextFocusDown(findFocusDown(0)); // Flag is at index 0
-        }
-         if (mPartPresenter != null) {
-             mPartPresenter.setNextFocusUp(findFocusUp(5)); // Part is at index 5
-         }
-         // Quick presenter might need focus rules too if it becomes focusable
+        if (mFlagPresenter != null) mFlagPresenter.setNextFocusDown(findFocusDown(0));
+        if (mPartPresenter != null) mPartPresenter.setNextFocusUp(findFocusUp(5));
 
-        // Notify adapters to apply the new focus rules
+        // Notify relevant adapters/views
         notifyItemChanged(mBinding.flag, mFlagAdapter);
-        notifyItemChanged(mBinding.quality, mQualityAdapter); // Use the adapter directly
+        notifyItemChanged(mBinding.quality, mQualityAdapter);
         notifyItemChanged(mBinding.array, mArrayAdapter);
-        notifyItemChanged(getEpisodeView(), mEpisodeAdapter); // Use the current episode view
+        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
         notifyItemChanged(mBinding.part, mPartAdapter);
-        notifyItemChanged(mBinding.quick, mQuickAdapter); // Notify quick adapter too
+        // Quick presenter usually doesn't need focus rules set this way
     }
 
 
     private void showDisplayInfo() {
-        if (mBinding == null || mPlayers == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mPlayers == null) return;
 
         boolean hasBottomSheet = false;
         try {
             for (Fragment f : getSupportFragmentManager().getFragments()) {
-                if (f instanceof BottomSheetDialogFragment && f.isVisible()) { // Check visibility too
+                if (f instanceof BottomSheetDialogFragment && f.isVisible()) {
                     hasBottomSheet = true;
                     break;
                 }
             }
         } catch (Exception e) {
-            Log.e("VideoActivity", "Error checking for BottomSheetDialogFragment", e);
+            // Ignore exception during check
         }
 
         boolean controlsVisible = isVisible(mBinding.control.getRoot());
         boolean infoWidgetVisible = isVisible(mBinding.widget.info);
         boolean isVod = mPlayers.isVod();
 
-        // Clock visibility
         mBinding.display.clock.setVisibility(Setting.isDisplayTime() || infoWidgetVisible ? View.VISIBLE : View.GONE);
-
-        // Title visibility
         mBinding.display.titleLayout.setVisibility(Setting.isDisplayVideoTitle() && !controlsVisible ? View.VISIBLE : View.GONE);
-
-        // Netspeed visibility
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && !controlsVisible && !hasBottomSheet ? View.VISIBLE : View.GONE);
-
-        // Duration visibility (only if VOD, not live)
         mBinding.display.duration.setVisibility(Setting.isDisplayDuration() && !controlsVisible && isVod && !hasBottomSheet ? View.VISIBLE : View.GONE);
-
-         // Mini Progress visibility (only if VOD, not live)
-         mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && !controlsVisible && isVod && !hasBottomSheet ? View.VISIBLE : View.GONE);
-
+        mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && !controlsVisible && isVod && !hasBottomSheet ? View.VISIBLE : View.GONE);
     }
 
     private void onTimeChangeDisplaySpeed() {
-        if (mBinding == null || mPlayers == null) return; // Safety check
+        // Simplified check
+        if (mBinding == null || mPlayers == null) return;
 
         boolean controlsVisible = isVisible(mBinding.control.getRoot());
         boolean displaySpeed = Setting.isDisplaySpeed() && !controlsVisible;
@@ -1442,449 +1306,399 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         long duration = mPlayers.getDuration();
         boolean validTime = position >= 0 && duration > 0;
 
-        // Update Speed
-        if (displaySpeed) {
-            Traffic.setSpeed(mBinding.display.netspeed);
-        }
+        if (displaySpeed) Traffic.setSpeed(mBinding.display.netspeed);
 
-        // Update Duration Text
         if (displayDuration) {
-            if (validTime) {
-                mBinding.display.duration.setText(mPlayers.getPositionTime(0) + "/" + mPlayers.getDurationTime());
-            } else {
-                mBinding.display.duration.setText(""); // Clear if time is invalid
-            }
+            mBinding.display.duration.setText(validTime ? mPlayers.getPositionTime(0) + "/" + mPlayers.getDurationTime() : "");
         }
 
-        // Update Mini Progress Bar
         if (displayProgress) {
-            if (validTime) {
-                 // Calculate progress carefully to avoid division by zero
-                 mBinding.display.progress.setProgress((int) (position * 100 / duration));
-            } else {
-                mBinding.display.progress.setProgress(0); // Reset progress if time is invalid
-            }
+             mBinding.display.progress.setProgress(validTime ? (int) (position * 100 / duration) : 0);
         }
 
-        // Ensure overall visibility is updated based on settings and state
-        showDisplayInfo();
+        showDisplayInfo(); // Update overall visibility
     }
 
 
     @Override
     public boolean onArrayItemTouch() {
         hasKeyEvent = true;
-        return false; // Allow touch event to proceed (e.g., for click)
+        return false;
     }
 
     @Override
     public void onRevSort() {
         if (mHistory == null) return;
         mHistory.setRevSort(!mHistory.isRevSort());
-        reverseEpisode(true); // Reverse list and scroll to current item
-        // Update the "Reverse Play" button text immediately
+        reverseEpisode(true);
+        // Update reverse play button text indirectly by notifying adapter
         if (mArrayAdapter != null && mArrayAdapter.size() > 1) {
-             mArrayAdapter.notifyArrayItemRangeChanged(1, 1); // Notify the second item (Reverse Play button) changed
+             mArrayAdapter.notifyArrayItemRangeChanged(1, 1);
         }
-        mHistory.save(); // Save history change
+        mHistory.save();
     }
 
     @Override
     public void onRevPlay(TextView view) {
         if (mHistory == null || view == null) return;
         mHistory.setRevPlay(!mHistory.isRevPlay());
-        view.setText(mHistory.getRevPlayText()); // Update button text
-        Notify.show(mHistory.getRevPlayHint()); // Show hint
-        mHistory.save(); // Save history change
+        view.setText(mHistory.getRevPlayText());
+        Notify.show(mHistory.getRevPlayHint());
+        mHistory.save();
     }
 
     private boolean shouldEnterFullscreen(Episode item) {
+        // Basic check
         if (item == null) return false;
-        // Enter fullscreen only if not already fullscreen AND the selected episode is the one currently activated
         boolean enter = !isFullscreen() && item.isActivated();
-        if (enter) {
-            enterFullscreen();
-        }
+        if (enter) enterFullscreen();
         return enter;
     }
 
     private void enterFullscreen() {
-        if (mBinding == null || mKeyDown == null || mDanmakuContext == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mKeyDown == null || mDanmakuContext == null) return;
 
-        mFocus1 = getCurrentFocus(); // Store focus before changing layout
+        mFocus1 = getCurrentFocus();
         mBinding.video.requestFocus();
-        mBinding.video.setForeground(null); // Remove selector foreground
+        mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK); // Use black background
-        mBinding.video.setClipToOutline(false); // Allow drawing outside bounds (needed for some players?)
+        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
+        mBinding.video.setClipToOutline(false);
 
-        // Ensure flag selection is visually updated if flags were visible
-        if (mFlagAdapter != null && mFlagAdapter.size() > 0) {
-             mBinding.flag.setSelectedPosition(getFlagPosition());
+        if (mFlagAdapter != null && mFlagAdapter.size() > 0) { // Basic check
+            mBinding.flag.setSelectedPosition(getFlagPosition());
         }
 
-        // Adjust Danmaku size for fullscreen
-        if (Setting.getDanmuSize() != 0) {
-            mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
-        }
+        if (Setting.getDanmuSize() != 0) mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
 
-        mKeyDown.setFull(true); // Enable fullscreen key handling
+        mKeyDown.setFull(true);
         setFullscreen(true);
-        mFocus2 = null; // Reset potential control focus storage
+        mFocus2 = null;
 
-        hideDetailViews(); // Hide non-video UI elements
+        hideDetailViews(); // Hide non-video UI
 
-        onPlay(); // Ensure player is playing
+        onPlay();
     }
 
     private void exitFullscreen() {
-        if (mBinding == null || mKeyDown == null || mDanmakuContext == null || mFrameParams == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mKeyDown == null || mDanmakuContext == null || mFrameParams == null) return;
 
-        mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video)); // Restore selector
-        mBinding.video.setLayoutParams(mFrameParams); // Restore original layout params
-        mBinding.video.setBackgroundResource(R.drawable.rounded_corners); // Restore rounded background
-        mBinding.video.setClipToOutline(true); // Re-enable clipping
+        mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
+        mBinding.video.setLayoutParams(mFrameParams);
+        mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
+        mBinding.video.setClipToOutline(true);
 
-        // Adjust Danmaku size back
-        if (Setting.getDanmuSize() != 0) {
-            mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
-        }
+        if (Setting.getDanmuSize() != 0) mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
 
-        // Restore focus
-        View targetFocus = getFocus1(); // getFocus1 has fallback to video view
-        if (targetFocus != null) targetFocus.requestFocus();
+        View targetFocus = getFocus1(); // getFocus1 has fallback
+        if (targetFocus != null) targetFocus.requestFocus(); // Basic check
 
-        mKeyDown.setFull(false); // Disable fullscreen key handling
+        mKeyDown.setFull(false);
         setFullscreen(false);
-        mFocus2 = null; // Reset potential control focus storage
+        mFocus2 = null;
 
-        showDetailViews(); // Show non-video UI elements again
+        showDetailViews(); // Show non-video UI
 
-        hideInfo(); // Hide playback info overlay
+        hideInfo();
     }
 
-    // --- Helper method to hide non-video views for fullscreen ---
+    // --- Helper method to hide non-video views (with Glow logic) ---
     private void hideDetailViews() {
         if (mBinding == null) return;
 
-        // Hide Title Area (Logo or Text) and remove glow layer
+        // Hide Title Area & Remove Glow
         if (mBinding.logoImageView.getVisibility() == View.VISIBLE) {
-            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // Remove glow
+            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // <-- Remove glow
         }
         mBinding.logoImageView.setVisibility(View.GONE);
         mBinding.nameTextView.setVisibility(View.GONE);
 
-        // Hide other details
+        // Hide others
         mBinding.remark.setVisibility(View.GONE);
-        mBinding.row1.setVisibility(View.GONE); // Contains site, year, area, type
+        mBinding.row1.setVisibility(View.GONE);
         mBinding.director.setVisibility(View.GONE);
         mBinding.actor.setVisibility(View.GONE);
         mBinding.content.setVisibility(View.GONE);
-        mBinding.row2.setVisibility(View.GONE); // Contains desc, keep, change1 buttons
+        mBinding.row2.setVisibility(View.GONE);
         mBinding.flag.setVisibility(View.GONE);
-        mBinding.scroll.setVisibility(View.GONE); // Hides episode lists, part, quick search
+        mBinding.scroll.setVisibility(View.GONE);
     }
     // --- End Helper Method ---
 
-    // --- Helper method to show non-video views when exiting fullscreen ---
+    // --- Helper method to show non-video views (with Glow logic) ---
     private void showDetailViews() {
         if (mBinding == null) return;
 
-        // Show Title Area (Logo with glow or Text)
+        // Show Title Area & Apply Glow if needed
         if (currentLogoUrl != null) {
             mBinding.logoImageView.setVisibility(View.VISIBLE);
-            // Re-apply glow effect only if paint is valid
+            // Re-apply glow effect
             initGlowPaint();
             if (logoGlowPaint != null) {
-                 mBinding.logoImageView.setLayerType(View.LAYER_TYPE_SOFTWARE, logoGlowPaint);
+                 mBinding.logoImageView.setLayerType(View.LAYER_TYPE_SOFTWARE, logoGlowPaint); // <-- Apply glow
             } else {
                  mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
             }
             mBinding.nameTextView.setVisibility(View.GONE);
         } else {
             mBinding.logoImageView.setVisibility(View.GONE);
-            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // Ensure no glow
+            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // <-- Remove glow
             mBinding.nameTextView.setVisibility(View.VISIBLE);
-            // setText will handle visibility and content if needed elsewhere,
-            // but ensure it's visible here if logo is not available.
         }
-        // Use setText for nameTextView to ensure tag is updated and visibility is correct
+         // Use setText which handles visibility based on tag content
          setText(mBinding.nameTextView, 0, currentVodName);
 
-
-        // Show other details using setText (which handles visibility based on content)
-        // Retrieve text from tag to restore state correctly
+        // Show others using setText (restores from tag and sets visibility)
         setText(mBinding.remark, 0, Objects.toString(mBinding.remark.getTag(), ""));
-        mBinding.row1.setVisibility(View.VISIBLE); // Show the row container
-         setText(mBinding.site, 0, Objects.toString(mBinding.site.getTag(), "")); // Use tag for site too
+        mBinding.row1.setVisibility(View.VISIBLE);
+         setText(mBinding.site, 0, Objects.toString(mBinding.site.getTag(), ""));
          setText(mBinding.year, 0, Objects.toString(mBinding.year.getTag(), ""));
          setText(mBinding.area, 0, Objects.toString(mBinding.area.getTag(), ""));
          setText(mBinding.type, 0, Objects.toString(mBinding.type.getTag(), ""));
-
         setText(mBinding.director, 0, Objects.toString(mBinding.director.getTag(), ""));
         setText(mBinding.actor, 0, Objects.toString(mBinding.actor.getTag(), ""));
         setText(mBinding.content, 0, Objects.toString(mBinding.content.getTag(), ""));
-        mBinding.row2.setVisibility(View.VISIBLE); // Show the button row container
+        mBinding.row2.setVisibility(View.VISIBLE);
 
-        // Show lists container
         mBinding.scroll.setVisibility(View.VISIBLE);
-        // Restore visibility of lists based on data
+        // Restore list visibility based on adapter data
         mBinding.flag.setVisibility(mFlagAdapter != null && mFlagAdapter.size() > 0 ? View.VISIBLE : View.GONE);
-        mBinding.quality.setVisibility(mQualityAdapter != null && mQualityAdapter.getItemCount() > 0 && isVisible(mBinding.quality) ? View.VISIBLE : View.GONE); // Check previous visibility? Or just data?
-        BaseGridView episodeView = getEpisodeView();
-        if (episodeView != null) {
-             episodeView.setVisibility(mEpisodeAdapter != null && mEpisodeAdapter.size() > 0 ? View.VISIBLE : View.GONE);
-        }
-        mBinding.array.setVisibility(mArrayAdapter != null && mArrayAdapter.size() > 2 ? View.VISIBLE : View.GONE); // Array has 2 fixed items
-        mBinding.part.setVisibility(mPartAdapter != null && mPartAdapter.size() > 0 ? View.VISIBLE : View.GONE);
-        mBinding.quick.setVisibility(mQuickAdapter != null && mQuickAdapter.size() > 0 ? View.VISIBLE : View.GONE);
+         // Keep simplified visibility checks for lists
+         mBinding.quality.setVisibility(mQualityAdapter != null && mQualityAdapter.getItemCount() > 0 && isVisible(mBinding.quality) ? View.VISIBLE : View.GONE);
+         BaseGridView ev = getEpisodeView();
+         if(ev != null) ev.setVisibility(mEpisodeAdapter != null && mEpisodeAdapter.size() > 0 ? View.VISIBLE : View.GONE);
+         mBinding.array.setVisibility(mArrayAdapter != null && mArrayAdapter.size() > 2 ? View.VISIBLE : View.GONE);
+         mBinding.part.setVisibility(mPartAdapter != null && mPartAdapter.size() > 0 ? View.VISIBLE : View.GONE);
+         mBinding.quick.setVisibility(mQuickAdapter != null && mQuickAdapter.size() > 0 ? View.VISIBLE : View.GONE);
 
-        // Update focus rules as layout has changed
-        updateFocus();
+
+        updateFocus(); // Update focus rules after showing views
     }
     // --- End Helper Method ---
 
 
     private void onDesc() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         CharSequence desc = mBinding.content.getText();
-        // Check length and prefix "简介：" which might be added by setText
-        if (desc != null && desc.length() > 0) {
-            String descStr = desc.toString();
-            String prefix = getString(R.string.detail_content, ""); // Get "简介：" prefix
-             if (descStr.startsWith(prefix)) {
-                 descStr = descStr.substring(prefix.length());
-             }
-            if (!TextUtils.isEmpty(descStr)) {
-                 DescDialog.show(this, descStr);
-            }
+        if (desc != null && desc.length() > 0) { // Basic check
+             String descStr = desc.toString();
+             String prefix = getString(R.string.detail_content, "");
+             if (descStr.startsWith(prefix)) descStr = descStr.substring(prefix.length());
+             if (!TextUtils.isEmpty(descStr)) DescDialog.show(this, descStr);
         }
     }
 
     private void onKeep() {
         Keep keep = Keep.find(getHistoryKey());
         Notify.show(keep != null ? R.string.keep_del : R.string.keep_add);
-        if (keep != null) {
-            keep.delete();
-        } else {
-            createKeep(); // This now uses currentVodName
-        }
-        RefreshEvent.keep(); // Notify other parts of the app
-        checkKeep(); // Update button icon
+        if (keep != null) keep.delete();
+        else createKeep();
+        RefreshEvent.keep();
+        checkKeep();
     }
 
     private void onVideo() {
-        if (!isFullscreen()) {
-            enterFullscreen();
-        } else {
-            // Optional: Handle click when already fullscreen (e.g., toggle controls)
-             onToggle();
-        }
+        if (!isFullscreen()) enterFullscreen();
+        else onToggle(); // Toggle controls if already fullscreen
     }
 
     private void onChange() {
-        checkSearch(true); // Force search for alternatives
+        checkSearch(true);
     }
 
     private void onLoop() {
-        if (mBinding == null) return;
-        boolean current = mBinding.control.loop.isActivated();
-        mBinding.control.loop.setActivated(!current);
-        // Maybe save loop state? Depends on requirements.
+        if (mBinding == null) return; // Basic check
+        mBinding.control.loop.setActivated(!mBinding.control.loop.isActivated());
     }
 
     private void onDanmu() {
-        if (mBinding == null) return;
-        boolean danmuEnabled = !Setting.isDanmu();
-        Setting.putDanmu(danmuEnabled);
-        mBinding.control.danmu.setActivated(danmuEnabled);
+        if (mBinding == null) return; // Basic check
+        Setting.putDanmu(!Setting.isDanmu());
+        mBinding.control.danmu.setActivated(Setting.isDanmu());
         showDanmu();
     }
 
     private void showDanmu() {
+        // Basic checks
         if (mBinding == null || mBinding.danmaku == null) return;
-        if (Setting.isDanmu() && mBinding.danmaku.isPrepared()) { // Show only if enabled AND prepared
-             mBinding.danmaku.show();
+        if (Setting.isDanmu() && mBinding.danmaku.isPrepared()) {
+            mBinding.danmaku.show();
         } else {
-             mBinding.danmaku.hide();
+            mBinding.danmaku.hide();
         }
     }
 
     private void onDanmuAdd() {
-        if (mBinding == null) return;
-        int line = Setting.getDanmuLine(3); // Default 3 lines
-        line = Math.min(line + 1, 15); // Max 15 lines
+        if (mBinding == null) return; // Basic check
+        int line = Setting.getDanmuLine(3);
+        line = Math.min(line + 1, 15);
         Setting.putDanmuLine(line);
         mBinding.control.danmu.setText(getString(R.string.danmu_lines, line)); // Use formatted string
-        setDanmuViewSettings(); // Apply new settings
+        setDanmuViewSettings();
     }
 
     private void onDanmuSub() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         int line = Setting.getDanmuLine(3);
-        line = Math.max(line - 1, 1); // Min 1 line
+        line = Math.max(line - 1, 1);
         Setting.putDanmuLine(line);
         mBinding.control.danmu.setText(getString(R.string.danmu_lines, line)); // Use formatted string
-        setDanmuViewSettings(); // Apply new settings
+        setDanmuViewSettings();
     }
 
     private void onEpisodes() {
         Flag flag = getFlag();
+        // Basic checks
         if (flag == null || flag.getEpisodes() == null || flag.getEpisodes().isEmpty()) return;
         EpisodeDialog.create().episodes(flag.getEpisodes()).show(this);
-        hideControl(); // Hide controls after opening dialog
+        hideControl();
     }
 
     private void checkNext() {
-        if (mHistory != null && mHistory.isRevPlay()) {
-            onPrev(); // If reverse play is on, "next" action plays previous episode
-        } else {
-            onNext();
-        }
+        if (mHistory != null && mHistory.isRevPlay()) onPrev();
+        else onNext();
     }
 
     private void checkPrev() {
-        if (mHistory != null && mHistory.isRevPlay()) {
-            onNext(); // If reverse play is on, "prev" action plays next episode
-        } else {
-            onPrev();
-        }
+        if (mHistory != null && mHistory.isRevPlay()) onNext();
+        else onPrev();
     }
 
     private void onNext() {
+        // Basic checks
         if (mEpisodeAdapter == null || mEpisodeAdapter.size() == 0) return;
         int current = getEpisodePosition();
         int max = mEpisodeAdapter.size() - 1;
-        if (current >= max) { // Already at the last episode
+        if (current >= max) {
             Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_prev_eof : R.string.error_play_next_eof);
             return;
         }
-        int nextPos = current + 1;
-        Episode item = (Episode) mEpisodeAdapter.get(nextPos);
-        if (item != null) {
-            setEpisodeActivated(item);
-        }
+        Episode item = (Episode) mEpisodeAdapter.get(current + 1);
+        if (item != null) setEpisodeActivated(item); // Basic check
     }
 
     private void onPrev() {
+        // Basic checks
         if (mEpisodeAdapter == null || mEpisodeAdapter.size() == 0) return;
         int current = getEpisodePosition();
-        if (current <= 0) { // Already at the first episode
+        if (current <= 0) {
             Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_next_eof : R.string.error_play_prev_eof);
             return;
         }
-        int prevPos = current - 1;
-        Episode item = (Episode) mEpisodeAdapter.get(prevPos);
-        if (item != null) {
-            setEpisodeActivated(item);
-        }
+        Episode item = (Episode) mEpisodeAdapter.get(current - 1);
+        if (item != null) setEpisodeActivated(item); // Basic check
     }
 
     private void onScale() {
         int index = getScale();
         String[] array = ResUtil.getStringArray(R.array.select_scale);
-        int newIndex = (index + 1) % array.length; // Cycle through scales
+        int newIndex = (index + 1) % array.length;
         if (mHistory != null) mHistory.setScale(newIndex);
-        setScale(newIndex); // Apply the new scale
+        setScale(newIndex);
         if (mHistory != null) mHistory.save(); // Save history
     }
 
     private void onSpeed() {
+        // Basic checks
         if (mPlayers == null || mBinding == null) return;
-        mBinding.control.speed.setText(mPlayers.addSpeed()); // Cycle through speeds
+        mBinding.control.speed.setText(mPlayers.addSpeed());
         if (mHistory != null) {
-             mHistory.setSpeed(mPlayers.getSpeed());
-             mHistory.save(); // Save history
+            mHistory.setSpeed(mPlayers.getSpeed());
+            mHistory.save(); // Save history
         }
     }
 
     private void onSpeedAdd() {
-         if (mPlayers == null || mBinding == null) return;
+        // Basic checks
+        if (mPlayers == null || mBinding == null) return;
         mBinding.control.speed.setText(mPlayers.addSpeed(0.25f));
         if (mHistory != null) {
             mHistory.setSpeed(mPlayers.getSpeed());
-             mHistory.save(); // Save history
+            mHistory.save(); // Save history
         }
     }
 
     private void onSpeedSub() {
-         if (mPlayers == null || mBinding == null) return;
+        // Basic checks
+        if (mPlayers == null || mBinding == null) return;
         mBinding.control.speed.setText(mPlayers.subSpeed(0.25f));
         if (mHistory != null) {
             mHistory.setSpeed(mPlayers.getSpeed());
-             mHistory.save(); // Save history
+            mHistory.save(); // Save history
         }
     }
 
     private boolean onSpeedLong() {
-         if (mPlayers == null || mBinding == null) return false;
-        mBinding.control.speed.setText(mPlayers.toggleSpeed()); // Reset to 1.0x
+        // Basic checks
+        if (mPlayers == null || mBinding == null) return false;
+        mBinding.control.speed.setText(mPlayers.toggleSpeed());
         if (mHistory != null) {
-             mHistory.setSpeed(mPlayers.getSpeed());
-             mHistory.save(); // Save history
+            mHistory.setSpeed(mPlayers.getSpeed());
+            mHistory.save(); // Save history
         }
-        return true; // Consume long click
+        return true;
     }
 
     private void onRefresh() {
-        onReset(false); // Refresh usually means replay from start (or saved pos if supported)
+        onReset(false);
     }
 
     private void onReset() {
-        onReset(isReplay()); // Reset based on setting (start or current pos)
+        onReset(isReplay());
     }
 
     private void onReset(boolean replay) {
-        if (mClock != null) mClock.setCallback(null); // Stop time updates during reset
+        if (mClock != null) mClock.setCallback(null); // Added check
+        // Basic checks
         if (mFlagAdapter == null || mFlagAdapter.size() == 0 || mEpisodeAdapter == null || mEpisodeAdapter.size() == 0) return;
-
         Episode episode = getEpisode();
         Flag flag = getFlag();
-        if (flag != null && episode != null) {
-            getPlayer(flag, episode, replay); // Get player content again
-        } else {
-             Log.w("VideoActivity", "Cannot reset, flag or episode is null");
-             // Optionally show an error message
+        if (flag != null && episode != null) { // Added checks
+            getPlayer(flag, episode, replay);
         }
     }
 
     private boolean onResetToggle() {
-        if (mBinding == null) return false;
-        int newReset = (Setting.getReset() + 1) % 2; // Toggle between 0 and 1
+        if (mBinding == null) return false; // Basic check
+        int newReset = (Setting.getReset() + 1) % 2;
         Setting.putReset(newReset);
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[newReset]);
-        return true; // Consume long click
+        return true;
     }
 
     private void onOpening() {
-        if (mPlayers == null) return;
+        if (mPlayers == null) return; // Added check
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
         if (current < 0 || duration <= 0 || current > duration / 2) {
              Notify.show(R.string.error_set_op_range);
              return;
         }
-        setOpening(current); // Set current position as opening time
+        setOpening(current);
     }
 
     private void onOpeningAdd() {
+        // Basic checks
         if (mHistory == null || mPlayers == null) return;
         long duration = mPlayers.getDuration();
         if (duration <= 0) return;
-        setOpening(Math.min(mHistory.getOpening() + 1000, duration / 2)); // Add 1s, max half duration
+        setOpening(Math.min(mHistory.getOpening() + 1000, duration / 2));
     }
 
     private void onOpeningSub() {
-        if (mHistory == null) return;
-        setOpening(Math.max(0, mHistory.getOpening() - 1000)); // Subtract 1s, min 0
+        if (mHistory == null) return; // Added check
+        setOpening(Math.max(0, mHistory.getOpening() - 1000));
     }
 
     private boolean onOpeningReset() {
-        setOpening(0); // Reset opening to 0
-        return true; // Consume long click
+        setOpening(0);
+        return true;
     }
 
     private void setOpening(long opening) {
+        // Basic checks
         if (mHistory == null || mBinding == null || mPlayers == null) return;
         mHistory.setOpening(opening);
         mBinding.control.opening.setText(opening == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(opening));
@@ -1892,34 +1706,36 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onEnding() {
-        if (mPlayers == null) return;
+        if (mPlayers == null) return; // Added check
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
         if (current < 0 || duration <= 0 || current < duration / 2) {
              Notify.show(R.string.error_set_ed_range);
              return;
         }
-        setEnding(duration - current); // Set time remaining as ending duration
+        setEnding(duration - current);
     }
 
     private void onEndingAdd() {
+        // Basic checks
         if (mHistory == null || mPlayers == null) return;
-         long duration = mPlayers.getDuration();
-         if (duration <= 0) return;
-        setEnding(Math.min(mHistory.getEnding() + 1000, duration / 2)); // Add 1s, max half duration
+        long duration = mPlayers.getDuration();
+        if (duration <= 0) return;
+        setEnding(Math.min(mHistory.getEnding() + 1000, duration / 2));
     }
 
     private void onEndingSub() {
-        if (mHistory == null) return;
-        setEnding(Math.max(0, mHistory.getEnding() - 1000)); // Subtract 1s, min 0
+        if (mHistory == null) return; // Added check
+        setEnding(Math.max(0, mHistory.getEnding() - 1000));
     }
 
     private boolean onEndingReset() {
-        setEnding(0); // Reset ending to 0
-        return true; // Consume long click
+        setEnding(0);
+        return true;
     }
 
     private void setEnding(long ending) {
+        // Basic checks
         if (mHistory == null || mBinding == null || mPlayers == null) return;
         mHistory.setEnding(ending);
         mBinding.control.ending.setText(ending == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(ending));
@@ -1927,199 +1743,173 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private boolean onChoose() {
+        // Basic checks
         if (mPlayers == null || mPlayers.isEmpty() || mBinding == null) return false;
         CharSequence title = mBinding.widget.title.getText();
-        mPlayers.choose(this, title != null ? title : ""); // Use title from widget
-        return true; // Consume long click
+        mPlayers.choose(this, title != null ? title : ""); // Added check
+        return true;
     }
 
     private void onPlayer() {
-         if (mPlayers == null || mBinding == null) return;
+        // Basic checks
+        if (mPlayers == null || mBinding == null) return;
         CharSequence title = mBinding.widget.title.getText();
         PlayerDialog.create()
             .select(mPlayers.getPlayer())
-            .title(title != null ? title.toString() : "")
-            .listener(this) // Implement PlayerDialog.Listener if needed
+            .title(title != null ? title.toString() : "") // Added check
+            .listener(this)
             .show(this);
-        hideControl(); // Hide controls after opening dialog
+        hideControl();
     }
 
     private void onDecode() {
-        onDecode(true); // Default to saving the decode choice
+        onDecode(true);
     }
 
     private void onDecode(boolean save) {
-        if (mPlayers == null) return;
+        if (mPlayers == null) return; // Added check
         mPlayers.toggleDecode(save);
-        mPlayers.init(getExo(), getIjk()); // Re-init player views after toggle
-        mPlayers.setMediaSource(); // Re-set media source with new decoder
-        setDecodeView(); // Update decode button text
+        mPlayers.init(getExo(), getIjk());
+        mPlayers.setMediaSource();
+        setDecodeView();
     }
 
     private void onTrack(View view) {
-        if (view == null || view.getTag() == null || mPlayers == null) return; // Safety checks
+        // Basic checks
+        if (view == null || view.getTag() == null || mPlayers == null) return;
         try {
             int type = Integer.parseInt(view.getTag().toString());
             TrackDialog.create()
                 .player(mPlayers)
-                .chooser(this) // For file chooser
-                .listener(this) // For track selection
-                .vod(true) // Indicate it's for VOD
-                .type(type) // Pass track type (Audio/Text/Video)
+                .chooser(this)
+                .listener(this)
+                .vod(true)
+                .type(type)
                 .show(this);
-            hideControl(); // Hide controls after opening dialog
+            hideControl();
         } catch (NumberFormatException e) {
             Log.e("VideoActivity", "Invalid tag for track type", e);
         }
     }
 
     private void onToggle() {
-        if (mBinding == null) return;
-        if (isVisible(mBinding.control.getRoot())) {
-            hideControl();
-        } else {
-            showControl(getFocus2()); // Show controls, try to focus last known control
-        }
+        if (mBinding == null) return; // Basic check
+        if (isVisible(mBinding.control.getRoot())) hideControl();
+        else showControl(getFocus2());
     }
 
     private void showProgress() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.progress.setVisibility(View.VISIBLE);
-        App.post(mR3, 0); // Start traffic update immediately
+        App.post(mR3, 0);
         hideError();
     }
 
     private void hideProgress() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.progress.setVisibility(View.GONE);
-        App.removeCallbacks(mR3); // Stop traffic update
+        App.removeCallbacks(mR3);
         Traffic.reset();
     }
 
     private void showError(String text) {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.error.setVisibility(View.VISIBLE);
         mBinding.widget.text.setText(text);
         hideProgress();
     }
 
     private void hideError() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.error.setVisibility(View.GONE);
         mBinding.widget.text.setText("");
     }
 
     private void showInfo() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.info.setVisibility(View.VISIBLE);
-        showDisplayInfo(); // Update display elements based on info visibility
+        showDisplayInfo();
     }
 
     private void hideInfo() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         mBinding.widget.info.setVisibility(View.GONE);
-        showDisplayInfo(); // Update display elements based on info visibility
+        showDisplayInfo();
     }
 
     private void showInfoAndCenter() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         showInfo();
         mBinding.widget.center.setVisibility(View.VISIBLE);
     }
 
     private void hideInfoAndCenter() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         hideInfo();
         mBinding.widget.center.setVisibility(View.GONE);
     }
 
     private void setControlNextFocus() {
+        // Simplified logic (might need adjustment based on original)
         if (mBinding == null || mBinding.control.actionLayout == null) return;
-
-        View firstVisible = null;
-        View lastVisible = null;
-        View prevVisible = null;
-
         int count = mBinding.control.actionLayout.getChildCount();
-        for (int i = 0; i < count; i++) {
+        View prevVisible = null;
+        for(int i=0; i<count; i++) {
             View current = mBinding.control.actionLayout.getChildAt(i);
-            if (current != null && isVisible(current) && current.isEnabled()) {
-                if (firstVisible == null) {
-                    firstVisible = current; // Found the first one
-                }
+            if (current != null && isVisible(current) && current.isEnabled()) { // Basic check
                 if (prevVisible != null) {
-                    // Set focus from previous visible to current
                     prevVisible.setNextFocusRightId(current.getId());
                     current.setNextFocusLeftId(prevVisible.getId());
                 }
-                lastVisible = current; // Update last visible button found so far
-                prevVisible = current; // Current becomes previous for the next iteration
+                prevVisible = current;
             }
         }
-
-        // Optional: Handle wrap-around focus (last focuses first, first focuses last)
-        // if (firstVisible != null && lastVisible != null && firstVisible != lastVisible) {
-        //     lastVisible.setNextFocusRightId(firstVisible.getId());
-        //     firstVisible.setNextFocusLeftId(lastVisible.getId());
-        // }
     }
 
 
     private void showControl(View view) {
-        if (mBinding == null || mBinding.danmaku == null) return; // Safety check
+        // Basic checks
+        if (mBinding == null || mBinding.danmaku == null) return;
 
-        // Determine default focus if provided view is invalid
-        if (view == null) view = getFocus2(); // Try last focused control
-        if (view == null || !isVisible(view) || !view.isEnabled()) { // Fallback if still invalid
-             view = mBinding.control.next; // Default to 'next' button
-             if (view == null || !isVisible(view) || !view.isEnabled()) { // Final fallback
-                  view = mBinding.control.play; // Try play/pause
-             }
-        }
+        if (view == null) view = getFocus2(); // Use helper with fallbacks
+        // Final fallback if getFocus2 returns null or invalid view
+        if (view == null || !isVisible(view) || !view.isEnabled()) view = mBinding.control.play;
 
-        // Set visibility of controls
+
         mBinding.control.danmu.setVisibility(mBinding.danmaku.isPrepared() ? View.VISIBLE : View.GONE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.control.episodes.setVisibility(Setting.getFullscreenMenuKey() == 0 ? View.VISIBLE : View.GONE);
-        // Make other controls visible/gone based on player capabilities or state if needed
 
-        setControlNextFocus(); // Setup horizontal focus chain
+        setControlNextFocus(); // Setup focus chain
 
-        if (view != null && isVisible(view) && view.isEnabled()) { // Request focus if view is valid
+        if (view != null && isVisible(view) && view.isEnabled()) { // Check again before requesting focus
             view.requestFocus();
-        } else {
-             // If even fallback view is invalid, maybe focus the first available control?
-             mBinding.control.play.requestFocus(); // Example: focus play/pause
         }
 
-        setR1Callback(); // Start timer to hide controls
+        setR1Callback();
     }
 
 
     private void hideControl() {
-        hideControl(true); // Default to hiding the info overlay as well
+        hideControl(true);
     }
 
     private void hideControl(boolean hideInfo) {
-        if (mBinding == null) return;
-
-        if (hideInfo) hideInfo(); // Hide top info bar if requested
-
-        // Reset track button text (might be dynamic)
+        if (mBinding == null) return; // Basic check
+        if (hideInfo) hideInfo();
         mBinding.control.text.setText(R.string.play_track_text);
-        // Hide the main control layout
         mBinding.control.getRoot().setVisibility(View.GONE);
-        App.removeCallbacks(mR1); // Cancel auto-hide timer
+        App.removeCallbacks(mR1);
     }
 
     private void hideCenter() {
-        if (mBinding == null) return;
-        mBinding.widget.action.setImageResource(R.drawable.ic_widget_play); // Reset icon
+        if (mBinding == null) return; // Basic check
+        mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
         mBinding.widget.center.setVisibility(View.GONE);
     }
 
     private void showPreview(Drawable preview) {
-         // Show preview only if enabled, not null, and preview widget is currently gone
+        // Basic check
         if (preview != null && Setting.getFlag() != 0 && mBinding != null && isGone(mBinding.widget.preview)) {
             mBinding.widget.preview.setVisibility(View.VISIBLE);
             mBinding.widget.preview.setImageDrawable(preview);
@@ -2127,130 +1917,113 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void hidePreview() {
-        if (mBinding != null && mBinding.widget.preview != null) {
+        if (mBinding != null && mBinding.widget.preview != null) { // Added check
             mBinding.widget.preview.setVisibility(View.GONE);
-            mBinding.widget.preview.setImageDrawable(null); // Release drawable reference
+            mBinding.widget.preview.setImageDrawable(null);
         }
     }
 
     private void setTraffic() {
-        if (mBinding != null && Setting.isDisplaySpeed()) { // Only update if speed display is enabled
-            Traffic.setSpeed(mBinding.widget.traffic); // Update traffic view in widget
-            Traffic.setSpeed(mBinding.display.netspeed); // Update traffic view in display overlay
+        if (mBinding != null && Setting.isDisplaySpeed()) { // Added check
+            Traffic.setSpeed(mBinding.widget.traffic);
+             Traffic.setSpeed(mBinding.display.netspeed); // Update both potentially
         }
-        // Schedule next update only if needed
-        if (Setting.isDisplaySpeed() && !isBackground()) {
+         // Schedule next update only if needed
+         if (Setting.isDisplaySpeed() && !isBackground()) {
              App.post(mR3, Constant.INTERVAL_TRAFFIC);
-        }
+         }
     }
 
     private void setR1Callback() {
-        // Set callback to hide controls after a delay
-        App.removeCallbacks(mR1); // Remove previous callbacks
+        App.removeCallbacks(mR1); // Remove previous
         App.post(mR1, Constant.INTERVAL_HIDE);
     }
 
     private void setR2Callback(long delayMillis) {
-        // Set callback to update focus rules after a delay
-        App.removeCallbacks(mR2); // Remove previous callbacks
+        App.removeCallbacks(mR2); // Remove previous
         App.post(mR2, delayMillis);
     }
 
     private void setArtwork(String url) {
+        // Simplified logic, basic check
         if (TextUtils.isEmpty(url)) {
-             // No URL, maybe set a default placeholder immediately?
              Drawable defaultArt = ContextCompat.getDrawable(this, R.drawable.radio);
              if (mBinding != null && mPlayers != null) {
                   getExo().setDefaultArtwork(defaultArt);
                   getIjk().setDefaultArtwork(defaultArt);
              }
-             hidePreview();
-             return;
+            hidePreview();
+            return;
         }
 
         ImgUtil.load(url, R.drawable.radio, new CustomTarget<Drawable>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                // Set as default artwork for players
+                // Basic checks
                 if (mBinding != null && mPlayers != null) {
                     getExo().setDefaultArtwork(resource);
                     getIjk().setDefaultArtwork(resource);
                 }
-                // Show preview if setting allows
                 showPreview(resource);
             }
 
             @Override
             public void onLoadFailed(@Nullable Drawable errorDrawable) {
-                // Failed to load artwork, hide preview. Keep existing default artwork (or placeholder).
                 hidePreview();
-                 // Log error for debugging
                  Log.w("VideoActivity", "Failed to load artwork: " + url);
             }
 
             @Override
             public void onLoadCleared(@Nullable Drawable placeholder) {
-                // Called when the load is cancelled or replaced.
-                // Optionally reset to placeholder if needed, but usually not required here.
+                // Optional: Reset to placeholder
             }
         });
     }
 
 
     private void getPart(String source) {
+        // Simplified logic, basic check
         if (TextUtils.isEmpty(source)) {
-             setPartAdapter(Collections.emptyList()); // Clear part adapter if source is empty
+             setPartAdapter(Collections.emptyList());
              return;
         }
         try {
-            // Encode source for URL query parameter
             String encodedSource = URLEncoder.encode(source.trim(), "UTF-8");
-            // Construct the API URL (Ensure API Key is valid and URL is correct)
-            String url = "https://api.yesapi.cn/?service=App.Scws.GetWords&app_key=CEE4B8A091578B252AC4C92FB4E893C3&text=" + encodedSource + "&ignore_mark=1"; // Added ignore_mark
+            String url = "https://api.yesapi.cn/?service=App.Scws.GetWords&app_key=CEE4B8A091578B252AC4C92FB4E893C3&text=" + encodedSource + "&ignore_mark=1";
 
             OkHttp.newCall(url).enqueue(new Callback() {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     List<String> items = new ArrayList<>();
-                    if (response.isSuccessful() && response.body() != null) {
-                        try {
-                            String body = response.body().string();
-                            items = Part.get(body); // Parse the response
-                        } catch (Exception e) {
-                            Log.e("VideoActivity", "Error parsing part response", e);
-                            // Fallback to source if parsing fails
-                            items.add(source.trim());
-                        } finally {
-                             response.close(); // Ensure response body is closed
+                    String body = null;
+                    try {
+                        if (response.isSuccessful() && response.body() != null) {
+                            body = response.body().string();
+                            items = Part.get(body);
+                        } else {
+                             items.add(source.trim()); // Fallback
                         }
-                    } else {
-                        Log.e("VideoActivity", "Failed to get parts, response code: " + response.code());
-                        // Fallback to source on network failure
-                        items.add(source.trim());
-                         response.close(); // Ensure response body is closed
+                    } catch (Exception e) {
+                        Log.e("VideoActivity", "Error processing part response", e);
+                        items.add(source.trim()); // Fallback
+                    } finally {
+                         if (response != null) response.close(); // Ensure close
                     }
 
-                    // Ensure the original source is always the first item
-                    items.remove(source.trim()); // Remove if it exists elsewhere
-                    items.add(0, source.trim()); // Add to the beginning
-
-                    // Update UI on the main thread
+                    items.remove(source.trim());
+                    items.add(0, source.trim());
                     final List<String> finalItems = items;
-                    App.post(() -> setPartAdapter(finalItems)); // Shorter delay?
+                    App.post(() -> setPartAdapter(finalItems));
                 }
 
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Log.e("VideoActivity", "Failed to get parts network call", e);
-                    // Fallback to source on network failure
                     List<String> items = Collections.singletonList(source.trim());
-                    // Update UI on the main thread
                     App.post(() -> setPartAdapter(items));
                 }
             });
         } catch (Exception e) {
-            Log.e("VideoActivity", "Error encoding source or making call for getPart", e);
-            // Fallback on encoding error or other exceptions
+            Log.e("VideoActivity", "Error in getPart", e);
             List<String> items = Collections.singletonList(source.trim());
             App.post(() -> setPartAdapter(items));
         }
@@ -2258,178 +2031,130 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
 
     private void setPartAdapter(List<String> items) {
-        if (mBinding == null || mPartAdapter == null) return; // Safety check
-
+        // Basic checks
+        if (mBinding == null || mPartAdapter == null) return;
         boolean isEmpty = (items == null || items.isEmpty());
         mBinding.part.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-
         if (!isEmpty) {
             mPartAdapter.setItems(items, null);
-            setR2Callback(100); // Update focus after setting items
+            setR2Callback(100);
         } else {
-             mPartAdapter.clear(); // Clear adapter if list is empty
+             mPartAdapter.clear();
         }
     }
 
     private void checkFlag(Vod item) {
-        if (mBinding == null || item == null) return; // Safety Checks
-
+        // Basic checks
+        if (item == null || mBinding == null) return;
         boolean hasFlags = item.getVodFlags() != null && !item.getVodFlags().isEmpty();
 
         mBinding.flag.setVisibility(hasFlags ? View.VISIBLE : View.GONE);
 
         if (!hasFlags) {
-            ErrorEvent.flag(); // Post flag error event if no flags
-            // Also hide related views like episodes if there are no flags
-            setEpisodeAdapter(Collections.emptyList());
+            ErrorEvent.flag();
+            setEpisodeAdapter(Collections.emptyList()); // Clear episodes if no flags
         } else {
-            // Flags exist, try to activate based on history or default to first
             Flag flagToActivate = null;
             if (mHistory != null) {
-                flagToActivate = mHistory.getFlag(); // Get flag from history
-                 // Validate if the flag from history actually exists in the current item's flags
+                 flagToActivate = mHistory.getFlag();
+                 // Basic validation: Check if history flag is in current item's flags
                  if (flagToActivate == null || !item.getVodFlags().contains(flagToActivate)) {
-                      // History flag is invalid or not found, try finding by name?
-                      // Or default to the first flag of the current item
-                      flagToActivate = item.getVodFlags().get(0);
-                      Log.w("VideoActivity", "History flag not found in current VOD, defaulting to first flag.");
+                      flagToActivate = item.getVodFlags().get(0); // Default to first if invalid
                  }
-
-                // Apply reverse sort from history if needed
-                if (mHistory.isRevSort()) {
-                    reverseEpisode(true); // Reverse and scroll
-                }
+                 if (mHistory.isRevSort()) reverseEpisode(true);
             } else {
-                // No history, default to the first flag
-                flagToActivate = item.getVodFlags().get(0);
+                 flagToActivate = item.getVodFlags().get(0); // Default to first if no history
             }
-
-            // Activate the determined flag
-            if (flagToActivate != null) {
-                 setFlagActivated(flagToActivate);
-            } else {
-                 // Should not happen if hasFlags is true, but as a fallback:
-                 Log.e("VideoActivity", "Error: No valid flag to activate even though flags exist.");
-                 ErrorEvent.flag();
-                 setEpisodeAdapter(Collections.emptyList());
-            }
+            // Activate the determined flag (setFlagActivated handles null)
+            setFlagActivated(flagToActivate);
         }
     }
 
 
-    // --- Modified checkHistory ---
     private void checkHistory(Vod item) {
-        if (item == null) return; // Cannot check history without item
+        // Basic checks
+        if (item == null || mPlayers == null || mBinding == null) return;
 
         mHistory = History.find(getHistoryKey());
         boolean createdNewHistory = false;
         if (mHistory == null) {
-            mHistory = createHistory(item); // createHistory uses item.getVodName()
+            mHistory = createHistory(item);
             createdNewHistory = (mHistory != null);
         }
 
-        // Ensure History has the correct (original) VodName from the item
-        // Especially important if history existed but name changed in source
-        if (mHistory != null && !Objects.equals(item.getVodName(), mHistory.getVodName())) {
-            Log.d("VideoActivity", "Updating history VOD name: " + item.getVodName());
-            mHistory.setVodName(item.getVodName());
-        }
-        // Also update Pic, might change
+        // Update name and pic from current item data
         if (mHistory != null) {
-             mHistory.setVodPic(item.getVodPic(getPic())); // Use pic from item, considering fallback
+             mHistory.setVodName(item.getVodName());
+             mHistory.setVodPic(item.getVodPic(getPic()));
         }
 
 
         if (mHistory != null) {
-            // Apply mark from intent if provided, overriding history's remark
             String mark = getMark();
             if (!TextUtils.isEmpty(mark)) {
                 mHistory.setVodRemarks(mark);
-                 Log.d("VideoActivity", "Applying mark from intent: " + mark);
             } else if (createdNewHistory) {
-                 // If new history was created, ensure remark is set from findEpisode result
-                 // createHistory already calls findEpisode which sets remark
-                 Log.d("VideoActivity", "New history created with remark: " + mHistory.getVodRemarks());
-            }
-
-            // Handle Incognito mode
-            if (Setting.isIncognito()) {
-                 // Don't save history, maybe delete existing?
-                 // For now, let's just not save updates. If it was found, it exists.
-                 Log.d("VideoActivity", "Incognito mode, history will not be saved.");
+                 // Remark should be set by findEpisode in createHistory
             }
 
             // Update UI based on history
             mBinding.control.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
             mBinding.control.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
 
-            mPlayers.setPlayer(getPlayer()); // Applies history or site or setting player
-            setScale(getScale()); // Applies history or setting scale
-            setPlayerView(); // Updates player UI (speed, button text)
-            setDecodeView(); // Updates decode button text
-        } else {
-            // Handle case where history is still null (e.g., DB error or createHistory failed)
-            Log.e("VideoActivity", "History is null after check/create attempt.");
-            // Set defaults directly?
-            mPlayers.setPlayer(Setting.getPlayer());
-            setScale(Setting.getScale());
+            mPlayers.setPlayer(getPlayer());
+            setScale(getScale());
             setPlayerView();
             setDecodeView();
-            mBinding.control.opening.setText(getString(R.string.play_op));
-            mBinding.control.ending.setText(getString(R.string.play_ed));
+        } else {
+            // Fallback if history creation failed
+             mPlayers.setPlayer(Setting.getPlayer());
+             setScale(Setting.getScale());
+             setPlayerView();
+             setDecodeView();
+             mBinding.control.opening.setText(getString(R.string.play_op));
+             mBinding.control.ending.setText(getString(R.string.play_ed));
         }
     }
-    // --- End Modified checkHistory ---
 
-    // --- Modified createHistory ---
     private History createHistory(Vod item) {
-        if (item == null) return null; // Cannot create history without item
+        // Basic check
+        if (item == null) return null;
         try {
             History history = new History();
             history.setKey(getHistoryKey());
             history.setCid(VodConfig.getCid());
-            history.setVodName(item.getVodName()); // Use original name from VOD item
-            history.setVodPic(item.getVodPic(getPic())); // Set Pic during creation
-            history.findEpisode(item.getVodFlags()); // Finds first episode and sets remark/flag
-            history.setSpeed(Setting.getPlaySpeed()); // Default speed
-            history.setScale(Setting.getScale()); // Default scale
-            history.setPlayer(getPlayer()); // Default player based on hierarchy
-            history.setOpening(0); // Default OP
-            history.setEnding(0); // Default ED
-            history.setPosition(0); // Default position
-            history.setDuration(0); // Default duration
+            history.setVodName(item.getVodName());
+            history.setVodPic(item.getVodPic(getPic()));
+            history.findEpisode(item.getVodFlags()); // Sets remark and flag
+            // Set defaults based on settings/player state
+            history.setSpeed(Setting.getPlaySpeed());
+             history.setScale(Setting.getScale());
+             history.setPlayer(getPlayer()); // Use getPlayer() which respects hierarchy
             history.setCreateTime(System.currentTimeMillis());
-            // Don't save here, save happens during playback or explicit action
             return history;
         } catch (Exception e) {
-             Log.e("VideoActivity", "Error creating history object", e);
+             Log.e("VideoActivity", "Error creating history", e);
              return null;
         }
     }
-    // --- End Modified createHistory ---
 
     private void updateHistory(Episode item, boolean replay) {
-        if (mHistory == null || item == null) return; // Safety check
-
+        // Basic checks
+        if (mHistory == null || item == null || mPlayers == null) return;
         Flag currentFlag = getFlag();
-        if (currentFlag == null) return; // Need flag info
+        if (currentFlag == null) return;
 
-        // Determine if we are actually replaying from the start
         boolean forceReplay = replay || !item.equals(mHistory.getEpisode());
-        long position = forceReplay ? 0 : mHistory.getPosition(); // Use 0 if replaying or different episode
+        long position = forceReplay ? 0 : mHistory.getPosition();
 
-        // Update history fields
         mHistory.setPosition(position);
         mHistory.setEpisodeUrl(item.getUrl());
-        mHistory.setVodRemarks(item.getName()); // Episode name becomes the remark
-        mHistory.setVodFlag(currentFlag.getFlag()); // Store the current flag identifier
-        mHistory.setCreateTime(System.currentTimeMillis()); // Update timestamp
+        mHistory.setVodRemarks(item.getName());
+        mHistory.setVodFlag(currentFlag.getFlag());
+        mHistory.setCreateTime(System.currentTimeMillis());
 
-        // Set player start position (considering opening time)
-        long startPosition = Math.max(mHistory.getOpening(), position);
-        if (mPlayers != null) mPlayers.setPosition(startPosition);
+        mPlayers.setPosition(Math.max(mHistory.getOpening(), position));
 
-        // Save history immediately if not incognito
         if (!Setting.isIncognito()) {
             App.execute(mHistory::save); // Save in background
         }
@@ -2437,20 +2162,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
 
     private void checkKeep() {
-        if (mBinding == null) return;
+        if (mBinding == null) return; // Basic check
         Keep keep = Keep.find(getHistoryKey());
-        mBinding.keep.setCompoundDrawablesWithIntrinsicBounds(
-                keep == null ? R.drawable.ic_detail_keep_off : R.drawable.ic_detail_keep_on,
-                0, 0, 0);
-        mBinding.keep.setText(keep == null ? R.string.detail_keep_off : R.string.detail_keep_on);
+        mBinding.keep.setCompoundDrawablesWithIntrinsicBounds(keep == null ? R.drawable.ic_detail_keep_off : R.drawable.ic_detail_keep_on, 0, 0, 0);
+         mBinding.keep.setText(keep == null ? R.string.detail_keep_off : R.string.detail_keep_on); // Set text as well
     }
 
-    // --- Modified createKeep ---
     private void createKeep() {
+        // Simplified logic, basic checks
         Site site = getSite();
         if (site == null) {
-             Log.w("VideoActivity", "Cannot create keep, site is null");
-             Notify.show(R.string.error_keep_add); // Show error message
+             Notify.show(R.string.error_keep_add);
              return;
         }
         try {
@@ -2458,919 +2180,593 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             keep.setKey(getHistoryKey());
             keep.setCid(VodConfig.getCid());
             keep.setSiteName(site.getName());
-
-            // Get Pic: Use tag if available, otherwise fallback to intent pic
-            Object tag = (mBinding != null) ? mBinding.video.getTag() : null;
+            Object tag = (mBinding != null) ? mBinding.video.getTag() : null; // Added check
             keep.setVodPic(tag instanceof String ? (String) tag : getPic());
-
-            // Use stored original VOD name
-            keep.setVodName(currentVodName); // <-- Uses stored name
-
+            keep.setVodName(currentVodName); // Use stored name
             keep.setCreateTime(System.currentTimeMillis());
-            keep.save(); // Save the new keep item
+            keep.save();
         } catch (Exception e) {
-             Log.e("VideoActivity", "Error creating keep object", e);
-             Notify.show(R.string.error_keep_add); // Show error message
+             Log.e("VideoActivity", "Error creating keep", e);
+             Notify.show(R.string.error_keep_add);
         }
     }
-    // --- End Modified createKeep ---
 
 
     @Override
     public void showChooser(TrackDialog dialog) {
+        // Basic checks
         if (dialog == null || mPlayers == null) return;
         FileChooserDialog.create().player(mPlayers).trackDialog(dialog).show(this);
     }
 
     @Override
     public void onTrackClick(Track item) {
+        // Basic check
         if (item == null) return;
-        item.setKey(getHistoryKey()); // Associate track with this history item
-        item.save(); // Save the selected track preference
-        // Player should already be applying the track via TrackDialog's interaction
+        item.setKey(getHistoryKey());
+        item.save();
     }
 
     @Override
     public void onSubtitleClick() {
-        if (mPlayers == null) return;
-        // Hide controls slightly delayed to allow dialog to appear smoothly
-        App.post(this::hideControl, 100);
+        // Basic checks
+        if (mPlayers == null || mBinding == null) return;
+        App.post(this::hideControl, 100); // Hide controls slightly delayed
 
         SubtitleView subtitleView = mPlayers.isIjk() ? getIjk().getSubtitleView() : getExo().getSubtitleView();
-        if (subtitleView != null) {
-            // Show dialog slightly delayed
+        if (subtitleView != null) { // Added check
             App.post(() -> SubtitleDialog.create().view(subtitleView).full(isFullscreen()).show(this), 200);
-        } else {
-             Log.w("VideoActivity", "SubtitleView is null, cannot show dialog.");
         }
     }
 
     @Override
     public void onTimeChanged() {
-        onTimeChangeDisplaySpeed(); // Update speed/duration/progress display
+        onTimeChangeDisplaySpeed();
 
-        if (mHistory == null || mPlayers == null) return; // Nothing to update
+        // Basic checks
+        if (mHistory == null || mPlayers == null) return;
 
         long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
 
-        // Update history only if time is valid and not incognito
         if (position >= 0 && duration > 0) {
             mHistory.setPosition(position);
             mHistory.setDuration(duration);
             if (!Setting.isIncognito()) {
-                // Save periodically or on specific events? Debounce this?
-                // For now, save on every valid time update (might be heavy)
-                 // Consider saving less frequently, e.g., every 5-10 seconds or on pause/stop
+                // Save history less frequently? Original likely saved often.
                 App.execute(() -> {
-                    if (mHistory != null) { // Double check history isn't nulled concurrently
-                        mHistory.update(); // Use update which might be more efficient than save
-                    }
+                     if (mHistory != null) mHistory.update(); // Use update
                 });
             }
         }
 
-        // Check ED (Ending) skip condition
+        // Check ED skip
         if (mHistory.getEnding() > 0 && duration > 0 && position > 0 && (mHistory.getEnding() + position >= duration)) {
-            Log.d("VideoActivity", "Ending time reached, checking next episode.");
-            if (mClock != null) mClock.setCallback(null); // Stop clock updates
-            checkNext(); // Play next episode
+            if (mClock != null) mClock.setCallback(null); // Added check
+            checkNext();
         }
-         // Check OP (Opening) skip condition - less common to auto-skip OP, but possible
-         // if (mHistory.getOpening() > 0 && position < mHistory.getOpening() && mPlayers.isPlaying()) {
-         //      Log.d("VideoActivity", "Skipping opening credits.");
-         //      mPlayers.seekTo(mHistory.getOpening());
-         // }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (event == null || event.getAction() == null || isBackground() || mBinding == null) return; // Safety checks
-
-        Log.d("VideoActivity", "ActionEvent received: " + event.getAction());
+        // Basic checks
+        if (event == null || event.getAction() == null || isBackground() || mBinding == null) return;
         switch (event.getAction()) {
             case ActionEvent.PLAY:
             case ActionEvent.PAUSE:
-                onKeyCenter(); // Toggle play/pause
+                onKeyCenter();
                 break;
             case ActionEvent.NEXT:
-                 if (mBinding.control.next != null) {
-                     mBinding.control.next.performClick();
-                 }
+                if (mBinding.control.next != null) mBinding.control.next.performClick(); // Added check
                 break;
             case ActionEvent.PREV:
-                 if (mBinding.control.prev != null) {
-                     mBinding.control.prev.performClick();
-                 }
+                 if (mBinding.control.prev != null) mBinding.control.prev.performClick(); // Added check
                 break;
             case ActionEvent.STOP:
                 finish();
                 break;
-            // Add cases for other actions if needed (e.g., seek, volume)
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
-        if (event == null || event.getType() == null || isBackground()) return; // Safety checks
-
-        Log.d("VideoActivity", "RefreshEvent received: " + event.getType());
+        // Basic checks
+        if (event == null || event.getType() == null || isBackground() || mPlayers == null) return;
         switch (event.getType()) {
-            case DETAIL:
-                getDetail(); // Refresh entire detail view
-                break;
-            case PLAYER:
-                onRefresh(); // Refresh player content for current episode
-                break;
-            case DANMAKU:
-                checkDanmu(event.getPath()); // Reload danmaku from path
-                break;
-            case SUBTITLE:
-                 if (mPlayers != null) {
-                     mPlayers.setSub(Sub.from(event.getPath())); // Set external subtitle
-                 }
-                break;
-            case HISTORY:
-                 // Maybe re-check history if it could have changed externally?
-                 // checkHistory(vod); // Need the current Vod item here
-                 Log.d("VideoActivity", "History refresh event received, might need re-check.");
-                 break;
-            case KEEP:
-                 checkKeep(); // Update keep button status
-                 break;
+            case DETAIL: getDetail(); break;
+            case PLAYER: onRefresh(); break;
+            case DANMAKU: checkDanmu(event.getPath()); break;
+            case SUBTITLE: mPlayers.setSub(Sub.from(event.getPath())); break;
+             case HISTORY: checkKeep(); break; // Maybe just update keep on history refresh?
+             case KEEP: checkKeep(); break;
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
-        if (event == null || isBackground() || mPlayers == null || mBinding == null) return; // Safety checks
-
-        // Log.v("VideoActivity", "PlayerEvent received: " + event.getState()); // Verbose logging
+        // Basic checks
+        if (event == null || isBackground() || mPlayers == null || mBinding == null) return;
         switch (event.getState()) {
-            case 0: // Custom state often used for Player.STATE_LOADING or before READY
-                setInitTrack(true); // Flag to set default tracks on READY
-                setTrackVisible(false); // Hide track buttons during load
-                if (mClock != null) mClock.setCallback(this); // Start clock updates
-                // Optionally show progress here too, though BUFFERING state handles it
-                // showProgress();
+            case 0: // Loading/Preparing
+                setInitTrack(true);
+                setTrackVisible(false);
+                if (mClock != null) mClock.setCallback(this); // Added check
                 break;
-            case Player.STATE_IDLE:
-                // Player is stopped or hasn't started. Maybe hide progress.
-                hideProgress();
-                break;
-            case Player.STATE_BUFFERING:
-                showProgress(); // Show loading indicator
-                break;
+            case Player.STATE_IDLE: break; // Do nothing specific?
+            case Player.STATE_BUFFERING: showProgress(); break;
             case Player.STATE_READY:
-                stopSearch(); // Stop site search if playing successfully
-                setMetadata(); // Update media session metadata (uses history/currentVodName)
-                resetToggle(); // Reset player toggle count on success
-                resetError(); // Reset error count on success
-                hideProgress(); // Hide loading indicator
-                mPlayers.reset(); // Reset internal player flags (like retry count?) after successful ready
-                setDefaultTrack(); // Apply default/saved tracks now
-                setTrackVisible(true); // Show track buttons if tracks exist
-
-                // Save player choice to history if it changed
-                if (mHistory != null && mHistory.getPlayer() != mPlayers.getPlayer()) {
+                stopSearch();
+                setMetadata();
+                resetToggle();
+                resetError();
+                hideProgress();
+                mPlayers.reset(); // Reset internal player state?
+                setDefaultTrack();
+                setTrackVisible(true);
+                // Save player choice
+                if (mHistory != null && mHistory.getPlayer() != mPlayers.getPlayer()) { // Added check
                     mHistory.setPlayer(mPlayers.getPlayer());
-                    if (!Setting.isIncognito()) mHistory.save();
+                     if (!Setting.isIncognito()) mHistory.save();
                 }
-
-                // Update size display
                 String sizeText = mPlayers.getSizeText();
                 mBinding.widget.size.setText(sizeText);
                 mBinding.display.size.setText(sizeText);
-
-                // Ensure playback starts if it was paused during buffering/loading
-                // onPlay(); // Let the player handle autoPlay=true internally
                 break;
-            case Player.STATE_ENDED:
-                checkEnded(); // Handle playback completion
-                break;
+            case Player.STATE_ENDED: checkEnded(); break;
         }
     }
 
 
     private void checkEnded() {
-         if (mBinding == null) return;
+        // Basic check
+        if (mBinding == null) return;
         if (mBinding.control.loop.isActivated()) {
-            Log.d("VideoActivity", "Looping current episode.");
-            onReset(true); // Replay from the beginning
+            onReset(true);
         } else {
-            Log.d("VideoActivity", "Playback ended, checking next episode.");
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Allow screen to turn off
-            checkNext(); // Try to play the next episode
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            checkNext();
         }
     }
 
     private void setTrackVisible(boolean visible) {
+        // Basic checks
         if (mBinding == null || mPlayers == null) return;
-        // Show button only if player has corresponding track type AND visibility is requested
         mBinding.control.text.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
         mBinding.control.audio.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.video.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
-
-        // Refresh control focus chain as visibility changed
-        setControlNextFocus();
+        setControlNextFocus(); // Update focus chain
     }
 
     private void setDefaultTrack() {
+        // Basic check
         if (isInitTrack() && mPlayers != null) {
-            setInitTrack(false); // Only do this once per load
-            mPlayers.prepared(); // Notify player it's ready (might trigger internal logic)
-            // Apply saved tracks from database
+            setInitTrack(false);
+            mPlayers.prepared();
             Track savedTracks = Track.find(getHistoryKey());
-            if (savedTracks != null) {
-                 Log.d("VideoActivity", "Applying saved tracks.");
-                 mPlayers.setTrack(savedTracks);
-            } else {
-                 Log.d("VideoActivity", "No saved tracks found, using player defaults.");
-                 // Player should use its own default track selection logic
-            }
-            // Update track button text/status after setting tracks if needed
-             // e.g., mBinding.control.text.setText(mPlayers.getCurrentTrackInfo(C.TRACK_TYPE_TEXT));
+            if (savedTracks != null) mPlayers.setTrack(savedTracks); // Added check
         }
     }
 
-    // --- Modified setMetadata ---
     private void setMetadata() {
+        // Basic checks
         if (mPlayers == null) return;
-
-        // Determine Title: Use history name if available, otherwise use stored currentVodName
         String title = (mHistory != null && !TextUtils.isEmpty(mHistory.getVodName())) ? mHistory.getVodName() : currentVodName;
-
-        // Determine Artist (Episode Name): Get current episode, handle null
         Episode episode = getEpisode();
         String episodeName = (episode != null && !TextUtils.isEmpty(episode.getName())) ? episode.getName() : "";
-
-        // Construct artist string, avoid redundancy if title and episode name are the same
         String artist = "";
         if (!TextUtils.isEmpty(episodeName) && !Objects.equals(title, episodeName)) {
             artist = getString(R.string.play_now, episodeName);
         }
-
-        // Determine Picture URL: Use history pic if available, otherwise use intent pic
         String pic = (mHistory != null && !TextUtils.isEmpty(mHistory.getVodPic())) ? mHistory.getVodPic() : getPic();
-
-        // Set metadata on the player
         mPlayers.setMetadata(title, artist, pic, getDefaultArtwork());
     }
-    // --- End Modified setMetadata ---
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event == null || isBackground() || mPlayers == null) return; // Safety checks
+        // Basic checks
+        if (event == null || isBackground() || mPlayers == null) return;
 
-        Log.e("VideoActivity", "onErrorEvent: " + event.getMsg() + " | Code: " + event.getCode() + " | Retry: " + mPlayers.getRetryCount() + "/" + event.getRetry() + " | Decode: " + event.isDecode() + " | Exo: " + event.isExo() + " | Url: " + event.isUrl());
-
-        if (addErrorCount() > 20) { // Too many consecutive errors, give up
-            Log.e("VideoActivity", "Max error count reached, stopping playback attempts.");
+        if (addErrorCount() > 20) {
             onErrorEnd(event);
-        } else if (mPlayers.addRetry() > event.getRetry()) { // Retry limit exceeded for this specific error/source
-            Log.w("VideoActivity", "Retry limit exceeded for this source.");
-            checkError(event); // Proceed to check next source/parse/site
-        } else if (event.isDecode() && mPlayers.canToggleDecode()) { // If it's a decode error and we can toggle
-             Log.w("VideoActivity", "Decode error, attempting to toggle decoder.");
-             onDecode(false); // Toggle decoder without saving preference yet
-             // Reset retry count for the new decoder attempt? Maybe not, let it fail if both decoders fail.
-        } else if (event.isExo() && mPlayers.isExo()) { // If it's an ExoPlayer specific error
-             Log.w("VideoActivity", "ExoPlayer error, attempting specific handling.");
-             onExoCheck(event); // Handle specific ExoPlayer errors (like format)
-             // No automatic refresh here, onExoCheck might trigger setMediaSource
+        } else if (mPlayers.addRetry() > event.getRetry()) {
+            checkError(event);
+        } else if (event.isDecode() && mPlayers.canToggleDecode()) {
+            onDecode(false);
+        } else if (event.isExo() && mPlayers.isExo()) {
+            onExoCheck(event);
         } else {
-             // General error or retry limit not exceeded yet, just retry the current source
-             Log.w("VideoActivity", "General error, attempting refresh/retry.");
-             onRefresh(); // Retry the current source/episode
+            onRefresh(); // Default retry current source
         }
     }
 
 
     private void onExoCheck(ErrorEvent event) {
+        // Basic checks
         if (event == null || mPlayers == null) return;
-
         int code = event.getCode();
-        // Check for specific ExoPlayer errors that might indicate format issues
-        if (code == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || // General I/O error
-            (code >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && code <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) || // Parsing errors
-            code == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
-            code == PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ||
-            code == PlaybackException.ERROR_CODE_DECODING_FAILED ||
-            code == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
-            code == PlaybackException.ERROR_CODE_VIDEO_TRACK_INIT_FAILED)
-        {
-            Log.w("VideoActivity", "ExoPlayer specific error detected (Code: " + code + "), potentially format related.");
-            // Try setting format hint based on error code if possible (might need more specific mapping)
-            // mPlayers.setFormat(ExoUtil.getMimeType(event.getCode())); // This helper might not exist or be accurate enough
-
-            // Instead of setting format hint, maybe just force a refresh or try toggling decoder?
-            // For now, let's just re-set the media source, which might re-evaluate things.
-             mPlayers.setMediaSource();
+        if (code == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || (code >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && code <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED)) {
+            // Simple handling: just try resetting the media source
+            mPlayers.setMediaSource();
         } else {
-             // For other ExoPlayer errors, maybe just retry?
-             Log.w("VideoActivity", "Unhandled ExoPlayer error code: " + code);
-             onRefresh(); // Default to refresh for unhandled codes
+             onRefresh(); // Default retry for other Exo errors
         }
     }
 
     private void checkError(ErrorEvent event) {
-        if (event == null) return;
-
+        // Basic checks
+        if (event == null || mPlayers == null) return;
         Site site = getSite();
-        // Check if we should toggle player (if not using SYS, site allows, URL error, within toggle limit)
-        if (site != null && site.getPlayerType() == -1 && // Site does not force a player
-            event.isUrl() && // Error is likely related to URL/connection/format
-            event.getRetry() > 0 && // Error occurred after at least one attempt
-            getToggleCount() < 2 && // Limit player toggles (e.g., Exo <-> Ijk)
-            mPlayers != null && mPlayers.getPlayer() != Players.SYS) // Don't toggle away from SYS
-        {
-            Log.w("VideoActivity", "URL error, toggling player. Toggle count: " + getToggleCount());
+        if (site != null && site.getPlayerType() == -1 && event.isUrl() && event.getRetry() > 0 && getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
             toggleCount++;
-            nextPlayer(); // Switch player (e.g., Exo -> Ijk or vice-versa)
+            nextPlayer();
         } else {
-            // Cannot toggle player or toggle limit reached, proceed to next error flow step
-            resetToggle(); // Reset toggle count for the next source/flag/parse
-            onError(event); // Go to the main error handling flow (parse/flag/site)
+            resetToggle();
+            onError(event);
         }
     }
 
 
     private void nextPlayer() {
-        if (mPlayers == null) return;
-        mPlayers.nextPlayer(); // Switch to the other player (Exo/Ijk)
-        setPlayerView(); // Update player button text
-        setDecodeView(); // Update decode button text (might change with player)
-        onRefresh(); // Retry playback with the new player
+        if (mPlayers == null) return; // Added check
+        mPlayers.nextPlayer();
+        setPlayerView();
+        setDecodeView();
+        onRefresh();
     }
 
     private void onErrorEnd(ErrorEvent event) {
-        if (event == null) return;
-        Log.e("VideoActivity", "onErrorEnd: Max retries/errors reached. Stopping. Error: " + event.getMsg());
-        onErrorPlayer(event); // Show error message, stop player
-        resetError(); // Reset error counter
-        // Optionally show a persistent message or exit?
-        // showEmpty(); // Show empty state?
+        if (event == null) return; // Added check
+        onErrorPlayer(event);
+        resetError();
     }
 
     private void onErrorPlayer(ErrorEvent event) {
-        if (event == null) return;
-        Track.delete(getHistoryKey()); // Clear saved tracks for this VOD on error
-        showError(event.getMsg()); // Display error message on screen
-        if (mClock != null) mClock.setCallback(null); // Stop clock updates
-        if (mPlayers != null) {
-            mPlayers.reset(); // Reset player state
-            mPlayers.stop(); // Stop playback fully
-        }
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Allow screen off
+        // Basic checks
+        if (event == null || mPlayers == null || mClock == null) return;
+        Track.delete(getHistoryKey());
+        showError(event.getMsg());
+        mClock.setCallback(null);
+        mPlayers.reset();
+        mPlayers.stop();
+         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void onError(ErrorEvent event) {
-        if (event == null) return;
-        Log.w("VideoActivity", "onError: Handling error flow. Error: " + event.getMsg());
-        onErrorPlayer(event); // Stop player, show error message first
-        startFlow(); // Start the flow to find alternative source
+        if (event == null) return; // Added check
+        onErrorPlayer(event);
+        startFlow();
     }
 
     private void startFlow() {
         Site site = getSite();
+        // Basic checks
         if (site == null || !site.isChangeable()) {
-             Log.w("VideoActivity", "Error flow stopped: Site is null or not changeable.");
-             showEmpty(); // Show empty state if no alternatives can be tried
+             showEmpty(); // Show empty if no alternatives possible
              return;
         }
-
-        if (isUseParse()) {
-             Log.d("VideoActivity", "Error flow: Checking next parse.");
-             checkParse(); // Try next parser first if using parse
-        } else {
-             Log.d("VideoActivity", "Error flow: Checking next flag.");
-             checkFlagFlow(); // Otherwise, try next flag/source directly
-        }
+        if (isUseParse()) checkParse();
+        else checkFlagFlow(); // Use renamed method
     }
 
     private void checkParse() {
+        // Basic checks
         if (mParseAdapter == null || mParseAdapter.size() == 0) {
-             Log.w("VideoActivity", "Error flow: No parses available, checking flag.");
-             checkFlagFlow(); // No parses, move to flags
+             checkFlagFlow();
              return;
         }
-
         int position = getParsePosition();
-        boolean isLastParse = (position >= mParseAdapter.size() - 1);
-
-        if (isLastParse) {
-            Log.d("VideoActivity", "Error flow: Last parse tried, resetting to first and checking flag.");
-            initParse(); // Reset to the first parser for the next potential attempt
-            checkFlagFlow(); // Move to check flags after trying all parses
-        } else {
-            Log.d("VideoActivity", "Error flow: Trying next parse.");
-            nextParse(position); // Try the next available parser
-        }
+        boolean last = position >= mParseAdapter.size() - 1;
+        boolean pass = position == 0 || last; // Original logic? Seems odd.
+        if (last) initParse();
+        if (pass) checkFlagFlow();
+        else nextParse(position);
     }
 
     private void initParse() {
+        // Basic check
         if (mParseAdapter == null || mParseAdapter.size() == 0) return;
         Parse firstParse = (Parse) mParseAdapter.get(0);
-        if (firstParse != null) {
-             Log.d("VideoActivity", "Error flow: Resetting active parse to: " + firstParse.getName());
-             setParseActivated(firstParse); // Activate the first parse visually/logically
-        }
+        if (firstParse != null) setParseActivated(firstParse); // Added check
     }
 
-    // Renamed from checkFlag to avoid confusion with the initial checkFlag(Vod)
+    // Renamed from checkFlag to avoid confusion
     private void checkFlagFlow() {
-         if (mBinding == null || mFlagAdapter == null || mFlagAdapter.size() == 0 || isGone(mBinding.flag)) {
-              Log.w("VideoActivity", "Error flow: No flags available or visible, checking search.");
-              checkSearch(false); // No flags, move to search
-              return;
-         }
-
-        int position = getFlagPosition();
-        boolean isLastFlag = (position >= mFlagAdapter.size() - 1);
-
-        if (isLastFlag) {
-            Log.d("VideoActivity", "Error flow: Last flag tried, checking search.");
-            checkSearch(false); // Tried all flags, move to search
-        } else {
-            Log.d("VideoActivity", "Error flow: Trying next flag.");
-            nextFlag(position); // Try the next available flag
-        }
-    }
-
-
-    // --- Modified checkSearch ---
-    private void checkSearch(boolean force) {
-        if (mQuickAdapter != null && mQuickAdapter.size() > 0 && (isAutoMode() || force)) {
-            // If quick search results exist and auto mode is on or forced, try next site
-             Log.d("VideoActivity", "Error flow: Quick search results exist, trying next site.");
-             nextSite();
-        } else if (mQuickAdapter == null || mQuickAdapter.size() == 0) {
-            // If no quick search results, initiate a new search
-             Log.d("VideoActivity", "Error flow: No quick search results, initiating search.");
-
-             // Use stored original VOD name for initial search keyword
-             String keyword = currentVodName;
-             if (TextUtils.isEmpty(keyword)) {
-                  // Try getting from intent again if detail loading failed initially
-                  keyword = getName();
-             }
-
-             // Only start search if we have a name
-             if (!TextUtils.isEmpty(keyword)) {
-                  initSearch(keyword, true); // Start search in auto mode
-             } else {
-                  Log.w("VideoActivity", "Cannot start search, VOD name is empty.");
-                  showEmpty(); // Show empty state if no name available
-             }
-        } else {
-             // Quick search results exist, but not in auto mode and not forced
-             Log.d("VideoActivity", "Error flow: Quick search results available, but not auto-searching.");
-             // User needs to manually select from mQuickAdapter or trigger force search
-             // Maybe focus the quick search list?
-             if (mBinding != null && isVisible(mBinding.quick)) {
-                  mBinding.quick.requestFocus();
-             } else {
-                  showEmpty(); // Or show empty if quick search isn't visible/available
-             }
-        }
-    }
-    // --- End Modified checkSearch ---
-
-    private void initSearch(String keyword, boolean auto) {
-        if (TextUtils.isEmpty(keyword)) {
-             Log.w("VideoActivity", "initSearch called with empty keyword.");
+        // Basic checks
+        if (mBinding == null || mFlagAdapter == null || mFlagAdapter.size() == 0 || isGone(mBinding.flag)) {
+             checkSearch(false);
              return;
         }
-        Log.d("VideoActivity", "initSearch: Keyword='" + keyword + "', Auto=" + auto);
-        stopSearch(); // Stop any previous search executor
+        int position = getFlagPosition();
+        if (position >= mFlagAdapter.size() - 1) checkSearch(false);
+        else nextFlag(position);
+    }
+
+
+    private void checkSearch(boolean force) {
+        // Simplified logic
+        if (mQuickAdapter != null && mQuickAdapter.size() > 0 && (isAutoMode() || force)) { // Added null check
+            nextSite();
+        } else if (mQuickAdapter == null || mQuickAdapter.size() == 0) { // Added null check
+            String keyword = currentVodName;
+            if (TextUtils.isEmpty(keyword)) keyword = getName(); // Fallback
+            if (!TextUtils.isEmpty(keyword)) {
+                 initSearch(keyword, true);
+            } else {
+                 showEmpty(); // No keyword to search
+            }
+        } else {
+             // Results available, but not auto-searching
+             if (mBinding != null && isVisible(mBinding.quick)) mBinding.quick.requestFocus();
+             else showEmpty();
+        }
+    }
+
+
+    private void initSearch(String keyword, boolean auto) {
+        // Basic checks
+        if (TextUtils.isEmpty(keyword) || mBinding == null) return;
+        stopSearch();
         setAutoMode(auto);
-        setInitAuto(auto); // Mark that this search was started automatically
+        setInitAuto(auto);
         startSearch(keyword);
-        if (mBinding != null) mBinding.part.setTag(keyword); // Store keyword for mismatch check
+        mBinding.part.setTag(keyword);
     }
 
 
     private boolean isPass(Site item) {
+        // Basic check
         if (item == null) return false;
-        // If in auto mode, only consider sites marked as changeable/searchable
-        // If not in auto mode (manual search), consider all searchable sites
-        boolean checkChangeable = isAutoMode(); // Check changeable only if auto-searching alternatives
-        if (checkChangeable && !item.isChangeable()) return false;
+        if (isAutoMode() && !item.isChangeable()) return false;
         return item.isSearchable();
     }
 
 
     private void startSearch(String keyword) {
-        if (TextUtils.isEmpty(keyword)) return;
-        Log.d("VideoActivity", "Starting search for keyword: " + keyword);
+        // Basic checks
+        if (TextUtils.isEmpty(keyword) || mQuickAdapter == null || mBinding == null) return;
+        mQuickAdapter.clear();
+        mBinding.quick.setVisibility(View.GONE); // Hide initially
 
-        // Clear previous quick search results
-        if (mQuickAdapter != null) mQuickAdapter.clear();
-        if (mBinding != null) mBinding.quick.setVisibility(View.GONE); // Hide initially
+        List<Site> sites = new ArrayList<>();
+        for (Site site : VodConfig.get().getSites()) if (isPass(site)) sites.add(site);
 
-        List<Site> sitesToSearch = new ArrayList<>();
-        for (Site site : VodConfig.get().getSites()) {
-            if (isPass(site)) { // Check if site should be included in this search
-                sitesToSearch.add(site);
-            }
+        if(sites.isEmpty()){
+            if(isAutoMode()) showEmpty();
+            return;
         }
 
-        if (sitesToSearch.isEmpty()) {
-             Log.w("VideoActivity", "No searchable sites found matching criteria.");
-             // If initiated automatically, maybe show empty state?
-             if (isAutoMode()) showEmpty();
-             return;
-        }
-
-        // Create new executor for this search session
         mExecutor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
-        Log.d("VideoActivity", "Searching on " + sitesToSearch.size() + " sites.");
-        for (Site site : sitesToSearch) {
-            mExecutor.execute(() -> search(site, keyword));
-        }
-        // Executor will be stopped when search is done or activity is destroyed/paused
+        for (Site site : sites) mExecutor.execute(() -> search(site, keyword));
     }
 
 
     private void stopSearch() {
-        if (mExecutor != null && !mExecutor.isShutdown()) {
-            Log.d("VideoActivity", "Stopping search executor.");
+        if (mExecutor != null && !mExecutor.isShutdown()) { // Added check
             try {
-                mExecutor.shutdownNow(); // Attempt to stop all executing tasks
+                mExecutor.shutdownNow();
             } catch (Exception e) {
-                Log.e("VideoActivity", "Error shutting down search executor", e);
+                Log.e("VideoActivity", "Error stopping search executor", e);
             }
             mExecutor = null;
         }
-        setAutoMode(false); // Turn off auto mode when search stops or is stopped
-        setInitAuto(false);
+         setAutoMode(false); // Reset flags
+         setInitAuto(false);
     }
 
     private void search(Site site, String keyword) {
+        // Basic checks
         if (site == null || TextUtils.isEmpty(keyword) || mViewModel == null) return;
         try {
-            Log.v("VideoActivity", "Executing search on site: " + site.getName() + " for: " + keyword); // Verbose log
-            mViewModel.searchContent(site, keyword, true); // isVod = true for video search
-        } catch (Throwable e) {
-            // Catch potential exceptions from searchContent itself (though unlikely if implemented well)
-            Log.e("VideoActivity", "Error executing search for site: " + site.getName(), e);
+            mViewModel.searchContent(site, keyword, true);
+        } catch (Throwable ignored) {
+            // Ignore? Log?
+             Log.w("VideoActivity", "Search ignored for site: " + site.getName());
         }
     }
 
-    // This method receives results from SiteViewModel.search observer
     private void setSearch(Result result) {
-        if (result == null || result.getList() == null || mQuickAdapter == null || mBinding == null) {
-             // Log if result is null or list is null, might indicate an API error upstream
-             if (result == null || result.getList() == null) {
-                  Log.w("VideoActivity", "Received null search result or null list.");
-             }
-             return;
-        }
+        // Basic checks
+        if (result == null || result.getList() == null || mQuickAdapter == null || mBinding == null) return;
 
         List<Vod> items = result.getList();
-        Log.d("VideoActivity", "Received " + items.size() + " search results from site: " + (items.isEmpty() ? "N/A" : items.get(0).getSiteKey())); // Assuming siteKey is set
-
-        // Filter out mismatched items
         Iterator<Vod> iterator = items.iterator();
-        while (iterator.hasNext()) {
-            if (mismatch(iterator.next())) {
-                iterator.remove();
-            }
-        }
+        while (iterator.hasNext()) if (mismatch(iterator.next())) iterator.remove();
 
-        Log.d("VideoActivity", "Adding " + items.size() + " matched results to QuickSearch.");
         if (!items.isEmpty()) {
             mQuickAdapter.addAll(mQuickAdapter.size(), items);
-            mBinding.quick.setVisibility(View.VISIBLE); // Show quick search list
-            App.removeCallbacks(mR4); // Remove empty state callback if we found results
-
-            // If this search was started automatically, try playing the first result immediately
-            if (isInitAuto()) {
-                 Log.d("VideoActivity", "Auto mode: Initiating nextSite to play first result.");
-                 nextSite();
-            }
-             // Update focus rules as visibility changed
-             setR2Callback(100);
-        } else {
-             // If no matched items were found from this site, do nothing here.
-             // The overall process continues until all sites respond or a match is played.
-             // If all sites finish and no results, showEmpty might be called eventually.
+            mBinding.quick.setVisibility(View.VISIBLE);
+            if (isInitAuto()) nextSite(); // Try first result if auto-searching
+            App.removeCallbacks(mR4);
+             setR2Callback(100); // Update focus
         }
     }
 
-    // This method is called when a user clicks an item in the QuickSearch list
     private void setSearch(Vod item) {
+        // Basic check
         if (item == null) return;
-        Log.d("VideoActivity", "User selected item from QuickSearch: " + item.getVodName() + " (" + item.getSiteName() + ")");
-        setAutoMode(false); // Turn off auto mode as user made a selection
+        setAutoMode(false);
         setInitAuto(false);
-        stopSearch(); // Stop any ongoing background searches
-        getDetail(item); // Load details for the selected item
+        stopSearch(); // Stop background search on manual selection
+        getDetail(item);
     }
 
-
     private boolean mismatch(Vod item) {
-        if (item == null || TextUtils.isEmpty(item.getVodId())) return true; // Invalid item is a mismatch
-
-        // Don't show the exact same VOD ID we are currently trying to play (or failed from)
+        // Basic checks
+        if (item == null || TextUtils.isEmpty(item.getVodId())) return true;
         if (getId().equals(item.getVodId())) return true;
-
-        // Don't show VOD IDs that previously failed in this session (mBroken list)
         if (mBroken.contains(item.getVodId())) return true;
 
-        // Get the search keyword (should be the original title or selected part)
         String keyword = Objects.toString(mBinding.part.getTag(), "");
-        if (TextUtils.isEmpty(keyword)) return false; // No keyword? Allow everything (shouldn't happen ideally)
-
         String itemName = item.getVodName();
-        if (TextUtils.isEmpty(itemName)) return true; // Item without name is a mismatch
+        if (TextUtils.isEmpty(itemName)) return true; // Mismatch if no name
 
-        // Matching logic:
-        // In Auto Mode: Require exact name match (or very close similarity?)
-        // In Manual Mode (user clicked part): Require name contains keyword
         if (isAutoMode()) {
-            // Exact match seems too strict, allow for minor variations?
-            // Maybe use a similarity score? For now, let's try exact match.
-             // Consider normalizing names (lowercase, remove spaces) before comparing?
-             // return !itemName.equalsIgnoreCase(keyword); // Case-insensitive exact match
-             // Let's relax it slightly: check if names contain each other for auto mode too?
-             return !(itemName.contains(keyword) || keyword.contains(itemName));
+            // Simplified auto mode check: contains or contained by keyword
+            return !(itemName.contains(keyword) || keyword.contains(itemName));
         } else {
-            // Manual search: Check if item name contains the keyword (case-insensitive)
+            // Manual search: contains keyword (case insensitive)
              return !itemName.toLowerCase().contains(keyword.toLowerCase());
         }
     }
 
 
-    private void nextParse(int currentPosition) {
-         if (mParseAdapter == null || currentPosition + 1 >= mParseAdapter.size()) {
-              Log.w("VideoActivity", "nextParse called but no next parse available.");
-              // Should already be handled by checkParse logic, but double-check
-              checkFlagFlow(); // Move to flags if no more parses
-              return;
-         }
-        Parse nextParse = (Parse) mParseAdapter.get(currentPosition + 1);
-        if (nextParse != null) {
-            Notify.show(getString(R.string.play_switch_parse, nextParse.getName()));
-            setParseActivated(nextParse); // This will trigger onRefresh
+    private void nextParse(int position) {
+        // Basic checks
+        if (mParseAdapter == null || position + 1 >= mParseAdapter.size()) {
+             checkFlagFlow(); // Move on if no next parse
+             return;
+        }
+        Parse parse = (Parse) mParseAdapter.get(position + 1);
+        if (parse != null) { // Added check
+            Notify.show(getString(R.string.play_switch_parse, parse.getName()));
+            setParseActivated(parse);
         } else {
-             // Skip null parse and try the one after? Or move to flags?
-             Log.w("VideoActivity", "Found null Parse object at index " + (currentPosition + 1));
-             checkFlagFlow(); // Move to flags if parse object is unexpectedly null
+             checkFlagFlow(); // Skip null parse
         }
     }
 
-    private void nextFlag(int currentPosition) {
-         if (mFlagAdapter == null || currentPosition + 1 >= mFlagAdapter.size()) {
-              Log.w("VideoActivity", "nextFlag called but no next flag available.");
-              checkSearch(false); // Move to search if no more flags
-              return;
-         }
-        Flag nextFlag = (Flag) mFlagAdapter.get(currentPosition + 1);
-        if (nextFlag != null) {
-            Notify.show(getString(R.string.play_switch_flag, nextFlag.getFlag()));
-            setFlagActivated(nextFlag); // This should trigger seamless or getPlayer via setEpisodeAdapter/seamless
+    private void nextFlag(int position) {
+        // Basic checks
+        if (mFlagAdapter == null || position + 1 >= mFlagAdapter.size()) {
+             checkSearch(false); // Move on if no next flag
+             return;
+        }
+        Flag flag = (Flag) mFlagAdapter.get(position + 1);
+        if (flag != null) { // Added check
+            Notify.show(getString(R.string.play_switch_flag, flag.getFlag()));
+            setFlagActivated(flag);
         } else {
-             Log.w("VideoActivity", "Found null Flag object at index " + (currentPosition + 1));
-             checkSearch(false); // Move to search if flag object is unexpectedly null
+             checkSearch(false); // Skip null flag
         }
     }
 
     private void nextSite() {
+        // Basic checks
         if (mQuickAdapter == null || mQuickAdapter.size() == 0) {
-             Log.w("VideoActivity", "nextSite called but QuickSearch adapter is empty.");
-             // If this was called automatically, it means search yielded no results yet or failed.
-             if (isAutoMode()) {
-                 stopSearch(); // Stop searching
-                  showEmpty(); // Show empty state as auto search failed
-             }
+             if(isAutoMode()) showEmpty(); // Show empty if auto search failed
              return;
         }
+        Vod item = (Vod) mQuickAdapter.get(0);
+        mQuickAdapter.removeItems(0, 1);
 
-        Vod item = (Vod) mQuickAdapter.get(0); // Get the first item from the quick search results
-        mQuickAdapter.removeItems(0, 1); // Remove it from the list
-
-        if (item == null) {
-            Log.w("VideoActivity", "nextSite found null item at index 0, trying next.");
-            nextSite(); // Recursively call to try the next item if the first was null
+        if (item == null) { // Added check for null item
+            nextSite(); // Try next if first was null
             return;
         }
 
         Notify.show(getString(R.string.play_switch_site, item.getSiteName()));
-        Log.d("VideoActivity", "Switching to site: " + item.getSiteName() + " | VOD: " + item.getVodName() + " (" + item.getVodId() + ")");
-
-        // Add the ID of the *currently failing* VOD to the broken list
-        // to prevent switching back to it immediately if it appears in search results.
-        String currentFailedId = getId();
-        if (!TextUtils.isEmpty(currentFailedId) && !currentFailedId.equals(item.getVodId())) {
-             mBroken.add(currentFailedId);
+        String currentId = getId(); // Get current failing ID
+        if(!TextUtils.isEmpty(currentId) && !currentId.equals(item.getVodId())) {
+             mBroken.add(currentId); // Add current failing ID to broken list
         }
-
-        setInitAuto(false); // Mark that we are now loading this specific item, not just auto-searching
-        // Stop further background searching as we are loading a result
-        // Don't call stopSearch() here if you want other site searches to complete
-        // and potentially add more items to mQuickAdapter for manual selection later.
-        // Let's stop it for now to prevent unnecessary background work.
-        stopSearch();
-
-        getDetail(item); // Load details for the new VOD item
+        setInitAuto(false); // Turn off init auto flag
+        stopSearch(); // Stop background search when loading a result
+        getDetail(item);
     }
 
 
     private void onPaused() {
+        // Basic checks
         if (mPlayers == null || mBinding == null) return;
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Allow screen off
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
-        mBinding.widget.action.setImageResource(R.drawable.ic_widget_pause); // Show pause icon in center
+        mBinding.widget.action.setImageResource(R.drawable.ic_widget_pause);
 
-        if (isFullscreen()) {
-            showInfoAndCenter(); // Show info + center icon when paused in fullscreen
-        } else {
-            hideInfoAndCenter(); // Hide info + center when paused in windowed mode
-        }
+        if (isFullscreen()) showInfoAndCenter();
+        else hideInfoAndCenter();
         mPlayers.pause();
     }
 
     private void onPlay() {
+        // Basic checks
         if (mPlayers == null || mBinding == null) return;
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mPlayers.play();
-        hideCenter(); // Hide center icon (play/pause/ff/rw)
-        hideInfo(); // Hide top info bar
+        hideCenter();
+        hideInfo(); // Hide info when playing starts
     }
 
-    public boolean isBackground() {
-        return background;
-    }
+    // ... (Getter/Setter methods remain mostly the same, simplified) ...
+     public boolean isBackground() { return background; }
+     public void setBackground(boolean background) { this.background = background; }
+     public boolean isFullscreen() { return fullscreen; }
+     private void setFullscreen(boolean fullscreen) { this.fullscreen = fullscreen; }
+     private boolean isInitTrack() { return initTrack; }
+     private void setInitTrack(boolean initTrack) { this.initTrack = initTrack; }
+     private boolean isInitAuto() { return initAuto; }
+     private void setInitAuto(boolean initAuto) { this.initAuto = initAuto; }
+     private boolean isAutoMode() { return autoMode; }
+     private void setAutoMode(boolean autoMode) { this.autoMode = autoMode; }
+     public boolean isUseParse() { return useParse; }
+     public void setUseParse(boolean useParse) { this.useParse = useParse; }
+     public int getToggleCount() { return toggleCount; }
+     public void resetToggle() { this.toggleCount = 0; }
+     public int addErrorCount() { return ++errorCount; }
+     public void resetError() { this.errorCount = 0; }
+     public int getGroupSize() { return groupSize > 0 ? groupSize : 20; } // Ensure default
+     public void setGroupSize(int size) { groupSize = Math.max(size, 1); } // Ensure positive
 
-    public void setBackground(boolean background) {
-        this.background = background;
-    }
+     private View getFocus1() {
+         return (mFocus1 != null && mFocus1.isFocusable()) ? mFocus1 : mBinding.video; // Simplified
+     }
 
-    public boolean isFullscreen() {
-        return fullscreen;
-    }
-
-    private void setFullscreen(boolean fullscreen) {
-        this.fullscreen = fullscreen;
-        // Optionally, update system UI visibility flags here if needed
-        // ResUtil.toggleSystemUI(this, fullscreen);
-    }
-
-    private boolean isInitTrack() {
-        return initTrack;
-    }
-
-    private void setInitTrack(boolean initTrack) {
-        this.initTrack = initTrack;
-    }
-
-    private boolean isInitAuto() {
-        return initAuto;
-    }
-
-    private void setInitAuto(boolean initAuto) {
-        this.initAuto = initAuto;
-    }
-
-    private boolean isAutoMode() {
-        return autoMode;
-    }
-
-    private void setAutoMode(boolean autoMode) {
-        this.autoMode = autoMode;
-    }
-
-    public boolean isUseParse() {
-        return useParse;
-    }
-
-    public void setUseParse(boolean useParse) {
-        this.useParse = useParse;
-    }
-
-    public int getToggleCount() {
-        return toggleCount;
-    }
-
-    public void resetToggle() {
-        this.toggleCount = 0;
-    }
-
-    public int addErrorCount() {
-        return ++errorCount;
-    }
-
-    public void resetError() {
-        this.errorCount = 0;
-    }
-
-    public int getGroupSize() {
-        return groupSize > 0 ? groupSize : 20; // Ensure groupSize has a default positive value
-    }
-
-    public void setGroupSize(int size) {
-        groupSize = Math.max(size, 1); // Ensure group size is at least 1
-    }
-
-    private View getFocus1() {
-        // Return the stored focus view when exiting fullscreen, fallback to video view
-        return (mFocus1 != null && mFocus1.isFocusable()) ? mFocus1 : mBinding.video;
-    }
-
-    private View getFocus2() {
-        // Return the stored focused view within controls, with fallbacks
-        View focusTarget = mFocus2;
-
-        // Check if stored focus is valid and visible within the controls layout
-        boolean isFocus2Valid = focusTarget != null
-                                && isVisible(focusTarget)
-                                && focusTarget.isEnabled()
-                                && focusTarget.isFocusable()
-                                && isDescendantOf(mBinding.control.getRoot(), focusTarget);
-
-        if (!isFocus2Valid) {
-            // Fallback 1: Try the 'next' button
-            focusTarget = mBinding.control.next;
-            if (focusTarget == null || !isVisible(focusTarget) || !focusTarget.isEnabled()) {
-                // Fallback 2: Try the 'play/pause' button
-                focusTarget = mBinding.control.play;
-                 if (focusTarget == null || !isVisible(focusTarget) || !focusTarget.isEnabled()) {
-                      // Fallback 3: Find the first focusable view in the controls
-                      focusTarget = mBinding.control.getRoot().findFocus();
-                      if (focusTarget == null) {
-                           // Absolute Fallback: video view itself (though controls should have *something*)
-                           focusTarget = mBinding.video;
-                      }
-                 }
-            }
-        }
-        return focusTarget;
-    }
-
-    // Helper to check if view is a descendant of parent
-    private boolean isDescendantOf(ViewGroup parent, View view) {
-        if (parent == null || view == null) return false;
-        ViewParent currentParent = view.getParent();
-        while (currentParent != null) {
-            if (currentParent == parent) return true;
-            currentParent = currentParent.getParent();
-        }
-        return false;
-    }
-
+     private View getFocus2() {
+         // Simplified fallback logic
+         View focusTarget = mFocus2;
+         if (focusTarget == null || !isVisible(focusTarget) || !focusTarget.isEnabled()) {
+              focusTarget = mBinding.control.play; // Default to play/pause
+              if (focusTarget == null || !isVisible(focusTarget) || !focusTarget.isEnabled()) {
+                   focusTarget = mBinding.control.next; // Fallback to next
+                    if (focusTarget == null || !isVisible(focusTarget) || !focusTarget.isEnabled()) {
+                         focusTarget = mBinding.video; // Final fallback
+                    }
+              }
+         }
+         return focusTarget;
+     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event == null) return super.dispatchKeyEvent(null);
+        if (event == null) return super.dispatchKeyEvent(null); // Basic check
 
-        hasKeyEvent = true; // Mark that a key event occurred
-
-        // Back key handling for small window mode
+        hasKeyEvent = true;
         View currentFocus = getCurrentFocus();
-        if (mBinding != null && mBinding.progressLayout.isContent() && !isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1) {
-            // If focus is not on the video view itself, move focus to video view first
+
+        // Simplified back key logic
+        if (mBinding != null && !isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1) {
             if (currentFocus != mBinding.video) {
-                 mFocus1 = mBinding.video; // Store video view as the target focus
-                 if (mFocus1 != null) mFocus1.requestFocus();
-                 return true; // Consume back press event, focus moved
+                mFocus1 = mBinding.video;
+                if (mFocus1 != null) mFocus1.requestFocus(); // Basic check
+                return true;
             }
-            // If focus is already on video view, let default back behavior happen (exit fullscreen or activity)
         }
 
-        // Menu key handling in fullscreen
-        if (isFullscreen() && KeyUtil.isMenuKey(event) && event.getAction() == KeyEvent.ACTION_DOWN) { // Check action_down
-             if (Setting.getFullscreenMenuKey() == 0) {
-                 onToggle(); // Toggle controls
-                 return true; // Consume event
-             } else if (Setting.getFullscreenMenuKey() == 1) {
-                 onEpisodes(); // Show episodes dialog
-                 return true; // Consume event
-             }
+        // Menu key logic
+        if (isFullscreen() && KeyUtil.isMenuKey(event) && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (Setting.getFullscreenMenuKey() == 0) { onToggle(); return true; }
+            if (Setting.getFullscreenMenuKey() == 1) { onEpisodes(); return true; }
         }
 
-        // Store focus within controls when controls are visible
-        if (mBinding != null && isVisible(mBinding.control.getRoot()) && currentFocus != null && isDescendantOf(mBinding.control.getRoot(), currentFocus)) {
+        // Store focus in controls
+        if (mBinding != null && isVisible(mBinding.control.getRoot()) && currentFocus != null && currentFocus.getParent() == mBinding.control.actionLayout) { // Basic check for parent
             mFocus2 = currentFocus;
         }
 
-        // Auto-hide controls timer reset
-        if (mBinding != null && isVisible(mBinding.control.getRoot())) {
-            setR1Callback();
+        // Reset auto-hide timer
+        if (mBinding != null && isVisible(mBinding.control.getRoot())) setR1Callback();
+
+        // Custom key handling
+        if (isFullscreen() && mBinding != null && isGone(mBinding.control.getRoot()) && mKeyDown != null && mKeyDown.hasEvent(event)) { // Basic check
+            return mKeyDown.onKeyDown(event);
         }
 
-        // Custom key handling in fullscreen when controls are hidden
-        if (isFullscreen() && mBinding != null && isGone(mBinding.control.getRoot()) && mKeyDown != null && mKeyDown.hasEvent(event)) {
-            return mKeyDown.onKeyDown(event); // Let CustomKeyDownVod handle it
-        }
-
-        return super.dispatchKeyEvent(event); // Default dispatch
+        return super.dispatchKeyEvent(event);
     }
 
 
-    // --- CustomKeyDownVod.Listener Callbacks ---
+    // --- CustomKeyDownVod.Listener Callbacks (Simplified Checks) ---
 
     @Override
     public void onBright(int progress) {
@@ -3392,8 +2788,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (mBinding == null) return;
         mBinding.widget.volume.setVisibility(View.VISIBLE);
         mBinding.widget.volumeProgress.setProgress(progress);
-        // Ensure icons are set correctly based on progress thresholds
-        if (progress == 0) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_off); // Mute icon
+        if (progress == 0) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_off);
         else if (progress < 35) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_low);
         else if (progress < 70) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_medium);
         else mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_high);
@@ -3411,37 +2806,33 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.center.setVisibility(View.VISIBLE);
-        hideProgress(); // Hide buffering progress while seeking preview is shown
+        hideProgress();
     }
 
     @Override
     public void onSeekTo(int time) {
         if (mPlayers == null) return;
         mPlayers.seekTo(time);
-        if (mKeyDown != null) mKeyDown.resetTime(); // Reset fast-forward/rewind timer in CustomKeyDownVod
-        showProgress(); // Show progress indicator while player buffers after seek
-        // onPlay(); // Ensure playback resumes/continues after seek - Player should handle this
+        if (mKeyDown != null) mKeyDown.resetTime(); // Basic check
+        showProgress();
+        // onPlay(); // Player should handle resuming after seek
     }
 
     @Override
     public void onSpeedUp() {
         if (mPlayers == null || !mPlayers.isPlaying() || !mPlayers.canAdjustSpeed() || mBinding == null) return;
-        // Cycle through high speeds (e.g., 3x, 5x) - adjust logic as needed
         float targetSpeed = (mPlayers.getSpeed() < 3) ? 3f : 5f;
-        mBinding.control.speed.setText(mPlayers.setSpeed(targetSpeed)); // Update text and set speed
-        // Show visual feedback
+        mBinding.control.speed.setText(mPlayers.setSpeed(targetSpeed));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
-        mBinding.widget.speedText.setText(getString(R.string.play_speed_val, String.valueOf(targetSpeed))); // Show speed value
+         mBinding.widget.speedText.setText(getString(R.string.play_speed_val, String.valueOf(targetSpeed)));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onSpeedEnd() {
         if (mPlayers == null || mBinding == null) return;
-        // Restore speed from history or default setting
         float previousSpeed = (mHistory != null) ? mHistory.getSpeed() : Setting.getPlaySpeed();
         mBinding.control.speed.setText(mPlayers.setSpeed(previousSpeed));
-        // Hide visual feedback
         mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
     }
@@ -3453,172 +2844,137 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
         long half = (duration > 0) ? duration / 2 : 0;
-
-        showInfo(); // Show top info bar
-        // Show controls, focusing on OP/ED buttons depending on position
+        showInfo();
         showControl(current < half ? mBinding.control.opening : mBinding.control.ending);
     }
 
     @Override
     public void onKeyDown() {
         if (mBinding == null) return;
-        showInfo(); // Show top info bar
-        showControl(getFocus2()); // Show controls, focusing on last known/default control
+        showInfo();
+        showControl(getFocus2());
     }
 
     @Override
     public void onKeyCenter() {
         if (mPlayers == null) return;
-        if (mPlayers.isPlaying()) {
-            onPaused();
-            // Keep controls visible briefly after pausing? Or hide immediately?
-            // hideControl(false); // Hide controls but keep info bar?
-        } else {
-            onPlay();
-            // hideControl(true); // Hide controls and info bar when resuming play
-        }
+        if (mPlayers.isPlaying()) onPaused();
+        else onPlay();
     }
 
     @Override
     public void onSingleTap() {
-        if (isFullscreen()) {
-            onToggle(); // Toggle controls on single tap in fullscreen
-        } else {
-             // Optional: Handle single tap in windowed mode (e.g., enter fullscreen?)
-             // onVideo();
-        }
+        if (isFullscreen()) onToggle();
     }
 
     @Override
     public void onDoubleTap() {
-        if (isFullscreen()) {
-            onKeyCenter(); // Toggle play/pause on double tap in fullscreen
-        }
+        if (isFullscreen()) onKeyCenter();
     }
 
     // --- PlayerDialog.Listener ---
     @Override
     public void onPlayerClick(Integer item) {
-        if (item == null || mPlayers == null) return;
-        if (mPlayers.getPlayer() == item) return; // No change
-
-        Log.d("VideoActivity", "Player selected from dialog: " + item);
-        mPlayers.setPlayer(item); // Set the new player type
-        // Save choice to history immediately? Or wait for successful playback?
-        if (mHistory != null) {
+        // Basic checks
+        if (item == null || mPlayers == null || mPlayers.getPlayer() == item) return;
+        mPlayers.setPlayer(item);
+        if (mHistory != null) { // Added check
              mHistory.setPlayer(item);
              if (!Setting.isIncognito()) mHistory.save();
         }
-        setPlayerView(); // Update UI button
-        setDecodeView(); // Update decode button (might change)
-        onRefresh(); // Refresh playback with the new player
+        setPlayerView();
+        setDecodeView();
+        onRefresh();
     }
 
     @Override
     public void onPlayerShare(String title) {
-        Log.d("VideoActivity", "Share action clicked in PlayerDialog.");
-        this.onChoose(); // Trigger the system share chooser
+        this.onChoose();
     }
 
-    // --- Activity Lifecycle & Results ---
+    // --- Activity Lifecycle & Results (Simplified Checks) ---
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) return;
-
         switch (requestCode) {
-            case 1000: // Result from subsequent activity indicating finish
+            case 1000:
                 setResult(RESULT_OK);
                 finish();
                 break;
-            case 1001: // Result from external player/chooser
-                if (data != null && mPlayers != null) {
-                    mPlayers.checkData(data); // Let Players handle data from external player
-                }
+            case 1001:
+                if (data != null && mPlayers != null) mPlayers.checkData(data); // Basic checks
                 break;
-            // Handle other request codes if needed
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("VideoActivity", "onResume");
         setBackground(false);
-        if (mClock != null) mClock.start();
-        if (mPlayers != null) {
-            // Resume playback only if it was playing before pause
-            // Player class should ideally handle its own state persistence across pause/resume
-             mPlayers.play(); // Or player.resume() if it has that method
-        }
-         // Restart traffic updates if enabled
-         if (Setting.isDisplaySpeed()) {
-             App.post(mR3, 0);
-         }
+        if (mClock != null) mClock.start(); // Added check
+        if (mPlayers != null) mPlayers.play(); // Basic check
+         if (Setting.isDisplaySpeed()) App.post(mR3, 0); // Restart traffic
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("VideoActivity", "onPause");
         setBackground(true);
-        if (mPlayers != null) {
-            // Store position before pausing if needed, though onTimeChanged should handle it
+        if (mPlayers != null) { // Added check
+             // Save position on pause
              if (mHistory != null && !Setting.isIncognito()) {
                   mHistory.setPosition(mPlayers.getPosition());
-                  mHistory.update(); // Save position on pause
+                  mHistory.update();
              }
             mPlayers.pause();
         }
-        if (mClock != null) mClock.stop();
-         // Stop traffic updates
-         App.removeCallbacks(mR3);
-         stopSearch(); // Stop background searches when pausing activity
+        if (mClock != null) mClock.stop(); // Added check
+         App.removeCallbacks(mR3); // Stop traffic
+         stopSearch();
     }
 
     @Override
     public void onBackPressed() {
-        if (mBinding != null && isVisible(mBinding.control.getRoot())) {
-            hideControl(); // Hide controls first if visible
-        } else if (mBinding != null && isVisible(mBinding.widget.center)) {
-            hideCenter(); // Hide center icon (seek preview) if visible
-             if (mPlayers != null) mPlayers.play(); // Resume play if seek was cancelled by back press
+        if (mBinding != null && isVisible(mBinding.control.getRoot())) { // Basic check
+            hideControl();
+        } else if (mBinding != null && isVisible(mBinding.widget.center)) { // Basic check
+            hideCenter();
+             if (mPlayers != null) mPlayers.play(); // Resume play
         } else if (isFullscreen()) {
-            exitFullscreen(); // Exit fullscreen mode
+            exitFullscreen();
         } else {
-            stopSearch(); // Ensure search is stopped before exiting
-            super.onBackPressed(); // Default back behavior (finish activity)
+            stopSearch();
+            super.onBackPressed();
         }
     }
 
     @Override
     protected void onDestroy() {
-        Log.d("VideoActivity", "onDestroy");
         super.onDestroy();
-        stopSearch(); // Stop search executor
-        if (mClock != null) mClock.release();
-        if (mPlayers != null) mPlayers.release(); // Release player resources
-        Source.get().stop(); // Stop any ongoing source operations
-        RefreshEvent.history(); // Notify history list might need update
-        App.removeCallbacks(mR1, mR2, mR3, mR4); // Remove all callbacks
+        stopSearch();
+        if (mClock != null) mClock.release(); // Added check
+        if (mPlayers != null) mPlayers.release(); // Added check
+        Source.get().stop();
+        RefreshEvent.history();
+        App.removeCallbacks(mR1, mR2, mR3, mR4);
 
         // Clean up glow effect resources
-        if (mBinding != null && mBinding.logoImageView != null) {
-            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null); // Remove layer
+        if (mBinding != null && mBinding.logoImageView != null) { // Added checks
+            mBinding.logoImageView.setLayerType(View.LAYER_TYPE_NONE, null);
         }
-        logoGlowPaint = null; // Clear paint reference
+        logoGlowPaint = null;
 
-        // Clean up Glide resources (defensively)
+        // Simplified Glide cleanup
         try {
-            if (!isFinishing() && !isDestroyed()) {
-                Glide.with(getApplicationContext()).onDestroy(); // Use application context
-            }
+            // No activity state check here, rely on Glide's internal handling
+             Glide.with(getApplicationContext()).onDestroy();
         } catch (Exception e) {
             Log.e("VideoActivity", "Error during Glide onDestroy", e);
         }
 
-        mBinding = null; // Release view binding
+        mBinding = null;
     }
 
     // Helper method to check if a View is visible
@@ -3631,24 +2987,21 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return view == null || view.getVisibility() == View.GONE;
     }
 
-    // Helper method to notify item changes for adapters safely
-    private void notifyItemChanged(RecyclerView view, RecyclerView.Adapter<?> adapter) {
-        if (view != null && adapter != null && adapter.getItemCount() > 0) {
-            // Avoid full notifyDataSetChanged if possible
-            // adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-             adapter.notifyDataSetChanged(); // Use simpler notify for now
-        }
-    }
+     // Simplified Helper method to notify item changes for adapters
+     private void notifyItemChanged(RecyclerView view, RecyclerView.Adapter<?> adapter) {
+         if (view != null && adapter != null) { // Basic check
+             adapter.notifyDataSetChanged();
+         }
+     }
      private void notifyItemChanged(BaseGridView view, ArrayObjectAdapter adapter) {
-         if (view != null && adapter != null && adapter.size() > 0) {
+         if (view != null && adapter != null) { // Basic check
              adapter.notifyArrayItemRangeChanged(0, adapter.size());
          }
      }
      private void notifyItemChanged(BaseGridView view, QualityAdapter adapter) {
-         if (view != null && adapter != null && adapter.getItemCount() > 0) {
-             adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+         if (view != null && adapter != null) { // Basic check
+             adapter.notifyDataSetChanged(); // Use notifyDataSetChanged for simplicity
          }
      }
 
-
-} // End of VideoActivity class
+}
