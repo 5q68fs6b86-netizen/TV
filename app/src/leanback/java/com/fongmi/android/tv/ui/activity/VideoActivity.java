@@ -738,7 +738,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                                 try {
                                     // --- 创建包含辉光和 Logo 的组合 Bitmap ---
                                     // 调整模糊半径和颜色透明度以获得最佳效果
-                                    float blurRadius = ResUtil.dp2px(10); // 调整辉光半径 (例如 10dp)
+                                    float blurRadius = ResUtil.dp2px(20); // 调整辉光半径 (例如 10dp)
                                     // 可以稍微降低辉光的 Alpha，让 Logo 更突出
                                     int glowColor = Color.argb(180, 255, 255, 255); // 例如半透明白色辉光 (Alpha 180)
 
