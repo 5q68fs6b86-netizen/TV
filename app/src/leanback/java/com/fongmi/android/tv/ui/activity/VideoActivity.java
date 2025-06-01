@@ -685,7 +685,22 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkKeep(); // Uses history key which includes original ID
     }
     // --- End Modified setDetail ---
-
+    private void onLogoNotFound() {
+        // 确保在主线程执行 UI 更新
+        runOnUiThread(() -> {
+            if (isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
+                Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound (Activity level), skipping UI update.");
+                return;
+            }
+            Log.d("VideoActivity", "Logo not found or error occurred.");
+            currentLogoUrl = null;
+            // 隐藏 ImageView 并清除内容
+            mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.logoImageView.setImageDrawable(null);
+            mBinding.nameTextView.setVisibility(View.VISIBLE);
+            mBinding.nameTextView.setText(currentVodName); // 使用存储的 VOD 名称
+        });
+    }
     // --- Added fetchTmdbLogo Method (with glow effect) ---
     private void fetchTmdbLogo(String title, String year, String typeName) {
         if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
