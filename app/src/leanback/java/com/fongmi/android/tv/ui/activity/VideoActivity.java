@@ -721,54 +721,41 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
                 currentLogoUrl = logoUrl;
                 mBinding.nameTextView.setVisibility(View.GONE);
-                // 目标 ImageView (只需要一个)
                 ImageView targetImageView = mBinding.logoImageView;
-                targetImageView.setVisibility(View.VISIBLE); // 先让 ImageView 可见，准备接收图片
+                targetImageView.setVisibility(View.VISIBLE);
 
-                // 使用 Glide 请求 Bitmap
                 Glide.with(VideoActivity.this)
-                        .asBitmap() // 请求 Bitmap
+                        .asBitmap()
                         .load(logoUrl)
-                        .placeholder(R.drawable.ic_placeholder) // 可选的占位符
-                        .error(R.drawable.ic_error)         // 可选的错误图
+                        .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_error)
                         .into(new CustomTarget<Bitmap>() {
                             @Override
                             public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                // 再次检查 Activity 状态，因为加载是异步的
                                 if (isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
                                     return;
                                 }
                                 try {
-                                    // --- 1. 创建辉光 Bitmap ---
-                                    // 参数：原图, 模糊半径 (像素), 辉光颜色 (ARGB)
+                                    // --- 创建包含辉光和 Logo 的组合 Bitmap ---
                                     // 调整模糊半径和颜色透明度以获得最佳效果
-                                    float blurRadius = ResUtil.dp2px(20); // 例如 6dp 的模糊半径
-                                    int glowColor = Color.argb(230, 255, 255, 255); // 半透明白色辉光
-                                    Bitmap glowBitmap = createGlowBitmap(resource, blurRadius, glowColor);
+                                    float blurRadius = ResUtil.dp2px(10); // 调整辉光半径 (例如 10dp)
+                                    // 可以稍微降低辉光的 Alpha，让 Logo 更突出
+                                    int glowColor = Color.argb(180, 255, 255, 255); // 例如半透明白色辉光 (Alpha 180)
 
-                                    if (glowBitmap != null) {
-                                        // --- 2. 创建 LayerDrawable ---
-                                        Drawable[] layers = new Drawable[2];
-                                        // 辉光层在底部 (index 0)
-                                        layers[0] = new BitmapDrawable(getResources(), glowBitmap);
-                                        // 原始 Logo 在顶部 (index 1)
-                                        layers[1] = new BitmapDrawable(getResources(), resource);
+                                    // 调用修改后的 createGlowBitmap 方法
+                                    Bitmap combinedBitmap = createGlowAndLogoBitmap(resource, blurRadius, glowColor);
 
-                                        LayerDrawable layerDrawable = new LayerDrawable(layers);
-
-                                        // (可选) 设置内边距，让辉光稍微露出来更多
-                                        // int padding = (int) blurRadius / 2;
-                                        // layerDrawable.setLayerInset(1, padding, padding, padding, padding); // 给顶层 Logo 设置内边距
-
-                                        // --- 3. 设置给 ImageView ---
-                                        targetImageView.setImageDrawable(layerDrawable);
+                                    if (combinedBitmap != null) {
+                                        // --- 直接设置组合后的 Bitmap 给 ImageView ---
+                                        targetImageView.setImageBitmap(combinedBitmap);
                                     } else {
-                                        // 如果辉光创建失败，只显示原始 Logo
+                                        // 如果创建失败，只显示原始 Logo
+                                        Log.w("VideoActivity", "Failed to create combined glow bitmap, showing original logo.");
                                         targetImageView.setImageBitmap(resource);
                                     }
 
                                 } catch (Exception e) {
-                                    Log.e("VideoActivity", "Error creating glow or setting LayerDrawable", e);
+                                    Log.e("VideoActivity", "Error creating combined glow bitmap", e);
                                     // 出现异常，也只显示原始 Logo
                                     targetImageView.setImageBitmap(resource);
                                 }
@@ -776,17 +763,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
                             @Override
                             public void onLoadCleared(@Nullable Drawable placeholder) {
-                                // 清理 ImageView
                                 targetImageView.setImageDrawable(placeholder);
                             }
 
                             @Override
                             public void onLoadFailed(@Nullable Drawable errorDrawable) {
                                 Log.w("VideoActivity", "Glide failed to load logo bitmap: " + logoUrl);
-                                // Glide 加载失败，调用 onLogoNotFound 来隐藏 Logo 并显示文字
                                 onLogoNotFound();
-                                // 注意：这里不要再设置 errorDrawable 给 targetImageView，
-                                // 因为 onLogoNotFound 已经处理了 UI（隐藏ImageView，显示TextView）
                             }
                         });
             }
@@ -827,58 +810,85 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
      * @param glowColor      辉光颜色 (包含 Alpha 通道)
      * @return 带有辉光效果的新 Bitmap，如果出错则返回 null
      */
-    private Bitmap createGlowBitmap(Bitmap originalBitmap, float blurRadius, int glowColor) {
+    private Bitmap createGlowAndLogoBitmap(Bitmap originalBitmap, float blurRadius, int glowColor) {
         if (originalBitmap == null || originalBitmap.isRecycled()) {
+            Log.e("VideoActivity", "Input originalBitmap is null or recycled.");
             return null;
         }
-        // 确保模糊半径大于0
         if (blurRadius <= 0) {
-             blurRadius = 1;
+            blurRadius = 1;
         }
 
         try {
-            // 使用 ARGB_8888 以支持透明度
-            // 注意：宽度和高度与原图一致，辉光效果会绘制在原图区域内或略微超出（取决于 extractAlpha）
-            Bitmap glowBitmap = Bitmap.createBitmap(originalBitmap.getWidth(), originalBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(glowBitmap);
+            // --- 1. 计算所需画布大小 ---
+            // 需要额外的空间来容纳模糊半径产生的辉光
+            // 使用 ceil 确保有足够的空间
+            int padding = (int) Math.ceil(blurRadius);
+            // 如果模糊半径非常大，可能需要更大的 padding，例如 padding = (int) Math.ceil(blurRadius * 1.5);
+            int combinedWidth = originalBitmap.getWidth() + padding * 2;
+            int combinedHeight = originalBitmap.getHeight() + padding * 2;
 
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            paint.setColor(glowColor);
-            // 设置模糊滤镜，Blur.OUTER 只绘制轮廓外部的模糊
-            paint.setMaskFilter(new BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.OUTER));
-            // 如果希望整个形状都模糊（可能效果不佳），可以用 Blur.NORMAL
+            // 防止创建过大的 Bitmap
+            if (combinedWidth <= 0 || combinedHeight <= 0) {
+                Log.e("VideoActivity", "Calculated combined dimensions are invalid.");
+                return null;
+            }
 
-            // 关键：提取原始 Bitmap 的 Alpha 通道作为形状蒙版
-            // 这使得辉光只在 Logo 非透明区域外围产生
-            // 注意：extractAlpha() 需要原图是 ARGB_8888 或 A_8 格式，Glide 通常会返回 ARGB_8888
-            Bitmap alphaBitmap = originalBitmap.extractAlpha();
+            // --- 2. 创建组合 Bitmap 和 Canvas ---
+            Bitmap combinedBitmap = Bitmap.createBitmap(combinedWidth, combinedHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(combinedBitmap);
 
+            // --- 3. 准备辉光绘制 Paint ---
+            Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            glowPaint.setColor(glowColor);
+            glowPaint.setMaskFilter(new BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.OUTER));
+
+            // --- 4. 提取 Alpha 蒙版 ---
+            // 注意：extractAlpha() 可能会失败或返回 null
+            Bitmap alphaBitmap = null;
+            try {
+                 alphaBitmap = originalBitmap.extractAlpha();
+            } catch (Exception e) {
+                 Log.w("VideoActivity", "Could not extract alpha mask, glow might not render correctly.", e);
+                 // 即使 alpha 提取失败，我们仍然可以尝试绘制原始 bitmap 作为后备
+                 // 但辉光效果将基于整个矩形而不是形状
+            }
+
+
+            // --- 5. 绘制辉光 ---
             if (alphaBitmap != null) {
-                // 在 (0,0) 处绘制 Alpha 蒙版，应用带有模糊效果的 Paint
-                canvas.drawBitmap(alphaBitmap, 0, 0, paint);
+                // 在画布的偏移位置 (padding, padding) 绘制 Alpha 蒙版，应用辉光效果
+                canvas.drawBitmap(alphaBitmap, padding, padding, glowPaint);
                 // 回收临时的 Alpha Bitmap
                 alphaBitmap.recycle();
             } else {
-                // 如果无法提取 Alpha (例如原图格式问题)，则尝试直接绘制原图进行模糊
-                // 效果可能不理想，整个图像都会模糊，并且背景也可能发光
-                Log.w("VideoActivity", "Could not extract alpha mask, falling back to blurring original bitmap.");
-                 paint.setMaskFilter(new BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)); // 改用 NORMAL 模糊整个图
-                 canvas.drawBitmap(originalBitmap, 0, 0, paint);
+                 // Alpha 提取失败的后备：尝试用辉光画笔绘制原始 bitmap
+                 // 效果可能不好，但比什么都不画强
+                 Log.w("VideoActivity", "Alpha mask extraction failed, drawing original bitmap with glow paint as fallback.");
+                 // 注意：这里仍然使用 OUTER 模糊，辉光会出现在原始矩形区域之外
+                 canvas.drawBitmap(originalBitmap, padding, padding, glowPaint);
             }
 
-            return glowBitmap;
+            // --- 6. 在辉光之上绘制原始 Logo ---
+            // 使用普通的 Paint 或者 null Paint 来绘制原始图
+            Paint originalPaint = new Paint(Paint.ANTI_ALIAS_FLAG); // 抗锯齿
+            // 将原始 Logo 绘制在画布的相同偏移位置 (padding, padding)
+            canvas.drawBitmap(originalBitmap, padding, padding, originalPaint); // 或者 canvas.drawBitmap(originalBitmap, padding, padding, null);
+
+            return combinedBitmap; // 返回包含辉光和 Logo 的组合 Bitmap
 
         } catch (OutOfMemoryError oom) {
-            Log.e("VideoActivity", "OutOfMemoryError while creating glow bitmap", oom);
-            // 内存不足时，尝试回收并返回 null
-            System.gc();
+            Log.e("VideoActivity", "OutOfMemoryError while creating combined glow bitmap", oom);
+            System.gc(); // 尝试回收内存
             return null;
+        } catch (IllegalArgumentException iae) {
+             Log.e("VideoActivity", "IllegalArgumentException (e.g., invalid dimensions) while creating combined glow bitmap", iae);
+             return null;
         } catch (Exception e) {
-            Log.e("VideoActivity", "Exception while creating glow bitmap", e);
+            Log.e("VideoActivity", "Exception while creating combined glow bitmap", e);
             return null;
         }
-    }
-    // --- End Added fetchTmdbLogo Method ---
+    }    // --- End Added fetchTmdbLogo Method ---
 
 
     private int getMaxLines() {
