@@ -743,7 +743,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                                 try {
                                     // --- 创建辉光 ---
                                     // resource 现在是 Glide 根据 override 处理过的 Bitmap
-                                    float blurRadius = ResUtil.dp2px(10); // 辉光半径可能需要根据新的图标大小调整
+                                    float blurRadius = ResUtil.dp2px(18); // 辉光半径可能需要根据新的图标大小调整
                                     int glowColor = Color.argb(180, 255, 255, 255);
                                     Bitmap combinedBitmap = createGlowAndLogoBitmap(resource, blurRadius, glowColor); // 使用处理过的 resource
 
