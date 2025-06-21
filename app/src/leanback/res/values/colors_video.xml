@@ -1,21 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 主要按钮文字颜色 -->
-    <selector name="video_button_primary_text">
-        <item android:color="#FF000000" android:state_focused="true" />
-        <item android:color="#FFFFFFFF" />
-    </selector>
+    <!-- 基础颜色定义 -->
+    <color name="video_button_primary_text_default">#FFFFFFFF</color>
+    <color name="video_button_primary_text_focused">#FF000000</color>
     
-    <!-- 次要按钮文字颜色 -->
-    <selector name="video_button_secondary_text">
-        <item android:color="#FF000000" android:state_focused="true" />
-        <item android:color="#FFFFFFFF" android:state_activated="true" />
-        <item android:color="#B3FFFFFF" />
-    </selector>
+    <color name="video_button_secondary_text_default">#B3FFFFFF</color>
+    <color name="video_button_secondary_text_focused">#FF000000</color>
+    <color name="video_button_secondary_text_activated">#FFFFFFFF</color>
     
-    <!-- 强调按钮文字颜色 -->
-    <selector name="video_button_accent_text">
-        <item android:color="#FFFFFFFF" android:state_focused="true" />
-        <item android:color="#FFFFFFFF" android:state_activated="true" />
-        <item android:color="#FFFF4081" />
-    </selector>
+    <color name="video_button_accent_text_default">#FFFF4081</color>
+    <color name="video_button_accent_text_focused">#FFFFFFFF</color>
+    <color name="video_button_accent_text_activated">#FFFFFFFF</color>
+    
+    <!-- 控制栏背景颜色 -->
+    <color name="video_control_bg_start">#F0000000</color>
+    <color name="video_control_bg_center">#D0000000</color>
+    <color name="video_control_bg_end">#00000000</color>
+    
+    <!-- 按钮背景颜色 -->
+    <color name="video_button_bg_default">#33FFFFFF</color>
+    <color name="video_button_bg_focused">#FFFFFFFF</color>
+    <color name="video_button_bg_pressed">#E6FFFFFF</color>
+    <color name="video_button_bg_activated">#FF2196F3</color>
+    
+    <!-- 控制组背景 -->
+    <color name="video_control_group_bg">#1AFFFFFF</color>
+    <color name="video_control_group_stroke">#1AFFFFFF</color>
 </resources>

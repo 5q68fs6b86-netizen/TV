@@ -1,41 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 控制栏背景 -->
-    <style name="VideoControlBackground">
-        <item name="android:background">@drawable/video_control_gradient_bg</item>
-        <item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">20dp</item>
-    </style>
-
-    <!-- 控制按钮基础样式 -->
+    <!-- 基础控制按钮样式 -->
     <style name="VideoControlButton">
-        <item name="android:background">@drawable/video_control_button_selector</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:minWidth">56dp</item>
-        <item name="android:minHeight">36dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:minWidth">64dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:paddingLeft">12dp</item>
-        <item name="android:paddingRight">12dp</item>
-        <item name="android:layout_margin">4dp</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
-    </style>
-
-    <!-- 播放按钮样式 -->
-    <style name="VideoPlayButton">
-        <item name="android:background">@drawable/video_play_button_bg</item>
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:scaleType">centerInside</item>
-        <item name="android:padding">14dp</item>
-    </style>
-
-    <!-- 进度条样式 -->
-    <style name="VideoSeekBar">
-        <item name="android:progressDrawable">@drawable/video_seekbar_progress</item>
-        <item name="android:thumb">@drawable/video_seekbar_thumb</item>
-        <item name="android:thumbOffset">0dp</item>
         <item name="android:focusable">true</item>
-        <item name="android:minHeight">4dp</item>
-        <item name="android:maxHeight">4dp</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:stateListAnimator">@animator/button_elevation</item>
+    </style>
+
+    <!-- 主要按钮样式 -->
+    <style name="VideoControlButton.Primary">
+        <item name="android:background">@drawable/video_button_primary_selector</item>
+        <item name="android:textColor">@color/video_button_primary_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 次要按钮样式 -->
+    <style name="VideoControlButton.Secondary">
+        <item name="android:background">@drawable/video_button_secondary_selector</item>
+        <item name="android:textColor">@color/video_button_secondary_text</item>
+    </style>
+
+    <!-- 强调按钮样式 -->
+    <style name="VideoControlButton.Accent">
+        <item name="android:background">@drawable/video_button_accent_selector</item>
+        <item name="android:textColor">@color/video_button_accent_text</item>
     </style>
 </resources>
