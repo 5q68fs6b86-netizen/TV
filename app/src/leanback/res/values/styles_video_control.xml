@@ -34,4 +34,18 @@
         <item name="android:background">@drawable/video_button_accent_selector</item>
         <item name="android:textColor">@color/video_button_accent_text</item>
     </style>
+    <!-- ... 保留你已有的其他样式 ... -->
+
+    <style name="VideoControlButton.IconOnly">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">@drawable/video_button_primary_selector</item>
+        <!-- 关键：使用颜色选择器来为图标着色 -->
+        <item name="android:drawableTint">@color/icon_tint_selector</item>
+        <item name="android:drawableTintMode">src_in</item>
+        <item name="android:padding">14dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:stateListAnimator">@animator/button_elevation</item>    </style>
 </resources>
