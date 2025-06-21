@@ -134,6 +134,8 @@ import android.animation.ObjectAnimator;
 import android.animation.AnimatorSet;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.LinearLayout;
+import android.view.ViewParent;
 // --- End Imports ---
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
@@ -1462,20 +1464,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         mBinding.widget.center.setVisibility(View.GONE);
     }
 
-    private void setControlNextFocus() {
-        int count = mBinding.control.actionLayout.getChildCount();
-        for(int i=0; i<count-1; i++) {
-            View btn = mBinding.control.actionLayout.getChildAt(i);
-            if (btn == null || !isVisible(btn) || !btn.isEnabled()) continue;
-            for(int j=i+1; j<count; j++) {
-                View next = mBinding.control.actionLayout.getChildAt(j);
-                if (next == null || !isVisible(next) || !next.isEnabled()) continue;
-                btn.setNextFocusRightId(next.getId());
-                next.setNextFocusLeftId(btn.getId());
-                break; // Found next visible/enabled, move to next btn
-            }
-        }
-    }
 
     private void showControl(View view) {
         if (mIsControlAnimating) return;
@@ -1596,11 +1584,8 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         
         for (int i = 0; i < childCount; i++) {
             View child = actionLayout.getChildAt(i);
-            if (child instanceof LinearLayout) {
-                animateGroupEntry(child, i * 50L, show);
-            } else {
-                animateSingleButton(child, (childCount - 1) * 50L, show);
-            }
+            // 这里不需要检查 LinearLayout，直接处理所有子视图
+            animateSingleButton(child, i * 50L, show);
         }
     }
 
@@ -1620,15 +1605,13 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void animateSingleButton(View button, long delay, boolean show) {
-        button.setAlpha(show ? 0f : 1f);
-        button.setTranslationX(show ? 50f : 0f);
+        if (button == null) return;
         
+        button.setAlpha(show ? 0f : 1f);
         button.animate()
             .alpha(show ? 1f : 0f)
-            .translationX(show ? 0f : 50f)
             .setStartDelay(show ? delay : 0)
             .setDuration(show ? 300 : 200)
-            .setInterpolator(new DecelerateInterpolator())
             .start();
     }
 
@@ -1705,14 +1688,16 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         mBinding.control.audio.setVisibility(hasAudio ? View.VISIBLE : View.GONE);
         mBinding.control.video.setVisibility(hasVideo ? View.VISIBLE : View.GONE);
         
-        // 如果有任何轨道，显示轨道组容器
-        View trackGroup = mBinding.control.text.getParent();
-        if (trackGroup instanceof LinearLayout) {
-            trackGroup.setVisibility((hasText || hasAudio || hasVideo) ? View.VISIBLE : View.GONE);
+        // 修复类型转换问题
+        ViewParent parent = mBinding.control.text.getParent();
+        if (parent instanceof View) {
+            View trackGroup = (View) parent;
+            if (trackGroup instanceof LinearLayout) {
+                trackGroup.setVisibility((hasText || hasAudio || hasVideo) ? View.VISIBLE : View.GONE);
+            }
         }
     }
-
-    // 更新时间按钮
+        // 更新时间按钮
     private void updateTimeButtons() {
         if (mHistory != null) {
             String openingText = mHistory.getOpening() == 0 ? 
@@ -2042,37 +2027,34 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     @Override
     public void onTimeChanged() {
-        super.onTimeChanged();
-        
-        // 更新进度条时添加平滑过渡
-        if (mBinding.control.getRoot().getVisibility() == View.VISIBLE) {
-            updateSeekBarSmoothly();
-        }        
+        // 不要调用 super.onTimeChanged()，因为接口中没有默认实现
         onTimeChangeDisplaySpeed();
-        if (mHistory == null) return; // Add null check for history early
+        if (mHistory == null) return;
 
         long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
 
-        // Update history only if position and duration are valid
         if (position >= 0 && duration > 0) {
             mHistory.setPosition(position);
             mHistory.setDuration(duration);
             if (!Setting.isIncognito()) {
-                App.execute(() -> {
-                    if (mHistory != null) { // Double check history isn't nulled concurrently
-                         mHistory.update();
+                App.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mHistory != null) {
+                            mHistory.update();
+                        }
                     }
                 });
             }
         }
 
-        // Check ending only if duration is valid and ending time is set
         if (mHistory.getEnding() > 0 && duration > 0 && mHistory.getEnding() + position >= duration) {
             mClock.setCallback(null);
             checkNext();
         }
     }
+
     private void updateSeekBarSmoothly() {
         // 这里可以实现进度条的平滑更新逻辑
         // 避免进度条跳动
