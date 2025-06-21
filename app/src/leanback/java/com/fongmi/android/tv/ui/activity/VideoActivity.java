@@ -128,10 +128,18 @@ import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 import com.fongmi.android.tv.utils.TmdbHelper; // Import TmdbHelper
 import android.widget.ImageView; // Import ImageView
 import android.util.Log;       // Import Log
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.AnimatorSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
 // --- End Imports ---
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
-
+    private AnimatorSet mControlShowAnimator;
+    private AnimatorSet mControlHideAnimator;
+    private boolean mIsControlAnimating = false;
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
     private EpisodePresenter mEpisodePresenter;
@@ -1184,12 +1192,16 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onLoop() {
+        animateButtonClick(mBinding.control.loop);
         mBinding.control.loop.setActivated(!mBinding.control.loop.isActivated());
+        updateButtonStyle(mBinding.control.loop, true);
     }
 
     private void onDanmu() {
+        animateButtonClick(mBinding.control.danmu);
         Setting.putDanmu(!Setting.isDanmu());
         mBinding.control.danmu.setActivated(Setting.isDanmu());
+        updateButtonStyle(mBinding.control.danmu, true);
         showDanmu();
     }
 
@@ -1215,7 +1227,8 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onEpisodes() {
-        if(getFlag() == null || getFlag().getEpisodes() == null) return; // Add null checks
+        animateButtonClick(mBinding.control.episodes);
+        if(getFlag() == null || getFlag().getEpisodes() == null) return;
         EpisodeDialog.create().episodes(getFlag().getEpisodes()).show(this);
         hideControl();
     }
@@ -1231,6 +1244,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onNext() {
+        animateButtonClick(mBinding.control.next);
         int current = getEpisodePosition();
         int max = mEpisodeAdapter.size() - 1;
         if (max < 0) return; // Adapter might be empty
@@ -1243,6 +1257,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onPrev() {
+        animateButtonClick(mBinding.control.prev);
         int current = getEpisodePosition();
         if(current < 0) return; // Position might be invalid
         current = --current < 0 ? 0 : current;
@@ -1254,16 +1269,19 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onScale() {
+        animateButtonClick(mBinding.control.scale);
         int index = getScale();
         String[] array = ResUtil.getStringArray(R.array.select_scale);
-        int newIndex = index >= array.length - 1 ? 0 : ++index; // Ensure index calculation is safe
-        if (mHistory != null) mHistory.setScale(newIndex); // Add null check
+        int newIndex = index >= array.length - 1 ? 0 : ++index;
+        if (mHistory != null) mHistory.setScale(newIndex);
         setScale(newIndex);
     }
 
     private void onSpeed() {
+        animateButtonClick(mBinding.control.speed);
         mBinding.control.speed.setText(mPlayers.addSpeed());
-        if(mHistory != null) mHistory.setSpeed(mPlayers.getSpeed()); // Add null check
+        if(mHistory != null) mHistory.setSpeed(mPlayers.getSpeed());
+        updateButtonStyle(mBinding.control.speed, true);
     }
 
     private void onSpeedAdd() {
@@ -1287,6 +1305,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onReset() {
+        animateButtonClick(mBinding.control.reset);
         onReset(isReplay());
     }
 
@@ -1371,12 +1390,14 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void onPlayer() {
+        animateButtonClick(mBinding.control.player);
         CharSequence title = mBinding.widget.title.getText();
-        PlayerDialog.create().select(mPlayers.getPlayer()).title(title != null ? title.toString() : "").show(this); // Handle null title
+        PlayerDialog.create().select(mPlayers.getPlayer()).title(title != null ? title.toString() : "").show(this);
         hideControl();
     }
 
     private void onDecode() {
+        animateButtonClick(mBinding.control.decode);
         onDecode(true);
     }
 
@@ -1457,27 +1478,335 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void showControl(View view) {
-         if (view == null) view = getFocus2(); // Fallback if view is null
-         if (view == null) view = mBinding.control.next; // Final fallback
+        if (mIsControlAnimating) return;
+        
+        if (view == null) view = getFocus2();
+        if (view == null) view = mBinding.control.next;
+        
+        // 设置弹幕按钮可见性
         mBinding.control.danmu.setVisibility(mBinding.danmaku.isPrepared() ? View.VISIBLE : View.GONE);
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        
+        // 设置选集按钮可见性
         mBinding.control.episodes.setVisibility(Setting.getFullscreenMenuKey() == 0 ? View.VISIBLE : View.GONE);
-        if (view != null) view.requestFocus(); // Request focus if view is not null
+        
+        // 更新按钮状态
+        updateControlButtonStates();
+        
+        // 显示控制栏
+        mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        
+        // 创建并执行显示动画
+        createShowAnimation();
+        
+        if (view != null) view.requestFocus();
         setControlNextFocus();
         setR1Callback();
     }
 
+    private void createShowAnimation() {
+        if (mControlShowAnimator != null && mControlShowAnimator.isRunning()) {
+            mControlShowAnimator.cancel();
+        }
+        
+        mIsControlAnimating = true;
+        
+        // 淡入动画
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(
+            mBinding.control.getRoot(), "alpha", 0f, 1f
+        );
+        fadeIn.setDuration(300);
+        fadeIn.setInterpolator(new DecelerateInterpolator());
+        
+        // 从底部滑入动画
+        ObjectAnimator slideUp = ObjectAnimator.ofFloat(
+            mBinding.control.getRoot(), "translationY", 200f, 0f
+        );
+        slideUp.setDuration(350);
+        slideUp.setInterpolator(new DecelerateInterpolator(1.5f));
+        
+        // 按钮组缩放动画
+        animateControlGroups(true);
+        
+        mControlShowAnimator = new AnimatorSet();
+        mControlShowAnimator.playTogether(fadeIn, slideUp);
+        mControlShowAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mIsControlAnimating = false;
+            }
+        });
+        mControlShowAnimator.start();
+    }
 
     private void hideControl() {
         hideControl(true);
     }
 
     private void hideControl(boolean hideInfo) {
+        if (mIsControlAnimating) return;
+        
         if (hideInfo) hideInfo();
+        
+        // 重置文字
         mBinding.control.text.setText(R.string.play_track_text);
-        mBinding.control.getRoot().setVisibility(View.GONE);
+        
+        // 创建并执行隐藏动画
+        createHideAnimation();
+        
         App.removeCallbacks(mR1);
     }
+
+    private void createHideAnimation() {
+        if (mControlHideAnimator != null && mControlHideAnimator.isRunning()) {
+            mControlHideAnimator.cancel();
+        }
+        
+        mIsControlAnimating = true;
+        
+        // 淡出动画
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(
+            mBinding.control.getRoot(), "alpha", 1f, 0f
+        );
+        fadeOut.setDuration(200);
+        fadeOut.setInterpolator(new AccelerateInterpolator());
+        
+        // 向下滑出动画
+        ObjectAnimator slideDown = ObjectAnimator.ofFloat(
+            mBinding.control.getRoot(), "translationY", 0f, 100f
+        );
+        slideDown.setDuration(200);
+        slideDown.setInterpolator(new AccelerateInterpolator());
+        
+        mControlHideAnimator = new AnimatorSet();
+        mControlHideAnimator.playTogether(fadeOut, slideDown);
+        mControlHideAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mBinding.control.getRoot().setVisibility(View.GONE);
+                mIsControlAnimating = false;
+            }
+        });
+        mControlHideAnimator.start();
+    }
+
+    // 动画化控制按钮组
+    private void animateControlGroups(boolean show) {
+        ViewGroup actionLayout = mBinding.control.actionLayout;
+        int childCount = actionLayout.getChildCount();
+        
+        for (int i = 0; i < childCount; i++) {
+            View child = actionLayout.getChildAt(i);
+            if (child instanceof LinearLayout) {
+                animateGroupEntry(child, i * 50L, show);
+            } else {
+                animateSingleButton(child, (childCount - 1) * 50L, show);
+            }
+        }
+    }
+
+    private void animateGroupEntry(View group, long delay, boolean show) {
+        group.setScaleX(show ? 0.8f : 1f);
+        group.setScaleY(show ? 0.8f : 1f);
+        group.setAlpha(show ? 0f : 1f);
+        
+        group.animate()
+            .scaleX(show ? 1f : 0.8f)
+            .scaleY(show ? 1f : 0.8f)
+            .alpha(show ? 1f : 0f)
+            .setStartDelay(show ? delay : 0)
+            .setDuration(show ? 300 : 200)
+            .setInterpolator(new DecelerateInterpolator())
+            .start();
+    }
+
+    private void animateSingleButton(View button, long delay, boolean show) {
+        button.setAlpha(show ? 0f : 1f);
+        button.setTranslationX(show ? 50f : 0f);
+        
+        button.animate()
+            .alpha(show ? 1f : 0f)
+            .translationX(show ? 0f : 50f)
+            .setStartDelay(show ? delay : 0)
+            .setDuration(show ? 300 : 200)
+            .setInterpolator(new DecelerateInterpolator())
+            .start();
+    }
+
+        private void updateControlButtonStates() {
+        // 更新播放器按钮文字
+        mBinding.control.player.setText(mPlayers.getPlayerText());
+        
+        // 更新解码按钮文字
+        mBinding.control.decode.setText(mPlayers.getDecodeText());
+        
+        // 更新倍速按钮
+        mBinding.control.speed.setText(mPlayers.getSpeedText());
+        mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
+        updateButtonStyle(mBinding.control.speed, mPlayers.canAdjustSpeed());
+        
+        // 更新比例按钮
+        mBinding.control.scale.setText(ResUtil.getStringArray(R.array.select_scale)[getScale()]);
+        
+        // 更新循环按钮状态
+        mBinding.control.loop.setActivated(mBinding.control.loop.isActivated());
+        updateButtonStyle(mBinding.control.loop, true);
+        
+        // 更新弹幕按钮状态
+        mBinding.control.danmu.setActivated(Setting.isDanmu());
+        updateButtonStyle(mBinding.control.danmu, mBinding.danmaku.isPrepared());
+        
+        // 更新轨道按钮
+        updateTrackButtons();
+        
+        // 更新时间按钮
+        updateTimeButtons();
+    }
+    private void updateButtonStyle(TextView button, boolean enabled) {
+        if (button == null) return;
+        
+        button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1.0f : 0.5f);
+        
+        // 为激活状态的按钮添加特殊效果
+        if (button.isActivated() && enabled) {
+            addGlowEffect(button);
+        } else {
+            removeGlowEffect(button);
+        }
+    }
+
+    // 添加发光效果
+    private void addGlowEffect(View view) {
+        view.animate()
+            .scaleX(1.05f)
+            .scaleY(1.05f)
+            .setDuration(200)
+            .setInterpolator(new DecelerateInterpolator())
+            .start();
+    }
+
+    // 移除发光效果
+    private void removeGlowEffect(View view) {
+        view.animate()
+            .scaleX(1.0f)
+            .scaleY(1.0f)
+            .setDuration(200)
+            .setInterpolator(new DecelerateInterpolator())
+            .start();
+    }
+
+    // 更新轨道按钮
+    private void updateTrackButtons() {
+        boolean hasText = mPlayers.haveTrack(C.TRACK_TYPE_TEXT) || mPlayers.isExo();
+        boolean hasAudio = mPlayers.haveTrack(C.TRACK_TYPE_AUDIO);
+        boolean hasVideo = mPlayers.haveTrack(C.TRACK_TYPE_VIDEO);
+        
+        mBinding.control.text.setVisibility(hasText ? View.VISIBLE : View.GONE);
+        mBinding.control.audio.setVisibility(hasAudio ? View.VISIBLE : View.GONE);
+        mBinding.control.video.setVisibility(hasVideo ? View.VISIBLE : View.GONE);
+        
+        // 如果有任何轨道，显示轨道组容器
+        View trackGroup = mBinding.control.text.getParent();
+        if (trackGroup instanceof LinearLayout) {
+            trackGroup.setVisibility((hasText || hasAudio || hasVideo) ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    // 更新时间按钮
+    private void updateTimeButtons() {
+        if (mHistory != null) {
+            String openingText = mHistory.getOpening() == 0 ? 
+                getString(R.string.play_op) : 
+                mPlayers.stringToTime(mHistory.getOpening());
+            String endingText = mHistory.getEnding() == 0 ? 
+                getString(R.string.play_ed) : 
+                mPlayers.stringToTime(mHistory.getEnding());
+                
+            mBinding.control.opening.setText(openingText);
+            mBinding.control.ending.setText(endingText);
+            
+            // 高亮已设置的时间按钮
+            updateButtonStyle(mBinding.control.opening, true);
+            updateButtonStyle(mBinding.control.ending, true);
+            
+            if (mHistory.getOpening() > 0) {
+                mBinding.control.opening.setActivated(true);
+            }
+            if (mHistory.getEnding() > 0) {
+                mBinding.control.ending.setActivated(true);
+            }
+        }
+    }
+
+    // 优化焦点设置
+    private void setControlNextFocus() {
+        ViewGroup actionLayout = mBinding.control.actionLayout;
+        View firstFocusable = null;
+        View lastFocusable = null;
+        View previousFocusable = null;
+        
+        // 遍历所有子视图设置焦点
+        for (int i = 0; i < actionLayout.getChildCount(); i++) {
+            View child = actionLayout.getChildAt(i);
+            
+            if (child instanceof LinearLayout) {
+                // 处理按钮组
+                LinearLayout group = (LinearLayout) child;
+                for (int j = 0; j < group.getChildCount(); j++) {
+                    View button = group.getChildAt(j);
+                    if (button.isEnabled() && button.getVisibility() == View.VISIBLE) {
+                        setupButtonFocus(button, previousFocusable);
+                        if (firstFocusable == null) firstFocusable = button;
+                        lastFocusable = button;
+                        previousFocusable = button;
+                    }
+                }
+            } else if (child.isEnabled() && child.getVisibility() == View.VISIBLE) {
+                // 处理单个按钮
+                setupButtonFocus(child, previousFocusable);
+                if (firstFocusable == null) firstFocusable = child;
+                lastFocusable = child;
+                previousFocusable = child;
+            }
+        }
+        
+        // 设置循环焦点
+        if (firstFocusable != null && lastFocusable != null) {
+            firstFocusable.setNextFocusLeftId(lastFocusable.getId());
+            lastFocusable.setNextFocusRightId(firstFocusable.getId());
+        }
+    }
+
+    private void setupButtonFocus(View button, View previous) {
+        // 设置上下焦点
+        button.setNextFocusUpId(button.getId());
+        button.setNextFocusDownId(mBinding.control.seek.getId());
+        
+        // 设置左右焦点
+        if (previous != null) {
+            button.setNextFocusLeftId(previous.getId());
+            previous.setNextFocusRightId(button.getId());
+        }
+    }
+
+    // 按钮点击优化 - 添加点击动画
+    private void animateButtonClick(View button) {
+        button.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .setDuration(100)
+            .setInterpolator(new DecelerateInterpolator())
+            .withEndAction(() -> {
+                button.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(100)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+            })
+            .start();
+    }
+
 
     private void hideCenter() {
         mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
@@ -1713,6 +2042,12 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     @Override
     public void onTimeChanged() {
+        super.onTimeChanged();
+        
+        // 更新进度条时添加平滑过渡
+        if (mBinding.control.getRoot().getVisibility() == View.VISIBLE) {
+            updateSeekBarSmoothly();
+        }        
         onTimeChangeDisplaySpeed();
         if (mHistory == null) return; // Add null check for history early
 
@@ -1737,6 +2072,10 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
             mClock.setCallback(null);
             checkNext();
         }
+    }
+    private void updateSeekBarSmoothly() {
+        // 这里可以实现进度条的平滑更新逻辑
+        // 避免进度条跳动
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -2337,6 +2676,14 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     @Override
     protected void onDestroy() {
+        if (mControlShowAnimator != null) {
+            mControlShowAnimator.cancel();
+            mControlShowAnimator = null;
+        }
+        if (mControlHideAnimator != null) {
+            mControlHideAnimator.cancel();
+            mControlHideAnimator = null;
+        }
         super.onDestroy();
         stopSearch();
         mClock.release();

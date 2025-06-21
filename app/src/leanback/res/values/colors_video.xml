@@ -1,0 +1,21 @@
+<resources>
+    <!-- 主要按钮文字颜色 -->
+    <selector name="video_button_primary_text">
+        <item android:color="#FF000000" android:state_focused="true" />
+        <item android:color="#FFFFFFFF" />
+    </selector>
+    
+    <!-- 次要按钮文字颜色 -->
+    <selector name="video_button_secondary_text">
+        <item android:color="#FF000000" android:state_focused="true" />
+        <item android:color="#FFFFFFFF" android:state_activated="true" />
+        <item android:color="#B3FFFFFF" />
+    </selector>
+    
+    <!-- 强调按钮文字颜色 -->
+    <selector name="video_button_accent_text">
+        <item android:color="#FFFFFFFF" android:state_focused="true" />
+        <item android:color="#FFFFFFFF" android:state_activated="true" />
+        <item android:color="#FFFF4081" />
+    </selector>
+</resources>
