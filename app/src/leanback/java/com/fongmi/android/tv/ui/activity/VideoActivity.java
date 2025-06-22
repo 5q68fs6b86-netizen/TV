@@ -1715,10 +1715,10 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
             updateButtonStyle(mBinding.control.ending, true);
             
             if (mHistory.getOpening() > 0) {
-                mBinding.control.opening.setActivated(true);
+                mBinding.control.opening.setActivated(false);
             }
             if (mHistory.getEnding() > 0) {
-                mBinding.control.ending.setActivated(true);
+                mBinding.control.ending.setActivated(false);
             }
         }
     }
