@@ -347,14 +347,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return getIntent().getBooleanExtra("collect", false);
     }
 
-    private void initView() {
-        mSeekView = mBinding.control.seek;
-        mCurrentTime = mBinding.control.currentTime;
-        mTotalTime = mBinding.control.totalTime;
-    // 设置播放器监听
-        mSeekView.setListener(mPlayers.getPlayer());
-    }
-
     @Override
     protected ViewBinding getBinding() {
         // Ensure mBinding is initialized correctly
@@ -392,6 +384,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setViewModel();
         checkCast();
         checkId();
+        mSeekView = mBinding.control.seek;
+        mCurrentTime = mBinding.control.currentTime;
+        mTotalTime = mBinding.control.totalTime;
+    // 设置播放器监听
+        mSeekView.setListener(mPlayers.getPlayer());
     }
 
     @Override
