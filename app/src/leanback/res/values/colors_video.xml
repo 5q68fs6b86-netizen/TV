@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 基础颜色定义 -->
+    <!-- 基础颜色定义 - 混合使用主题色和固定色 -->
     <color name="video_button_primary_text_default">#FFFFFFFF</color>
     <color name="video_button_primary_text_focused">#FF000000</color>
     
     <color name="video_button_secondary_text_default">#B3FFFFFF</color>
-    <color name="video_button_secondary_text_focused">#FF000000</color>
-    <color name="video_button_secondary_text_activated">#FFFFFFFF</color>
+    <color name="video_button_secondary_text_focused">@color/md_theme_onPrimaryContainer</color>
+    <color name="video_button_secondary_text_activated">@color/md_theme_primary</color>
     
-    <color name="video_button_accent_text_default">#FFFF4081</color>
+    <color name="video_button_accent_text_default">@color/md_theme_tertiary</color>
     <color name="video_button_accent_text_focused">#FFFFFFFF</color>
     <color name="video_button_accent_text_activated">#FFFFFFFF</color>
     
-    <!-- 控制栏背景颜色 -->
+    <!-- 控制栏背景颜色 - 保持黑色渐变 -->
     <color name="video_control_bg_start">#F0000000</color>
     <color name="video_control_bg_center">#D0000000</color>
     <color name="video_control_bg_end">#00000000</color>
     
-    <!-- 按钮背景颜色 -->
+    <!-- 按钮背景颜色 - 使用带透明度的主题色 -->
     <color name="video_button_bg_default">#33FFFFFF</color>
     <color name="video_button_bg_focused">#FFFFFFFF</color>
-    <color name="video_button_bg_pressed">#E6FFFFFF</color>
-    <color name="video_button_bg_activated">#FF2196F3</color>
+    <color name="video_button_bg_pressed">@color/md_theme_primaryContainer</color>
+    <color name="video_button_bg_activated">@color/md_theme_primary</color>
     
-    <!-- 控制组背景 -->
+    <!-- 控制组背景 - 使用带透明度的主题色 -->
     <color name="video_control_group_bg">#1AFFFFFF</color>
-    <color name="video_control_group_stroke">#1AFFFFFF</color>
+    <color name="video_control_group_stroke">@color/md_theme_outline</color>
 </resources>
