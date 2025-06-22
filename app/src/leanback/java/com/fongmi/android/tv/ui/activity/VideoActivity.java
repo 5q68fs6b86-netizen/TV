@@ -41,6 +41,7 @@ import com.bumptech.glide.Glide; // Ensure Glide import is present
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.ui.custom.CustomSeekView;
 import com.fongmi.android.tv.Constant; // For TMDB_API_KEY
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -2068,7 +2069,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (mSeekView != null) {
             mSeekView.updateProgress();
         }
-    // 更新时间显示
+         // 更新时间显示
         if (mCurrentTime != null && mTotalTime != null && mPlayers != null) {
             mCurrentTime.setText(mPlayers.getPositionTime(0));
             mTotalTime.setText(mPlayers.getDurationTime());
