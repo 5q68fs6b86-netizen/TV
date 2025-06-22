@@ -179,6 +179,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private View mFocus1;
     private View mFocus2;
     private boolean hasKeyEvent;
+    private TextView mCurrentTime;
+    private TextView mTotalTime;
+    private CustomSeekView mSeekView;
     // --- Variables for TMDB modification ---
     private String currentVodName = "";   // Store original VOD name
     private String currentLogoUrl = null; // Store found TMDB logo URL
@@ -342,6 +345,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private boolean isFromCollect() {
         return getIntent().getBooleanExtra("collect", false);
+    }
+
+    private void initView() {
+        mSeekView = mBinding.control.seek;
+        mCurrentTime = mBinding.control.currentTime;
+        mTotalTime = mBinding.control.totalTime;
+    // 设置播放器监听
+        mSeekView.setListener(mPlayers.getPlayer());
     }
 
     @Override
@@ -553,6 +564,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
         if (mHistory != null) { // Add null check for history
             mBinding.control.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
+        }
+        if (mSeekView != null && mPlayers != null) {
+            mSeekView.setListener(mPlayers.getPlayer());
         }
     }
 
@@ -2052,6 +2066,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (mHistory.getEnding() > 0 && duration > 0 && mHistory.getEnding() + position >= duration) {
             mClock.setCallback(null);
             checkNext();
+        }
+
+        if (mSeekView != null) {
+            mSeekView.updateProgress();
+        }
+    // 更新时间显示
+        if (mCurrentTime != null && mTotalTime != null && mPlayers != null) {
+            mCurrentTime.setText(mPlayers.getPositionTime(0));
+            mTotalTime.setText(mPlayers.getDurationTime());
         }
     }
 
