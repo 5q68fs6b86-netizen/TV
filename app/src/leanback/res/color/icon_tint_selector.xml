@@ -1,10 +1,13 @@
-<!-- res/color/icon_tint_selector.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 聚焦/选中状态：黑色 -->
+
+    <!-- 状态一：当视图被聚焦时，颜色为黑色 -->
     <item android:state_focused="true" android:color="@android:color/black" />
+
+    <!-- 状态二：当视图被按下时，颜色为黑色 -->
     <item android:state_pressed="true" android:color="@android:color/black" />
 
-    <!-- 默认状态：和其他文字颜色一样 (半透明白色) -->
+    <!-- 默认状态：其他所有情况，颜色为半透明白色 -->
     <item android:color="#B3FFFFFF" />
+
 </selector>
