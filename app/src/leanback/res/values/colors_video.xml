@@ -25,5 +25,5 @@
     
     <!-- 控制组背景 - 使用带透明度的主题色 -->
     <color name="video_control_group_bg">#1AFFFFFF</color>
-    <color name="video_control_group_stroke">@color/md_theme_outline</color>
+    <color name="video_control_group_stroke">#4D6F7979</color>
 </resources>

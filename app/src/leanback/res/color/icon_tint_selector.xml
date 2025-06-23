@@ -2,10 +2,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- 状态一：当视图被聚焦时，颜色为黑色 -->
-    <item android:state_focused="true" android:color="@android:color/black" />
+    <item android:state_focused="true" android:color="@color/md_theme_onPrimaryContainer" />
 
     <!-- 状态二：当视图被按下时，颜色为黑色 -->
-    <item android:state_pressed="true" android:color="@android:color/black" />
+    <item android:state_pressed="true" android:color="@color/md_theme_onPrimaryContainer" />
 
     <!-- 默认状态：其他所有情况，颜色为半透明白色 -->
     <item android:color="#B3FFFFFF" />
