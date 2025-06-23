@@ -3,7 +3,7 @@
     <!-- 聚焦状态 -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFFFF" />
+            <solid android:color="#FF004F50" />
             <corners android:radius="20dp" />
         </shape>
     </item>
