@@ -182,29 +182,3 @@ public class QRCode {
         canvas.drawBitmap(logo, null, new RectF(logoX, logoY, logoX + logoSize, logoY + logoSize), null);
     }
 }
-```
-
-### 如何使用
-
-**1. 原有调用方式 (无 Logo)**
-
-你的代码中 `UaDialog.java` 的这一行 **完全不需要修改**：
-
-```java
-// 在 UaDialog.java 中
-// binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
-// 这行代码现在会自动生成一个美化过的二维码
-```
-它现在生成的二维码数据点将是带有柔和圆角的方块，并且点与点之间有细微的空隙，看起来更加精致。
-
-**2. 新的调用方式 (带 Logo)**
-
-如果你想在其他地方生成一个带 Logo 的二维码，可以像这样调用新增的方法：
-
-```java
-// 假设你有一个 logoBitmap
-Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_app_logo);
-
-Bitmap qrWithLogo = QRCode.getBitmapWithLogo("https://www.example.com", 250, 1, logoBitmap);
-
-imageView.setImageBitmap(qrWithLogo);
