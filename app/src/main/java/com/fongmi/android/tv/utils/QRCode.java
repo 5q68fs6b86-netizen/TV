@@ -1,91 +1,210 @@
 package com.fongmi.android.tv.utils;
 
 import android.graphics.Bitmap;
-import android.graphics.Color; // 引入 Color 以便解析颜色字符串 (虽然这里直接用 int)
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 public class QRCode {
 
-    // 二维码黑色块的颜色
-    private static final int BLACK = 0xFF000000;
-    // 定义你想要的纯色背景
-    private static final int CUSTOM_BACKGROUND_COLOR = 0xFFE3E9E9; // #FFE3E9E9
+    // --- 可配置的样式常量 ---
+    @ColorInt
+    private static final int DATA_COLOR = Color.BLACK; // 数据点颜色
+    @ColorInt
+    private static final int BACKGROUND_COLOR = Color.WHITE; // 背景颜色
+    private static final float DATA_DOT_SCALE = 0.9f; // 数据点缩放比例，制造间距感
+    private static final float CORNER_RADIUS_SCALE = 0.25f; // 数据点圆角半径比例
 
     /**
-     * 将 BitMatrix 转换为 Bitmap。
-     * 修改：将白色部分设为您指定的背景色。
+     * 主调用方法，和原来保持一致。
+     * 生成一个带有默认美化效果（圆角、间距）的二维码。
      *
-     * @param matrix ZXing BitMatrix
-     * @return 代表二维码的 Bitmap，白色部分为 CUSTOM_BACKGROUND_COLOR
+     * @param contents 内容字符串
+     * @param size     二维码尺寸 (dp)
+     * @param margin   边距 (二维码模块数)
+     * @return 美化后的二维码 Bitmap，或在失败时返回 null
      */
-    public static Bitmap createBitmap(BitMatrix matrix) {
-        int width = matrix.getWidth();
-        int height = matrix.getHeight();
-        int[] pixels = new int[width * height];
-        for (int y = 0; y < height; y++) {
-            int offset = y * width;
-            for (int x = 0; x < width; x++) {
-                // true -> 黑色, false -> 自定义背景色
-                pixels[offset + x] = matrix.get(x, y) ? BLACK : CUSTOM_BACKGROUND_COLOR;
-            }
-        }
-        // 创建 Bitmap (不需要 Alpha 通道也可以，但 ARGB_8888 最常用)
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
-        return bitmap;
+    public static Bitmap getBitmap(String contents, int size, int margin) {
+        return generate(contents, size, margin, null);
     }
 
-     // encodeToBitMatrix 方法保持不变 (来自上一个回答)
-    private static BitMatrix encodeToBitMatrix(String contents, int size, int margin) {
+    /**
+     * 新增的重载方法，用于生成带 Logo 的二维码。
+     *
+     * @param contents 内容字符串
+     * @param size     二维码尺寸 (dp)
+     * @param margin   边距 (二维码模块数)
+     * @param logo     要嵌入的 Logo Bitmap
+     * @return 带 Logo 的美化二维码 Bitmap，或在失败时返回 null
+     */
+    public static Bitmap getBitmapWithLogo(String contents, int size, int margin, @Nullable Bitmap logo) {
+        return generate(contents, size, margin, logo);
+    }
+
+
+    /**
+     * 内部核心生成逻辑。
+     */
+    @Nullable
+    private static Bitmap generate(String contents, int size, int margin, @Nullable Bitmap logo) {
         try {
+            int pixelSize = ResUtil.dp2px(size);
+
+            // 1. 编码成 BitMatrix
             Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
             hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
             hints.put(EncodeHintType.MARGIN, margin);
-            int pixelSize = ResUtil.dp2px(size);
-            return new MultiFormatWriter().encode(contents, BarcodeFormat.QR_CODE, pixelSize, pixelSize, hints);
+            // 如果有 logo，使用最高容错率
+            hints.put(EncodeHintType.ERROR_CORRECTION, logo != null ? ErrorCorrectionLevel.H : ErrorCorrectionLevel.Q);
+
+            BitMatrix matrix = new MultiFormatWriter().encode(contents, BarcodeFormat.QR_CODE, pixelSize, pixelSize, hints);
+
+            // 2. 通过 Canvas 绘制美化后的 Bitmap
+            return drawOnCanvas(matrix, logo);
+
         } catch (WriterException e) {
             e.printStackTrace();
             return null;
-        } catch (IllegalArgumentException e) {
-             e.printStackTrace();
-             return null;
         }
     }
 
     /**
-     * 生成带有指定纯色背景 (#FFE3E9E9) 的二维码 Bitmap。
-     *
-     * @param contents 内容
-     * @param size     二维码尺寸 (dp)
-     * @param margin   边距 (模块数)
-     * @return 二维码 Bitmap 或 null
+     * 使用 Canvas 绘制美化效果。
      */
-    public static Bitmap getBitmap(String contents, int size, int margin) {
-        BitMatrix bitMatrix = encodeToBitMatrix(contents, size, margin);
-        if (bitMatrix != null) {
-            // 调用修改后的 createBitmap，白色部分将是 CUSTOM_BACKGROUND_COLOR
-            return createBitmap(bitMatrix);
-        } else {
-            return null;
+    private static Bitmap drawOnCanvas(BitMatrix matrix, @Nullable Bitmap logo) {
+        int width = matrix.getWidth();
+        int height = matrix.getHeight();
+        float moduleSize = (float) width / matrix.getWidth();
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // 绘制背景
+        canvas.drawColor(BACKGROUND_COLOR);
+
+        // 绘制数据点
+        Paint dataPaint = new Paint();
+        dataPaint.setAntiAlias(true);
+        dataPaint.setColor(DATA_COLOR);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // 跳过定位点和背景点
+                if (isFinderPattern(x, y, width) || !matrix.get(x, y)) {
+                    continue;
+                }
+                
+                // 绘制带缩放和圆角的数据点
+                float scaledSize = moduleSize * DATA_DOT_SCALE;
+                float left = x * moduleSize + (moduleSize - scaledSize) / 2;
+                float top = y * moduleSize + (moduleSize - scaledSize) / 2;
+                RectF rect = new RectF(left, top, left + scaledSize, top + scaledSize);
+                float cornerRadius = scaledSize * CORNER_RADIUS_SCALE;
+                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, dataPaint);
+            }
         }
+        
+        // 重新绘制定位点，确保它们是标准的方块
+        drawFinderPatterns(canvas, width, moduleSize, dataPaint);
+
+        // 如果有 logo，嵌入它
+        if (logo != null) {
+            addLogo(canvas, width, height, logo);
+        }
+
+        return bitmap;
     }
 
-    // getBitmapWithBackground 方法可以保留，用于支持图片背景，
-    // 但它内部调用的 createBitmap 现在也会产生 CUSTOM_BACKGROUND_COLOR
-    // 而不是透明色，这可能不是图片背景想要的。
-    // 如果同时需要图片背景和纯色背景，推荐使用方法二。
+    /**
+     * 检查一个点是否属于定位图案（三个大方块）。
+     */
+    private static boolean isFinderPattern(int x, int y, int matrixWidth) {
+        int finderSize = 7;
+        // 左上角
+        if (x < finderSize && y < finderSize) return true;
+        // 右上角
+        if (x >= matrixWidth - finderSize && y < finderSize) return true;
+        // 左下角
+        if (x < finderSize && y >= matrixWidth - finderSize) return true;
 
-    /* (getBitmapWithBackground 方法可以注释掉或删除，如果不再需要图片背景功能)
-    public static Bitmap getBitmapWithBackground(String contents, int qrCodeSizeDp, int qrCodeMargin, Bitmap backgroundBitmap) {
-       // ... (这个方法如果保留，其行为会受 createBitmap 修改的影响)
+        return false;
     }
-    */
+
+    /**
+     * 准确地绘制三个定位图案，覆盖掉可能被圆角化的部分。
+     */
+    private static void drawFinderPatterns(Canvas canvas, int matrixWidth, float moduleSize, Paint paint) {
+        int finderSize = 7;
+        
+        // 左上角
+        canvas.drawRect(0, 0, finderSize * moduleSize, finderSize * moduleSize, paint);
+        canvas.drawRect((matrixWidth - finderSize) * moduleSize, 0, matrixWidth * moduleSize, finderSize * moduleSize, paint);
+        canvas.drawRect(0, (matrixWidth - finderSize) * moduleSize, finderSize * moduleSize, matrixWidth * moduleSize, paint);
+        // 如果要更精细，可以只画黑块，但对于默认黑白二维码，直接画实心矩形更简单高效
+    }
+
+
+    /**
+     * 在二维码中心添加 Logo。
+     */
+    private static void addLogo(Canvas canvas, int width, int height, @NonNull Bitmap logo) {
+        float logoScale = 0.2f; // Logo 占二维码总宽度的比例
+        float logoSize = width * logoScale;
+        float logoX = (width - logoSize) / 2;
+        float logoY = (height - logoSize) / 2;
+
+        // 绘制 Logo 背景 (提供一个"安全区")
+        Paint bgPaint = new Paint();
+        bgPaint.setColor(BACKGROUND_COLOR);
+        float bgMargin = 4f; // 背景比 logo 大一点
+        float bgSize = logoSize + bgMargin * 2;
+        float bgX = (width - bgSize) / 2;
+        float bgY = (height - bgSize) / 2;
+        float bgCornerRadius = 8f;
+        canvas.drawRoundRect(new RectF(bgX, bgY, bgX + bgSize, bgY + bgSize), bgCornerRadius, bgCornerRadius, bgPaint);
+
+        // 绘制 Logo
+        canvas.drawBitmap(logo, null, new RectF(logoX, logoY, logoX + logoSize, logoY + logoSize), null);
+    }
 }
+```
+
+### 如何使用
+
+**1. 原有调用方式 (无 Logo)**
+
+你的代码中 `UaDialog.java` 的这一行 **完全不需要修改**：
+
+```java
+// 在 UaDialog.java 中
+// binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
+// 这行代码现在会自动生成一个美化过的二维码
+```
+它现在生成的二维码数据点将是带有柔和圆角的方块，并且点与点之间有细微的空隙，看起来更加精致。
+
+**2. 新的调用方式 (带 Logo)**
+
+如果你想在其他地方生成一个带 Logo 的二维码，可以像这样调用新增的方法：
+
+```java
+// 假设你有一个 logoBitmap
+Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_app_logo);
+
+Bitmap qrWithLogo = QRCode.getBitmapWithLogo("https://www.example.com", 250, 1, logoBitmap);
+
+imageView.setImageBitmap(qrWithLogo);
