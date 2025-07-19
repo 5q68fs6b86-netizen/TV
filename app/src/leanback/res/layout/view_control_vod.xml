@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -11,7 +12,7 @@
     android:paddingEnd="20dp"
     android:paddingBottom="16dp">
 
-    <!-- 解析源选择器 (保持不变) -->
+    <!-- 解析源选择器 (已修改) -->
     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
         android:id="@+id/parse"
         android:layout_width="match_parent"
@@ -19,7 +20,11 @@
         android:layout_marginBottom="20dp"
         android:clipChildren="false"
         android:clipToPadding="false"
+        android:paddingStart="4dp"
         android:visibility="gone"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        tools:ignore="RtlSymmetry"
         tools:layout_height="40dp" />
 
     <!-- 主要控制按钮区域 -->
