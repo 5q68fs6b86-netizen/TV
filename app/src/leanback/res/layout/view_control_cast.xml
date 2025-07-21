@@ -45,6 +45,12 @@
                     style="@style/VideoControlButton.Secondary"
                     android:layout_marginStart="4dp"
                     tools:text="硬解" />
+
+                <TextView
+                    android:id="@+id/reset"
+                    style="@style/VideoControlButton.Secondary"
+                    android:layout_marginStart="4dp"
+                    tools:text="刷新" />
             </LinearLayout>
 
             <LinearLayout
