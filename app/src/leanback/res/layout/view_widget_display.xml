@@ -101,6 +101,7 @@
         android:layout_marginBottom="0dp"
         android:max="100"
         android:progress="0"
+        android:progressDrawable="@drawable/roundprogress"
         tools:progress="50" />
 
 </RelativeLayout>
