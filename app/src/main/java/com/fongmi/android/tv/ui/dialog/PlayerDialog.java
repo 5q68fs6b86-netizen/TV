@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.DialogPlayerBinding;
+import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.ui.adapter.PlayerAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -55,6 +56,11 @@ public class PlayerDialog extends BaseDialog implements PlayerAdapter.OnClickLis
 
     @Override
     protected void initView() {
+        String[] players = ResUtil.getStringArray(R.array.select_player);
+        adapter.add(players[Players.SYS], Players.SYS);
+        adapter.add(players[Players.IJK], Players.IJK);
+        adapter.add(players[Players.EXO], Players.EXO);
+        adapter.add(players[Players.VLC], Players.VLC);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setAdapter(adapter);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));

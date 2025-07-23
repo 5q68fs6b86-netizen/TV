@@ -19,6 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.graphics.Outline;
 import android.view.ViewOutlineProvider;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -315,6 +316,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return mBinding.ijk;
     }
 
+    private FrameLayout getVlc() {
+        return mBinding.vlc;
+    }
+
     private Drawable getDefaultArtwork() {
         if (mPlayers.isExo()) return getExo().getDefaultArtwork();
         return getIjk().getDefaultArtwork();
@@ -496,6 +501,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mPlayers.init(getExo(), getIjk());
         ExoUtil.setSubtitleView(mBinding.exo);
         IjkUtil.setSubtitleView(mBinding.ijk);
+        if (getVlc().getChildCount() > 0) getVlc().removeAllViews();
+        getVlc().addView(mPlayers.vlc().getPlayerView());
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.exo.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         mBinding.ijk.setBackgroundColor(android.graphics.Color.TRANSPARENT);
@@ -551,6 +558,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        getVlc().setVisibility(mPlayers.isVlc() ? View.VISIBLE : View.GONE);
         if (mHistory != null) { // Add null check for history
             mBinding.control.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         }

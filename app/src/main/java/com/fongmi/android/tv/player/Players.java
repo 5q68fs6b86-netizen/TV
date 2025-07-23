@@ -37,6 +37,7 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.vlc.VlcPlayer;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -69,6 +70,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public static final int SYS = 0;
     public static final int IJK = 1;
     public static final int EXO = 2;
+    public static final int VLC = 3;
 
     public static final int SOFT = 0;
     public static final int HARD = 1;
@@ -81,6 +83,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private MediaSessionCompat session;
     private IjkVideoView ijkPlayer;
     private DanmakuView danmuView;
+    private VlcPlayer vlcPlayer;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
     private List<Sub> subs;
@@ -125,6 +128,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return player == SYS || player == IJK;
     }
 
+    public boolean isVlc() {
+        return player == VLC;
+    }
+
     private Players(Activity activity) {
         player = Setting.getPlayer();
         decode = Setting.getDecode(player);
@@ -132,6 +139,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
         position = C.TIME_UNSET;
+        vlcPlayer = new VlcPlayer(activity);
         createSession(activity);
     }
 
@@ -148,6 +156,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         releaseIjk();
         initExo(exo);
         initIjk(ijk);
+        vlcPlayer.setPlayerListener(this);
     }
 
     private void initExo(PlayerView view) {
@@ -177,6 +186,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public IjkVideoView ijk() {
         return ijkPlayer;
+    }
+
+    public VlcPlayer vlc() {
+        return vlcPlayer;
     }
 
     public MediaSessionCompat getSession() {
@@ -258,11 +271,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public int getVideoWidth() {
-        return isExo() ? exoPlayer.getVideoSize().width : ijkPlayer.getVideoWidth();
+        if (isExo()) return exoPlayer.getVideoSize().width;
+        if (isIjk()) return ijkPlayer.getVideoWidth();
+        return 0;
     }
 
     public int getVideoHeight() {
-        return isExo() ? exoPlayer.getVideoSize().height : ijkPlayer.getVideoHeight();
+        if (isExo()) return exoPlayer.getVideoSize().height;
+        if (isIjk()) return ijkPlayer.getVideoHeight();
+        return 0;
     }
 
     public float getSpeed() {
@@ -274,12 +291,14 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public long getPosition() {
         if (isExo() && exoPlayer != null) return exoPlayer.getCurrentPosition();
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getCurrentPosition();
+        if (isVlc() && vlcPlayer != null) return vlcPlayer.getPosition();
         return 0;
     }
 
     public long getDuration() {
         if (isExo() && exoPlayer != null) return exoPlayer.getDuration();
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getDuration();
+        if (isVlc() && vlcPlayer != null) return vlcPlayer.getDuration();
         return -1;
     }
 
@@ -304,7 +323,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public boolean isPlaying() {
-        return isExo() ? exoPlayer != null && exoPlayer.isPlaying() : ijkPlayer != null && ijkPlayer.isPlaying();
+        if (isExo()) return exoPlayer != null && exoPlayer.isPlaying();
+        if (isIjk()) return ijkPlayer != null && ijkPlayer.isPlaying();
+        if (isVlc()) return vlcPlayer != null && vlcPlayer.isPlaying();
+        return false;
     }
 
     public boolean isEnd() {
@@ -381,11 +403,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void togglePlayer() {
-        setPlayer(isExo() ? SYS : ++player);
+        setPlayer(isExo() ? VLC : isVlc() ? SYS : ++player);
     }
 
     public void nextPlayer() {
-        setPlayer(isExo() ? IJK : EXO);
+        setPlayer(isExo() ? IJK : isIjk() ? VLC : EXO);
     }
 
     public void toggleDecode(boolean save) {
@@ -414,6 +436,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (haveDanmu()) danmuView.seekTo(time);
         if (isExo() && exoPlayer != null) exoPlayer.seekTo(time);
         if (isIjk() && ijkPlayer != null) ijkPlayer.seekTo(time);
+        if (isVlc() && vlcPlayer != null) vlcPlayer.seekTo(time);
     }
 
     public void play() {
@@ -421,6 +444,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         session.setActive(true);
         if (isExo()) playExo();
         if (isIjk()) playIjk();
+        if (isVlc()) playVlc();
         if (haveDanmu()) danmuView.resume();
         setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
     }
@@ -428,6 +452,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void pause() {
         if (isExo()) pauseExo();
         if (isIjk()) pauseIjk();
+        if (isVlc()) pauseVlc();
         if (haveDanmu()) danmuView.pause();
         setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
     }
@@ -435,6 +460,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void stop() {
         if (isExo()) stopExo();
         if (isIjk()) stopIjk();
+        if (isVlc()) stopVlc();
         session.setActive(false);
         if (haveDanmu()) danmuView.stop();
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
@@ -445,6 +471,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         session.release();
         if (isExo()) releaseExo();
         if (isIjk()) releaseIjk();
+        if (isVlc()) releaseVlc();
         if (haveDanmu()) danmuView.release();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
@@ -485,6 +512,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         ijkPlayer.start();
     }
 
+    private void playVlc() {
+        if (vlcPlayer == null) return;
+        vlcPlayer.play();
+    }
+
     private void pauseExo() {
         if (exoPlayer == null) return;
         exoPlayer.pause();
@@ -493,6 +525,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private void pauseIjk() {
         if (ijkPlayer == null) return;
         ijkPlayer.pause();
+    }
+
+    private void pauseVlc() {
+        if (vlcPlayer == null) return;
+        vlcPlayer.pause();
     }
 
     private void stopExo() {
@@ -506,6 +543,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         ijkPlayer.stop();
     }
 
+    private void stopVlc() {
+        if (vlcPlayer == null) return;
+        vlcPlayer.stop();
+    }
+
     private void releaseExo() {
         if (exoPlayer == null) return;
         exoPlayer.removeListener(this);
@@ -517,6 +559,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (ijkPlayer == null) return;
         ijkPlayer.release();
         ijkPlayer = null;
+    }
+
+    private void releaseVlc() {
+        if (vlcPlayer == null) return;
+        vlcPlayer.release();
     }
 
     private void startParse(Result result, boolean useParse) {
@@ -552,6 +599,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
+        if (isVlc() && vlcPlayer != null) vlcPlayer.start(this.url = url);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         App.post(runnable, timeout);
         PlayerEvent.prepare();

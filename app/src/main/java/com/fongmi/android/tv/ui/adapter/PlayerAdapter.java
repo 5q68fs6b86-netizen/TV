@@ -17,20 +17,24 @@ import java.util.List;
 public class PlayerAdapter extends RecyclerView.Adapter<PlayerAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
+    private final List<String> mNames;
     private final List<Integer> mItems;
-    private final String[] mPlayers;
     private int selected;
 
     public PlayerAdapter(OnClickListener listener) {
         this.mListener = listener;
-        this.mPlayers = ResUtil.getStringArray(R.array.select_player);
+        this.mNames = new ArrayList<>();
         this.mItems = new ArrayList<>();
-        for(int i= 0; i<this.mPlayers.length; i++) this.mItems.add(i);
     }
 
     public interface OnClickListener {
 
         void onItemClick(Integer item);
+    }
+
+    public void add(String name, int type) {
+        mNames.add(name);
+        mItems.add(type);
     }
 
     public void setSelected(int player) {
@@ -55,7 +59,7 @@ public class PlayerAdapter extends RecyclerView.Adapter<PlayerAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Integer item = mItems.get(position);
-        holder.binding.text.setText(mPlayers[item]);
+        holder.binding.text.setText(mNames.get(position));
         holder.binding.text.setActivated(item == selected);
     }
 
