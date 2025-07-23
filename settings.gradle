@@ -13,7 +13,6 @@ dependencyResolutionManagement {
         mavenCentral()
         jcenter()
         maven { url "https://jitpack.io" }
-        maven { url "https://code.videolan.org/videolan/mvn-sdk-2" }
         flatDir {
             dirs "$rootDir/app/libs", "$rootDir/quickjs/libs"
         }

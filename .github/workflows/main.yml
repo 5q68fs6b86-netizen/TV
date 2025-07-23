@@ -32,9 +32,6 @@ jobs:
     - name: Grant gradlew permission
       run: chmod +x ./gradlew
 
-    - name: Test network connectivity
-      run: curl -v https://code.videolan.org/videolan/mvn-sdk-2/org/videolan/android/libvlc-all/3.5.4/libvlc-all-3.5.4.pom
-
     - name: Build APKs
       run: |
          ./gradlew assembleLeanbackPythonArm64_v8aRelease
