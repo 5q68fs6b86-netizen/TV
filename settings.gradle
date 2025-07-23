@@ -9,14 +9,12 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        google()
         mavenCentral()
         jcenter()
-        google()
+        maven { url "https://jitpack.io" }
         flatDir {
             dirs "$rootDir/app/libs", "$rootDir/quickjs/libs"
-        }
-        maven {
-            url "https://jitpack.io"
         }
         maven {
             url "http://4thline.org/m2"
