@@ -4,6 +4,14 @@ plugins {
     id 'com.chaquo.python' version '14.0.2' apply false
 }
 
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
 tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
