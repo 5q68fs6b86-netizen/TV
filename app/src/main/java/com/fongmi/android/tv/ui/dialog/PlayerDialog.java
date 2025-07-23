@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogPlayerBinding;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.ui.adapter.PlayerAdapter;

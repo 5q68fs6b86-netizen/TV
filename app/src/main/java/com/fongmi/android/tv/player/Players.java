@@ -62,8 +62,9 @@ import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import master.flame.danmaku.ui.widget.DanmakuView;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
+import org.videolan.libvlc.MediaPlayer;
 
-public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCallback, DrawHandler.Callback {
+public class Players implements Player.Listener, IMediaPlayer.Listener, MediaPlayer.EventListener, ParseCallback, DrawHandler.Callback {
 
     private static final String TAG = Players.class.getSimpleName();
 
@@ -840,5 +841,24 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     @Override
     public void drawingFinished() {
+    }
+
+    @Override
+    public void onEvent(MediaPlayer.Event event) {
+        switch (event.type) {
+            case MediaPlayer.Event.Buffering:
+                if (event.getBuffering() < 100) PlayerEvent.state(Player.STATE_BUFFERING);
+                else PlayerEvent.state(Player.STATE_READY);
+                break;
+            case MediaPlayer.Event.Playing:
+                PlayerEvent.state(Player.STATE_READY);
+                break;
+            case MediaPlayer.Event.EncounteredError:
+                ErrorEvent.url(1);
+                break;
+            case MediaPlayer.Event.EndReached:
+                PlayerEvent.state(Player.STATE_ENDED);
+                break;
+        }
     }
 }
