@@ -1,7 +1,15 @@
 package com.fongmi.android.tv.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color; // 引入 Color 以便解析颜色字符串 (虽然这里直接用 int)
+import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import androidx.core.content.ContextCompat;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -14,18 +22,248 @@ import java.util.Map;
 
 public class QRCode {
 
-    // 二维码黑色块的颜色
-    private static final int BLACK = 0xFF000000;
-    // 定义你想要的纯色背景
-    private static final int CUSTOM_BACKGROUND_COLOR = 0xFFE3E9E9; // #FFE3E9E9
+    // 圆角配置
+    private static final float CORNER_RADIUS_DP = 20f;
 
     /**
-     * 将 BitMatrix 转换为 Bitmap。
-     * 修改：将白色部分设为您指定的背景色。
-     *
-     * @param matrix ZXing BitMatrix
-     * @return 代表二维码的 Bitmap，白色部分为 CUSTOM_BACKGROUND_COLOR
+     * Material 3 主题枚举 - 使用资源 ID
      */
+    public enum Material3Theme {
+        LIGHT_PRIMARY(
+            R.color.md_theme_light_onPrimaryContainer,    // 前景色
+            R.color.md_theme_light_primaryContainer,      // 背景色
+            R.color.md_theme_light_primary                // 边框色
+        ),
+        LIGHT_SURFACE(
+            R.color.md_theme_light_onSurface,
+            R.color.md_theme_light_surface,
+            R.color.md_theme_light_outlineVariant
+        ),
+        LIGHT_SURFACE_VARIANT(
+            R.color.md_theme_light_onSurfaceVariant,
+            R.color.md_theme_light_surfaceVariant,
+            R.color.md_theme_light_outline
+        ),
+        DARK_PRIMARY(
+            R.color.md_theme_dark_onPrimaryContainer,
+            R.color.md_theme_dark_primaryContainer,
+            R.color.md_theme_dark_primary
+        ),
+        DARK_SURFACE(
+            R.color.md_theme_dark_onSurface,
+            R.color.md_theme_dark_surface,
+            R.color.md_theme_dark_outlineVariant
+        ),
+        DARK_SURFACE_VARIANT(
+            R.color.md_theme_dark_onSurfaceVariant,
+            R.color.md_theme_dark_surfaceVariant,
+            R.color.md_theme_dark_outline
+        );
+
+        public final int foregroundColorRes;
+        public final int backgroundColorRes;
+        public final int accentColorRes;
+
+        Material3Theme(int foregroundColorRes, int backgroundColorRes, int accentColorRes) {
+            this.foregroundColorRes = foregroundColorRes;
+            this.backgroundColorRes = backgroundColorRes;
+            this.accentColorRes = accentColorRes;
+        }
+
+        /**
+         * 获取实际颜色值
+         */
+        public int getForegroundColor(Context context) {
+            return ContextCompat.getColor(context, foregroundColorRes);
+        }
+
+        public int getBackgroundColor(Context context) {
+            return ContextCompat.getColor(context, backgroundColorRes);
+        }
+
+        public int getAccentColor(Context context) {
+            return ContextCompat.getColor(context, accentColorRes);
+        }
+    }
+
+    /**
+     * 创建 Material 3 风格的圆角二维码
+     */
+    public static Bitmap createMaterial3QR(Context context, BitMatrix matrix, Material3Theme theme) {
+        return createMaterial3QR(context, matrix, theme, true, true);
+    }
+
+    /**
+     * 创建 Material 3 风格的圆角二维码（完整版本）
+     */
+    public static Bitmap createMaterial3QR(Context context, BitMatrix matrix, Material3Theme theme, 
+                                          boolean withElevation, boolean withGradient) {
+        int width = matrix.getWidth();
+        int height = matrix.getHeight();
+        
+        // 添加内边距以适应圆角和阴影
+        int padding = ResUtil.dp2px(16);
+        int totalWidth = width + padding * 2;
+        int totalHeight = height + padding * 2;
+        
+        Bitmap result = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(result);
+        
+        // 绘制阴影（如果启用）
+        if (withElevation) {
+            drawMaterial3Shadow(canvas, padding, padding, width, height);
+        }
+        
+        // 绘制圆角背景
+        drawMaterial3Background(context, canvas, padding, padding, width, height, theme, withGradient);
+        
+        // 绘制二维码内容
+        drawQRContent(context, canvas, matrix, padding, padding, theme);
+        
+        return result;
+    }
+
+    /**
+     * 绘制 Material 3 阴影效果
+     */
+    private static void drawMaterial3Shadow(Canvas canvas, int x, int y, int width, int height) {
+        Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadowPaint.setColor(0x1A000000); // 10% 透明度的黑色
+        
+        float radius = ResUtil.dp2px(CORNER_RADIUS_DP);
+        float shadowOffset = ResUtil.dp2px(2);
+        
+        RectF shadowRect = new RectF(
+            x + shadowOffset, 
+            y + shadowOffset, 
+            x + width + shadowOffset, 
+            y + height + shadowOffset
+        );
+        
+        canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint);
+    }
+
+    /**
+     * 绘制 Material 3 背景
+     */
+    private static void drawMaterial3Background(Context context, Canvas canvas, int x, int y, 
+                                               int width, int height, Material3Theme theme, 
+                                               boolean withGradient) {
+        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float radius = ResUtil.dp2px(CORNER_RADIUS_DP);
+        RectF bgRect = new RectF(x, y, x + width, y + height);
+        
+        int backgroundColor = theme.getBackgroundColor(context);
+        
+        if (withGradient) {
+            // 创建微妙的渐变效果
+            int startColor = backgroundColor;
+            int endColor = adjustColorBrightness(backgroundColor, 0.95f);
+            
+            LinearGradient gradient = new LinearGradient(
+                x, y, x, y + height,
+                startColor, endColor,
+                Shader.TileMode.CLAMP
+            );
+            bgPaint.setShader(gradient);
+        } else {
+            bgPaint.setColor(backgroundColor);
+        }
+        
+        canvas.drawRoundRect(bgRect, radius, radius, bgPaint);
+        
+        // 绘制边框
+        Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(ResUtil.dp2px(1));
+        borderPaint.setColor(theme.getAccentColor(context));
+        canvas.drawRoundRect(bgRect, radius, radius, borderPaint);
+    }
+
+    /**
+     * 绘制二维码内容
+     */
+    private static void drawQRContent(Context context, Canvas canvas, BitMatrix matrix, 
+                                     int offsetX, int offsetY, Material3Theme theme) {
+        int width = matrix.getWidth();
+        int height = matrix.getHeight();
+        
+        Paint qrPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        qrPaint.setColor(theme.getForegroundColor(context));
+        
+        // 计算模块大小
+        float moduleSize = 1.0f;
+        
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (matrix.get(x, y)) {
+                    // 绘制圆角的二维码模块
+                    float left = offsetX + x * moduleSize;
+                    float top = offsetY + y * moduleSize;
+                    float right = left + moduleSize;
+                    float bottom = top + moduleSize;
+                    
+                    RectF moduleRect = new RectF(left, top, right, bottom);
+                    float moduleRadius = moduleSize * 0.15f; // 15% 圆角
+                    canvas.drawRoundRect(moduleRect, moduleRadius, moduleRadius, qrPaint);
+                }
+            }
+        }
+    }
+
+    /**
+     * 调整颜色亮度
+     */
+    private static int adjustColorBrightness(int color, float factor) {
+        int alpha = (color >> 24) & 0xFF;
+        int red = (int) (((color >> 16) & 0xFF) * factor);
+        int green = (int) (((color >> 8) & 0xFF) * factor);
+        int blue = (int) ((color & 0xFF) * factor);
+        
+        red = Math.min(255, Math.max(0, red));
+        green = Math.min(255, Math.max(0, green));
+        blue = Math.min(255, Math.max(0, blue));
+        
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
+    }
+
+    /**
+     * 生成 Material 3 风格的二维码（公共接口）
+     */
+    public static Bitmap getMaterial3Bitmap(Context context, String contents, int size, int margin, 
+                                          Material3Theme theme) {
+        BitMatrix bitMatrix = encodeToBitMatrix(contents, size, margin);
+        return bitMatrix != null ? createMaterial3QR(context, bitMatrix, theme) : null;
+    }
+
+    /**
+     * 生成 Material 3 风格的二维码（带完整配置）
+     */
+    public static Bitmap getMaterial3Bitmap(Context context, String contents, int size, int margin, 
+                                          Material3Theme theme, boolean withElevation, boolean withGradient) {
+        BitMatrix bitMatrix = encodeToBitMatrix(contents, size, margin);
+        return bitMatrix != null ? createMaterial3QR(context, bitMatrix, theme, withElevation, withGradient) : null;
+    }
+
+    /**
+     * 自动根据系统主题选择合适的二维码样式
+     */
+    public static Bitmap getAdaptiveMaterial3Bitmap(Context context, String contents, int size, int margin) {
+        // 检测当前是否为深色模式
+        boolean isDarkMode = (context.getResources().getConfiguration().uiMode & 
+                             android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
+                             android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        
+        Material3Theme theme = isDarkMode ? Material3Theme.DARK_SURFACE_VARIANT : Material3Theme.LIGHT_SURFACE_VARIANT;
+        return getMaterial3Bitmap(context, contents, size, margin, theme);
+    }
+
+    // 保留原有方法以保持兼容性（需要 Context）
+    public static Bitmap createBitmap(Context context, BitMatrix matrix) {
+        return createMaterial3QR(context, matrix, Material3Theme.LIGHT_SURFACE_VARIANT);
+    }
+
+    // 原有方法的兼容版本（使用默认颜色）
     public static Bitmap createBitmap(BitMatrix matrix) {
         int width = matrix.getWidth();
         int height = matrix.getHeight();
@@ -33,17 +271,14 @@ public class QRCode {
         for (int y = 0; y < height; y++) {
             int offset = y * width;
             for (int x = 0; x < width; x++) {
-                // true -> 黑色, false -> 自定义背景色
-                pixels[offset + x] = matrix.get(x, y) ? BLACK : CUSTOM_BACKGROUND_COLOR;
+                pixels[offset + x] = matrix.get(x, y) ? 0xFF000000 : 0xFFE3E9E9;
             }
         }
-        // 创建 Bitmap (不需要 Alpha 通道也可以，但 ARGB_8888 最常用)
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
         return bitmap;
     }
 
-     // encodeToBitMatrix 方法保持不变 (来自上一个回答)
     private static BitMatrix encodeToBitMatrix(String contents, int size, int margin) {
         try {
             Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
@@ -51,41 +286,14 @@ public class QRCode {
             hints.put(EncodeHintType.MARGIN, margin);
             int pixelSize = ResUtil.dp2px(size);
             return new MultiFormatWriter().encode(contents, BarcodeFormat.QR_CODE, pixelSize, pixelSize, hints);
-        } catch (WriterException e) {
+        } catch (WriterException | IllegalArgumentException e) {
             e.printStackTrace();
             return null;
-        } catch (IllegalArgumentException e) {
-             e.printStackTrace();
-             return null;
         }
     }
 
-    /**
-     * 生成带有指定纯色背景 (#FFE3E9E9) 的二维码 Bitmap。
-     *
-     * @param contents 内容
-     * @param size     二维码尺寸 (dp)
-     * @param margin   边距 (模块数)
-     * @return 二维码 Bitmap 或 null
-     */
     public static Bitmap getBitmap(String contents, int size, int margin) {
         BitMatrix bitMatrix = encodeToBitMatrix(contents, size, margin);
-        if (bitMatrix != null) {
-            // 调用修改后的 createBitmap，白色部分将是 CUSTOM_BACKGROUND_COLOR
-            return createBitmap(bitMatrix);
-        } else {
-            return null;
-        }
+        return bitMatrix != null ? createBitmap(bitMatrix) : null;
     }
-
-    // getBitmapWithBackground 方法可以保留，用于支持图片背景，
-    // 但它内部调用的 createBitmap 现在也会产生 CUSTOM_BACKGROUND_COLOR
-    // 而不是透明色，这可能不是图片背景想要的。
-    // 如果同时需要图片背景和纯色背景，推荐使用方法二。
-
-    /* (getBitmapWithBackground 方法可以注释掉或删除，如果不再需要图片背景功能)
-    public static Bitmap getBitmapWithBackground(String contents, int qrCodeSizeDp, int qrCodeMargin, Bitmap backgroundBitmap) {
-       // ... (这个方法如果保留，其行为会受 createBitmap 修改的影响)
-    }
-    */
 }
