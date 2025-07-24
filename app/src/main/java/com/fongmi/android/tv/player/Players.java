@@ -135,6 +135,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         formatter = new Formatter(builder, Locale.getDefault());
         position = C.TIME_UNSET;
         createSession(activity);
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
+        exoPlayer.addAnalyticsListener(new EventLogger());
+        exoPlayer.setHandleAudioBecomingNoisy(true);
+        exoPlayer.setPlayWhenReady(true);
     }
 
     private void createSession(Activity activity) {
@@ -148,10 +153,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void init(PlayerView exoView, IjkVideoView ijkPlayer) {
         this.exoView = exoView;
         this.ijkPlayer = ijkPlayer;
-        this.exoPlayer.setListener(this);
-        this.ijkPlayer.setListener(this);
-        this.exoView.setPlayer(exoPlayer);
-        this.ijkPlayer.setPlayer(player);
+        exoPlayer.addListener(this);
+        ijkPlayer.addListener(this);
+        exoView.setPlayer(exoPlayer);
+        ijkPlayer.setPlayer(this.player);
     }
 
     public void setDanmuView(DanmakuView view) {
