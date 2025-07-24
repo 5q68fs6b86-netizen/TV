@@ -105,6 +105,10 @@ public class ResUtil {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getDisplayMetrics());
     }
 
+    public static float dp2px(float dp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getDisplayMetrics());
+    }
+
     public static int getDrawable(String resId) {
         return App.get().getResources().getIdentifier(resId, "drawable", App.get().getPackageName());
     }

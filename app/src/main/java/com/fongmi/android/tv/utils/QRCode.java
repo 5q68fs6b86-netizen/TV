@@ -11,6 +11,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import androidx.core.content.ContextCompat;
 
+import com.fongmi.android.tv.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
