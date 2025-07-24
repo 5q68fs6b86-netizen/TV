@@ -61,6 +61,7 @@ import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import master.flame.danmaku.ui.widget.DanmakuView;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
+import android.view.View;
 
 public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCallback, DrawHandler.Callback {
 
@@ -342,7 +343,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public String getPlayerText() {
-        return ResUtil.getStringArray(R.array.select_player)[player];
+        return ResUtil.getStringArray(R.array.select_player)[getPlayer()];
     }
 
     public String getDecodeText() {
@@ -792,5 +793,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     @Override
     public void drawingFinished() {
+    }
+
+    public View getVideoView() {
+        return isIjk() ? ijkPlayer : exoPlayer;
     }
 }
