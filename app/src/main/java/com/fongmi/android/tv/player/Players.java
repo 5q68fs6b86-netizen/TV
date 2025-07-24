@@ -79,6 +79,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, MediaPla
     private final StringBuilder builder;
     private final Formatter formatter;
     private final Runnable runnable;
+    private final Activity activity;
 
     private Map<String, String> headers;
     private MediaSessionCompat session;
@@ -134,6 +135,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, MediaPla
     }
 
     private Players(Activity activity) {
+        this.activity = activity;
         player = Setting.getPlayer();
         decode = Setting.getDecode(player);
         builder = new StringBuilder();
@@ -158,6 +160,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, MediaPla
         initExo(exo);
         initIjk(ijk);
         vlcPlayer.setPlayerListener(this);
+        App.execute(() -> vlcPlayer.init(activity));
     }
 
     private void initExo(PlayerView view) {

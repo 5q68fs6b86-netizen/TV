@@ -19,6 +19,10 @@ public class VlcPlayer {
     private LibVLC mLibVLC;
 
     public VlcPlayer(Context context) {
+        mVideoLayout = new VLCVideoLayout(context);
+    }
+
+    public void init(Context context) {
         ArrayList<String> options = new ArrayList<>();
         options.add("--no-sub-autodetect-file");
         options.add("--avcodec-codec=h264");
@@ -27,7 +31,7 @@ public class VlcPlayer {
         options.add("--audio-time-stretch");
         mLibVLC = new LibVLC(context, options);
         mMediaPlayer = new MediaPlayer(mLibVLC);
-        mVideoLayout = new VLCVideoLayout(context);
+        mMediaPlayer.setEventListener(mEventListener);
     }
 
     public View getPlayerView() {
@@ -39,49 +43,56 @@ public class VlcPlayer {
     }
 
     public void start(String url) {
+        if (mMediaPlayer == null) return;
         final Media media = new Media(mLibVLC, Uri.parse(url));
         mMediaPlayer.setMedia(media);
         media.release();
         mMediaPlayer.attachViews(mVideoLayout, null, false, false);
-        mMediaPlayer.setEventListener(mEventListener);
         mMediaPlayer.play();
     }
 
     public void pause() {
+        if (mMediaPlayer == null) return;
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
         }
     }
 
     public void play() {
+        if (mMediaPlayer == null) return;
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.play();
         }
     }
 
     public void stop() {
+        if (mMediaPlayer == null) return;
         mMediaPlayer.stop();
         mMediaPlayer.detachViews();
     }
 
     public void release() {
-        mMediaPlayer.release();
-        mLibVLC.release();
+        if (mMediaPlayer != null) mMediaPlayer.release();
+        if (mLibVLC != null) mLibVLC.release();
     }
 
     public boolean isPlaying() {
+        if (mMediaPlayer == null) return false;
         return mMediaPlayer.isPlaying();
     }
 
     public long getPosition() {
+        if (mMediaPlayer == null) return 0;
         return mMediaPlayer.getTime();
     }
 
     public long getDuration() {
+        if (mMediaPlayer == null) return 0;
         return mMediaPlayer.getLength();
     }
 
     public void seekTo(long time) {
+        if (mMediaPlayer == null) return;
         mMediaPlayer.setTime(time);
     }
 } 
