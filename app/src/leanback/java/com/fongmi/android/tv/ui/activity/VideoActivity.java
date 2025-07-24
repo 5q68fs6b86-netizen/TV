@@ -136,6 +136,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.LinearLayout;
 import android.view.ViewParent;
+import com.fongmi.android.tv.utils.Blur;
 // --- End Imports ---
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
@@ -182,6 +183,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // --- Variables for TMDB modification ---
     private String currentVodName = "";   // Store original VOD name
     private String currentLogoUrl = null; // Store found TMDB logo URL
+    private ImageView mBlurView;
     // --- End Variables ---
 
     public static void push(FragmentActivity activity, String text) {
@@ -348,6 +350,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     protected ViewBinding getBinding() {
         // Ensure mBinding is initialized correctly
         mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
+        mBlurView = mBinding.video.findViewById(R.id.blur);
         return mBinding;
     }
 
@@ -2378,12 +2381,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (isFullscreen()) showInfoAndCenter();
         else hideInfoAndCenter();
         mPlayers.pause();
+        mBlurView.setImageBitmap(Blur.apply(this, mPlayers.getVideoView()));
+        mBlurView.setVisibility(View.VISIBLE);
     }
 
     private void onPlay() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mPlayers.play();
         hideCenter();
+        mBlurView.setVisibility(View.GONE);
     }
 
     public boolean isBackground() {

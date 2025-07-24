@@ -54,11 +54,27 @@ android {
         viewBinding true
     }
 
+    androidResources {
+        noCompress 'dat'
+    }
+
     buildTypes {
+        debug {
+            jniDebuggable true
+            renderscriptDebuggable true
+            applicationIdSuffix ".debug"
+        }
         release {
-            minifyEnabled true
+            zipAlignEnabled true
             shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    bundle {
+        storeArchive {
+            enable = false
         }
     }
 
