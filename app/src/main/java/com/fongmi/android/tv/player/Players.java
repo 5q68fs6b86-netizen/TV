@@ -83,6 +83,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private IjkVideoView ijkPlayer;
     private DanmakuView danmuView;
     private ExoPlayer exoPlayer;
+    private PlayerView exoView;
     private ParseJob parseJob;
     private List<Sub> subs;
     private String format;
@@ -144,27 +145,13 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
-    public void init(PlayerView exo, IjkVideoView ijk) {
-        releaseExo();
-        releaseIjk();
-        initExo(exo);
-        initIjk(ijk);
-    }
-
-    private void initExo(PlayerView view) {
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
-        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
-        exoPlayer.addAnalyticsListener(new EventLogger());
-        exoPlayer.setHandleAudioBecomingNoisy(true);
-        exoPlayer.setPlayWhenReady(true);
-        exoPlayer.addListener(this);
-        view.setPlayer(exoPlayer);
-    }
-
-    private void initIjk(IjkVideoView view) {
-        ijkPlayer = view.render(Setting.getRender()).decode(decode);
-        ijkPlayer.addListener(this);
-        ijkPlayer.setPlayer(player);
+    public void init(PlayerView exoView, IjkVideoView ijkPlayer) {
+        this.exoView = exoView;
+        this.ijkPlayer = ijkPlayer;
+        this.exoPlayer.setListener(this);
+        this.ijkPlayer.setListener(this);
+        this.exoView.setPlayer(exoPlayer);
+        this.ijkPlayer.setPlayer(player);
     }
 
     public void setDanmuView(DanmakuView view) {
@@ -796,6 +783,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public View getVideoView() {
-        return isIjk() ? ijkPlayer : exoPlayer;
+        return isIjk() ? ijkPlayer : exoView;
     }
 }
