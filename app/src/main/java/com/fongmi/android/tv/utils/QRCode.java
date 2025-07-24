@@ -31,34 +31,34 @@ public class QRCode {
      */
     public enum Material3Theme {
         LIGHT_PRIMARY(
-            R.color.md_theme_light_onPrimaryContainer,    // 前景色
-            R.color.md_theme_light_primaryContainer,      // 背景色
-            R.color.md_theme_light_primary                // 边框色
+            R.color.md_theme_onPrimaryContainer,    // 前景色
+            R.color.md_theme_primaryContainer,      // 背景色
+            R.color.md_theme_primary                // 边框色
         ),
         LIGHT_SURFACE(
-            R.color.md_theme_light_onSurface,
-            R.color.md_theme_light_surface,
-            R.color.md_theme_light_outlineVariant
+            R.color.md_theme_onSurface,
+            R.color.md_theme_surface,
+            R.color.md_theme_outlineVariant
         ),
         LIGHT_SURFACE_VARIANT(
-            R.color.md_theme_light_onSurfaceVariant,
-            R.color.md_theme_light_surfaceVariant,
-            R.color.md_theme_light_outline
+            R.color.md_theme_onSurfaceVariant,
+            R.color.md_theme_surfaceVariant,
+            R.color.md_theme_outline
         ),
         DARK_PRIMARY(
-            R.color.md_theme_dark_onPrimaryContainer,
-            R.color.md_theme_dark_primaryContainer,
-            R.color.md_theme_dark_primary
+            R.color.md_theme_onPrimaryContainer,
+            R.color.md_theme_primaryContainer,
+            R.color.md_theme_primary
         ),
         DARK_SURFACE(
-            R.color.md_theme_dark_onSurface,
-            R.color.md_theme_dark_surface,
-            R.color.md_theme_dark_outlineVariant
+            R.color.md_theme_onSurface,
+            R.color.md_theme_surface,
+            R.color.md_theme_outlineVariant
         ),
         DARK_SURFACE_VARIANT(
-            R.color.md_theme_dark_onSurfaceVariant,
-            R.color.md_theme_dark_surfaceVariant,
-            R.color.md_theme_dark_outline
+            R.color.md_theme_onSurfaceVariant,
+            R.color.md_theme_surfaceVariant,
+            R.color.md_theme_outline
         );
 
         public final int foregroundColorRes;
