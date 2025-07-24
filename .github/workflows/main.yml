@@ -29,13 +29,19 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: ${{ runner.os }}-gradle-
 
+    - name: Cache Gradle Build Cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-build-cache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-build-cache-
+
     - name: Grant gradlew permission
       run: chmod +x ./gradlew
 
     - name: Build APKs
-      run: |
-         ./gradlew assembleLeanbackPythonArm64_v8aRelease
-         ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
+      run: ./gradlew --parallel --build-cache assembleLeanbackPythonArm64_v8aRelease assembleLeanbackPythonArmeabi_v7aRelease
 
     - name: Verify APKs exist
       id: apk-check
