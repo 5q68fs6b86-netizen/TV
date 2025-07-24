@@ -294,7 +294,6 @@ public class QRCode {
     }
 
     public static Bitmap getBitmap(String contents, int size, int margin) {
-        BitMatrix bitMatrix = encodeToBitMatrix(contents, size, margin);
-        return bitMatrix != null ? createBitmap(bitMatrix) : null;
+        return getAdaptiveMaterial3Bitmap(App.get(), contents, size, margin);
     }
 }
