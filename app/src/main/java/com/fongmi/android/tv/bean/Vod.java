@@ -408,6 +408,10 @@ public class Vod implements Parcelable {
         return getVodRemarks().isEmpty() ? View.GONE : View.VISIBLE;
     }
 
+    public int isBgVisible() {
+        return getNameVisible() == View.VISIBLE || getRemarkVisible() == View.VISIBLE ? View.VISIBLE : View.GONE;
+    }
+
     public boolean isFolder() {
         return "folder".equals(getVodTag()) || getCate() != null;
     }
