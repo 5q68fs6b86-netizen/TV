@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 其他已有的尺寸定义 -->
+    <!-- Font Sizes -->
+    <dimen name="font_size_small">12sp</dimen>
+    <dimen name="font_size_normal">14sp</dimen>
+    <dimen name="font_size_large">16sp</dimen>
+    <dimen name="font_size_xlarge">18sp</dimen>
+    <dimen name="font_size_xxlarge">20sp</dimen>
+    <dimen name="font_size_xxxlarge">24sp</dimen>
+    <dimen name="font_size_focus">14sp</dimen>
 
-    <!-- 添加下面这行 -->
+    <!-- detail -->
     <dimen name="detail_logo_height">60dp</dimen>
-
     <dimen name="detail_title_area_height">60dp</dimen>
-    <!-- 其他已有的尺寸定义 -->
+
+    <dimen name="card_radius">8dp</dimen>
+    <dimen name="card_margin">4dp</dimen>
+    <dimen name="card_margin_negative">-4dp</dimen>
 </resources>

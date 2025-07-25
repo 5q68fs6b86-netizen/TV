@@ -108,7 +108,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         selector.addPresenter(ListRow.class, new CustomRowPresenter(22), FuncPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
     }
 
     private void setAdapter() {

@@ -13,8 +13,49 @@
         android:layout_height="match_parent"
         android:background="@color/black_20"
         android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.Rect"
         tools:src="@drawable/ic_img_loading" />
+
+    <View
+        android:id="@+id/bg"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/shape_vod_bg"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/remark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/name"
+        android:layout_alignStart="@+id/name"
+        android:layout_alignEnd="@+id/name"
+        android:layout_marginBottom="4dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="1080p"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="12dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:text="蜘蛛俠：平行宇宙"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/year"
@@ -48,34 +89,15 @@
         tools:text="泥巴"
         tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/remark"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        tools:text="1080p" />
-
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+    <ImageView
+        android:id="@+id/keep"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="8dp"
+        android:src="@drawable/ic_keep_off"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <View
         android:layout_width="match_parent"

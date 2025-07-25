@@ -4,8 +4,13 @@
         <item name="cornerFamily">rounded</item>
     </style>
 
+    <style name="Vod.Rect" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/card_radius</item>
+    </style>
+
     <style name="Vod.Grid">
-        <item name="cornerSize">8dp</item>
+        <item name="cornerSize">16dp</item>
     </style>
 
     <style name="Vod.Circle">

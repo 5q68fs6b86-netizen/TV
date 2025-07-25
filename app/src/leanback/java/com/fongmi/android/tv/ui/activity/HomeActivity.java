@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -153,11 +154,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setTitleView() {
         mBinding.homeSiteLock.setVisibility(Setting.isHomeSiteLock() ? View.VISIBLE : View.GONE);
         if (Setting.getHomeUI() == 0) {
-            mBinding.title.setTextSize(24);
-            mBinding.clock.setTextSize(24);
+            mBinding.title.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.font_size_xxxlarge));
+            mBinding.clock.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.font_size_xxxlarge));
         } else {
-            mBinding.title.setTextSize(20);
-            mBinding.clock.setTextSize(20);
+            mBinding.title.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.font_size_xxlarge));
+            mBinding.clock.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.font_size_xxlarge));
         }
     }
 
