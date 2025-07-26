@@ -557,5 +557,13 @@ public class Setting {
     public static void putThunderCacheDir(String dir) {
         Prefers.put("thunder_cache_dir", dir);
     }
+    
+    public static boolean isGlobalSignHook() {
+        return Prefers.getBoolean("global_sign_hook", false);
+    }
+
+    public static void putGlobalSignHook(boolean enable) {
+        Prefers.put("global_sign_hook", enable);
+    }
 
 }

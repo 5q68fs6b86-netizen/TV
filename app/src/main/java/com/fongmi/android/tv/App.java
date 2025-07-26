@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -111,6 +112,14 @@ public class App extends Application {
         OkHttp.get().setProxy(Setting.getProxy());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         CaocConfig.Builder.create().backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
+        
+        // 从Setting中获取全局签名伪装设置，如果已启用则应用全局签名伪装
+        if (Setting.isGlobalSignHook() && LiveConfig.get().getHome() != null && LiveConfig.get().getHome().getCore() != null) {
+            String sign = LiveConfig.get().getHome().getCore().getSign();
+            if (!TextUtils.isEmpty(sign)) {
+                com.fongmi.hook.Hook.pm(this, sign);
+            }
+        }
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {

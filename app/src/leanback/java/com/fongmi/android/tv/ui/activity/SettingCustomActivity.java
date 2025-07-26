@@ -74,6 +74,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
         mBinding.cacheDirText.setText(Setting.getThunderCacheDir());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+        mBinding.globalSignHookText.setText(getSwitch(Setting.isGlobalSignHook()));
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
@@ -97,6 +98,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeButtons.setOnClickListener(this::onHomeButtons);
         mBinding.homeHistory.setOnClickListener(this::setHomeHistory);
         mBinding.removeAd.setOnClickListener(this::setRemoveAd);
+        mBinding.globalSignHook.setOnClickListener(this::setGlobalSignHook);
         mBinding.setLanguage.setOnClickListener(this::setLanguage);
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
@@ -195,6 +197,11 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     private void setRemoveAd(View view) {
         Setting.putRemoveAd(!Setting.isRemoveAd());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+    }
+    
+    private void setGlobalSignHook(View view) {
+        Setting.putGlobalSignHook(!Setting.isGlobalSignHook());
+        mBinding.globalSignHookText.setText(getSwitch(Setting.isGlobalSignHook()));
     }
 
     private void setCacheDir(View view) {
