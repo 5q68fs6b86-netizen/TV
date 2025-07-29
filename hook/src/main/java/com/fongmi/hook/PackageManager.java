@@ -30,7 +30,11 @@ public class PackageManager extends android.content.pm.PackageManager {
 
     @Override
     public PackageInfo getPackageInfo(String packageName, int flags) {
-        return new PackageInfo();
+        PackageInfo packageInfo = new PackageInfo();
+        if ((flags & android.content.pm.PackageManager.GET_SIGNATURES) != 0) {
+            packageInfo.signatures = new android.content.pm.Signature[]{new android.content.pm.Signature(new byte[]{1})};
+        }
+        return packageInfo;
     }
 
     @Override
