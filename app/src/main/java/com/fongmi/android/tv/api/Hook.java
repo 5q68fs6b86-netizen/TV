@@ -18,6 +18,26 @@ public class Hook {
     private static final String PROXY = "com.github.catvod.app.Proxy";
     private static final String TAG = Hook.class.getSimpleName();
 
+    private static Class<?> getProxy() throws Exception {
+        return Class.forName(PROXY);
+    }
+
+    public static void set(App app) {
+        try {
+            getProxy().getMethod("init", App.class).invoke(null, app);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void init() {
+        try {
+            getProxy().getMethod("init").invoke(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static Context getContext() {
         return new ContextWrapper(App.get()) {
             @Override
