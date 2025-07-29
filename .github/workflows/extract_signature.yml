@@ -1,0 +1,75 @@
+name: Extract APK Signature
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'https://raw.githubusercontent.com/FongMi/Release/refs/heads/okjack/apk/release/leanback-arm64_v8a.apk'
+        required: true
+        type: string
+
+jobs:
+  extract-signature:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download APK
+      run: |
+        mkdir -p apk
+        curl -L "${{ github.event.inputs.apk_url }}" -o apk/target.apk
+        echo "Downloaded APK from ${{ github.event.inputs.apk_url }}"
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Extract Signature
+      id: extract
+      run: |
+        echo "Extracting signature from APK..."
+        # 提取 MD5 签名
+        MD5_SIGNATURE=$(keytool -printcert -jarfile apk/target.apk | grep -A 1 "MD5:" | tail -n 1 | tr -d ' ' | tr -d ':')
+        echo "MD5 Signature: $MD5_SIGNATURE"
+        echo "md5_signature=$MD5_SIGNATURE" >> $GITHUB_OUTPUT
+        
+        # 提取 SHA1 签名
+        SHA1_SIGNATURE=$(keytool -printcert -jarfile apk/target.apk | grep -A 1 "SHA1:" | tail -n 1 | tr -d ' ' | tr -d ':')
+        echo "SHA1 Signature: $SHA1_SIGNATURE"
+        echo "sha1_signature=$SHA1_SIGNATURE" >> $GITHUB_OUTPUT
+        
+        # 提取 SHA-256 签名
+        SHA256_SIGNATURE=$(keytool -printcert -jarfile apk/target.apk | grep -A 1 "SHA256:" | tail -n 1 | tr -d ' ' | tr -d ':')
+        echo "SHA-256 Signature: $SHA256_SIGNATURE"
+        echo "sha256_signature=$SHA256_SIGNATURE" >> $GITHUB_OUTPUT
+
+    - name: Create Signature Report
+      run: |
+        echo "# APK Signature Report" > signature_report.md
+        echo "" >> signature_report.md
+        echo "APK URL: ${{ github.event.inputs.apk_url }}" >> signature_report.md
+        echo "" >> signature_report.md
+        echo "## Signatures" >> signature_report.md
+        echo "" >> signature_report.md
+        echo "- **MD5:** ${{ steps.extract.outputs.md5_signature }}" >> signature_report.md
+        echo "- **SHA1:** ${{ steps.extract.outputs.sha1_signature }}" >> signature_report.md
+        echo "- **SHA-256:** ${{ steps.extract.outputs.sha256_signature }}" >> signature_report.md
+        echo "" >> signature_report.md
+        echo "## 使用方法" >> signature_report.md
+        echo "" >> signature_report.md
+        echo "在 Hook.java 文件中，将以下行：" >> signature_report.md
+        echo "\`\`\`java" >> signature_report.md
+        echo "info.signatures = new Signature[]{new Signature(Util.sign(name))};" >> signature_report.md
+        echo "\`\`\`" >> signature_report.md
+        echo "" >> signature_report.md
+        echo "替换为（使用 MD5 签名）：" >> signature_report.md
+        echo "\`\`\`java" >> signature_report.md
+        echo "info.signatures = new Signature[]{new Signature(\"${{ steps.extract.outputs.md5_signature }}\")};" >> signature_report.md
+        echo "\`\`\`" >> signature_report.md
+
+    - name: Upload Signature Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: signature-report
+        path: signature_report.md
