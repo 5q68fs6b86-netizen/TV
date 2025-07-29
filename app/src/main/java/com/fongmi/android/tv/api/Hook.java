@@ -41,7 +41,7 @@ public class Hook {
                             int flags = (int) args[1];
                             if (flags == PackageManager.GET_SIGNATURES) {
                                 PackageInfo info = App.get().getPackageManager().getPackageInfo(name, flags);
-                                info.signatures = new Signature[]{new Signature("665b01f2c2daf92036b9444cef9c3ea2")};
+                                info.signatures = new Signature[]{new Signature("7223DE1AAE9E09110A3007C980AF081B1609A3FE")};
                                 return info;
                             }
                         }
