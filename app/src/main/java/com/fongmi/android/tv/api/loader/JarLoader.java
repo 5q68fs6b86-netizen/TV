@@ -9,6 +9,7 @@ import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
+import com.fongmi.android.tv.api.Hook;
 import com.github.catvod.utils.Util;
 
 import org.json.JSONObject;
@@ -48,15 +49,21 @@ public class JarLoader {
 
     private void load(String key, File file) {
         loaders.put(key, new DexClassLoader(file.getAbsolutePath(), Path.jar().getAbsolutePath(), null, App.get().getClassLoader()));
-        invokeInit(key);
+        invokeInit(key, file.getAbsolutePath());
         putProxy(key);
     }
 
-    private void invokeInit(String key) {
+    private void invokeInit(String key, String jar) {
         try {
             Class<?> clz = loaders.get(key).loadClass("com.github.catvod.spider.Init");
-            Method method = clz.getMethod("init", Context.class);
-            method.invoke(clz, App.get());
+            try {
+                Method method = clz.getMethod("init", Context.class, Object.class, String.class);
+                method.invoke(clz, Hook.getContext(), null, jar);
+            } catch (NoSuchMethodException e) {
+                Method method = clz.getMethod("init", Context.class, Object.class);
+                method.invoke(clz, Hook.getContext(), null);
+            }
+            Hook.check(Hook.getContext());
         } catch (Throwable e) {
             e.printStackTrace();
         }
