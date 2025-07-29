@@ -170,3 +170,5 @@ scheme://username:password@host:port
 [點播-本地](other/sample/vod/offline.json)  
 [直播-線上](other/sample/live/online.json)  
 [直播-本地](other/sample/live/offline.json)
+
+adb logcat -v time *:E >D:\log.txt

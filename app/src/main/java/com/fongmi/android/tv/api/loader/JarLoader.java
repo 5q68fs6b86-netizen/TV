@@ -55,6 +55,7 @@ public class JarLoader {
 
     private void invokeInit(String key, String jar) {
         try {
+            Hook.set(App.get());
             Class<?> clz = loaders.get(key).loadClass("com.github.catvod.spider.Init");
             try {
                 Method method = clz.getMethod("init", Context.class, Object.class, String.class);
