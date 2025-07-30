@@ -61,8 +61,13 @@ public class JarLoader {
                 Method method = clz.getMethod("init", Context.class, Object.class, String.class);
                 method.invoke(clz, Hook.getContext(), null, jar);
             } catch (NoSuchMethodException e) {
-                Method method = clz.getMethod("init", Context.class, Object.class);
-                method.invoke(clz, Hook.getContext(), null);
+                try {
+                    Method method = clz.getMethod("init", Context.class, Object.class);
+                    method.invoke(clz, Hook.getContext(), null);
+                } catch (NoSuchMethodException e2) {
+                    Method method = clz.getMethod("init", Context.class);
+                    method.invoke(clz, Hook.getContext());
+                }
             }
             Hook.check(Hook.getContext());
         } catch (Throwable e) {
