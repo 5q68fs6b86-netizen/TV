@@ -8,17 +8,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.media3.common.util.Util;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.Players;
-import com.google.android.material.slider.Slider;
 import com.google.android.material.slider.BaseOnChangeListener;
 import com.google.android.material.slider.BaseOnSliderTouchListener;
+import com.google.android.material.slider.Slider;
 
-import java.util.concurrent.TimeUnit;
-
-public class CustomSeekView extends FrameLayout implements BaseOnChangeListener, BaseOnSliderTouchListener {
+public class CustomSeekView extends FrameLayout implements BaseOnChangeListener<Slider>, BaseOnSliderTouchListener<Slider> {
 
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
     private static final int MIN_UPDATE_INTERVAL_MS = 200;
@@ -32,7 +29,6 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener,
 
     private long currentDuration;
     private long currentPosition;
-    private long currentBuffered;
     private boolean scrubbing;
 
     public CustomSeekView(Context context) {
@@ -72,13 +68,10 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener,
         if (player.isRelease()) return;
         long duration = player.getDuration();
         long position = player.getPosition();
-        long buffered = player.getBuffered();
         boolean positionChanged = position != currentPosition;
         boolean durationChanged = duration != currentDuration;
-        boolean bufferedChanged = buffered != currentBuffered;
         currentDuration = duration;
         currentPosition = position;
-        currentBuffered = buffered;
         if (durationChanged) {
             timeBar.setValueTo(duration);
             durationView.setText(player.stringToTime(duration < 0 ? 0 : duration));
@@ -86,9 +79,6 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener,
         if (positionChanged && !scrubbing) {
             timeBar.setValue(position);
             positionView.setText(player.stringToTime(position < 0 ? 0 : position));
-        }
-        if (bufferedChanged) {
-            // Slider does not have a secondary progress, so we can't show buffered position.
         }
         if (player.isEmpty()) {
             positionView.setText("00:00");
