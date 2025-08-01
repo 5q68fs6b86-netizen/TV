@@ -50,10 +50,10 @@ public class CustomSeekView extends FrameLayout {
         timeBar = findViewById(R.id.timeBar);
         refresh = this::refresh;
 
+        timeBar.setThumbRadius(0);
+        timeBar.setOnFocusChangeListener((v, hasFocus) -> timeBar.setThumbRadius(hasFocus ? getResources().getDimensionPixelSize(R.dimen.dp_8) : 0));
         timeBar.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) {
-                positionView.setText(player.stringToTime((long) value));
-            }
+            if (fromUser) positionView.setText(player.stringToTime((long) value));
         });
 
         timeBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
