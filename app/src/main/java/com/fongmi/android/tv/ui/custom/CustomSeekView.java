@@ -12,8 +12,6 @@ import androidx.annotation.Nullable;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.Players;
 import com.google.android.material.slider.Slider;
-import com.google.android.material.slider.BaseOnChangeListener;
-import com.google.android.material.slider.BaseOnSliderTouchListener;
 
 public class CustomSeekView extends FrameLayout {
 
@@ -52,16 +50,13 @@ public class CustomSeekView extends FrameLayout {
         timeBar = findViewById(R.id.timeBar);
         refresh = this::refresh;
 
-        timeBar.addOnChangeListener(new BaseOnChangeListener<Slider>() {
-            @Override
-            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-                if (fromUser) {
-                    positionView.setText(player.stringToTime((long) value));
-                }
+        timeBar.addOnChangeListener((slider, value, fromUser) -> {
+            if (fromUser) {
+                positionView.setText(player.stringToTime((long) value));
             }
         });
 
-        timeBar.addOnSliderTouchListener(new BaseOnSliderTouchListener<Slider>() {
+        timeBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
                 scrubbing = true;
