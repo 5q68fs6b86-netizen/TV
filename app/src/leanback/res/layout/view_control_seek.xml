@@ -1,44 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"  
-    android:orientation="horizontal"
-    android:paddingTop="8dp"        
-    android:paddingBottom="8dp">     
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <androidx.media3.ui.DefaultTimeBar
+        android:id="@+id/timeBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        app:bar_height="3dp" />
 
     <TextView
         android:id="@+id/position"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp" 
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:minWidth="70dp"          
-        android:gravity="center"         
-        tools:text="00:00:00" />
-
-    <androidx.media3.ui.DefaultTimeBar
-        android:id="@+id/timeBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_weight="1"
-        app:bar_height="2dp" />
+        android:layout_below="@id/timeBar"
+        android:layout_alignStart="@id/timeBar"
+        android:layout_marginTop="4dp"
+        android:textColor="#80FFFFFF"
+        android:textSize="12sp"
+        tools:text="01:23" />
 
     <TextView
         android:id="@+id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"   
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:minWidth="70dp"           
-        android:gravity="center"          
-        tools:text="00:00:00" />
+        android:layout_below="@id/timeBar"
+        android:layout_alignEnd="@id/timeBar"
+        android:layout_marginTop="4dp"
+        android:textColor="#80FFFFFF"
+        android:textSize="12sp"
+        tools:text="1:45:00" />
 
-</LinearLayout>
+</RelativeLayout>
