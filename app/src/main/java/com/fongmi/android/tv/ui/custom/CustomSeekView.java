@@ -11,11 +11,11 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.Players;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.slider.BaseOnChangeListener;
 import com.google.android.material.slider.BaseOnSliderTouchListener;
-import com.google.android.material.slider.Slider;
 
-public class CustomSeekView extends FrameLayout implements BaseOnChangeListener<Slider>, BaseOnSliderTouchListener<Slider> {
+public class CustomSeekView extends FrameLayout {
 
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
     private static final int MIN_UPDATE_INTERVAL_MS = 200;
@@ -50,9 +50,29 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener<
         positionView = findViewById(R.id.position);
         durationView = findViewById(R.id.duration);
         timeBar = findViewById(R.id.timeBar);
-        timeBar.addOnChangeListener(this);
-        timeBar.addOnSliderTouchListener(this);
         refresh = this::refresh;
+
+        timeBar.addOnChangeListener(new BaseOnChangeListener<Slider>() {
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                if (fromUser) {
+                    positionView.setText(player.stringToTime((long) value));
+                }
+            }
+        });
+
+        timeBar.addOnSliderTouchListener(new BaseOnSliderTouchListener<Slider>() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+                scrubbing = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                scrubbing = false;
+                seekToTimeBarPosition((long) slider.getValue());
+            }
+        });
     }
 
     public void setListener(Players player) {
@@ -65,7 +85,7 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener<
     }
 
     private void refresh() {
-        if (player.isRelease()) return;
+        if (player == null || player.isRelease()) return;
         long duration = player.getDuration();
         long position = player.getPosition();
         boolean positionChanged = position != currentPosition;
@@ -95,31 +115,15 @@ public class CustomSeekView extends FrameLayout implements BaseOnChangeListener<
     }
 
     private void seekToTimeBarPosition(long positionMs) {
-        player.seekTo(positionMs);
-        refresh();
+        if (player != null) {
+            player.seekTo(positionMs);
+            refresh();
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(refresh);
-    }
-
-    @Override
-    public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-        if (fromUser) {
-            positionView.setText(player.stringToTime((long) value));
-        }
-    }
-
-    @Override
-    public void onStartTrackingTouch(@NonNull Slider slider) {
-        scrubbing = true;
-    }
-
-    @Override
-    public void onStopTrackingTouch(@NonNull Slider slider) {
-        scrubbing = false;
-        seekToTimeBarPosition((long) slider.getValue());
     }
 }
