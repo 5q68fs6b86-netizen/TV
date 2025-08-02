@@ -88,7 +88,7 @@ public class CustomSeekView extends FrameLayout {
         currentDuration = duration;
         currentPosition = position;
         if (durationChanged) {
-            timeBar.setValueTo(duration);
+            timeBar.setValueTo(duration > 0 ? duration : 1);
             durationView.setText(player.stringToTime(duration < 0 ? 0 : duration));
         }
         if (positionChanged && !scrubbing) {
@@ -99,7 +99,7 @@ public class CustomSeekView extends FrameLayout {
             positionView.setText("00:00");
             durationView.setText("00:00");
             timeBar.setValue(0);
-            timeBar.setValueTo(0);
+            timeBar.setValueTo(1);
         }
         removeCallbacks(refresh);
         if (player.isPlaying()) {
