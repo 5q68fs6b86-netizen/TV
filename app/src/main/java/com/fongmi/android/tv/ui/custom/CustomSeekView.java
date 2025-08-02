@@ -52,6 +52,7 @@ public class CustomSeekView extends FrameLayout {
 
         timeBar.setThumbRadius(0);
         timeBar.setOnFocusChangeListener((v, hasFocus) -> timeBar.setThumbRadius(hasFocus ? getResources().getDimensionPixelSize(R.dimen.dp_8) : 0));
+        timeBar.setLabelFormatter(value -> Util.formatForHours((long) value));
         timeBar.addOnChangeListener((slider, value, fromUser) -> {
             if (fromUser) positionView.setText(player.stringToTime((long) value));
         });
