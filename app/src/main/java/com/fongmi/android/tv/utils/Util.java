@@ -139,6 +139,18 @@ public class Util {
             return "";
         }
     }
+public static String formatForHours(long timeMs) {
+        if (timeMs == com.google.android.exoplayer2.C.TIME_UNSET) timeMs = 0;
+        long totalSeconds = timeMs / 1000;
+        long seconds = totalSeconds % 60;
+        long minutes = (totalSeconds / 60) % 60;
+        long hours = totalSeconds / 3600;
+        if (hours > 0) {
+            return String.format(java.util.Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format(java.util.Locale.getDefault(), "%02d:%02d", minutes, seconds);
+        }
+    }
 
     public static Intent getChooser(Intent intent) {
         List<ComponentName> components = new ArrayList<>();
