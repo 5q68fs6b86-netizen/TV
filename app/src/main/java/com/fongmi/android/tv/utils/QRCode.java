@@ -50,7 +50,7 @@ public class QRCode {
         
         // 绘制二维码模块
         paint.setColor(BLACK);
-        float moduleRadius = scale * 0.3f; // 模块圆角
+        float moduleRadius = scale * 0.5f; // 模块圆角
         
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
