@@ -1,4 +1,4 @@
-<![CDATA[<resources>
+<resources>
     <!-- 为TV大屏幕优化，提供更大的尺寸 -->
     <dimen name="progress_indicator_size">56dp</dimen>
     <dimen name="progress_indicator_track_thickness">7dp</dimen>

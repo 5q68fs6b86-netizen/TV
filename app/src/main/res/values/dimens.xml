@@ -1,6 +1,5 @@
-<![CDATA[<resources>
+<resources>
     <dimen name="progress_indicator_size">40dp</dimen>
     <dimen name="progress_indicator_track_thickness">5dp</dimen>
     <dimen name="progress_indicator_corner_radius">2.5dp</dimen>
 </resources>
-]]>
