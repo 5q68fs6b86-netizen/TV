@@ -24,6 +24,7 @@ public class CustomSeekView extends FrameLayout {
     private Slider timeBar;
 
     private Runnable refresh;
+    private Runnable seeker;
     private Players player;
 
     private long currentDuration;
@@ -50,23 +51,29 @@ public class CustomSeekView extends FrameLayout {
         durationView = findViewById(R.id.duration);
         timeBar = findViewById(R.id.timeBar);
         refresh = this::refresh;
+        seeker = () -> seekToTimeBarPosition((long) timeBar.getValue());
 
         timeBar.setThumbRadius(0);
         timeBar.setOnFocusChangeListener((v, hasFocus) -> timeBar.setThumbRadius(hasFocus ? getResources().getDimensionPixelSize(R.dimen.dp_8) : 0));
         timeBar.setLabelFormatter(value -> Util.formatForHours((long) value));
         timeBar.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) positionView.setText(player.stringToTime((long) value));
+            if (fromUser) {
+                scrubbing = true;
+                positionView.setText(player.stringToTime((long) value));
+                removeCallbacks(seeker);
+                postDelayed(seeker, 500);
+            }
         });
 
         timeBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
+                removeCallbacks(seeker);
                 scrubbing = true;
             }
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                scrubbing = false;
                 seekToTimeBarPosition((long) slider.getValue());
             }
         });
@@ -114,6 +121,7 @@ public class CustomSeekView extends FrameLayout {
     private void seekToTimeBarPosition(long positionMs) {
         if (player != null) {
             player.seekTo(positionMs);
+            scrubbing = false;
             refresh();
         }
     }
@@ -122,5 +130,6 @@ public class CustomSeekView extends FrameLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(refresh);
+        removeCallbacks(seeker);
     }
 }
