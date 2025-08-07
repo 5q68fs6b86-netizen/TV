@@ -1,7 +1,6 @@
-<![CDATA[<resources>
+<resources>
     <!-- 为移动设备优化 -->
     <dimen name="progress_indicator_size">32dp</dimen>
     <dimen name="progress_indicator_track_thickness">4dp</dimen>
     <dimen name="progress_indicator_corner_radius">2dp</dimen>
 </resources>
-]]>
