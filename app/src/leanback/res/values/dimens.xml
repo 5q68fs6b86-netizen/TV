@@ -1,6 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 为TV大屏幕优化，提供更大的尺寸 -->
     <dimen name="progress_indicator_size">56dp</dimen>
     <dimen name="progress_indicator_track_thickness">7dp</dimen>
     <dimen name="progress_indicator_corner_radius">3.5dp</dimen>
+    <dimen name="detail_logo_height">60dp</dimen>
+    <dimen name="detail_title_area_height">60dp</dimen>
+    <!-- 其他已有的尺寸定义 -->
 </resources>
