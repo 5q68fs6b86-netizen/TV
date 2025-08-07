@@ -6,5 +6,6 @@
     <dimen name="progress_indicator_corner_radius">3.5dp</dimen>
     <dimen name="detail_logo_height">60dp</dimen>
     <dimen name="detail_title_area_height">60dp</dimen>
+    <dimen name="dp_8">8dp</dimen>
     <!-- 其他已有的尺寸定义 -->
 </resources>
