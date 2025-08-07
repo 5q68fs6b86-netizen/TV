@@ -101,7 +101,7 @@ public class CustomSeekView extends FrameLayout {
             durationView.setText(player.stringToTime(duration < 0 ? 0 : duration));
         }
         if (positionChanged && !scrubbing) {
-            if (duration > 1) timeBar.setValue(position);
+            if (duration > 1) timeBar.setValue(Math.min(position, duration));
             positionView.setText(player.stringToTime(position < 0 ? 0 : position));
         }
         if (player.isEmpty()) {
