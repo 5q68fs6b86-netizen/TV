@@ -101,6 +101,7 @@
     <string name="setting_restore">恢复</string>
     <string name="setting_version">版本</string>
     <string name="setting_about">关于</string>
+    <string name="setting_cast_boot">投屏服务自启</string>
     <string name="setting_storage">权限</string>
     <string name="setting_off">关闭</string>
     <string name="setting_on">开启</string>

@@ -557,5 +557,12 @@ public class Setting {
     public static void putThunderCacheDir(String dir) {
         Prefers.put("thunder_cache_dir", dir);
     }
+public static boolean isCastOnBoot() {
+        return Prefers.getBoolean("cast_on_boot", false);
+    }
+
+    public static void putCastOnBoot(boolean boot) {
+        Prefers.put("cast_on_boot", boot);
+    }
 
 }
