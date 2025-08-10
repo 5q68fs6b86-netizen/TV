@@ -117,11 +117,12 @@ public class Vod implements Parcelable {
     private static final String NEW_URL_2 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741743563/86043B79-CAE8-4408-BE6D-78DC9C7312B2.png";
     private static final String OLD_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1740327617800/tyyun.png";
     private static final String NEW_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
+    private static final String OLD_URL_4 = "https://uchat.cn-bj.ufileos.com/rw_9dbccfb0-1174-4cfc-9bed-d16f1ebda76b_189.png";
     private static final String[] OTHER_REPLACEMENTS_OLD = {"迅蕾", "优熙", "跨壳", "天逸", "TJ搜索服务器"};
     private static final String[] OTHER_REPLACEMENTS_NEW = {"迅雷", "UC", "夸克", "天翼", "TG搜索服务器"};
 
     // --- NEW: Specific vodPic replacement ---
-    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://www\\.leijing1\\.com/file/avatar/[^/]+/(null|[^/]+\\.png|[^/]+\\.jpg)$");
+    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://(www\\.leijing1\\.com|www\\.leijing\\.xyz)/file/avatar/[^/]+/(null|[^/]+\\.png|[^/]+\\.jpg|[^/]+\\.jpeg)$");
     private static final String NEW_AVATAR_URL = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
     // --- END NEW ---
 
@@ -147,6 +148,7 @@ public class Vod implements Parcelable {
         result = result.replace(OLD_URL_1, NEW_URL_1);
         result = result.replace(OLD_URL_2, NEW_URL_2);
         result = result.replace(OLD_URL_3, NEW_URL_3);
+        result = result.replace(OLD_URL_4, NEW_URL_3);
         for (int i = 0; i < OTHER_REPLACEMENTS_OLD.length; i++) {
             result = result.replace(OTHER_REPLACEMENTS_OLD[i], OTHER_REPLACEMENTS_NEW[i]);
         }

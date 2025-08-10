@@ -8,30 +8,27 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.media3.common.util.Util;
-import androidx.media3.ui.DefaultTimeBar;
-import androidx.media3.ui.TimeBar;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.Players;
+import com.google.android.material.slider.Slider;
+import com.fongmi.android.tv.utils.Util;
 
-import java.util.concurrent.TimeUnit;
-
-public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListener {
+public class CustomSeekView extends FrameLayout {
 
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
     private static final int MIN_UPDATE_INTERVAL_MS = 200;
 
     private TextView positionView;
     private TextView durationView;
-    private DefaultTimeBar timeBar;
+    private Slider timeBar;
 
     private Runnable refresh;
+    private Runnable seeker;
     private Players player;
 
     private long currentDuration;
     private long currentPosition;
-    private long currentBuffered;
     private boolean scrubbing;
 
     public CustomSeekView(Context context) {
@@ -53,8 +50,33 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
         positionView = findViewById(R.id.position);
         durationView = findViewById(R.id.duration);
         timeBar = findViewById(R.id.timeBar);
-        timeBar.addListener(this);
         refresh = this::refresh;
+        seeker = () -> seekToTimeBarPosition((long) timeBar.getValue());
+
+        timeBar.setThumbRadius(0);
+        timeBar.setOnFocusChangeListener((v, hasFocus) -> timeBar.setThumbRadius(hasFocus ? getResources().getDimensionPixelSize(R.dimen.dp_8) : 0));
+        timeBar.setLabelFormatter(value -> Util.formatForHours((long) value));
+        timeBar.addOnChangeListener((slider, value, fromUser) -> {
+            if (fromUser) {
+                scrubbing = true;
+                positionView.setText(player.stringToTime((long) value));
+                removeCallbacks(seeker);
+                postDelayed(seeker, 500);
+            }
+        });
+
+        timeBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+                removeCallbacks(seeker);
+                scrubbing = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                seekToTimeBarPosition((long) slider.getValue());
+            }
+        });
     }
 
     public void setListener(Players player) {
@@ -67,92 +89,47 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     }
 
     private void refresh() {
-        if (player.isRelease()) return;
+        if (player == null || player.isRelease()) return;
         long duration = player.getDuration();
         long position = player.getPosition();
-        long buffered = player.getBuffered();
         boolean positionChanged = position != currentPosition;
         boolean durationChanged = duration != currentDuration;
-        boolean bufferedChanged = buffered != currentBuffered;
         currentDuration = duration;
         currentPosition = position;
-        currentBuffered = buffered;
         if (durationChanged) {
-            setKeyTimeIncrement(duration);
-            timeBar.setDuration(duration);
+            timeBar.setValueTo(duration > 0 ? duration : 1);
             durationView.setText(player.stringToTime(duration < 0 ? 0 : duration));
         }
         if (positionChanged && !scrubbing) {
-            timeBar.setPosition(position);
+            if (duration > 1) timeBar.setValue(Math.min(position, duration));
             positionView.setText(player.stringToTime(position < 0 ? 0 : position));
-        }
-        if (bufferedChanged) {
-            timeBar.setBufferedPosition(buffered);
         }
         if (player.isEmpty()) {
             positionView.setText("00:00");
             durationView.setText("00:00");
-            timeBar.setPosition(currentDuration = 0);
-            timeBar.setDuration(currentDuration = 0);
+            timeBar.setValue(0);
+            timeBar.setValueTo(1);
         }
         removeCallbacks(refresh);
         if (player.isPlaying()) {
-            postDelayed(refresh, delayMs(position));
+            postDelayed(refresh, 1000 - position % 1000);
         } else {
             postDelayed(refresh, MAX_UPDATE_INTERVAL_MS);
         }
     }
 
-    private void setKeyTimeIncrement(long duration) {
-        if (duration > TimeUnit.HOURS.toMillis(2)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(5));
-        } else if (duration > TimeUnit.HOURS.toMillis(1)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(3));
-        } else if (duration > TimeUnit.MINUTES.toMillis(30)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(1));
-        } else if (duration > TimeUnit.MINUTES.toMillis(15)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(30));
-        } else if (duration > TimeUnit.MINUTES.toMillis(10)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(15));
-        } else if (duration > TimeUnit.MINUTES.toMillis(5)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(10));
-        } else if (duration > 0) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(5));
-        }
-    }
-
-    private long delayMs(long position) {
-        long mediaTimeUntilNextFullSecondMs = 1000 - position % 1000;
-        long mediaTimeDelayMs = Math.min(timeBar.getPreferredUpdateDelay(), mediaTimeUntilNextFullSecondMs);
-        long delayMs = (long) (mediaTimeDelayMs / player.getSpeed());
-        return Util.constrainValue(delayMs, MIN_UPDATE_INTERVAL_MS, MAX_UPDATE_INTERVAL_MS);
-    }
-
     private void seekToTimeBarPosition(long positionMs) {
-        player.seekTo(positionMs);
-        refresh();
+        if (player != null) {
+            player.seekTo(positionMs);
+            scrubbing = false;
+            refresh();
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(refresh);
-    }
-
-    @Override
-    public void onScrubStart(@NonNull TimeBar timeBar, long position) {
-        scrubbing = true;
-        positionView.setText(player.stringToTime(position));
-    }
-
-    @Override
-    public void onScrubMove(@NonNull TimeBar timeBar, long position) {
-        positionView.setText(player.stringToTime(position));
-    }
-
-    @Override
-    public void onScrubStop(@NonNull TimeBar timeBar, long position, boolean canceled) {
-        scrubbing = false;
-        if (!canceled) seekToTimeBarPosition(position);
+        removeCallbacks(seeker);
     }
 }
