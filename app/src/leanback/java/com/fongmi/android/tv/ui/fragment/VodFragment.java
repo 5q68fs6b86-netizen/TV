@@ -8,12 +8,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.FocusHighlight;
-import androidx.leanback.widget.HorizontalGridView;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.ListRow;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -130,14 +127,9 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     @SuppressLint("RestrictedApi")
     private void setRecyclerView() {
-        CustomSelector selector = new CustomSelector();
-        selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getColumn()));
+        mBinding.recycler.setAdapter(new VodAdapter());
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setHeader(getActivity().findViewById(R.id.recycler));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
 
     private void setViewModel() {
@@ -279,25 +271,60 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
         return true;
     }
 
-    @Override
-    public void onItemClick(Vod item) {
-        if (item.isAction()) {
-            mViewModel.action(getKey(), item.getAction());
-        } else if (item.isFolder()) {
-            mPages.add(Page.get(item, mBinding.recycler.getSelectedPosition()));
-            mBinding.recycler.setMoveTop(false);
-            getVideo(item.getVodId(), "1");
-        } else {
-            if (isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
-            else if (!isFolder()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
-            else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());
-        }
-    }
+    class VodAdapter extends RecyclerView.Adapter<VodAdapter.ViewHolder> {
 
-    @Override
-    public boolean onLongClick(Vod item) {
-        CollectActivity.start(getActivity(), item.getVodName());
-        return true;
+        private List<Vod> mItems = new java.util.ArrayList<>();
+
+        public void addAll(List<Vod> items) {
+            mItems.addAll(items);
+            notifyDataSetChanged();
+        }
+
+        public void clear() {
+            mItems.clear();
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public int getItemCount() {
+            return mItems.size();
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_vod_md3, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Vod item = mItems.get(position);
+            holder.title.setText(item.getVodName());
+            Glide.with(getContext()).load(item.getVodPic()).into(holder.poster);
+            holder.itemView.setOnClickListener(v -> {
+                if (item.isAction()) {
+                    mViewModel.action(getKey(), item.getAction());
+                } else if (item.isFolder()) {
+                    mPages.add(Page.get(item, position));
+                    getVideo(item.getVodId(), "1");
+                } else {
+                    if (isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
+                    else if (!isFolder()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+                    else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());
+                }
+            });
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            private final TextView title;
+            private final ImageView poster;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                title = itemView.findViewById(R.id.title);
+                poster = itemView.findViewById(R.id.poster);
+            }
+        }
     }
 
     @Override

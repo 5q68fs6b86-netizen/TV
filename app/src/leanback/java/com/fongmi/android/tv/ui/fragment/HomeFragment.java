@@ -7,10 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.ListRow;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -75,8 +72,6 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     protected void initView() {
         mBinding.progressLayout.showProgress();
         setRecyclerView();
-        setAdapter();
-        initEvent();
         inited = true;
     }
 
@@ -101,14 +96,8 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     }
 
     private void setRecyclerView() {
-        CustomSelector selector = new CustomSelector();
-        selector.addPresenter(Integer.class, new HeaderPresenter());
-        selector.addPresenter(String.class, new ProgressPresenter());
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(22), FuncPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), HistoryPresenter.class);
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getColumn()));
+        mBinding.recycler.setAdapter(new VodAdapter());
     }
 
     private void setAdapter() {
@@ -123,14 +112,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     }
 
     public void addVideo(Result result) {
-        int index = getRecommendIndex();
-        if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
-        Style style = result.getStyle(getHome().getStyle());
-        for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
-            adapter.setItems(items, null);
-            mAdapter.add(new ListRow(adapter));
-        }
+        ((VodAdapter) mBinding.recycler.getAdapter()).addAll(result.getList());
     }
 
     private ListRow getFuncRow() {
@@ -218,66 +200,48 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         return -1;
     }
 
-    @Override
-    public void onItemClick(Func item) {
-        switch (item.getResId()) {
-            case R.string.home_history_short:
-                HistoryActivity.start(getActivity());
-                break;
-            case R.string.home_vod:
-                VodActivity.start(getActivity(), getHomeActicity().mResult.clear());
-                break;
-            case R.string.home_live:
-                LiveActivity.start(getActivity());
-                break;
-            case R.string.home_search:
-                SearchActivity.start(getActivity());
-                break;
-            case R.string.home_keep:
-                KeepActivity.start(getActivity());
-                break;
-            case R.string.home_push:
-                PushActivity.start(getActivity());
-                break;
-            case R.string.home_setting:
-                SettingActivity.start(getActivity());
-                break;
+    class VodAdapter extends RecyclerView.Adapter<VodAdapter.ViewHolder> {
+
+        private List<Vod> mItems = new java.util.ArrayList<>();
+
+        public void addAll(List<Vod> items) {
+            mItems.clear();
+            mItems.addAll(items);
+            notifyDataSetChanged();
         }
-    }
 
-    @Override
-    public void onItemClick(History item) {
-        VideoActivity.start(getActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
-    }
-
-    @Override
-    public void onItemDelete(History item) {
-        mHistoryAdapter.remove(item.delete());
-        if (mHistoryAdapter.size() > 0) return;
-        mAdapter.removeItems(getHistoryIndex(), 1);
-        mPresenter.setDelete(false);
-    }
-
-    @Override
-    public boolean onLongClick() {
-        if (mPresenter.isDelete()) {
-            new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.dialog_delete_record).setMessage(R.string.dialog_delete_history).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> clearHistory()).show();
-        } else {
-            setHistoryDelete(true);
+        @Override
+        public int getItemCount() {
+            return mItems.size();
         }
-        return true;
-    }
 
-    @Override
-    public void onItemClick(Vod item) {
-        if (getHome().isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
-        else VideoActivity.start(getActivity(), item.getVodId(), item.getVodName(), item.getVodPic());
-    }
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_vod_md3, parent, false));
+        }
 
-    @Override
-    public boolean onLongClick(Vod item) {
-        CollectActivity.start(getActivity(), item.getVodName());
-        return true;
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Vod item = mItems.get(position);
+            holder.title.setText(item.getVodName());
+            Glide.with(getContext()).load(item.getVodPic()).into(holder.poster);
+            holder.itemView.setOnClickListener(v -> {
+                if (getHome().isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
+                else VideoActivity.start(getActivity(), item.getVodId(), item.getVodName(), item.getVodPic());
+            });
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            private final TextView title;
+            private final ImageView poster;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                title = itemView.findViewById(R.id.title);
+                poster = itemView.findViewById(R.id.poster);
+            }
+        }
     }
 
     @Override

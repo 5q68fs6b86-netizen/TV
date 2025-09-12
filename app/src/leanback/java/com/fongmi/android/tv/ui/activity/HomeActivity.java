@@ -19,7 +19,11 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import com.android.cast.dlna.dmr.DLNARendererService;
 import com.bumptech.glide.Glide;
@@ -124,16 +128,24 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
-        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        mBinding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
+                mBinding.recycler.getTabAt(position).select();
             }
         });
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+        mBinding.recycler.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
+            public void onTabSelected(TabLayout.Tab tab) {
+                mBinding.pager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
             }
         });
     }
@@ -225,8 +237,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(getSupportFragmentManager()));
-        mBinding.pager.setNoScrollItem(0);
+        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(this));
+        new TabLayoutMediator(mBinding.recycler, mBinding.pager, (tab, position) -> {
+            if (position == 0) {
+                tab.setText(R.string.home);
+            } else {
+                Class type = (Class) mAdapter.get(position);
+                tab.setText(type.getTypeName());
+            }
+        }).attach();
     }
 
     private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
@@ -602,28 +621,22 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     // PageAdapter 内部类保持不变
-    class PageAdapter extends FragmentStatePagerAdapter {
-        public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT); // 建议使用新版构造函数
+    class PageAdapter extends FragmentStateAdapter {
+        public PageAdapter(@NonNull HomeActivity activity) {
+            super(activity);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int position) {
+        public Fragment createFragment(int position) {
             if (position == 0) return new HomeFragment();
             Class type = (Class) mAdapter.get(position);
-            // 传递参数的方式保持不变
             return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return mAdapter.size();
-        }
-
-        @Override
-        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            // 如果使用 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT 或 BEHAVIOR_SET_USER_VISIBLE_HINT，通常不需要手动调用 destroyItem 的 super
         }
     }
 }

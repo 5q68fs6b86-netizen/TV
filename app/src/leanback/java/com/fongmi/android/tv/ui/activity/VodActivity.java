@@ -16,7 +16,11 @@ import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -87,16 +91,24 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
 
     @Override
     protected void initEvent() {
-        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        mBinding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
+                mBinding.recycler.getTabAt(position).select();
             }
         });
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+        mBinding.recycler.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
+            public void onTabSelected(TabLayout.Tab tab) {
+                mBinding.pager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
             }
         });
     }
@@ -121,7 +133,11 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
     }
 
     private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(getSupportFragmentManager()));
+        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(this));
+        new TabLayoutMediator(mBinding.recycler, mBinding.pager, (tab, position) -> {
+            Class type = (Class) mAdapter.get(position);
+            tab.setText(type.getTypeName());
+        }).attach();
     }
 
     private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
@@ -184,26 +200,22 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         else if (!coolDown) super.onBackPressed();
     }
 
-    class PageAdapter extends FragmentStatePagerAdapter {
+    class PageAdapter extends FragmentStateAdapter {
 
-        public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm);
+        public PageAdapter(@NonNull VodActivity activity) {
+            super(activity);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int position) {
+        public Fragment createFragment(int position) {
             Class type = (Class) mAdapter.get(position);
             return VodFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return mAdapter.size();
-        }
-
-        @Override
-        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         }
     }
 }

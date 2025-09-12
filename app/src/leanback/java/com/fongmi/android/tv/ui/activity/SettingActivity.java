@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -46,6 +48,8 @@ import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -80,16 +84,8 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     protected void initView() {
-        mBinding.vod.requestFocus();
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
-        mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
-        mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
-        setCacheText();
+        mBinding.recycler.setLayoutManager(new LinearLayoutManager(this));
+        mBinding.recycler.setAdapter(new SettingAdapter());
     }
 
     private void setCacheText() {
@@ -103,31 +99,6 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
     @Override
     protected void initEvent() {
-        mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.proxy.setOnClickListener(this::onProxy);
-        mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
-        mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.restore.setOnClickListener(this::onRestore);
-        mBinding.player.setOnClickListener(this::onPlayer);
-        mBinding.danmu.setOnClickListener(this::onDanmu);
-        mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupMode);
-        mBinding.vodHistory.setOnClickListener(this::onVodHistory);
-        mBinding.version.setOnLongClickListener(this::onVersionDev);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
-        mBinding.custom.setOnClickListener(this::onCustom);
-        mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.about.setOnClickListener(this::onAbout);
     }
 
     @Override
@@ -412,6 +383,100 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
             Glide.with(this).onDestroy();
         } catch (Exception e) {
             e.printStackTrace();
+        }
     }
+
+    class SettingAdapter extends RecyclerView.Adapter<SettingAdapter.ViewHolder> {
+
+        private final List<String> mItems;
+
+        public SettingAdapter() {
+            mItems = new ArrayList<>();
+            mItems.add(ResUtil.getString(R.string.setting_vod));
+            mItems.add(ResUtil.getString(R.string.setting_live));
+            mItems.add(ResUtil.getString(R.string.setting_wall));
+            mItems.add(ResUtil.getString(R.string.setting_player));
+            mItems.add(ResUtil.getString(R.string.setting_danmu));
+            mItems.add(ResUtil.getString(R.string.setting_custom));
+            mItems.add(ResUtil.getString(R.string.setting_proxy));
+            mItems.add(ResUtil.getString(R.string.setting_backup));
+            mItems.add(ResUtil.getString(R.string.setting_restore));
+            mItems.add(ResUtil.getString(R.string.setting_cache));
+            mItems.add(ResUtil.getString(R.string.setting_doh));
+            mItems.add(ResUtil.getString(R.string.setting_version));
+            mItems.add(ResUtil.getString(R.string.setting_about));
+        }
+
+        @Override
+        public int getItemCount() {
+            return mItems.size();
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_setting_md3, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            String text = mItems.get(position);
+            holder.title.setText(text);
+            holder.value.setVisibility(View.VISIBLE);
+            holder.switchWidget.setVisibility(View.GONE);
+            if (text.equals(ResUtil.getString(R.string.setting_vod))) {
+                holder.value.setText(VodConfig.getDesc());
+                holder.itemView.setOnClickListener(v -> onVod(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_live))) {
+                holder.value.setText(LiveConfig.getDesc());
+                holder.itemView.setOnClickListener(v -> onLive(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_wall))) {
+                holder.value.setText(WallConfig.getDesc());
+                holder.itemView.setOnClickListener(v -> onWall(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_player))) {
+                holder.value.setVisibility(View.GONE);
+                holder.itemView.setOnClickListener(v -> onPlayer(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_danmu))) {
+                holder.value.setVisibility(View.GONE);
+                holder.itemView.setOnClickListener(v -> onDanmu(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_custom))) {
+                holder.value.setVisibility(View.GONE);
+                holder.itemView.setOnClickListener(v -> onCustom(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_proxy))) {
+                holder.value.setText(UrlUtil.scheme(Setting.getProxy()));
+                holder.itemView.setOnClickListener(v -> onProxy(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_backup))) {
+                holder.value.setText(backup[Setting.getBackupMode()]);
+                holder.itemView.setOnClickListener(v -> onBackup(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_restore))) {
+                holder.value.setVisibility(View.GONE);
+                holder.itemView.setOnClickListener(v -> onRestore(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_cache))) {
+                setCacheText(holder.value);
+                holder.itemView.setOnClickListener(v -> onCache(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_doh))) {
+                holder.value.setText(getDohList()[getDohIndex()]);
+                holder.itemView.setOnClickListener(v -> setDoh(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_version))) {
+                holder.value.setText(BuildConfig.VERSION_NAME);
+                holder.itemView.setOnClickListener(v -> onVersion(v));
+            } else if (text.equals(ResUtil.getString(R.string.setting_about))) {
+                holder.value.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+                holder.itemView.setOnClickListener(v -> onAbout(v));
+            }
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            private final TextView title;
+            private final TextView value;
+            private final SwitchMaterial switchWidget;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                title = itemView.findViewById(R.id.title);
+                value = itemView.findViewById(R.id.value);
+                switchWidget = itemView.findViewById(R.id.switch_widget);
+            }
+        }
     }
 }

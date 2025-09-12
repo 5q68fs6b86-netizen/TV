@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:theme="@style/AppTheme"
+        android:theme="@style/AppTheme.MD3"
         android:banner="@drawable/ic_banner">
 
         <meta-data
