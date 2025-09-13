@@ -1,0 +1,12 @@
+{
+  "name": "Android Build Environment (Java 17)",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": "false",
+      "installGradle": "false"
+    }
+  },
+  "postCreateCommand": ".devcontainer/post-create.sh"
+}
