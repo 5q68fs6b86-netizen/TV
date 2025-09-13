@@ -1,44 +1,61 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.databinding.AdapterLiveBinding;
+import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.Group;
+import com.fongmi.android.tv.databinding.AdapterChannelBinding;
+import com.fongmi.android.tv.databinding.AdapterGroupBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class LiveAdapter extends RecyclerView.Adapter<LiveAdapter.ViewHolder> {
+public class LiveAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final OnClickListener mListener;
-    private final List<Live> mItems;
-    private boolean action;
+    private final List<Object> mItems;
 
     public LiveAdapter(OnClickListener listener) {
         this.mListener = listener;
-        this.mItems = LiveConfig.get().getLives();
-    }
-
-    public void setAction(boolean action) {
-        this.action = action;
+        this.mItems = new ArrayList<>();
     }
 
     public interface OnClickListener {
+        void onGroupClick(Group item);
 
-        void onItemClick(Live item);
+        void onChannelClick(Channel item);
 
-        void onBootClick(int position, Live item);
+        boolean onChannelLongClick(Channel item);
+    }
 
-        void onPassClick(int position, Live item);
+    static class GroupHolder extends RecyclerView.ViewHolder {
 
-        boolean onBootLongClick(Live item);
+        private final AdapterGroupBinding binding;
 
-        boolean onPassLongClick(Live item);
+        GroupHolder(@NonNull AdapterGroupBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+    }
+
+    static class ChannelHolder extends RecyclerView.ViewHolder {
+
+        private final AdapterChannelBinding binding;
+
+        ChannelHolder(@NonNull AdapterChannelBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+    }
+
+    public void addAll(List<?> items) {
+        mItems.clear();
+        mItems.addAll(items);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -46,36 +63,42 @@ public class LiveAdapter extends RecyclerView.Adapter<LiveAdapter.ViewHolder> {
         return mItems.size();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return mItems.get(position) instanceof Group ? 0 : 1;
+    }
+
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterLiveBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (viewType == 0) {
+            return new GroupHolder(AdapterGroupBinding.inflate(inflater, parent, false));
+        } else {
+            return new ChannelHolder(AdapterChannelBinding.inflate(inflater, parent, false));
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Live item = mItems.get(position);
-        holder.binding.text.setText(item.getName());
-        holder.binding.text.setSelected(item.isActivated());
-        holder.binding.text.setActivated(item.isActivated());
-        holder.binding.boot.setImageResource(item.getBootIcon());
-        holder.binding.pass.setImageResource(item.getPassIcon());
-        holder.binding.boot.setVisibility(action ? View.VISIBLE : View.GONE);
-        holder.binding.pass.setVisibility(action ? View.VISIBLE : View.GONE);
-        holder.binding.text.setOnClickListener(v -> mListener.onItemClick(item));
-        holder.binding.boot.setOnClickListener(v -> mListener.onBootClick(position, item));
-        holder.binding.pass.setOnClickListener(v -> mListener.onPassClick(position, item));
-        holder.binding.boot.setOnLongClickListener(v -> mListener.onBootLongClick(item));
-        holder.binding.pass.setOnLongClickListener(v -> mListener.onPassLongClick(item));
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (getItemViewType(position) == 0) {
+            setGroup((GroupHolder) holder, (Group) mItems.get(position));
+        } else {
+            setChannel((ChannelHolder) holder, (Channel) mItems.get(position));
+        }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    private void setGroup(GroupHolder holder, Group item) {
+        holder.binding.name.setText(item.getName());
+        holder.itemView.setOnClickListener(v -> mListener.onGroupClick(item));
+    }
 
-        private final AdapterLiveBinding binding;
-
-        public ViewHolder(@NonNull AdapterLiveBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
+    private void setChannel(ChannelHolder holder, Channel item) {
+        holder.binding.name.setText(item.getName());
+        holder.binding.number.setText(item.getNumber());
+        item.loadLogo(holder.binding.logo);
+        holder.itemView.setSelected(item.isSelected());
+        holder.itemView.setOnClickListener(v -> mListener.onChannelClick(item));
+        holder.itemView.setOnLongClickListener(v -> mListener.onChannelLongClick(item));
     }
 }

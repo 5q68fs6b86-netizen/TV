@@ -14,13 +14,12 @@
         android:paddingEnd="24dp"
         android:paddingBottom="16dp">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:text="@string/home_keep"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
     </FrameLayout>
 

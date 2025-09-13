@@ -10,9 +10,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
@@ -51,15 +48,13 @@ import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
-import com.fongmi.android.tv.ui.custom.CustomLiveListView;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
-import com.fongmi.android.tv.ui.presenter.ChannelPresenter;
+import com.fongmi.android.tv.ui.adapter.LiveAdapter;
 import com.fongmi.android.tv.ui.presenter.EpgDataPresenter;
-import com.fongmi.android.tv.ui.presenter.GroupPresenter;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -77,12 +72,12 @@ import java.util.List;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class LiveActivity extends BaseActivity implements Clock.Callback, GroupPresenter.OnClickListener, ChannelPresenter.OnClickListener, EpgDataPresenter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, TrackDialog.Listener, PlayerDialog.Listener, PassCallback, LiveCallback {
+public class LiveActivity extends BaseActivity implements Clock.Callback, LiveAdapter.OnClickListener, EpgDataPresenter.OnClickListener, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, PassCallback, LiveCallback {
 
     private ActivityLiveBinding mBinding;
-    private ArrayObjectAdapter mChannelAdapter;
     private ArrayObjectAdapter mEpgDataAdapter;
-    private ArrayObjectAdapter mGroupAdapter;
+    private LiveAdapter mGroupAdapter;
+    private LiveAdapter mChannelAdapter;
     private CustomKeyDownLive mKeyDown;
     private LiveViewModel mViewModel;
     private List<Group> mHides;
@@ -122,7 +117,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private Group getKeep() {
-        return (Group) mGroupAdapter.get(0);
+        return (Group) mGroupAdapter.mItems.get(0);
     }
 
     private Live getHome() {
@@ -169,8 +164,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     @Override
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
-        mBinding.group.setListener(this);
-        mBinding.channel.setListener(this);
         mBinding.control.seek.setListener(mPlayers);
         mBinding.control.text.setOnClickListener(this::onTrack);
         mBinding.control.audio.setOnClickListener(this::onTrack);
@@ -191,10 +184,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mBinding.control.player.setOnLongClickListener(view -> onChoose());
         mBinding.control.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
-        mBinding.group.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+        mBinding.group.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mGroupAdapter.size() > 0) onChildSelected(child, mGroup = (Group) mGroupAdapter.get(position));
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                onChildSelected(mGroup);
             }
         });
     }
@@ -203,8 +196,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mBinding.group.setItemAnimator(null);
         mBinding.channel.setItemAnimator(null);
         mBinding.widget.epgData.setItemAnimator(null);
-        mBinding.group.setAdapter(new ItemBridgeAdapter(mGroupAdapter = new ArrayObjectAdapter(new GroupPresenter(this))));
-        mBinding.channel.setAdapter(new ItemBridgeAdapter(mChannelAdapter = new ArrayObjectAdapter(new ChannelPresenter(this))));
+        mBinding.group.setAdapter(mGroupAdapter = new LiveAdapter(this));
+        mBinding.channel.setAdapter(mChannelAdapter = new LiveAdapter(this));
         mBinding.widget.epgData.setAdapter(new ItemBridgeAdapter(mEpgDataAdapter = new ArrayObjectAdapter(new EpgDataPresenter(this))));
     }
 
@@ -292,7 +285,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void setGroup(Live live) {
         List<Group> items = new ArrayList<>();
         for (Group group : live.getGroups()) (group.isHidden() ? mHides : items).add(group);
-        mGroupAdapter.setItems(items, null);
+        mGroupAdapter.addAll(items);
         setPosition(LiveConfig.get().find(items));
     }
 
@@ -322,9 +315,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void setPosition(int[] position) {
         if (position[0] == -1) return;
-        int size = mGroupAdapter.size();
+        int size = mGroupAdapter.getItemCount();
         if (size == 1 || position[0] >= size) return;
-        mGroup = (Group) mGroupAdapter.get(position[0]);
+        mGroup = (Group) mGroupAdapter.mItems.get(position[0]);
         mBinding.group.setSelectedPosition(position[0]);
         mGroup.setPosition(position[1]);
         onItemClick(mGroup);
@@ -334,25 +327,26 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void setPosition() {
         if (mChannel == null) return;
         mGroup = mChannel.getGroup();
-        int position = mGroupAdapter.indexOf(mGroup);
+        int position = mGroupAdapter.mItems.indexOf(mGroup);
         boolean change = mBinding.group.getSelectedPosition() != position;
         if (change) mBinding.group.setSelectedPosition(position);
-        if (change) mChannelAdapter.setItems(mGroup.getChannel(), null);
+        if (change) mChannelAdapter.addAll(mGroup.getChannel());
         mBinding.channel.setSelectedPosition(mGroup.getPosition());
     }
 
-    private void onChildSelected(@Nullable RecyclerView.ViewHolder child, Group group) {
-        if (mOldView != null) mOldView.setSelected(false);
-        if (child == null) return;
-        mOldView = child.itemView;
-        mOldView.setSelected(true);
+    private void onChildSelected(Group group) {
+        int position = mGroupAdapter.mItems.indexOf(group);
+        if (position != -1) {
+            mBinding.group.scrollToPosition(position);
+            mGroupAdapter.notifyDataSetChanged();
+        }
         onItemClick(group);
         resetPass();
     }
 
     private void setActivated() {
-        for (int i = 0; i < mChannelAdapter.size(); i++) ((Channel) mChannelAdapter.get(i)).setSelected(mChannel);
-        notifyItemChanged(mBinding.channel, mChannelAdapter);
+        for (Object item : mChannelAdapter.mItems) ((Channel) item).setSelected(mChannel);
+        mChannelAdapter.notifyDataSetChanged();
         fetch();
     }
 
@@ -590,9 +584,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     @Override
-    public void onItemClick(Group item) {
-        mChannelAdapter.setItems(setWidth(item).getChannel(), null);
-        mBinding.channel.setSelectedPosition(Math.max(item.getPosition(), 0));
+    @Override
+    public void onGroupClick(Group item) {
+        mChannelAdapter.addAll(setWidth(item).getChannel());
+        mBinding.channel.scrollToPosition(Math.max(item.getPosition(), 0));
         if (!item.isKeep() || ++count < 5 || mHides.isEmpty()) return;
         PassDialog.create().show(this);
         App.removeCallbacks(mR4);
@@ -600,18 +595,18 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     @Override
-    public void onItemClick(Channel item) {
+    public void onChannelClick(Channel item) {
         if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup)) {
             showEpg(item);
         } else {
-            mGroup.setPosition(mBinding.channel.getSelectedPosition());
+            mGroup.setPosition(mChannelAdapter.mItems.indexOf(item));
             setChannel(item.group(mGroup));
             hideUI();
         }
     }
 
     @Override
-    public boolean onLongClick(Channel item) {
+    public boolean onChannelLongClick(Channel item) {
         if (mGroup.isHidden()) return false;
         boolean exist = Keep.exist(item.getName());
         Notify.show(exist ? R.string.keep_del : R.string.keep_add);
@@ -641,8 +636,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void delKeep(Channel item) {
-        if (mGroup.isKeep()) mChannelAdapter.remove(item);
-        if (mChannelAdapter.size() == 0) mBinding.group.requestFocus();
+        if (mGroup.isKeep()) mChannelAdapter.mItems.remove(item);
+        if (mChannelAdapter.getItemCount() == 0) mBinding.group.requestFocus();
         getKeep().getChannel().remove(item);
         Keep.delete(item.getName());
     }
@@ -703,8 +698,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mBinding.group.getLayoutParams().width = 0;
         mBinding.divide.setVisibility(View.GONE);
         mEpgDataAdapter.clear();
-        mChannelAdapter.clear();
-        mGroupAdapter.clear();
+        mChannelAdapter.mItems.clear();
+        mGroupAdapter.mItems.clear();
         mHides.clear();
         mChannel = null;
         mGroup = null;
@@ -744,12 +739,12 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void unlock(String pass) {
         boolean first = true;
-        int position = mGroupAdapter.size();
+        int position = mGroupAdapter.getItemCount();
         Iterator<Group> iterator = mHides.iterator();
         while (iterator.hasNext()) {
             Group item = iterator.next();
             if (pass != null && !pass.equals(item.getPass())) continue;
-            mGroupAdapter.add(mGroupAdapter.size(), item);
+            mGroupAdapter.mItems.add(item);
             if (first) mBinding.group.setSelectedPosition(position);
             if (first) onItemClick(mGroup = item);
             iterator.remove();
@@ -884,14 +879,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         int position = mGroup.getPosition() - 1;
         boolean limit = position < 0;
         if (Setting.isAcross() & limit) prevGroup(true);
-        else mGroup.setPosition(limit ? mChannelAdapter.size() - 1 : position);
+        else mGroup.setPosition(limit ? mChannelAdapter.getItemCount() - 1 : position);
         if (!mGroup.isEmpty()) setChannel(mGroup.current());
     }
 
     private void nextChannel() {
         if (mGroup == null) return;
         int position = mGroup.getPosition() + 1;
-        boolean limit = position > mChannelAdapter.size() - 1;
+        boolean limit = position > mChannelAdapter.getItemCount() - 1;
         if (Setting.isAcross() && limit) nextGroup(true);
         else mGroup.setPosition(limit ? 0 : position);
         if (!mGroup.isEmpty()) setChannel(mGroup.current());
@@ -956,26 +951,26 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public boolean nextGroup(boolean skip) {
-        int position = mBinding.group.getSelectedPosition() + 1;
-        if (position > mGroupAdapter.size() - 1) position = 0;
-        if (mGroup.equals(mGroupAdapter.get(position))) return false;
-        mGroup = (Group) mGroupAdapter.get(position);
-        mBinding.group.setSelectedPosition(position);
+        int position = mGroupAdapter.mItems.indexOf(mGroup) + 1;
+        if (position > mGroupAdapter.getItemCount() - 1) position = 0;
+        if (mGroup.equals(mGroupAdapter.mItems.get(position))) return false;
+        mGroup = (Group) mGroupAdapter.mItems.get(position);
+        mBinding.group.scrollToPosition(position);
         if (skip && mGroup.skip()) return nextGroup(true);
-        mChannelAdapter.setItems(mGroup.getChannel(), null);
+        mChannelAdapter.addAll(mGroup.getChannel());
         mGroup.setPosition(0);
         return true;
     }
 
     @Override
     public boolean prevGroup(boolean skip) {
-        int position = mBinding.group.getSelectedPosition() - 1;
-        if (position < 0) position = mGroupAdapter.size() - 1;
-        if (mGroup.equals(mGroupAdapter.get(position))) return false;
-        mGroup = (Group) mGroupAdapter.get(position);
-        mBinding.group.setSelectedPosition(position);
+        int position = mGroupAdapter.mItems.indexOf(mGroup) - 1;
+        if (position < 0) position = mGroupAdapter.getItemCount() - 1;
+        if (mGroup.equals(mGroupAdapter.mItems.get(position))) return false;
+        mGroup = (Group) mGroupAdapter.mItems.get(position);
+        mBinding.group.scrollToPosition(position);
         if (skip && mGroup.skip()) return prevGroup(true);
-        mChannelAdapter.setItems(mGroup.getChannel(), null);
+        mChannelAdapter.addAll(mGroup.getChannel());
         mGroup.setPosition(mGroup.getChannel().size() - 1);
         return true;
     }
@@ -994,7 +989,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     @Override
     public void onFind(String number) {
         mBinding.widget.digital.setVisibility(View.GONE);
-        setPosition(LiveConfig.get().find(number, mGroupAdapter.unmodifiableList()));
+        setPosition(LiveConfig.get().find(number, mGroupAdapter.mItems));
     }
 
     @Override

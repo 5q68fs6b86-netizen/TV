@@ -7,5 +7,8 @@
     <dimen name="detail_logo_height">60dp</dimen>
     <dimen name="detail_title_area_height">60dp</dimen>
     <dimen name="dp_8">8dp</dimen>
-    <!-- 其他已有的尺寸定义 -->
+    <dimen name="dp_12">12dp</dimen>
+    <dimen name="dp_24">24dp</dimen>
+    <dimen name="dp_16">16dp</dimen>
+    <dimen name="dp_26">26dp</dimen>
 </resources>

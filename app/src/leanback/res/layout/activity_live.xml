@@ -59,11 +59,14 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <com.fongmi.android.tv.ui.custom.CustomLiveListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/group"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            tools:itemCount="5"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            android:padding="4dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/adapter_group" />
 
         <View
@@ -73,11 +76,14 @@
             android:background="@color/grey_700"
             android:visibility="gone" />
 
-        <com.fongmi.android.tv.ui.custom.CustomLiveListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/channel"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            tools:itemCount="5"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            android:padding="4dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/adapter_channel" />
 
     </LinearLayout>

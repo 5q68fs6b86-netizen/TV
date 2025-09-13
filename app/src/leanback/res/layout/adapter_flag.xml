@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/text"
+    style="@style/Widget.MaterialComponents.Chip.Choice"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/selector_item"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:gravity="center"
-    android:textColor="@drawable/textbgbl"
-    android:textSize="16sp"
-    tools:text="泥巴" />
+    android:layout_height="wrap_content" />

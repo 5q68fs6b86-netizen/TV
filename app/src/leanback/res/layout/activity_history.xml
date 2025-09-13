@@ -17,14 +17,13 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_gravity="start"
             android:text="@string/home_history"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
         <ImageView
             android:id="@+id/delete"

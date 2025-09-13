@@ -24,16 +24,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.BaseGridView;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -69,6 +67,8 @@ import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
+import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
+import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
@@ -79,12 +79,6 @@ import com.fongmi.android.tv.ui.dialog.FileChooserDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
-import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
-import com.fongmi.android.tv.ui.presenter.EpisodePresenter;
-import com.fongmi.android.tv.ui.presenter.FlagPresenter;
-import com.fongmi.android.tv.ui.presenter.ParsePresenter;
-import com.fongmi.android.tv.ui.presenter.PartPresenter;
-import com.fongmi.android.tv.ui.presenter.QuickPresenter;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -138,24 +132,16 @@ import android.widget.LinearLayout;
 import android.view.ViewParent;
 // --- End Imports ---
 
-public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
+public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, Clock.Callback, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener {
     private AnimatorSet mControlShowAnimator;
     private AnimatorSet mControlHideAnimator;
     private boolean mIsControlAnimating = false;
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
-    private EpisodePresenter mEpisodePresenter;
-    private ArrayObjectAdapter mEpisodeAdapter;
-    private ArrayObjectAdapter mArrayAdapter;
-    private ArrayObjectAdapter mParseAdapter;
-    private ArrayObjectAdapter mQuickAdapter;
-    private ArrayObjectAdapter mFlagAdapter;
-    private ArrayObjectAdapter mPartAdapter;
+    private EpisodeAdapter mEpisodeAdapter;
+    private FlagAdapter mFlagAdapter;
     private QualityAdapter mQualityAdapter;
     private DanmakuContext mDanmakuContext;
-    private ArrayPresenter mArrayPresenter;
-    private FlagPresenter mFlagPresenter;
-    private PartPresenter mPartPresenter;
     private CustomKeyDownVod mKeyDown;
     private ExecutorService mExecutor;
     private SiteViewModel mViewModel;
@@ -277,25 +263,20 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private Flag getFlag() {
-        return (Flag) mFlagAdapter.get(getFlagPosition());
+        return mFlagAdapter.get(getFlagPosition());
     }
 
     private Episode getEpisode() {
-        return (Episode) mEpisodeAdapter.get(getEpisodePosition());
+        return mEpisodeAdapter.get(getEpisodePosition());
     }
 
     private int getFlagPosition() {
-        for (int i = 0; i < mFlagAdapter.size(); i++) if (((Flag) mFlagAdapter.get(i)).isActivated()) return i;
+        for (int i = 0; i < mFlagAdapter.getItemCount(); i++) if (mFlagAdapter.get(i).isActivated()) return i;
         return 0;
     }
 
     private int getEpisodePosition() {
-        for (int i = 0; i < mEpisodeAdapter.size(); i++) if (((Episode) mEpisodeAdapter.get(i)).isActivated()) return i;
-        return 0;
-    }
-
-    private int getParsePosition() {
-        for (int i = 0; i < mParseAdapter.size(); i++) if (((Parse) mParseAdapter.get(i)).isActivated()) return i;
+        for (int i = 0; i < mEpisodeAdapter.getItemCount(); i++) if (mEpisodeAdapter.get(i).isActivated()) return i;
         return 0;
     }
 
@@ -320,22 +301,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return getIjk().getDefaultArtwork();
     }
 
-    private BaseGridView getEpisodeView() {
-        return Setting.getEpisode() == 0 ? mBinding.episodeHori : mBinding.episodeVert;
-    }
-
-    private void setEpisodeSelectedPosition(int position) {
-        getEpisodeView().setSelectedPosition(position);
-        if (hasKeyEvent) return;
-        if (isFullscreen()) return;
-        getEpisodeView().postDelayed(() -> {
-            View selectedItem = getEpisodeView().getLayoutManager().findViewByPosition(position);
-            View focusedView = getCurrentFocus();
-            if (selectedItem != null) selectedItem.requestFocus();
-            if (focusedView == mBinding.video) mBinding.video.requestFocus();
-        }, 300);
-    }
-
     private boolean isReplay() {
         return Setting.getReset() == 1;
     }
@@ -355,15 +320,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     protected void initView() {
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
-        mBinding.video.setBackgroundResource(R.drawable.rounded_corners);
-        final float cornerRadius = ResUtil.dp2px(8);
-        mBinding.video.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
-            }
-        });
-        mBinding.video.setClipToOutline(true);
         mClock = Clock.create(mBinding.display.clock);
         mDanmakuContext = DanmakuContext.create();
         mPlayers = Players.create(this);
@@ -372,9 +328,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mR2 = this::updateFocus;
         mR3 = this::setTraffic;
         mR4 = this::showEmpty;
-        setBackground(false);
         setRecyclerView();
-        setEpisodeView();
         setVideoView();
         setDisplayView();
         setDanmuView();
@@ -422,74 +376,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.ending.setOnLongClickListener(view -> onEndingReset());
         mBinding.control.opening.setOnLongClickListener(view -> onOpeningReset());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
-        mBinding.flag.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mFlagAdapter.size() > 0) setFlagActivated((Flag) mFlagAdapter.get(position));
-            }
-        });
-        getEpisodeView().addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (child != null) mFocus1 = child.itemView;
-                setEpisodeChildKeyListener(child, position);
-            }
-        });
-        mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mEpisodeAdapter.size() > getGroupSize() && position > 1 && hasKeyEvent) setEpisodeSelectedPosition((position - 2) * getGroupSize());
-            }
-        });
-    }
-
-    private void setEpisodeChildKeyListener(RecyclerView.ViewHolder child, int position) {
-        if (getEpisodeView() != mBinding.episodeVert) return;
-        int itemCount = getEpisodeView().getAdapter().getItemCount();
-        if (itemCount <= 0) return;
-        int columns = mEpisodePresenter.getNumColumns();
-        if ((position + columns >= itemCount) && ((position % columns) + 1 > (itemCount % columns))) {
-            child.itemView.setOnKeyListener(new View.OnKeyListener() {
-                @Override
-                public boolean onKey(View v, int keyCode, KeyEvent event) {
-                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
-                        View lastItem =  getEpisodeView().getLayoutManager().findViewByPosition(itemCount - 1);
-                        if (lastItem != null) lastItem.requestFocus();
-                    }
-                    return false;
-                }
-            });
-        }
     }
 
     private void setRecyclerView() {
-        mBinding.flag.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.flag.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.flag.setAdapter(new ItemBridgeAdapter(mFlagAdapter = new ArrayObjectAdapter(mFlagPresenter = new FlagPresenter(this::setFlagActivated))));
-        mBinding.quality.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.quality.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.quality.setAdapter(mQualityAdapter = new QualityAdapter(this::setQualityActivated));
-        mBinding.array.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.array.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.array.setAdapter(new ItemBridgeAdapter(mArrayAdapter = new ArrayObjectAdapter(mArrayPresenter = new ArrayPresenter(this))));
-        mBinding.part.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.part.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.part.setAdapter(new ItemBridgeAdapter(mPartAdapter = new ArrayObjectAdapter(mPartPresenter = new PartPresenter(item -> initSearch(item, false)))));
-        mBinding.quick.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.quick.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.quick.setAdapter(new ItemBridgeAdapter(mQuickAdapter = new ArrayObjectAdapter(new QuickPresenter(this::setSearch))));
-        mBinding.control.parse.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.control.parse.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.control.parse.setAdapter(new ItemBridgeAdapter(mParseAdapter = new ArrayObjectAdapter(new ParsePresenter(this::setParseActivated))));
-        mParseAdapter.setItems(VodConfig.get().getParses(), null);
-    }
-
-    private void setEpisodeView() {
-        mBinding.episodeVert.setVerticalSpacing(ResUtil.dp2px(8));
-        mBinding.episodeHori.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.episodeVert.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.episodeHori.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        getEpisodeView().setAdapter(new ItemBridgeAdapter(mEpisodeAdapter = new ArrayObjectAdapter(mEpisodePresenter = new EpisodePresenter(this::setEpisodeActivated))));
+        mBinding.flag.setHasFixedSize(true);
+        mBinding.flag.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.flag.setAdapter(mFlagAdapter = new FlagAdapter(this, new ArrayList<>()));
+        mBinding.episode.setHasFixedSize(true);
+        mBinding.episode.setLayoutManager(new GridLayoutManager(this, 5));
+        mBinding.episode.setAdapter(mEpisodeAdapter = new EpisodeAdapter(this, new ArrayList<>()));
     }
 
     private void setVideoView() {
@@ -536,7 +431,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void checkCast() {
         if (isCast()) onVideo();
-        else mBinding.progressLayout.showProgress();
     }
 
     private void checkId() {
@@ -631,34 +525,28 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             showEmpty();
         } else {
             // Set the fallback text view initially when detail is empty but name exists
-             mBinding.nameTextView.setText(getName()); // Set fallback text initially
-             mBinding.nameTextView.setVisibility(View.VISIBLE); // Make sure it's visible
-             mBinding.logoImageView.setVisibility(View.GONE);
+            mBinding.name.setText(getName()); // Set fallback text initially
+            mBinding.name.setVisibility(View.VISIBLE); // Make sure it's visible
             App.post(mR4, 10000);
             checkSearch(false); // Start search based on the name from intent
         }
     }
 
     private void showEmpty() {
-        mBinding.progressLayout.showEmpty();
         stopSearch();
     }
 
     // --- Modified setDetail(Vod item) ---
     private void setDetail(Vod item) {
-        mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
 
         // 1. Store original VOD name
         currentVodName = item.getVodName(getName());
         currentLogoUrl = null; // Reset logo url
 
-        // 2. Remove reference to old mBinding.name (already done in layout)
-
         // 3. Set initial title state: show fallback text, hide logo image
-        mBinding.logoImageView.setVisibility(View.GONE);
-        mBinding.nameTextView.setVisibility(View.VISIBLE);
-        mBinding.nameTextView.setText(currentVodName); // Display text title initially
+        mBinding.name.setVisibility(View.VISIBLE);
+        mBinding.name.setText(currentVodName); // Display text title initially
 
         // Set other details (using existing setText method)
         setText(mBinding.remark, 0, item.getVodRemarks());
@@ -670,7 +558,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.content, R.string.detail_content, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
 
-        mFlagAdapter.setItems(item.getVodFlags(), null);
+        mFlagAdapter.addAll(item.getVodFlags());
         mBinding.content.setMaxLines(getMaxLines());
         // mBinding.video.requestFocus(); // Consider focus logic, maybe focus nameTextView or logoImageView later
         setArtwork(item.getVodPic());
@@ -688,90 +576,87 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     // --- Added fetchTmdbLogo Method ---
 
-// 在 VideoActivity.java 中
+// In VideoActivity.java
 
 private void fetchTmdbLogo(String title, String year, String typeName) {
-    // API Key 检查 (假设这部分代码是正确的，并且在方法开头)
+    // API Key Check (assuming this part is correct and at the beginning of the method)
     if (TextUtils.isEmpty(Constant.TMDB_API_KEY) || "YOUR_TMDB_API_KEY_HERE".equals(Constant.TMDB_API_KEY)) {
         Log.e("VideoActivity", "TMDB API Key not set! Skipping logo fetch.");
         // Check Activity state even here, though less likely to be needed
         if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) return;
-        mBinding.logoImageView.setVisibility(View.GONE);
-        mBinding.nameTextView.setVisibility(View.VISIBLE);
-        mBinding.nameTextView.setText(currentVodName);
+        mBinding.name.setVisibility(View.VISIBLE);
+        mBinding.name.setText(currentVodName);
         return;
     }
 
-    // 调用 TmdbHelper.findLogoForVod 并传入回调
+    // Call TmdbHelper.findLogoForVod and pass the callback
     TmdbHelper.findLogoForVod(title, year, typeName, new TmdbHelper.LogoCallback() {
         @Override
         public void onLogoFound(@NonNull String logoUrl) {
-            // --- 1. Activity 状态检查放在最前面 ---
+            // --- 1. Activity State Check at the very beginning ---
             if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
                  Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoFound, skipping Glide load.");
-                 return; // 如果 Activity 无效，直接返回
+                 return; // If Activity is invalid, return immediately
             }
-            // --- 结束检查 ---
+            // --- End Check ---
 
-            // --- 如果 Activity 有效，执行后续操作 ---
+            // --- If Activity is valid, proceed with operations ---
             currentLogoUrl = logoUrl;
-            mBinding.nameTextView.setVisibility(View.GONE);
-            mBinding.logoImageView.setVisibility(View.VISIBLE);
+            mBinding.name.setVisibility(View.GONE);
 
-            try { // 包裹资源获取和计算，增加健壮性
+            try { // Wrap resource fetching and calculations for robustness
                 int targetPixelHeight = getResources().getDimensionPixelSize(R.dimen.detail_title_area_height);
                 int targetPixelWidth = targetPixelHeight * 8; // Example width calculation
                 Log.d("VideoActivity", "Glide override target size: " + targetPixelWidth + "x" + targetPixelHeight);
 
-                Glide.with(VideoActivity.this) // 确认 VideoActivity.this 有效
+                Glide.with(VideoActivity.this) // Confirm VideoActivity.this is valid
                      .load(logoUrl)
                      .placeholder(R.drawable.ic_placeholder)
                      .error(R.drawable.ic_error)
                      .override(targetPixelWidth, targetPixelHeight)
-                     .fitCenter() // 使用 fitCenter
-                     .into(mBinding.logoImageView);
+                     .fitCenter() // Use fitCenter
+                     .into(mBinding.name);
             } catch (Exception e) {
                  Log.e("VideoActivity", "Error during Glide load setup or execution in onLogoFound", e);
-                 // 发生异常，可以考虑回退到显示文字
-                 onLogoNotFound(); // 调用 onLogoNotFound 处理 UI 回退
+                 // On exception, consider falling back to showing text
+                 onLogoNotFound(); // Call onLogoNotFound to handle UI fallback
             }
-        } // <--- onLogoFound 结束大括号
+        } // <--- End of onLogoFound
 
         @Override
         public void onLogoNotFound() {
-            // --- 1. Activity 状态检查放在最前面 ---
+            // --- 1. Activity State Check at the very beginning ---
             if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
                   Log.w("VideoActivity", "Activity is finishing or destroyed in onLogoNotFound, skipping UI update.");
-                 return; // 如果 Activity 无效，直接返回
+                 return; // If Activity is invalid, return immediately
             }
-            // --- 结束检查 ---
+            // --- End Check ---
 
-            // --- 如果 Activity 有效，执行后续操作 ---
+            // --- If Activity is valid, proceed with operations ---
             currentLogoUrl = null;
-            mBinding.logoImageView.setVisibility(View.GONE);
-            mBinding.nameTextView.setVisibility(View.VISIBLE);
-            mBinding.nameTextView.setText(currentVodName);
-        } // <--- onLogoNotFound 结束大括号
+            mBinding.name.setVisibility(View.VISIBLE);
+            mBinding.name.setText(currentVodName);
+        } // <--- End of onLogoNotFound
 
          @Override
          public void onError() {
-            // --- 1. Activity 状态检查放在最前面 ---
+            // --- 1. Activity State Check at the very beginning ---
             if (isFinishing() || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
                   Log.w("VideoActivity", "Activity is finishing or destroyed in onError, skipping UI update.");
-                 return; // 如果 Activity 无效，直接返回
+                 return; // If Activity is invalid, return immediately
             }
-            // --- 结束检查 ---
+            // --- End Check ---
 
-            // --- 如果 Activity 有效，执行后续操作 ---
+            // --- If Activity is valid, proceed with operations ---
             Log.w("VideoActivity", "Error fetching TMDB logo for: " + title);
-            // 调用 onLogoNotFound 来统一处理 UI 回退到显示文字的状态
-            // onLogoNotFound 内部已经包含了 Activity 状态检查，所以这里调用是安全的
+            // Call onLogoNotFound to uniformly handle UI fallback to text state
+            // onLogoNotFound already includes an Activity state check, so it's safe to call here
             onLogoNotFound();
-         } // <--- onError 结束大括号
+         } // <--- End of onError
 
-    }); // <--- **关键：添加了结束匿名类和方法调用的 );**
+    }); // <--- **CRITICAL: Added the closing ); for the anonymous class and method call**
 
-} // <--- fetchTmdbLogo 方法的结束大括号-- End Added fetchTmdbLogo Method ---
+} // <--- End of fetchTmdbLogo method-- End Added fetchTmdbLogo Method ---
 
     private int getMaxLines() {
         int lines = 1;
@@ -824,85 +709,26 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void setFlagActivated(Flag item) {
-        if (mFlagAdapter.size() == 0 || item == null || item.isActivated()) return; // Add null check
+        if (mFlagAdapter.getItemCount() == 0 || item == null || item.isActivated()) return; // Add null check
         if (mFlagAdapter.indexOf(item) == -1) {
-             if(mFlagAdapter.size() > 0){ // Ensure adapter not empty before getting first item
-                 item.setFlag(((Flag) mFlagAdapter.get(0)).getFlag());
+             if(mFlagAdapter.getItemCount() > 0){ // Ensure adapter not empty before getting first item
+                 item.setFlag(mFlagAdapter.get(0).getFlag());
              } else {
                  return; // Cannot set flag if adapter is empty
              }
         }
-        for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).setActivated(item);
-        mBinding.flag.setSelectedPosition(mFlagAdapter.indexOf(item));
-        notifyItemChanged(mBinding.flag, mFlagAdapter);
+        for (int i = 0; i < mFlagAdapter.getItemCount(); i++) mFlagAdapter.get(i).setActivated(item);
+        mFlagAdapter.notifyDataSetChanged();
         setEpisodeAdapter(item.getEpisodes());
         setQualityVisible(false);
         seamless(item);
     }
 
     private void setEpisodeAdapter(List<Episode> items) {
-        getEpisodeView().setVisibility(items == null || items.isEmpty() ? View.GONE : View.VISIBLE); // Add null check
+        mBinding.episode.setVisibility(items == null || items.isEmpty() ? View.GONE : View.VISIBLE); // Add null check
         if (items == null) return; // Prevent processing null list
-        if (isVisible(mBinding.episodeVert)) setEpisodeView(items);
-        mEpisodeAdapter.setItems(items, null);
-        setArrayAdapter(items.size());
-        setR2Callback(50);
-    }
-
-    private void setEpisodeView(List<Episode> items) {
-        if (items == null) return; // Add null check
-        int size = items.size();
-        int episodeNameLength = 0;
-        if(!items.isEmpty() && items.get(0) != null && items.get(0).getName() != null) { // Add null checks
-             episodeNameLength = items.get(0).getName().length();
-        }
-
-        for (int i = 0; i < size; i++) {
-            Episode episode = items.get(i);
-            if (episode == null) continue; // Add null check for episode
-            episode.setIndex(i);
-            String name = episode.getName();
-            int length = name == null ? 0 : name.length();
-            if (length > episodeNameLength) episodeNameLength = length;
-        }
-        int numColumns = 10;
-        if (episodeNameLength > 40) numColumns = 1;
-        else if (episodeNameLength > 30) numColumns = 2;
-        else if (episodeNameLength > 15) numColumns = 3;
-        else if (episodeNameLength > 10) numColumns = 4;
-        else if (episodeNameLength > 6) numColumns = 6;
-        else if (episodeNameLength > 4) numColumns = 8;
-
-        int rowNum = size == 0 ? 0 : (int) Math.ceil((double) size / (double) numColumns);
-        int width = ResUtil.getScreenWidth() - ResUtil.dp2px(48);
-        ViewGroup.LayoutParams params = mBinding.episodeVert.getLayoutParams();
-        params.width = ResUtil.getScreenWidth();
-        params.height = rowNum > 6 ? ResUtil.dp2px(300) : ResUtil.dp2px(Math.max(rowNum, 0) * 44); // Ensure rowNum >= 0
-        mBinding.episodeVert.setNumColumns(numColumns);
-        if (numColumns > 0) { // Avoid division by zero
-            mBinding.episodeVert.setColumnWidth((width - ((numColumns - 1) * ResUtil.dp2px(8))) / numColumns);
-        }
-        mBinding.episodeVert.setLayoutParams(params);
-        mBinding.episodeVert.setWindowAlignmentOffsetPercent(10f);
-        mEpisodePresenter.setNumColumns(numColumns);
-        mEpisodePresenter.setNumRows(rowNum);
-    }
-
-    private void seamless(Flag flag) {
-        if (flag == null || mHistory == null) return; // Add null checks
-        Episode episode = flag.find(mHistory.getVodRemarks(), getMark().isEmpty());
-        setQualityVisible(episode != null && episode.isActivated() && mQualityAdapter.getItemCount() > 1);
-        if (episode == null || episode.isActivated()) return;
-        if (Setting.getFlag() == 1) {
-            episode.setActivated(true);
-            if (!isFullscreen()) getEpisodeView().requestFocus();
-            setEpisodeSelectedPosition(getEpisodePosition());
-            episode.setActivated(false);
-        } else {
-            mHistory.setVodRemarks(episode.getName());
-            setEpisodeActivated(episode);
-            hidePreview();
-        }
+        mEpisodeAdapter.clear();
+        mEpisodeAdapter.addAll(items);
     }
 
     public void setEpisodeActivated(Episode item) {
@@ -910,18 +736,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         int flagPosition = getFlagPosition();
         if (shouldEnterFullscreen(item)) return;
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
-        for (int i = 0; i < mFlagAdapter.size(); i++) {
-            Flag flag = (Flag) mFlagAdapter.get(i);
+        for (int i = 0; i < mFlagAdapter.getItemCount(); i++) {
+            Flag flag = mFlagAdapter.get(i);
             if(flag != null) flag.toggle(flagPosition == i, item); // Add null check
         }
-        setEpisodeSelectedPosition(getEpisodePosition());
-        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
+        mEpisodeAdapter.notifyDataSetChanged();
         onRefresh();
     }
 
     private void setQualityVisible(boolean visible) {
-        mBinding.quality.setVisibility(visible ? View.VISIBLE : View.GONE);
-        setR2Callback(100);
     }
 
     private void setQualityActivated(Result result) {
@@ -936,81 +759,25 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void reverseEpisode(boolean scroll) {
-        for (int i = 0; i < mFlagAdapter.size(); i++) {
-             Flag flag = (Flag) mFlagAdapter.get(i);
+        for (int i = 0; i < mFlagAdapter.getItemCount(); i++) {
+             Flag flag = mFlagAdapter.get(i);
              if (flag != null && flag.getEpisodes() != null) { // Add null checks
                  Collections.reverse(flag.getEpisodes());
              }
         }
         if(getFlag() != null) { // Add null check
            setEpisodeAdapter(getFlag().getEpisodes());
-           if (scroll) setEpisodeSelectedPosition(getEpisodePosition());
         }
     }
 
     private void setParseActivated(Parse item) {
         if(item == null) return; // Add null check
         VodConfig.get().setParse(item);
-        notifyItemChanged(mBinding.control.parse, mParseAdapter);
         onRefresh();
-    }
-
-    private void setArrayAdapter(int size) {
-        if (size <= 0) { // Handle zero or negative size
-             mBinding.array.setVisibility(View.GONE);
-             return;
-        }
-        if (size > 200) setGroupSize(100);
-        else if (size > 100) setGroupSize(40);
-        else setGroupSize(20);
-        List<String> items = new ArrayList<>();
-        items.add(getString(R.string.play_reverse));
-        items.add(getString(mHistory != null ? mHistory.getRevPlayText() : R.string.play_forward)); // Null check for history
-        mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE);
-        if (mHistory != null && mHistory.isRevSort()) { // Null check for history
-             for (int i = size; i > 0; i -= getGroupSize()) items.add(i + "-" + Math.max(i - (getGroupSize() - 1), 1));
-        } else {
-             for (int i = 0; i < size; i += getGroupSize()) items.add((i + 1) + "-" + Math.min(i + getGroupSize(), size));
-        }
-        mArrayAdapter.setItems(items, null);
-    }
-
-    private int findFocusDown(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
-        for (int i = 0; i < orders.size(); i++) {
-             if (i > index) {
-                 View v = findViewById(orders.get(i));
-                 if (v != null && isVisible(v)) return orders.get(i); // Add null check for view
-             }
-        }
-        return 0;
-    }
-
-    private int findFocusUp(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
-        for (int i = orders.size() - 1; i >= 0; i--) {
-             if (i < index) {
-                  View v = findViewById(orders.get(i));
-                  if (v != null && isVisible(v)) return orders.get(i); // Add null check for view
-             }
-        }
-        return 0;
     }
 
     private void updateFocus() {
         hasKeyEvent = false;
-        mEpisodePresenter.setNextFocusDown(findFocusDown(Setting.getEpisode() == 0 ? 2 : 4));
-        mEpisodePresenter.setNextFocusUp(findFocusUp(Setting.getEpisode() == 0 ? 2 : 4));
-        mQualityAdapter.setNextFocusDown(findFocusDown(1));
-        mArrayPresenter.setNextFocusDown(findFocusDown(3));
-        mFlagPresenter.setNextFocusDown(findFocusDown(0));
-        mArrayPresenter.setNextFocusUp(findFocusUp(3));
-        mPartPresenter.setNextFocusUp(findFocusUp(5));
-        notifyItemChanged(mBinding.flag, mFlagAdapter);
-        notifyItemChanged(mBinding.quality, mQualityAdapter);
-        notifyItemChanged(mBinding.array, mArrayAdapter);
-        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
-        notifyItemChanged(mBinding.part, mPartAdapter);
     }
 
     private void showDisplayInfo() {
@@ -1051,28 +818,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         showDisplayInfo();
     }
 
-
-    @Override
-    public boolean onArrayItemTouch() {
-        hasKeyEvent = true;
-        return false;
-    }
-
-    @Override
-    public void onRevSort() {
-        if (mHistory == null) return; // Add null check
-        mHistory.setRevSort(!mHistory.isRevSort());
-        reverseEpisode(false);
-    }
-
-    @Override
-    public void onRevPlay(TextView view) {
-        if (mHistory == null || view == null) return; // Add null checks
-        mHistory.setRevPlay(!mHistory.isRevPlay());
-        view.setText(mHistory.getRevPlayText());
-        Notify.show(mHistory.getRevPlayHint());
-    }
-
     private boolean shouldEnterFullscreen(Episode item) {
         if (item == null) return false; // Add null check
         boolean enter = !isFullscreen() && item.isActivated();
@@ -1087,15 +832,14 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
         mBinding.video.setClipToOutline(false);
-        mBinding.flag.setSelectedPosition(getFlagPosition());
         if(Setting.getDanmuSize() != 0) mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
         mKeyDown.setFull(true);
         setFullscreen(true);
         mFocus2 = null;
 
-        // --- 添加：隐藏非播放视图 ---
+        // --- Add: Hide non-playback views ---
         hideDetailViews();
-        // --- 结束添加 ---
+        // --- End Add ---
 
         onPlay();
     }
@@ -1120,55 +864,52 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         setFullscreen(false);
         mFocus2 = null;
 
-        // --- 添加：显示非播放视图 ---
+        // --- Add: Show non-playback views ---
         showDetailViews();
-        // --- 结束添加 ---
+        // --- End Add ---
 
         hideInfo();
     }
 
-    // --- 添加：辅助方法 ---
+    // --- Add: Helper methods ---
     private void hideDetailViews() {
-        // 隐藏标题区域 (Logo 或文字)
-        mBinding.logoImageView.setVisibility(View.GONE);
-        mBinding.nameTextView.setVisibility(View.GONE);
-        // 如果你用了 titleContainer (策略二)，可以隐藏容器
+        // Hide title area (Logo or text)
+        mBinding.name.setVisibility(View.GONE);
+        // If you used titleContainer (strategy two), you can hide the container
         // if (mBinding.titleContainer != null) mBinding.titleContainer.setVisibility(View.GONE);
 
-        // 隐藏其他详情
+        // Hide other details
         mBinding.remark.setVisibility(View.GONE);
-        mBinding.row1.setVisibility(View.GONE); // 包含 site, year, area, type
+        mBinding.row1.setVisibility(View.GONE); // Contains site, year, area, type
         mBinding.director.setVisibility(View.GONE);
         mBinding.actor.setVisibility(View.GONE);
         mBinding.content.setVisibility(View.GONE);
-        mBinding.row2.setVisibility(View.GONE); // 包含 desc, keep, change1
+        mBinding.row2.setVisibility(View.GONE); // Contains desc, keep, change1
         mBinding.flag.setVisibility(View.GONE);
-        mBinding.scroll.setVisibility(View.GONE); // 隐藏包含下方列表的滚动视图
+        mBinding.scroll.setVisibility(View.GONE); // Hide the scroll view containing the lists below
     }
 
     private void showDetailViews() {
-        // 根据 Logo 是否加载成功，决定显示 Logo 还是文字
+        // Decide whether to show Logo or text based on whether the logo was successfully loaded
         if (currentLogoUrl != null) {
-            mBinding.logoImageView.setVisibility(View.VISIBLE);
-            mBinding.nameTextView.setVisibility(View.GONE);
+            mBinding.name.setVisibility(View.GONE);
         } else {
-            mBinding.logoImageView.setVisibility(View.GONE);
-            mBinding.nameTextView.setVisibility(View.VISIBLE);
+            mBinding.name.setVisibility(View.VISIBLE);
         }
-        // 如果你用了 titleContainer (策略二)，显示容器
+        // If you used titleContainer (strategy two), show the container
         // if (mBinding.titleContainer != null) mBinding.titleContainer.setVisibility(View.VISIBLE);
 
-        // 显示其他详情 (注意判空和内容是否为空)
-        setText(mBinding.remark, 0, Objects.toString(mBinding.remark.getTag(), "")); // 从 Tag 恢复文本
-        mBinding.row1.setVisibility(View.VISIBLE); // 总是显示行？或根据内部内容判断
+        // Show other details (note null checks and whether content is empty)
+        setText(mBinding.remark, 0, Objects.toString(mBinding.remark.getTag(), "")); // Restore text from Tag
+        mBinding.row1.setVisibility(View.VISIBLE); // Always show the row? Or judge based on internal content
         setText(mBinding.director, 0, Objects.toString(mBinding.director.getTag(), ""));
         setText(mBinding.actor, 0, Objects.toString(mBinding.actor.getTag(), ""));
         setText(mBinding.content, 0, Objects.toString(mBinding.content.getTag(), ""));
-        mBinding.row2.setVisibility(View.VISIBLE); // 总是显示按钮行
-        mBinding.flag.setVisibility(mFlagAdapter.size() > 0 ? View.VISIBLE : View.GONE); // 根据数据判断
-        mBinding.scroll.setVisibility(View.VISIBLE); // 总是显示滚动区域
+        mBinding.row2.setVisibility(View.VISIBLE); // Always show the button row
+        mBinding.flag.setVisibility(mFlagAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE); // Judge based on data
+        mBinding.scroll.setVisibility(View.VISIBLE); // Always show the scroll area
     }
-    // --- 结束添加 ---
+    // --- End Add ---
     private void onDesc() {
         CharSequence desc = mBinding.content.getText();
         if (desc != null && desc.length() > 3) { // Add null check
@@ -1248,10 +989,10 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     private void onNext() {
         animateButtonClick(mBinding.control.next);
         int current = getEpisodePosition();
-        int max = mEpisodeAdapter.size() - 1;
+        int max = mEpisodeAdapter.getItemCount() - 1;
         if (max < 0) return; // Adapter might be empty
         current = ++current > max ? max : current;
-        Episode item = (Episode) mEpisodeAdapter.get(current);
+        Episode item = mEpisodeAdapter.get(current);
         if (item != null) { // Add null check
             if (item.isActivated()) Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_prev : R.string.error_play_next);
             else setEpisodeActivated(item);
@@ -1263,7 +1004,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         int current = getEpisodePosition();
         if(current < 0) return; // Position might be invalid
         current = --current < 0 ? 0 : current;
-        Episode item = (Episode) mEpisodeAdapter.get(current);
+        Episode item = mEpisodeAdapter.get(current);
          if (item != null) { // Add null check
              if (item.isActivated()) Notify.show(mHistory != null && mHistory.isRevPlay() ? R.string.error_play_next : R.string.error_play_prev);
              else setEpisodeActivated(item);
@@ -1313,8 +1054,8 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     private void onReset(boolean replay) {
         mClock.setCallback(null);
-        if (mFlagAdapter.size() == 0) return;
-        if (mEpisodeAdapter.size() == 0) return;
+        if (mFlagAdapter.getItemCount() == 0) return;
+        if (mEpisodeAdapter.getItemCount() == 0) return;
         Episode episode = getEpisode();
         Flag flag = getFlag();
         if(flag != null && episode != null){ // Add null checks
@@ -1467,25 +1208,25 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     private void showControl(View view) {
         if (mIsControlAnimating) return;
-        
+
         if (view == null) view = getFocus2();
         if (view == null) view = mBinding.control.next;
-        
-        // 设置弹幕按钮可见性
+
+        // Set danmaku button visibility
         mBinding.control.danmu.setVisibility(mBinding.danmaku.isPrepared() ? View.VISIBLE : View.GONE);
-        
-        // 设置选集按钮可见性
+
+        // Set episode button visibility
         mBinding.control.episodes.setVisibility(Setting.getFullscreenMenuKey() == 0 ? View.VISIBLE : View.GONE);
-        
-        // 更新按钮状态
+
+        // Update button states
         updateControlButtonStates();
-        
-        // 显示控制栏
+
+        // Show control bar
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        
-        // 创建并执行显示动画
+
+        // Create and execute show animation
         createShowAnimation();
-        
+
         if (view != null) view.requestFocus();
         setControlNextFocus();
         setR1Callback();
@@ -1495,26 +1236,26 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (mControlShowAnimator != null && mControlShowAnimator.isRunning()) {
             mControlShowAnimator.cancel();
         }
-        
+
         mIsControlAnimating = true;
-        
-        // 淡入动画
+
+        // Fade in animation
         ObjectAnimator fadeIn = ObjectAnimator.ofFloat(
             mBinding.control.getRoot(), "alpha", 0f, 1f
         );
         fadeIn.setDuration(300);
         fadeIn.setInterpolator(new DecelerateInterpolator());
-        
-        // 从底部滑入动画
+
+        // Slide in from bottom animation
         ObjectAnimator slideUp = ObjectAnimator.ofFloat(
             mBinding.control.getRoot(), "translationY", 200f, 0f
         );
         slideUp.setDuration(350);
         slideUp.setInterpolator(new DecelerateInterpolator(1.5f));
-        
-        // 按钮组缩放动画
+
+        // Button group scale animation
         animateControlGroups(true);
-        
+
         mControlShowAnimator = new AnimatorSet();
         mControlShowAnimator.playTogether(fadeIn, slideUp);
         mControlShowAnimator.addListener(new AnimatorListenerAdapter() {
@@ -1532,15 +1273,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     private void hideControl(boolean hideInfo) {
         if (mIsControlAnimating) return;
-        
+
         if (hideInfo) hideInfo();
-        
-        // 重置文字
+
+        // Reset text
         mBinding.control.text.setText(R.string.play_track_text);
-        
-        // 创建并执行隐藏动画
+
+        // Create and execute hide animation
         createHideAnimation();
-        
+
         App.removeCallbacks(mR1);
     }
 
@@ -1548,23 +1289,23 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (mControlHideAnimator != null && mControlHideAnimator.isRunning()) {
             mControlHideAnimator.cancel();
         }
-        
+
         mIsControlAnimating = true;
-        
-        // 淡出动画
+
+        // Fade out animation
         ObjectAnimator fadeOut = ObjectAnimator.ofFloat(
             mBinding.control.getRoot(), "alpha", 1f, 0f
         );
         fadeOut.setDuration(200);
         fadeOut.setInterpolator(new AccelerateInterpolator());
-        
-        // 向下滑出动画
+
+        // Slide down animation
         ObjectAnimator slideDown = ObjectAnimator.ofFloat(
             mBinding.control.getRoot(), "translationY", 0f, 100f
         );
         slideDown.setDuration(200);
         slideDown.setInterpolator(new AccelerateInterpolator());
-        
+
         mControlHideAnimator = new AnimatorSet();
         mControlHideAnimator.playTogether(fadeOut, slideDown);
         mControlHideAnimator.addListener(new AnimatorListenerAdapter() {
@@ -1577,14 +1318,14 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         mControlHideAnimator.start();
     }
 
-    // 动画化控制按钮组
+    // Animate control button groups
     private void animateControlGroups(boolean show) {
         ViewGroup actionLayout = mBinding.control.actionLayout;
         int childCount = actionLayout.getChildCount();
-        
+
         for (int i = 0; i < childCount; i++) {
             View child = actionLayout.getChildAt(i);
-            // 这里不需要检查 LinearLayout，直接处理所有子视图
+            // No need to check for LinearLayout here, just handle all child views
             animateSingleButton(child, i * 50L, show);
         }
     }
@@ -1593,7 +1334,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         group.setScaleX(show ? 0.8f : 1f);
         group.setScaleY(show ? 0.8f : 1f);
         group.setAlpha(show ? 0f : 1f);
-        
+
         group.animate()
             .scaleX(show ? 1f : 0.8f)
             .scaleY(show ? 1f : 0.8f)
@@ -1606,7 +1347,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     private void animateSingleButton(View button, long delay, boolean show) {
         if (button == null) return;
-        
+
         button.setAlpha(show ? 0f : 1f);
         button.animate()
             .alpha(show ? 1f : 0f)
@@ -1616,41 +1357,41 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
         private void updateControlButtonStates() {
-        // 更新播放器按钮文字
+        // Update player button text
         mBinding.control.player.setText(mPlayers.getPlayerText());
-        
-        // 更新解码按钮文字
+
+        // Update decode button text
         mBinding.control.decode.setText(mPlayers.getDecodeText());
-        
-        // 更新倍速按钮
+
+        // Update speed button
         mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         updateButtonStyle(mBinding.control.speed, mPlayers.canAdjustSpeed());
-        
-        // 更新比例按钮
+
+        // Update scale button
         mBinding.control.scale.setText(ResUtil.getStringArray(R.array.select_scale)[getScale()]);
-        
-        // 更新循环按钮状态
+
+        // Update loop button state
         mBinding.control.loop.setActivated(mBinding.control.loop.isActivated());
         updateButtonStyle(mBinding.control.loop, true);
-        
-        // 更新弹幕按钮状态
+
+        // Update danmaku button state
         mBinding.control.danmu.setActivated(Setting.isDanmu());
         updateButtonStyle(mBinding.control.danmu, mBinding.danmaku.isPrepared());
-        
-        // 更新轨道按钮
+
+        // Update track buttons
         updateTrackButtons();
-        
-        // 更新时间按钮
+
+        // Update time buttons
         updateTimeButtons();
     }
     private void updateButtonStyle(TextView button, boolean enabled) {
         if (button == null) return;
-        
+
         button.setEnabled(enabled);
         button.setAlpha(enabled ? 1.0f : 0.5f);
-        
-        // 为激活状态的按钮添加特殊效果
+
+        // Add special effect for activated buttons
         if (button.isActivated() && enabled) {
             addGlowEffect(button);
         } else {
@@ -1658,7 +1399,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         }
     }
 
-    // 添加发光效果
+    // Add glow effect
     private void addGlowEffect(View view) {
         view.animate()
             .scaleX(1.05f)
@@ -1668,7 +1409,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
             .start();
     }
 
-    // 移除发光效果
+    // Remove glow effect
     private void removeGlowEffect(View view) {
         view.animate()
             .scaleX(1.0f)
@@ -1678,17 +1419,17 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
             .start();
     }
 
-    // 更新轨道按钮
+    // Update track buttons
     private void updateTrackButtons() {
         boolean hasText = mPlayers.haveTrack(C.TRACK_TYPE_TEXT) || mPlayers.isExo();
         boolean hasAudio = mPlayers.haveTrack(C.TRACK_TYPE_AUDIO);
         boolean hasVideo = mPlayers.haveTrack(C.TRACK_TYPE_VIDEO);
-        
+
         mBinding.control.text.setVisibility(hasText ? View.VISIBLE : View.GONE);
         mBinding.control.audio.setVisibility(hasAudio ? View.VISIBLE : View.GONE);
         mBinding.control.video.setVisibility(hasVideo ? View.VISIBLE : View.GONE);
-        
-        // 修复类型转换问题
+
+        // Fix type conversion issue
         ViewParent parent = mBinding.control.text.getParent();
         if (parent instanceof View) {
             View trackGroup = (View) parent;
@@ -1697,23 +1438,23 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
             }
         }
     }
-        // 更新时间按钮
+        // Update time buttons
     private void updateTimeButtons() {
         if (mHistory != null) {
-            String openingText = mHistory.getOpening() == 0 ? 
-                getString(R.string.play_op) : 
+            String openingText = mHistory.getOpening() == 0 ?
+                getString(R.string.play_op) :
                 mPlayers.stringToTime(mHistory.getOpening());
-            String endingText = mHistory.getEnding() == 0 ? 
-                getString(R.string.play_ed) : 
+            String endingText = mHistory.getEnding() == 0 ?
+                getString(R.string.play_ed) :
                 mPlayers.stringToTime(mHistory.getEnding());
-                
+
             mBinding.control.opening.setText(openingText);
             mBinding.control.ending.setText(endingText);
-            
-            // 高亮已设置的时间按钮
+
+            // Highlight set time buttons
             updateButtonStyle(mBinding.control.opening, true);
             updateButtonStyle(mBinding.control.ending, true);
-            
+
             if (mHistory.getOpening() > 0) {
                 mBinding.control.opening.setActivated(false);
             }
@@ -1723,19 +1464,19 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         }
     }
 
-    // 优化焦点设置
+    // Optimize focus setting
     private void setControlNextFocus() {
         ViewGroup actionLayout = mBinding.control.actionLayout;
         View firstFocusable = null;
         View lastFocusable = null;
         View previousFocusable = null;
-        
-        // 遍历所有子视图设置焦点
+
+        // Traverse all child views to set focus
         for (int i = 0; i < actionLayout.getChildCount(); i++) {
             View child = actionLayout.getChildAt(i);
-            
+
             if (child instanceof LinearLayout) {
-                // 处理按钮组
+                // Handle button groups
                 LinearLayout group = (LinearLayout) child;
                 for (int j = 0; j < group.getChildCount(); j++) {
                     View button = group.getChildAt(j);
@@ -1747,15 +1488,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
                     }
                 }
             } else if (child.isEnabled() && child.getVisibility() == View.VISIBLE) {
-                // 处理单个按钮
+                // Handle single buttons
                 setupButtonFocus(child, previousFocusable);
                 if (firstFocusable == null) firstFocusable = child;
                 lastFocusable = child;
                 previousFocusable = child;
             }
         }
-        
-        // 设置循环焦点
+
+        // Set circular focus
         if (firstFocusable != null && lastFocusable != null) {
             firstFocusable.setNextFocusLeftId(lastFocusable.getId());
             lastFocusable.setNextFocusRightId(firstFocusable.getId());
@@ -1763,18 +1504,18 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void setupButtonFocus(View button, View previous) {
-        // 设置上下焦点
+        // Set up/down focus
         button.setNextFocusUpId(button.getId());
         button.setNextFocusDownId(mBinding.control.seek.getId());
-        
-        // 设置左右焦点
+
+        // Set left/right focus
         if (previous != null) {
             button.setNextFocusLeftId(previous.getId());
             previous.setNextFocusRightId(button.getId());
         }
     }
 
-    // 按钮点击优化 - 添加点击动画
+    // Button click optimization - add click animation
     private void animateButtonClick(View button) {
         button.animate()
             .scaleX(0.95f)
@@ -1893,13 +1634,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void setPartAdapter(List<String> items) {
-        if (items == null || items.isEmpty()) { // Add null/empty check
-            mBinding.part.setVisibility(View.GONE);
-            return;
-        }
-        mBinding.part.setVisibility(View.VISIBLE);
-        mPartAdapter.setItems(items, null);
-        setR2Callback(1000);
     }
 
     private void checkFlag(Vod item) {
@@ -2027,7 +1761,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     @Override
     public void onTimeChanged() {
-        // 不要调用 super.onTimeChanged()，因为接口中没有默认实现
+        // Do not call super.onTimeChanged() as there is no default implementation in the interface
         onTimeChangeDisplaySpeed();
         if (mHistory == null) return;
 
@@ -2056,8 +1790,8 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void updateSeekBarSmoothly() {
-        // 这里可以实现进度条的平滑更新逻辑
-        // 避免进度条跳动
+        // Smooth progress bar update logic can be implemented here
+        // to avoid progress bar jumping
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -2222,44 +1956,21 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void checkParse() {
-        int position = getParsePosition();
-        boolean last = position >= mParseAdapter.size() - 1; // Use >= for safety
-        boolean pass = position == 0 || last;
-        if (last) initParse();
-        if (pass) checkFlag();
-        else nextParse(position);
     }
 
     private void initParse() {
-        if (mParseAdapter.size() == 0) return;
-        VodConfig.get().setParse((Parse) mParseAdapter.get(0));
-        notifyItemChanged(mBinding.control.parse, mParseAdapter);
     }
 
     private void checkFlag() {
         int position = isGone(mBinding.flag) ? -1 : getFlagPosition();
-         if (position >= mFlagAdapter.size() - 1) checkSearch(false); // Use >= for safety
+         if (position >= mFlagAdapter.getItemCount() - 1) checkSearch(false); // Use >= for safety
         else nextFlag(position);
     }
 
     // --- Modified checkSearch ---
     private void checkSearch(boolean force) {
         // Use stored original VOD name for initial search keyword
-        if (mQuickAdapter.size() == 0) {
-            // Make sure currentVodName is initialized before calling initSearch
-             if(TextUtils.isEmpty(currentVodName)) {
-                 // Try getting from intent again if detail loading failed initially
-                 currentVodName = getName();
-             }
-             // Only start search if we have a name
-             if(!TextUtils.isEmpty(currentVodName)) {
-                 initSearch(currentVodName, true);
-             } else {
-                  Log.w("VideoActivity", "Cannot start search, currentVodName is empty.");
-                  // Optionally show an error or do nothing
-                  showEmpty(); // Show empty state if no name available
-             }
-        } else if (isAutoMode() || force) {
+        if (isAutoMode() || force) {
              nextSite();
         }
     }
@@ -2271,7 +1982,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         setAutoMode(auto);
         setInitAuto(auto);
         startSearch(keyword);
-        mBinding.part.setTag(keyword);
     }
 
     private boolean isPass(Site item) {
@@ -2282,7 +1992,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
 
     private void startSearch(String keyword) {
          if(TextUtils.isEmpty(keyword)) return; // Don't search empty keyword
-        mQuickAdapter.clear();
         List<Site> sites = new ArrayList<>();
         mExecutor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
         for (Site site : VodConfig.get().getSites()) if (isPass(site)) sites.add(site);
@@ -2313,8 +2022,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         List<Vod> items = result.getList();
         Iterator<Vod> iterator = items.iterator();
         while (iterator.hasNext()) if (mismatch(iterator.next())) iterator.remove();
-        mQuickAdapter.addAll(mQuickAdapter.size(), items);
-        mBinding.quick.setVisibility(View.VISIBLE);
         if (isInitAuto()) nextSite();
         if (items.isEmpty()) return;
         App.removeCallbacks(mR4);
@@ -2330,7 +2037,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         if (item == null) return true; // Mismatch if item is null
         if (getId().equals(item.getVodId())) return true;
         if (mBroken.contains(item.getVodId())) return true;
-        String keyword = Objects.toString(mBinding.part.getTag(), "");
+        String keyword = "";
          // Add null check for item name
          String itemName = item.getVodName() != null ? item.getVodName() : "";
         if (isAutoMode()) return !itemName.equals(keyword);
@@ -2338,17 +2045,11 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void nextParse(int position) {
-        if (position + 1 >= mParseAdapter.size()) return; // Check bounds
-        Parse parse = (Parse) mParseAdapter.get(position + 1);
-        if(parse != null) { // Add null check
-            Notify.show(getString(R.string.play_switch_parse, parse.getName()));
-            setParseActivated(parse);
-        }
     }
 
     private void nextFlag(int position) {
-        if (position + 1 >= mFlagAdapter.size()) return; // Check bounds
-        Flag flag = (Flag) mFlagAdapter.get(position + 1);
+        if (position + 1 >= mFlagAdapter.getItemCount()) return; // Check bounds
+        Flag flag = mFlagAdapter.get(position + 1);
         if(flag != null) { // Add null check
             Notify.show(getString(R.string.play_switch_flag, flag.getFlag()));
             setFlagActivated(flag);
@@ -2356,18 +2057,6 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void nextSite() {
-        if (mQuickAdapter.size() == 0) return;
-        Vod item = (Vod) mQuickAdapter.get(0);
-        if (item == null) { // Remove null item and try again if possible
-            mQuickAdapter.removeItems(0, 1);
-            nextSite(); // Recursive call, be cautious with large empty lists
-            return;
-        }
-        Notify.show(getString(R.string.play_switch_site, item.getSiteName()));
-        mQuickAdapter.removeItems(0, 1);
-        mBroken.add(getId());
-        setInitAuto(false);
-        getDetail(item);
     }
 
 
@@ -2483,7 +2172,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         hasKeyEvent = true;
         // Check if focus is valid before comparing
         View currentFocus = getCurrentFocus();
-        if (currentFocus != null && mBinding.progressLayout.isContent() && !isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1 && currentFocus != mBinding.video) {
+        if (currentFocus != null && !isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1 && currentFocus != mBinding.video) {
             mFocus1 = mBinding.video;
             if (getFocus1() != null) getFocus1().requestFocus(); // Null check before requesting focus
             return true;
@@ -2702,5 +2391,15 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
         } catch (Exception e) {
              Log.e("VideoActivity", "Error during Glide clear", e);
         }
+    }
+
+    @Override
+    public void onItemClick(Flag item) {
+        setFlagActivated(item);
+    }
+
+    @Override
+    public void onItemClick(Episode item) {
+        setEpisodeActivated(item);
     }
 }

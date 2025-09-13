@@ -11,6 +11,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -36,6 +37,7 @@ import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.activity.SettingActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
+import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
@@ -43,7 +45,6 @@ import com.fongmi.android.tv.ui.presenter.FuncPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
-import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.collect.Lists;
@@ -51,7 +52,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 
-public class HomeFragment extends BaseFragment implements VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+public class HomeFragment extends BaseFragment implements FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener, VodAdapter.OnClickListener {
 
     public FragmentHomeBinding mBinding;
 
@@ -78,6 +79,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         setAdapter();
         initEvent();
         inited = true;
+        mBinding.recycler.setItemAnimator(new DefaultItemAnimator());
     }
 
     @Override
@@ -104,7 +106,6 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(22), FuncPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
@@ -123,14 +124,9 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     }
 
     public void addVideo(Result result) {
-        int index = getRecommendIndex();
-        if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
-        Style style = result.getStyle(getHome().getStyle());
-        for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
-            adapter.setItems(items, null);
-            mAdapter.add(new ListRow(adapter));
-        }
+        VodAdapter adapter = new VodAdapter(this, result.getList());
+        mBinding.recycler.setAdapter(adapter);
+        mBinding.progressLayout.showContent();
     }
 
     private ListRow getFuncRow() {
@@ -267,6 +263,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         }
         return true;
     }
+
 
     @Override
     public void onItemClick(Vod item) {

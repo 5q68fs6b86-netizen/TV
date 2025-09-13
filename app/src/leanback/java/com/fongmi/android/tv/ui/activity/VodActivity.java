@@ -3,20 +3,12 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -27,22 +19,19 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
-import com.fongmi.android.tv.ui.presenter.TypePresenter;
 import com.fongmi.android.tv.utils.KeyUtil;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Prefers;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class VodActivity extends BaseActivity implements TypePresenter.OnClickListener {
+public class VodActivity extends BaseActivity {
 
     private ActivityVodBinding mBinding;
-    private ArrayObjectAdapter mAdapter;
     private PageAdapter mPageAdapter;
-    private boolean coolDown;
-    private View mOldView;
+    private List<Class> mTypes;
 
     public static void start(Activity activity, Result result) {
         start(activity, VodConfig.get().getHome().getKey(), result);
@@ -65,10 +54,6 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         return getIntent().getParcelableExtra("result");
     }
 
-    private List<Filter> getFilter(String typeId) {
-        return Filter.arrayFrom(Prefers.getString("filter_" + getKey() + "_" + typeId));
-    }
-
     private Site getSite() {
         return VodConfig.get().getSite(getKey());
     }
@@ -80,31 +65,9 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
 
     @Override
     protected void initView() {
-        setRecyclerView();
-        setTypes();
+        mTypes = getTypes(getResult());
         setPager();
-    }
-
-    @Override
-    protected void initEvent() {
-        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
-            }
-        });
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
-            }
-        });
-    }
-
-    private void setRecyclerView() {
-        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
-        mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new TypePresenter(this))));
+        setTab();
     }
 
     private List<Class> getTypes(Result result) {
@@ -113,97 +76,46 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         return items;
     }
 
-    private void setTypes() {
-        Result result = getResult();
-        result.setTypes(getTypes(result));
-        for (Class item : result.getTypes()) item.setFilters(getFilter(item.getTypeId()));
-        mAdapter.setItems(result.getTypes(), null);
-    }
-
     private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(getSupportFragmentManager()));
+        mBinding.pager.setAdapter(mPageAdapter = new PageAdapter(this));
     }
 
-    private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
-        if (mOldView != null) mOldView.setActivated(false);
-        if (child == null) return;
-        mOldView = child.itemView;
-        mOldView.setActivated(true);
-        App.post(mRunnable, 100);
-    }
-
-    private final Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mBinding.pager.setCurrentItem(mBinding.recycler.getSelectedPosition());
-        }
-    };
-
-    private void updateFilter(Class item) {
-        if (item.getFilter() == null) return;
-        getFragment().toggleFilter(item.toggleFilter());
-        mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size());
+    private void setTab() {
+        new TabLayoutMediator(mBinding.tab, mBinding.pager, (tab, position) -> tab.setText(mTypes.get(position).getTypeName())).attach();
     }
 
     private VodFragment getFragment() {
-        return (VodFragment) mPageAdapter.instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
-    }
-
-    private void setCoolDown() {
-        App.post(() -> coolDown = false, 2000);
-        coolDown = true;
-    }
-
-    @Override
-    public void onItemClick(Class item) {
-        updateFilter(item);
-    }
-
-    @Override
-    public boolean onItemLongClick(Class item) {
-        return true;
-    }
-
-    @Override
-    public void onRefresh(Class item) {
-        getFragment().onRefresh();
+        return (VodFragment) getSupportFragmentManager().findFragmentByTag("f" + mBinding.pager.getCurrentItem());
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (KeyUtil.isMenuKey(event)) updateFilter((Class) mAdapter.get(mBinding.pager.getCurrentItem()));
-        if (KeyUtil.isBackKey(event) && event.isLongPress() && getFragment().goRoot()) setCoolDown();
+        if (KeyUtil.isBackKey(event) && event.isLongPress() && getFragment().goRoot()) return true;
         return super.dispatchKeyEvent(event);
     }
 
     @Override
     public void onBackPressed() {
-        Class item = (Class) mAdapter.get(mBinding.pager.getCurrentItem());
-        if (item.getFilter() != null && item.getFilter()) updateFilter(item);
-        else if (getFragment().canBack()) getFragment().goBack();
-        else if (!coolDown) super.onBackPressed();
+        if (getFragment().canBack()) getFragment().goBack();
+        else super.onBackPressed();
     }
 
-    class PageAdapter extends FragmentStatePagerAdapter {
+    class PageAdapter extends FragmentStateAdapter {
 
-        public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm);
+        public PageAdapter(@NonNull FragmentActivity activity) {
+            super(activity);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int position) {
-            Class type = (Class) mAdapter.get(position);
+        public Fragment createFragment(int position) {
+            Class type = mTypes.get(position);
             return VodFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
         @Override
-        public int getCount() {
-            return mAdapter.size();
-        }
-
-        @Override
-        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        public int getItemCount() {
+            return mTypes.size();
         }
     }
 }

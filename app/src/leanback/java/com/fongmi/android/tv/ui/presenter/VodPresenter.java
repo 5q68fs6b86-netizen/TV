@@ -8,13 +8,9 @@ import androidx.leanback.widget.Presenter;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.databinding.AdapterVodListBinding;
-import com.fongmi.android.tv.databinding.AdapterVodOvalBinding;
 import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
 import com.fongmi.android.tv.ui.base.ViewType;
-import com.fongmi.android.tv.ui.holder.VodListHolder;
-import com.fongmi.android.tv.ui.holder.VodOvalHolder;
 import com.fongmi.android.tv.ui.holder.VodRectHolder;
 
 public class VodPresenter extends Presenter {
@@ -42,14 +38,7 @@ public class VodPresenter extends Presenter {
 
     @Override
     public Presenter.ViewHolder onCreateViewHolder(ViewGroup parent) {
-        switch (style.getViewType()) {
-            case ViewType.LIST:
-                return new VodListHolder(AdapterVodListBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener);
-            case ViewType.OVAL:
-                return new VodOvalHolder(AdapterVodOvalBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
-            default:
-                return new VodRectHolder(AdapterVodRectBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
-        }
+        return new VodRectHolder(AdapterVodRectBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
     }
 
     @Override
