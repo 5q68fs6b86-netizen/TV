@@ -2,6 +2,7 @@
 
     <!-- App -->
     <string name="app_name">OKTV</string>
+    <string name="setting">Setting</string>
     <string name="app_exit">Press back again to exit</string>
 
     <!-- Vod -->
