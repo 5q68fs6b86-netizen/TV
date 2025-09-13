@@ -43,7 +43,7 @@
     <color name="colorOnError">#FFFFFF</color>
     <color name="colorErrorContainer">#B00020</color>
     <color name="colorOnErrorContainer">#FFFFFF</color>
-    <color name="android:colorBackground">#121212</color>
+    <color name="colorBackground">#121212</color>
     <color name="colorOnBackground">#FFFFFF</color>
     <color name="colorSurface">#121212</color>
     <color name="colorOnSurface">#FFFFFF</color>
