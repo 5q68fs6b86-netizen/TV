@@ -1,52 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="@color/md_theme_surfaceContainer"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
+        <!-- 标题栏 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:text="@string/player"
-            tools:text="選擇播放器" />
+            android:layout_margin="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="@color/md_theme_primaryContainer"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <ImageView
-            android:id="@+id/choose"
-            android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/player"
+                    android:textColor="@color/md_theme_onPrimaryContainer"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="選擇播放器" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/choose"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:visibility="visible"
+                    app:icon="@drawable/ic_action_share"
+                    app:iconTint="@color/md_theme_onPrimaryContainer" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 播放器列表 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/selector_image"
-            android:padding="4dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:src="@drawable/ic_action_share"
-            android:visibility="visible" />
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/md_theme_surfaceContainerHigh"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:padding="12dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:maxHeight="204dp"
+                tools:listitem="@layout/adapter_player" />
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 
-    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
-        android:id="@+id/recycler"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:maxHeight="204dp"
-        tools:listitem="@layout/adapter_player" />
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

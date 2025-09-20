@@ -1,97 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="150dp"
-    android:layout_height="200dp"
+    android:layout_width="160dp"
+    android:layout_height="220dp"
+    android:layout_margin="8dp"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    app:cardBackgroundColor="@color/md_theme_surfaceContainer"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/md_theme_outlineVariant"
+    app:strokeWidth="1dp">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black_20"
-        android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:src="@drawable/ic_img_loading" />
+        android:layout_height="match_parent">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/delete"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black_50"
-        android:scaleType="center"
-        android:src="@drawable/ic_vod_delete"
-        android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:visibility="visible" />
+        <!-- 主图片 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_alignParentTop="true"
+            android:background="@color/md_theme_surfaceVariant"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/Vod.Grid"
+            tools:src="@drawable/ic_img_loading" />
 
-    <TextView
-        android:id="@+id/year"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="2022"
-        tools:visibility="visible" />
+        <!-- 删除覆盖层 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/delete"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_alignParentTop="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/md_theme_errorContainer"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            tools:visibility="visible">
 
-    <TextView
-        android:id="@+id/site"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_vod_delete"
+                android:tint="@color/md_theme_onErrorContainer" />
 
-    <TextView
-        android:id="@+id/remark"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        tools:text="1080p" />
+        </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        <!-- 年份标签 -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            app:chipBackgroundColor="@color/md_theme_primaryContainer"
+            app:chipCornerRadius="12dp"
+            app:chipMinHeight="24dp"
+            app:chipStrokeWidth="0dp"
+            app:chipTextColor="@color/md_theme_onPrimaryContainer"
+            app:chipTextSize="10sp"
+            app:text="2022"
+            tools:visibility="visible" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/selector_vod"
-        android:duplicateParentState="true" />
+        <!-- 站点标签 -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/site"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            app:chipBackgroundColor="@color/md_theme_secondaryContainer"
+            app:chipCornerRadius="12dp"
+            app:chipMinHeight="24dp"
+            app:chipStrokeWidth="0dp"
+            app:chipTextColor="@color/md_theme_onSecondaryContainer"
+            app:chipTextSize="10sp"
+            app:text="泥巴"
+            tools:visibility="visible" />
 
-</RelativeLayout>
+        <!-- 质量标签 -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/remark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="60dp"
+            app:chipBackgroundColor="@color/md_theme_tertiaryContainer"
+            app:chipCornerRadius="12dp"
+            app:chipMinHeight="24dp"
+            app:chipStrokeWidth="0dp"
+            app:chipTextColor="@color/md_theme_onTertiaryContainer"
+            app:chipTextSize="10sp"
+            app:text="1080p" />
+
+        <!-- 标题区域 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            app:cardBackgroundColor="@color/md_theme_surfaceContainerHigh"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:ellipsize="marquee"
+                android:gravity="center"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:textColor="@color/md_theme_onSurface"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="蜘蛛人" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 焦点指示器 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/selector_vod"
+            android:duplicateParentState="true" />
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

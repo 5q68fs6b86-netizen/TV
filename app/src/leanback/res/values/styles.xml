@@ -46,9 +46,41 @@
         <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
         <item name="colorSurfaceContainerHigh">@color/md_theme_surfaceContainerHigh</item>
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
+        
+        <!-- Material 3 增强主题属性 -->
+        <item name="android:windowSplashScreenBackground">@color/md_theme_primary</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        
+        <!-- 自定义组件样式 -->
+        <item name="materialCardViewStyle">@style/Widget.Material3.CardView.Elevated</item>
+        <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
+        <item name="materialChipStyle">@style/Widget.Material3.Chip.Filter</item>
     </style>
 
     <style name="AppTheme.Live" parent="AppTheme">
         <item name="android:windowBackground">@color/black</item>
+    </style>
+    
+    <!-- 自定义卡片样式 -->
+    <style name="Widget.Material3.CardView.Elevated" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+    
+    <!-- 自定义按钮样式 -->
+    <style name="Widget.Material3.Button" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+    
+    <!-- 自定义芯片样式 -->
+    <style name="Widget.Material3.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="chipCornerRadius">20dp</item>
+        <item name="chipStrokeWidth">1dp</item>
     </style>
 </resources>

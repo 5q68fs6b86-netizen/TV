@@ -1,117 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true"
-    android:orientation="vertical">
+    android:keepScreenOn="true">
 
-    <LinearLayout
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="24dp"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:animateLayoutChanges="true"
-                android:gravity="center_vertical"
-                android:layout_marginEnd="12dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/logo"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:visibility="gone"
-                    tools:src="@drawable/ic_logo"
-                    tools:visibility="visible" />
-
-                <com.fongmi.android.tv.ui.custom.CustomTitleView
-                    android:id="@+id/title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center|start"
-                    android:focusable="false"
-                    android:text="@string/app_name"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/homeSiteLock"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="bottom"
-                android:layout_marginRight="6dp"
-                android:layout_marginBottom="2dp"
-                android:background="@drawable/ic_home_lock"
-                android:focusable="false"
-                android:visibility="gone"
-                tools:visibility="visible" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/clock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                tools:text="07/25 09:20:00" />
-        </LinearLayout>
-
-    </LinearLayout>
-
+    <!-- 主内容区域 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="12dp"
         android:orientation="vertical">
 
-        <LinearLayout
-            android:id="@+id/blank"
-            android:layout_width="match_parent"
-            android:layout_height="12dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
-        </LinearLayout>
-
-        <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-            android:id="@+id/recycler"
+        <!-- Material 3 顶部应用栏 -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:paddingStart="24dp"
-            android:paddingEnd="12dp"
-            app:focusOutEnd="true"
-            app:focusOutFront="true" />
+            android:background="@color/md_theme_surfaceContainer"
+            app:elevation="4dp">
 
-        <com.fongmi.android.tv.ui.custom.CustomViewPager
-            android:id="@+id/pager"
+            <LinearLayout
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:animateLayoutChanges="true"
+                        android:gravity="center_vertical"
+                        android:layout_marginEnd="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/logo"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:visibility="gone"
+                            app:shapeAppearanceOverlay="@style/Widget.Material3.ImageView.Circle"
+                            tools:src="@drawable/ic_logo"
+                            tools:visibility="visible" />
+
+                        <com.fongmi.android.tv.ui.custom.CustomTitleView
+                            android:id="@+id/title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center|start"
+                            android:focusable="false"
+                            android:text="@string/app_name"
+                            android:textColor="@color/md_theme_onSurface"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/homeSiteLock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="8dp"
+                        android:visibility="gone"
+                        app:chipBackgroundColor="@color/md_theme_primaryContainer"
+                        app:chipIcon="@drawable/ic_home_lock"
+                        app:chipIconSize="20dp"
+                        app:chipMinHeight="32dp"
+                        app:chipStrokeWidth="0dp"
+                        app:chipTextColor="@color/md_theme_onPrimaryContainer"
+                        app:chipTextSize="12sp"
+                        app:text="锁定"
+                        tools:visibility="visible" />
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    app:cardBackgroundColor="@color/md_theme_primaryContainer"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <TextView
+                        android:id="@+id/clock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:textColor="@color/md_theme_onPrimaryContainer"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="07/25 09:20:00" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- 主内容区域 -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:paddingTop="12dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/blank"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+            </LinearLayout>
+
+            <!-- Material 3 导航芯片组 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/md_theme_surfaceContainerHigh"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                    android:id="@+id/recycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingVertical="8dp"
+                    app:focusOutEnd="true"
+                    app:focusOutFront="true" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 主内容页面 -->
+            <com.fongmi.android.tv.ui.custom.CustomViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
 
     </LinearLayout>
-</LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

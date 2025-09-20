@@ -1,116 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="16dp">
-
-    <ImageView
-        android:id="@+id/code"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:scaleType="centerCrop" />
-
-    <TextView
-        android:id="@+id/info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_toEndOf="@+id/code"
-        android:ellipsize="end"
-        android:focusable="true"
-        android:lineSpacingExtra="4dp"
-        android:maxLines="3"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:textColor="@color/grey_700"
-        android:textSize="18sp"
-        tools:text="@string/push_info" />
-
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-    <com.fongmi.android.tv.ui.custom.CustomEditText
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/bottom"
-        android:layout_alignStart="@+id/info"
-        android:layout_marginBottom="10dp"
-        android:hint="@string/dialog_config_hint"
-        android:imeOptions="actionDone"
-        android:importantForAutofill="no"
-        android:inputType="text"
-        android:nextFocusDown="@id/positive"
-        android:singleLine="true"
-        android:textSize="18sp" />
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="@color/md_theme_surfaceContainer"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
 
     <LinearLayout
-        android:id="@+id/bottom"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/info"
-        android:layout_alignBottom="@+id/code"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="20dp">
 
-        <TextView
-            android:id="@+id/storage"
-            android:layout_width="0dp"
+        <!-- 二维码区域 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="1"
-            android:background="@drawable/selector_text"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:singleLine="true"
-            android:text="@string/setting_storage"
-            android:textColor="?attr/colorSecondary"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="14sp" />
+            app:cardBackgroundColor="@color/md_theme_surfaceContainerHigh"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <TextView
-            android:id="@+id/positive"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="1"
-            android:background="@drawable/selector_text"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:singleLine="true"
-            android:text="@string/dialog_positive"
-            android:textColor="?attr/colorSecondary"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="14sp" />
+            <ImageView
+                android:id="@+id/code"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:padding="12dp"
+                android:scaleType="centerCrop" />
 
-        <TextView
-            android:id="@+id/negative"
-            android:layout_width="0dp"
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 信息输入区域 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/selector_text"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:singleLine="true"
-            android:text="@string/dialog_negative"
-            android:textColor="?attr/colorSecondary"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="14sp" />
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:lineSpacingExtra="4dp"
+                android:maxLines="3"
+                android:textColor="@color/md_theme_onSurface"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="@string/push_info" />
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <!-- Material 3 文本输入框 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="280dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
+                app:boxBackgroundColor="@color/md_theme_surfaceContainerHigh"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxStrokeColor="@color/md_theme_primary"
+                app:hintTextColor="@color/md_theme_primary">
+
+                <com.fongmi.android.tv.ui.custom.CustomEditText
+                    android:id="@+id/text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/dialog_config_hint"
+                    android:imeOptions="actionDone"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:nextFocusDown="@id/positive"
+                    android:singleLine="true"
+                    android:textColor="@color/md_theme_onSurface"
+                    android:textColorHint="@color/md_theme_onSurfaceVariant"
+                    android:textSize="16sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 操作按钮组 -->
+            <LinearLayout
+                android:id="@+id/bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/storage"
+                    style="@style/Widget.Material3.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/setting_storage"
+                    android:textColor="@color/md_theme_primary"
+                    app:strokeColor="@color/md_theme_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/positive"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/dialog_positive"
+                    app:backgroundTint="@color/md_theme_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/negative"
+                    style="@style/Widget.Material3.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/dialog_negative"
+                    android:textColor="@color/md_theme_onSurface"
+                    app:strokeColor="@color/md_theme_outline" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
-</RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

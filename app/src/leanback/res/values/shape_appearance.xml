@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 形状外观样式 -->
+    
+    <!-- 圆形图片样式 -->
+    <style name="Widget.Material3.ImageView.Circle" parent="Widget.Material3.ImageView">
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.ImageView.Circle</item>
+    </style>
+    
+    <!-- 圆角矩形图片样式 -->
+    <style name="Widget.Material3.ImageView.Rounded" parent="Widget.Material3.ImageView">
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.ImageView.Rounded</item>
+    </style>
+    
+    <!-- 小圆角卡片样式 -->
+    <style name="Widget.Material3.CardView.Small" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">8dp</item>
+        <item name="cardElevation">2dp</item>
+    </style>
+    
+    <!-- 大圆角卡片样式 -->
+    <style name="Widget.Material3.CardView.Large" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">6dp</item>
+    </style>
+    
+    <!-- 浮动操作按钮样式 -->
+    <style name="Widget.Material3.FAB" parent="Widget.Material3.Button">
+        <item name="cornerRadius">16dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:minWidth">56dp</item>
+    </style>
+    
+    <!-- 芯片组样式 -->
+    <style name="Widget.Material3.ChipGroup" parent="Widget.Material3.ChipGroup">
+        <item name="chipSpacingHorizontal">8dp</item>
+        <item name="chipSpacingVertical">8dp</item>
+    </style>
+    
+    <!-- 文本输入框样式 -->
+    <style name="Widget.Material3.TextInputLayout.Outlined" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+    
+    <!-- 按钮组样式 -->
+    <style name="Widget.Material3.ButtonToggleGroup" parent="Widget.Material3.ButtonToggleGroup">
+        <item name="selectionRequired">false</item>
+        <item name="singleSelection">true</item>
+    </style>
+</resources>

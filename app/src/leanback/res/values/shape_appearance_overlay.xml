@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 形状外观覆盖样式 -->
+    
+    <!-- 圆形图片覆盖样式 -->
+    <style name="ShapeAppearance.Material3.ImageView.Circle" parent="ShapeAppearance.Material3.ImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+    
+    <!-- 圆角矩形图片覆盖样式 -->
+    <style name="ShapeAppearance.Material3.ImageView.Rounded" parent="ShapeAppearance.Material3.ImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </item>
+    
+    <!-- 视频卡片覆盖样式 -->
+    <style name="ShapeAppearance.Material3.CardView.Video" parent="ShapeAppearance.Material3.CardView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeBottomLeft">16dp</item>
+        <item name="cornerSizeBottomRight">16dp</item>
+    </style>
+    
+    <!-- 对话框覆盖样式 -->
+    <style name="ShapeAppearance.Material3.CardView.Dialog" parent="ShapeAppearance.Material3.CardView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomLeft">24dp</item>
+        <item name="cornerSizeBottomRight">24dp</item>
+    </style>
+    
+    <!-- 小卡片覆盖样式 -->
+    <style name="ShapeAppearance.Material3.CardView.Small" parent="ShapeAppearance.Material3.CardView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+    
+    <!-- 大卡片覆盖样式 -->
+    <style name="ShapeAppearance.Material3.CardView.Large" parent="ShapeAppearance.Material3.CardView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+</resources>
