@@ -12,7 +12,7 @@
     <style name="ShapeAppearance.Material3.ImageView.Rounded" parent="ShapeAppearance.Material3.ImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12dp</item>
-    </item>
+    </style>
     
     <!-- 视频卡片覆盖样式 -->
     <style name="ShapeAppearance.Material3.CardView.Video" parent="ShapeAppearance.Material3.CardView">
