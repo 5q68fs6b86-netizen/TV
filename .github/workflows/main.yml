@@ -37,6 +37,28 @@ jobs:
          ./gradlew assembleLeanbackPythonArm64_v8aRelease
          ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
 
+    - name: Encode Keystore
+      id: encode_keystore
+      run: echo "keystore_b64=$(base64 -w 0 114514.jks)" >> $GITHUB_OUTPUT
+
+    - name: Sign arm64-v8a APK
+      uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: app/build/outputs/apk/leanbackPythonArm64_v8a/release
+        signingKeyBase64: ${{ steps.encode_keystore.outputs.keystore_b64 }}
+        alias: '114514'
+        keyStorePassword: '114514'
+        keyPassword: '114514'
+
+    - name: Sign armeabi-v7a APK
+      uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: app/build/outputs/apk/leanbackPythonArmeabi_v7a/release
+        signingKeyBase64: ${{ steps.encode_keystore.outputs.keystore_b64 }}
+        alias: '114514'
+        keyStorePassword: '114514'
+        keyPassword: '114514'
+
     - name: Verify APKs exist
       id: apk-check
       run: |
