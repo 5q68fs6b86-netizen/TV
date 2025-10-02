@@ -1445,23 +1445,31 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     }
 
     private void showInfo() {
+        if (mBinding.widget.info.getVisibility() == View.VISIBLE) return;
         mBinding.widget.info.setVisibility(View.VISIBLE);
+        mBinding.widget.info.startAnimation(ResUtil.getAnim(R.anim.fade_in));
         showDisplayInfo();
     }
 
     private void hideInfo() {
+        if (mBinding.widget.info.getVisibility() == View.GONE) return;
         mBinding.widget.info.setVisibility(View.GONE);
+        mBinding.widget.info.startAnimation(ResUtil.getAnim(R.anim.fade_out));
         showDisplayInfo();
     }
 
     private void showInfoAndCenter() {
         showInfo();
+        if (mBinding.widget.center.getVisibility() == View.VISIBLE) return;
         mBinding.widget.center.setVisibility(View.VISIBLE);
+        mBinding.widget.center.startAnimation(ResUtil.getAnim(R.anim.fade_in));
     }
 
     private void hideInfoAndCenter() {
         hideInfo();
+        if (mBinding.widget.center.getVisibility() == View.GONE) return;
         mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.widget.center.startAnimation(ResUtil.getAnim(R.anim.fade_out));
     }
 
 
@@ -2383,7 +2391,7 @@ private void fetchTmdbLogo(String title, String year, String typeName) {
     private void onPlay() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mPlayers.play();
-        hideCenter();
+        hideInfoAndCenter();
     }
 
     public boolean isBackground() {
