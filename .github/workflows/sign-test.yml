@@ -1,4 +1,4 @@
-name: Build and Upload APKs
+name: Build and Upload APKs signed
 
 on:
   workflow_dispatch:
