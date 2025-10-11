@@ -2,81 +2,127 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="150dp"
-    android:layout_height="200dp"
+    android:layout_width="160dp"
+    android:layout_height="220dp"
+    android:layout_margin="8dp"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
+    <!-- 主要卡片容器，带阴影效果 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black_20"
-        android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:src="@drawable/ic_img_loading" />
+        android:layout_centerInParent="true"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardUseCompatPadding="true"
+        app:cardBackgroundColor="@color/card_background_light">
 
-    <TextView
-        android:id="@+id/year"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="2022"
-        tools:visibility="visible" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/site"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/media_thumbnail_placeholder"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/Vod.Grid"
+                tools:src="@drawable/ic_img_loading" />
 
-    <TextView
-        android:id="@+id/remark"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        tools:text="1080p" />
+            <!-- 年份标签 - 左上角 -->
+            <TextView
+                android:id="@+id/year"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_margin="8dp"
+                android:background="@drawable/round"
+                android:backgroundTint="@color/status_info"
+                android:ellipsize="end"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="2022"
+                tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+            <!-- 站点标签 - 右上角 -->
+            <TextView
+                android:id="@+id/site"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="8dp"
+                android:background="@drawable/round"
+                android:backgroundTint="@color/md_theme_secondary"
+                android:ellipsize="end"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="泥巴"
+                tools:visibility="visible" />
 
+            <!-- 质量标签 - 右下角上方 -->
+            <TextView
+                android:id="@+id/remark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/name"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="8dp"
+                android:background="@drawable/round"
+                android:backgroundTint="@color/media_quality_hd"
+                android:ellipsize="end"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="1080P" />
+
+            <!-- 渐变遮罩 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/video_control_gradient_bg" />
+
+            <!-- 标题文本 -->
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="12dp"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:maxLines="2"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:shadowColor="@color/black"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                tools:text="蜘蛛侠：英雄无归" />
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 焦点选择器 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"

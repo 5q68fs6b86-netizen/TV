@@ -1,11 +1,184 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 为TV大屏幕优化，提供更大的尺寸 -->
+    <!-- ========== TV界面设计系统尺寸定义 ========== -->
+    
+    <!-- ========== 基础间距系统 ========== -->
+    <dimen name="spacing_micro">2dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_large">20dp</dimen>
+    <dimen name="spacing_xlarge">24dp</dimen>
+    <dimen name="spacing_xxlarge">32dp</dimen>
+    <dimen name="spacing_xxxlarge">40dp</dimen>
+    <dimen name="spacing_huge">48dp</dimen>
+    <dimen name="spacing_giant">64dp</dimen>
+    
+    <!-- ========== 字体大小系统 - TV优化 ========== -->
+    <dimen name="text_size_micro">10sp</dimen>
+    <dimen name="text_size_tiny">12sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_xlarge">20sp</dimen>
+    <dimen name="text_size_xxlarge">24sp</dimen>
+    <dimen name="text_size_xxxlarge">28sp</dimen>
+    <dimen name="text_size_huge">32sp</dimen>
+    <dimen name="text_size_title">36sp</dimen>
+    <dimen name="text_size_display">48sp</dimen>
+    
+    <!-- ========== 圆角系统 ========== -->
+    <dimen name="radius_tiny">4dp</dimen>
+    <dimen name="radius_small">6dp</dimen>
+    <dimen name="radius_medium">8dp</dimen>
+    <dimen name="radius_large">12dp</dimen>
+    <dimen name="radius_xlarge">16dp</dimen>
+    <dimen name="radius_xxlarge">20dp</dimen>
+    <dimen name="radius_circle">50dp</dimen>
+    <dimen name="radius_pill">9999dp</dimen>
+    
+    <!-- ========== 边框和描边 ========== -->
+    <dimen name="stroke_width_thin">0.5dp</dimen>
+    <dimen name="stroke_width_normal">1dp</dimen>
+    <dimen name="stroke_width_medium">1.5dp</dimen>
+    <dimen name="stroke_width_thick">2dp</dimen>
+    <dimen name="stroke_width_bold">2.5dp</dimen>
+    <dimen name="stroke_width_heavy">3dp</dimen>
+    <dimen name="stroke_width_focus">4dp</dimen>
+    
+    <!-- ========== 阴影和elevation ========== -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_tiny">2dp</dimen>
+    <dimen name="elevation_small">4dp</dimen>
+    <dimen name="elevation_medium">6dp</dimen>
+    <dimen name="elevation_large">8dp</dimen>
+    <dimen name="elevation_xlarge">12dp</dimen>
+    <dimen name="elevation_xxlarge">16dp</dimen>
+    
+    <!-- ========== 图标尺寸系统 ========== -->
+    <dimen name="icon_size_micro">12dp</dimen>
+    <dimen name="icon_size_tiny">16dp</dimen>
+    <dimen name="icon_size_small">18dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">28dp</dimen>
+    <dimen name="icon_size_xlarge">32dp</dimen>
+    <dimen name="icon_size_xxlarge">40dp</dimen>
+    <dimen name="icon_size_xxxlarge">48dp</dimen>
+    <dimen name="icon_size_huge">56dp</dimen>
+    <dimen name="icon_size_giant">64dp</dimen>
+    
+    <!-- ========== 按钮尺寸 ========== -->
+    <dimen name="button_height_small">32dp</dimen>
+    <dimen name="button_height_medium">40dp</dimen>
+    <dimen name="button_height_large">48dp</dimen>
+    <dimen name="button_height_xlarge">56dp</dimen>
+    <dimen name="button_min_width">64dp</dimen>
+    <dimen name="button_padding_horizontal">16dp</dimen>
+    <dimen name="button_padding_vertical">12dp</dimen>
+    
+    <!-- ========== 卡片和容器尺寸 ========== -->
+    <dimen name="card_padding_small">12dp</dimen>
+    <dimen name="card_padding_medium">16dp</dimen>
+    <dimen name="card_padding_large">20dp</dimen>
+    <dimen name="card_margin_small">4dp</dimen>
+    <dimen name="card_margin_medium">8dp</dimen>
+    <dimen name="card_margin_large">12dp</dimen>
+    
+    <!-- ========== VOD卡片特定尺寸 ========== -->
+    <dimen name="vod_card_width">160dp</dimen>
+    <dimen name="vod_card_height">220dp</dimen>
+    <dimen name="vod_card_width_large">180dp</dimen>
+    <dimen name="vod_card_height_large">240dp</dimen>
+    <dimen name="vod_thumbnail_width">64dp</dimen>
+    <dimen name="vod_thumbnail_height">64dp</dimen>
+    <dimen name="vod_poster_aspect_ratio">0.75</dimen>
+    
+    <!-- ========== 频道列表尺寸 ========== -->
+    <dimen name="channel_item_height">56dp</dimen>
+    <dimen name="channel_item_height_large">64dp</dimen>
+    <dimen name="channel_number_min_width">28dp</dimen>
+    <dimen name="channel_logo_width">40dp</dimen>
+    <dimen name="channel_logo_height">28dp</dimen>
+    
+    <!-- ========== 功能按钮尺寸 ========== -->
+    <dimen name="func_button_size">120dp</dimen>
+    <dimen name="func_button_size_large">140dp</dimen>
+    <dimen name="func_icon_container_size">48dp</dimen>
+    <dimen name="func_icon_size">28dp</dimen>
+    
+    <!-- ========== 列表项尺寸 ========== -->
+    <dimen name="list_item_height_small">48dp</dimen>
+    <dimen name="list_item_height_medium">56dp</dimen>
+    <dimen name="list_item_height_large">64dp</dimen>
+    <dimen name="list_item_height_xlarge">72dp</dimen>
+    <dimen name="list_divider_height">1dp</dimen>
+    
+    <!-- ========== 焦点和选择器尺寸 ========== -->
+    <dimen name="focus_ring_width">4dp</dimen>
+    <dimen name="focus_glow_size">8dp</dimen>
+    <dimen name="focus_shadow_offset">2dp</dimen>
+    <dimen name="selector_padding">4dp</dimen>
+    
+    <!-- ========== 搜索和输入组件 ========== -->
+    <dimen name="search_bar_height">48dp</dimen>
+    <dimen name="keyboard_key_size">48dp</dimen>
+    <dimen name="keyboard_key_spacing">4dp</dimen>
+    
+    <!-- ========== 视频播放器控制栏 ========== -->
+    <dimen name="video_control_height">80dp</dimen>
+    <dimen name="video_control_button_size">48dp</dimen>
+    <dimen name="video_control_padding">16dp</dimen>
+    <dimen name="video_seekbar_height">4dp</dimen>
+    <dimen name="video_seekbar_thumb_size">16dp</dimen>
+    
+    <!-- ========== EPG节目指南 ========== -->
+    <dimen name="epg_channel_width">120dp</dimen>
+    <dimen name="epg_program_height">48dp</dimen>
+    <dimen name="epg_time_slot_width">80dp</dimen>
+    <dimen name="epg_grid_line_width">1dp</dimen>
+    
+    <!-- ========== 对话框和弹窗 ========== -->
+    <dimen name="dialog_min_width">320dp</dimen>
+    <dimen name="dialog_max_width">560dp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="dialog_button_height">40dp</dimen>
+    
+    <!-- ========== 底部栏和工具栏 ========== -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_height_large">64dp</dimen>
+    <dimen name="bottom_bar_height">72dp</dimen>
+    <dimen name="action_bar_height">56dp</dimen>
+    
+    <!-- ========== 网格布局 ========== -->
+    <dimen name="grid_spacing_small">8dp</dimen>
+    <dimen name="grid_spacing_medium">12dp</dimen>
+    <dimen name="grid_spacing_large">16dp</dimen>
+    <dimen name="grid_column_width">160dp</dimen>
+    <dimen name="grid_column_width_large">180dp</dimen>
+    
+    <!-- ========== 分割线和边距 ========== -->
+    <dimen name="divider_height">1dp</dimen>
+    <dimen name="divider_margin">16dp</dimen>
+    <dimen name="section_margin">24dp</dimen>
+    <dimen name="content_margin">16dp</dimen>
+    <dimen name="screen_edge_margin">24dp</dimen>
+    
+    <!-- ========== 原有尺寸定义保持兼容 ========== -->
     <dimen name="progress_indicator_size">40dp</dimen>
     <dimen name="progress_indicator_track_thickness">4dp</dimen>
     <dimen name="progress_indicator_corner_radius">2dp</dimen>
     <dimen name="detail_logo_height">60dp</dimen>
     <dimen name="detail_title_area_height">60dp</dimen>
     <dimen name="dp_8">8dp</dimen>
-    <!-- 其他已有的尺寸定义 -->
+    
+    <!-- ========== TV特定的安全距离 ========== -->
+    <dimen name="tv_safe_margin_horizontal">48dp</dimen>
+    <dimen name="tv_safe_margin_vertical">32dp</dimen>
+    <dimen name="tv_overscan_margin">24dp</dimen>
+    
+    <!-- ========== 响应式断点尺寸 ========== -->
+    <dimen name="breakpoint_compact">600dp</dimen>
+    <dimen name="breakpoint_medium">840dp</dimen>
+    <dimen name="breakpoint_expanded">1200dp</dimen>
 </resources>

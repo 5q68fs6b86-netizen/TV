@@ -5,6 +5,27 @@
     <color name="white">#FFFFFF</color>
     <color name="grey_500">#9E9E9E</color>
     <color name="black">#000000</color>
+    
+    <!-- 基础透明黑白色定义 -->
+    <color name="black_10">#1A000000</color>
+    <color name="black_20">#33000000</color>
+    <color name="black_30">#4D000000</color>
+    <color name="black_40">#66000000</color>
+    <color name="black_50">#80000000</color>
+    <color name="black_60">#99000000</color>
+    <color name="black_70">#B3000000</color>
+    <color name="black_80">#CC000000</color>
+    <color name="black_90">#E6000000</color>
+    
+    <color name="white_10">#1AFFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
+    <color name="white_30">#4DFFFFFF</color>
+    <color name="white_40">#66FFFFFF</color>
+    <color name="white_50">#80FFFFFF</color>
+    <color name="white_60">#99FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_80">#CCFFFFFF</color>
+    <color name="white_90">#E6FFFFFF</color>
     <color name="md_theme_primary">#00696A</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
     <color name="md_theme_primaryContainer">#9CF1F1</color>
@@ -147,4 +168,153 @@
     <color name="md_theme_surfaceContainerHigh_highContrast">#CFD6D5</color>
     <color name="md_theme_surfaceContainerHighest_highContrast">#C1C8C7</color>
     <!-- 其他应用主题可能需要的颜色 -->
+    
+    <!-- ========== TV界面专用颜色系统 ========== -->
+    
+    <!-- 蓝色系列 - 用于强调和链接 -->
+    <color name="blue_50">#E3F2FD</color>
+    <color name="blue_100">#BBDEFB</color>
+    <color name="blue_200">#90CAF9</color>
+    <color name="blue_300">#64B5F6</color>
+    <color name="blue_400">#42A5F5</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="blue_600">#1E88E5</color>
+    <color name="blue_700">#1976D2</color>
+    <color name="blue_800">#1565C0</color>
+    <color name="blue_900">#0D47A1</color>
+    
+    <!-- 绿色系列 - 用于成功状态 -->
+    <color name="green_50">#E8F5E8</color>
+    <color name="green_100">#C8E6C9</color>
+    <color name="green_300">#81C784</color>
+    <color name="green_500">#4CAF50</color>
+    <color name="green_700">#388E3C</color>
+    <color name="green_800">#2E7D32</color>
+    
+    <!-- 橙色系列 - 用于警告状态 -->
+    <color name="orange_50">#FFF3E0</color>
+    <color name="orange_100">#FFE0B2</color>
+    <color name="orange_300">#FFB74D</color>
+    <color name="orange_500">#FF9800</color>
+    <color name="orange_700">#F57C00</color>
+    <color name="orange_800">#EF6C00</color>
+    
+    <!-- 红色系列 - 用于错误和删除操作 -->
+    <color name="red_50">#FFEBEE</color>
+    <color name="red_100">#FFCDD2</color>
+    <color name="red_300">#E57373</color>
+    <color name="red_500">#F44336</color>
+    <color name="red_700">#D32F2F</color>
+    <color name="red_800">#C62828</color>
+    
+    <!-- 灰色系列 - 用于背景和分割 -->
+    <color name="grey_50">#FAFAFA</color>
+    <color name="grey_100">#F5F5F5</color>
+    <color name="grey_200">#EEEEEE</color>
+    <color name="grey_300">#E0E0E0</color>
+    <color name="grey_400">#BDBDBD</color>
+    <color name="grey_600">#757575</color>
+    <color name="grey_700">#616161</color>
+    <color name="grey_800">#424242</color>
+    <color name="grey_900">#212121</color>
+    
+    <!-- ========== 语义化颜色定义 ========== -->
+    
+    <!-- 焦点相关颜色 -->
+    <color name="focus_default">@color/md_theme_primary</color>
+    <color name="focus_bright">#FF80D4D5</color>
+    <color name="focus_ring">#4D80D4D5</color>
+    <color name="focus_glow">#1A80D4D5</color>
+    <color name="focus_shadow">#80000000</color>
+    
+    <!-- 卡片相关颜色 -->
+    <color name="card_background_light">@color/md_theme_surfaceContainer</color>
+    <color name="card_background_elevated">@color/md_theme_surfaceContainerHigh</color>
+    <color name="card_stroke_light">@color/md_theme_outline</color>
+    <color name="card_stroke_focused">@color/md_theme_primary</color>
+    <color name="card_shadow_light">#1A000000</color>
+    <color name="card_shadow_focused">#4D000000</color>
+    
+    <!-- 文本颜色增强 -->
+    <color name="text_primary_high_emphasis">@color/md_theme_onSurface</color>
+    <color name="text_primary_medium_emphasis">#99000000</color>
+    <color name="text_primary_disabled">#61000000</color>
+    <color name="text_secondary">@color/md_theme_onSurfaceVariant</color>
+    <color name="text_hint">#61000000</color>
+    <color name="text_inverse">@color/md_theme_inverseOnSurface</color>
+    
+    <!-- 状态指示颜色 -->
+    <color name="status_success">@color/green_500</color>
+    <color name="status_warning">@color/orange_500</color>
+    <color name="status_error">@color/md_theme_error</color>
+    <color name="status_info">@color/blue_500</color>
+    
+    <!-- 覆盖层和遮罩 -->
+    <color name="overlay_light">#1AFFFFFF</color>
+    <color name="overlay_medium">#33FFFFFF</color>
+    <color name="overlay_dark">#4D000000</color>
+    <color name="overlay_heavy">#80000000</color>
+    <color name="scrim_light">#1A000000</color>
+    <color name="scrim_medium">#4D000000</color>
+    <color name="scrim_heavy">#B3000000</color>
+    
+    <!-- 分割线颜色 -->
+    <color name="divider_light">@color/md_theme_outlineVariant</color>
+    <color name="divider_medium">@color/md_theme_outline</color>
+    <color name="divider_strong">#4D6F7979</color>
+    
+    <!-- 特殊效果颜色 -->
+    <color name="shimmer_light">#1AFFFFFF</color>
+    <color name="shimmer_medium">#33FFFFFF</color>
+    <color name="ripple_light">#1A80D4D5</color>
+    <color name="ripple_medium">#3380D4D5</color>
+    <color name="gradient_start_light">#00FFFFFF</color>
+    <color name="gradient_end_light">#4DFFFFFF</color>
+    
+    <!-- ========== TV界面特定颜色 ========== -->
+    
+    <!-- 视频播放器相关 -->
+    <color name="video_progress_played">@color/md_theme_primary</color>
+    <color name="video_progress_buffered">#4D80D4D5</color>
+    <color name="video_progress_background">#33FFFFFF</color>
+    <color name="video_control_tint">@color/white</color>
+    <color name="video_control_disabled">#80FFFFFF</color>
+    
+    <!-- EPG和频道列表 -->
+    <color name="epg_time_current">@color/md_theme_primary</color>
+    <color name="epg_time_past">@color/grey_500</color>
+    <color name="epg_program_live">@color/red_500</color>
+    <color name="epg_program_upcoming">@color/blue_500</color>
+    <color name="channel_number_bg">#E6004F50</color>
+    <color name="channel_name_bg">#B3000000</color>
+    
+    <!-- 搜索和输入 -->
+    <color name="search_suggestion_bg">@color/md_theme_surfaceContainerHigh</color>
+    <color name="search_highlight">@color/md_theme_primary</color>
+    <color name="keyboard_key_bg">#33FFFFFF</color>
+    <color name="keyboard_key_pressed">@color/md_theme_primaryContainer</color>
+    
+    <!-- 导航和菜单 -->
+    <color name="nav_item_active">@color/md_theme_primaryContainer</color>
+    <color name="nav_item_focused">@color/md_theme_secondaryContainer</color>
+    <color name="menu_item_danger">@color/red_500</color>
+    <color name="menu_separator">#1AFFFFFF</color>
+    
+    <!-- 媒体相关 -->
+    <color name="media_thumbnail_placeholder">@color/grey_300</color>
+    <color name="media_duration_bg">#E6000000</color>
+    <color name="media_quality_hd">@color/green_500</color>
+    <color name="media_quality_4k">@color/blue_500</color>
+    <color name="media_rating_bg">#E6FF9800</color>
+    
+    <!-- 透明色变体 - 用于不同透明度需求 -->
+    <color name="primary_alpha_10">#1A00696A</color>
+    <color name="primary_alpha_20">#3300696A</color>
+    <color name="primary_alpha_30">#4D00696A</color>
+    <color name="primary_alpha_40">#6600696A</color>
+    <color name="primary_alpha_50">#8000696A</color>
+    <color name="primary_alpha_60">#9900696A</color>
+    <color name="primary_alpha_70">#B300696A</color>
+    <color name="primary_alpha_80">#CC00696A</color>
+    <color name="primary_alpha_90">#E600696A</color>
 </resources>

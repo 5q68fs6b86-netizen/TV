@@ -1,53 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fongmi.android.tv.ui.custom.CustomLeftRightLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="56dp"
-    android:background="@drawable/selector_channel"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:gravity="center"
-    android:orientation="horizontal"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp">
+    app:cardCornerRadius="28dp"
+    app:cardElevation="6dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@color/card_background_light">
 
-    <TextView
-        android:id="@+id/number"
+    <com.fongmi.android.tv.ui.custom.CustomLeftRightLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:duplicateParentState="true"
-        android:textColor="@color/channel"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        tools:text="01" />
+        android:layout_height="56dp"
+        android:background="@drawable/selector_channel"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="20dp">
 
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="48dp"
-        android:layout_height="36dp"
-        android:layout_marginEnd="12dp"
-        android:scaleType="fitCenter"
-        android:visibility="gone" />
+        <!-- 频道号码 -->
+        <TextView
+            android:id="@+id/number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/round"
+            android:backgroundTint="@color/channel_number_bg"
+            android:duplicateParentState="true"
+            android:minWidth="28dp"
+            android:gravity="center"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="01" />
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:duplicateParentState="true"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        android:textColor="@color/channel"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        tools:text="CNN" />
+        <!-- 频道Logo -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone"
+            app:cardCornerRadius="6dp"
+            app:cardElevation="2dp"
+            tools:visibility="visible">
 
-    <ImageView
-        android:id="@+id/epg"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="4dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_action_arrow" />
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="40dp"
+                android:layout_height="28dp"
+                android:scaleType="fitCenter"
+                android:background="@color/white"
+                tools:src="@drawable/ic_logo" />
 
-</com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 频道名称 -->
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:maxWidth="200dp"
+            android:singleLine="true"
+            android:textColor="@color/text_primary_high_emphasis"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="CCTV-1综合" />
+
+        <!-- EPG按钮 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/md_theme_tertiaryContainer">
+
+            <ImageView
+                android:id="@+id/epg"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_action_arrow"
+                android:tint="@color/md_theme_onTertiaryContainer" />
+
+        </androidx.cardview.widget.CardView>
+
+    </com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>
+
+</androidx.cardview.widget.CardView>

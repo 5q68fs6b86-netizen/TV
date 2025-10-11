@@ -140,4 +140,152 @@
     <color name="md_theme_surfaceContainer_highContrast">#2B3231</color>
     <color name="md_theme_surfaceContainerHigh_highContrast">#363D3C</color>
     <color name="md_theme_surfaceContainerHighest_highContrast">#414848</color>
+    <!-- ========== 夜间模式TV界面专用颜色系统 ========== -->
+    
+    <!-- 蓝色系列 - 夜间模式调整 -->
+    <color name="blue_50">#0D1F2F</color>
+    <color name="blue_100">#1A2B3D</color>
+    <color name="blue_200">#2D4A66</color>
+    <color name="blue_300">#4A6FA8</color>
+    <color name="blue_400">#5C8BC4</color>
+    <color name="blue_500">#64B5F6</color>
+    <color name="blue_600">#78C3F7</color>
+    <color name="blue_700">#90CAF9</color>
+    <color name="blue_800">#A8D8FB</color>
+    <color name="blue_900">#BBDEFB</color>
+    
+    <!-- 绿色系列 - 夜间模式调整 -->
+    <color name="green_50">#0E1F0E</color>
+    <color name="green_100">#1B331C</color>
+    <color name="green_300">#66BB6A</color>
+    <color name="green_500">#81C784</color>
+    <color name="green_700">#A5D6A7</color>
+    <color name="green_800">#C8E6C9</color>
+    
+    <!-- 橙色系列 - 夜间模式调整 -->
+    <color name="orange_50">#1F1000</color>
+    <color name="orange_100">#332000</color>
+    <color name="orange_300">#FFB74D</color>
+    <color name="orange_500">#FFB74D</color>
+    <color name="orange_700">#FFCC02</color>
+    <color name="orange_800">#FFE082</color>
+    
+    <!-- 红色系列 - 夜间模式调整 -->
+    <color name="red_50">#1F0D0D</color>
+    <color name="red_100">#331A1A</color>
+    <color name="red_300">#E57373</color>
+    <color name="red_500">#EF5350</color>
+    <color name="red_700">#E57373</color>
+    <color name="red_800">#FFCDD2</color>
+    
+    <!-- 灰色系列 - 夜间模式调整 -->
+    <color name="grey_50">#0A0A0A</color>
+    <color name="grey_100">#121212</color>
+    <color name="grey_200">#1E1E1E</color>
+    <color name="grey_300">#2D2D2D</color>
+    <color name="grey_400">#424242</color>
+    <color name="grey_600">#757575</color>
+    <color name="grey_700">#9E9E9E</color>
+    <color name="grey_800">#BDBDBD</color>
+    <color name="grey_900">#E0E0E0</color>
+    
+    <!-- ========== 夜间模式语义化颜色定义 ========== -->
+    
+    <!-- 焦点相关颜色 - 夜间模式增强 -->
+    <color name="focus_default">@color/md_theme_primary</color>
+    <color name="focus_bright">#FF80D4D5</color>
+    <color name="focus_ring">#8080D4D5</color>
+    <color name="focus_glow">#4D80D4D5</color>
+    <color name="focus_shadow">#B3000000</color>
+    
+    <!-- 卡片相关颜色 - 夜间模式 -->
+    <color name="card_background_light">@color/md_theme_surfaceContainer</color>
+    <color name="card_background_elevated">@color/md_theme_surfaceContainerHigh</color>
+    <color name="card_stroke_light">@color/md_theme_outline</color>
+    <color name="card_stroke_focused">@color/md_theme_primary</color>
+    <color name="card_shadow_light">#33000000</color>
+    <color name="card_shadow_focused">#66000000</color>
+    
+    <!-- 文本颜色增强 - 夜间模式 -->
+    <color name="text_primary_high_emphasis">@color/md_theme_onSurface</color>
+    <color name="text_primary_medium_emphasis">#CCFFFFFF</color>
+    <color name="text_primary_disabled">#80FFFFFF</color>
+    <color name="text_secondary">@color/md_theme_onSurfaceVariant</color>
+    <color name="text_hint">#80FFFFFF</color>
+    <color name="text_inverse">@color/md_theme_inverseOnSurface</color>
+    
+    <!-- 状态指示颜色 - 夜间模式 -->
+    <color name="status_success">@color/green_500</color>
+    <color name="status_warning">@color/orange_500</color>
+    <color name="status_error">@color/md_theme_error</color>
+    <color name="status_info">@color/blue_500</color>
+    
+    <!-- 覆盖层和遮罩 - 夜间模式 -->
+    <color name="overlay_light">#1A000000</color>
+    <color name="overlay_medium">#33000000</color>
+    <color name="overlay_dark">#4DFFFFFF</color>
+    <color name="overlay_heavy">#80FFFFFF</color>
+    <color name="scrim_light">#33000000</color>
+    <color name="scrim_medium">#66000000</color>
+    <color name="scrim_heavy">#CC000000</color>
+    
+    <!-- 分割线颜色 - 夜间模式 -->
+    <color name="divider_light">@color/md_theme_outlineVariant</color>
+    <color name="divider_medium">@color/md_theme_outline</color>
+    <color name="divider_strong">#80889392</color>
+    
+    <!-- 特殊效果颜色 - 夜间模式 -->
+    <color name="shimmer_light">#1A000000</color>
+    <color name="shimmer_medium">#33000000</color>
+    <color name="ripple_light">#3380D4D5</color>
+    <color name="ripple_medium">#6680D4D5</color>
+    <color name="gradient_start_light">#00000000</color>
+    <color name="gradient_end_light">#4D000000</color>
+    
+    <!-- ========== 夜间模式TV界面特定颜色 ========== -->
+    
+    <!-- 视频播放器相关 - 夜间模式 -->
+    <color name="video_progress_played">@color/md_theme_primary</color>
+    <color name="video_progress_buffered">#6680D4D5</color>
+    <color name="video_progress_background">#33000000</color>
+    <color name="video_control_tint">@color/white</color>
+    <color name="video_control_disabled">#80FFFFFF</color>
+    
+    <!-- EPG和频道列表 - 夜间模式 -->
+    <color name="epg_time_current">@color/md_theme_primary</color>
+    <color name="epg_time_past">@color/grey_500</color>
+    <color name="epg_program_live">@color/red_500</color>
+    <color name="epg_program_upcoming">@color/blue_500</color>
+    <color name="channel_number_bg">#E6004F50</color>
+    <color name="channel_name_bg">#E6000000</color>
+    
+    <!-- 搜索和输入 - 夜间模式 -->
+    <color name="search_suggestion_bg">@color/md_theme_surfaceContainerHigh</color>
+    <color name="search_highlight">@color/md_theme_primary</color>
+    <color name="keyboard_key_bg">#33000000</color>
+    <color name="keyboard_key_pressed">@color/md_theme_primaryContainer</color>
+    
+    <!-- 导航和菜单 - 夜间模式 -->
+    <color name="nav_item_active">@color/md_theme_primaryContainer</color>
+    <color name="nav_item_focused">@color/md_theme_secondaryContainer</color>
+    <color name="menu_item_danger">@color/red_500</color>
+    <color name="menu_separator">#1A000000</color>
+    
+    <!-- 媒体相关 - 夜间模式 -->
+    <color name="media_thumbnail_placeholder">@color/grey_400</color>
+    <color name="media_duration_bg">#F0000000</color>
+    <color name="media_quality_hd">@color/green_500</color>
+    <color name="media_quality_4k">@color/blue_500</color>
+    <color name="media_rating_bg">#E6FF9800</color>
+    
+    <!-- 透明色变体 - 夜间模式 -->
+    <color name="primary_alpha_10">#1A80D4D5</color>
+    <color name="primary_alpha_20">#3380D4D5</color>
+    <color name="primary_alpha_30">#4D80D4D5</color>
+    <color name="primary_alpha_40">#6680D4D5</color>
+    <color name="primary_alpha_50">#8080D4D5</color>
+    <color name="primary_alpha_60">#9980D4D5</color>
+    <color name="primary_alpha_70">#B380D4D5</color>
+    <color name="primary_alpha_80">#CC80D4D5</color>
+    <color name="primary_alpha_90">#E680D4D5</color>
 </resources>

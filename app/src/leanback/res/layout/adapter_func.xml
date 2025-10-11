@@ -1,27 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:background="@drawable/selector_item"
+    android:layout_width="120dp"
+    android:layout_height="120dp"
+    android:layout_margin="8dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:gravity="center"
-    android:orientation="vertical">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@color/card_background_light">
 
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        tools:src="@drawable/ic_home_vod" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/selector_item_enhanced"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        tools:text="點播" />
+        <!-- 图标容器 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/md_theme_primaryContainer">
 
-</LinearLayout>
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:tint="@color/md_theme_onPrimaryContainer"
+                tools:src="@drawable/ic_home_vod" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- 功能名称 -->
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="@color/text_primary_high_emphasis"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="點播" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
