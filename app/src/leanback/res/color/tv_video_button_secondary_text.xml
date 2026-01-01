@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    视频播放器次要按钮文字颜色选择器
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 聚焦状态 - 深色文字（因为背景变亮） -->
+    <item android:state_focused="true" android:color="@color/tv_text_on_light" />
+    <!-- 按下状态 -->
+    <item android:state_pressed="true" android:color="@color/tv_text_primary" />
+    <!-- 激活状态 -->
+    <item android:state_activated="true" android:color="@color/tv_text_primary" />
+    <!-- 禁用状态 -->
+    <item android:state_enabled="false" android:color="@color/tv_text_disabled" />
+    <!-- 默认状态 - 白色文字 -->
+    <item android:color="@color/tv_text_primary" />
+</selector>

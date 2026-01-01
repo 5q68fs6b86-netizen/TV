@@ -1,51 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 基础控制按钮样式 -->
+    <!--
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                     视频播放器控制按钮样式                                      ║
+    ║                  遵循 Google TV 设计规范                                        ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         基础控制按钮样式
+         ════════════════════════════════════════════════════════════════════════════ -->
     <style name="VideoControlButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:minWidth">64dp</item>
+        <item name="android:layout_height">@dimen/tv_button_height_md</item>
+        <item name="android:minWidth">@dimen/tv_button_min_width</item>
         <item name="android:gravity">center</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
-        <item name="android:textSize">13sp</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
+        <item name="android:textSize">@dimen/tv_text_body_small</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingStart">@dimen/tv_spacing_md</item>
+        <item name="android:paddingEnd">@dimen/tv_spacing_md</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
-        <item name="android:stateListAnimator">@animator/button_elevation</item>
+        <item name="android:stateListAnimator">@animator/tv_button_state</item>
     </style>
 
-    <!-- 主要按钮样式 -->
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         主要按钮样式 - 使用焦点色背景
+         ════════════════════════════════════════════════════════════════════════════ -->
     <style name="VideoControlButton.Primary">
-        <item name="android:background">@drawable/video_button_primary_selector</item>
-        <item name="android:textColor">@color/video_button_primary_text</item>
+        <item name="android:background">@drawable/tv_video_button_primary</item>
+        <item name="android:textColor">@color/tv_video_button_primary_text</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- 次要按钮样式 -->
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         次要按钮样式 - 透明背景，聚焦时高亮
+         ════════════════════════════════════════════════════════════════════════════ -->
     <style name="VideoControlButton.Secondary">
-        <item name="android:background">@drawable/video_button_secondary_selector</item>
-        <item name="android:textColor">@color/video_button_secondary_text</item>
+        <item name="android:background">@drawable/tv_video_button_secondary</item>
+        <item name="android:textColor">@color/tv_video_button_secondary_text</item>
     </style>
 
-    <!-- 强调按钮样式 -->
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         强调按钮样式 - 带品牌色调
+         ════════════════════════════════════════════════════════════════════════════ -->
     <style name="VideoControlButton.Accent">
-        <item name="android:background">@drawable/video_button_accent_selector</item>
-        <item name="android:textColor">@color/video_button_accent_text</item>
+        <item name="android:background">@drawable/tv_video_button_accent</item>
+        <item name="android:textColor">@color/tv_video_button_accent_text</item>
+        <item name="android:textStyle">bold</item>
     </style>
-    <!-- ... 保留你已有的其他样式 ... -->
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         纯图标按钮样式 - 用于播放控制
+         ════════════════════════════════════════════════════════════════════════════ -->
     <style name="VideoControlButton.IconOnly">
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:background">@drawable/video_button_primary_selector</item>
-        <!-- 关键：使用颜色选择器来为图标着色 -->
-        <item name="android:drawableTint">@color/icon_tint_selector</item>
+        <item name="android:layout_width">@dimen/tv_player_button_size_large</item>
+        <item name="android:layout_height">@dimen/tv_player_button_size_large</item>
+        <item name="android:background">@drawable/tv_video_button_icon</item>
+        <item name="android:drawableTint">@color/tv_video_icon_tint</item>
         <item name="android:drawableTintMode">src_in</item>
-        <item name="android:padding">14dp</item>
+        <item name="android:padding">@dimen/tv_spacing_sm</item>
         <item name="android:gravity">center</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
-        <item name="android:stateListAnimator">@animator/button_elevation</item>    </style>
+        <item name="android:stateListAnimator">@animator/tv_button_state</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         小型图标按钮
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoControlButton.IconOnly.Small">
+        <item name="android:layout_width">@dimen/tv_player_button_size</item>
+        <item name="android:layout_height">@dimen/tv_player_button_size</item>
+        <item name="android:padding">@dimen/tv_spacing_xs</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         控制栏组背景样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoControlGroup">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/tv_video_control_group</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:padding">@dimen/tv_spacing_xxs</item>
+        <item name="android:layout_marginEnd">@dimen/tv_spacing_md</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         进度条容器样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoSeekBarContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/tv_spacing_md</item>
+        <item name="android:paddingStart">@dimen/tv_spacing_xxs</item>
+        <item name="android:paddingEnd">@dimen/tv_spacing_xxs</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         时间文字样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoTimeText">
+        <item name="android:textSize">@dimen/tv_player_time_text_size</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频标题样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoTitleText">
+        <item name="android:textSize">@dimen/tv_player_title_text_size</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:shadowColor">@color/tv_scrim_start</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频信息文字样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="VideoInfoText">
+        <item name="android:textSize">@dimen/tv_text_body_medium</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:shadowColor">@color/tv_scrim_start</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
 </resources>

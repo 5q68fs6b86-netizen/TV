@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    直播页面布局
+    遵循 Google TV 设计规范
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/tv_background_primary"
     android:keepScreenOn="true">
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频播放区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <FrameLayout
         android:id="@+id/video"
         android:layout_width="match_parent"
@@ -26,15 +34,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
-
     </FrameLayout>
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         播放器小部件
+         ════════════════════════════════════════════════════════════════════════════ -->
     <include
         android:id="@+id/widget"
         layout="@layout/view_widget_live"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         显示信息层
+         ════════════════════════════════════════════════════════════════════════════ -->
     <include
         android:id="@+id/display"
         layout="@layout/view_widget_display"
@@ -42,6 +55,9 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         控制栏
+         ════════════════════════════════════════════════════════════════════════════ -->
     <include
         android:id="@+id/control"
         layout="@layout/view_control_live"
@@ -50,15 +66,19 @@
         android:layout_gravity="bottom"
         android:visibility="gone" />
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         频道列表区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/recycler"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_live_list"
+        android:background="@drawable/tv_live_list_background"
         android:orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible">
 
+        <!-- 分组列表 -->
         <com.fongmi.android.tv.ui.custom.CustomLiveListView
             android:id="@+id/group"
             android:layout_width="0dp"
@@ -66,20 +86,21 @@
             tools:itemCount="5"
             tools:listitem="@layout/adapter_group" />
 
+        <!-- 分割线 -->
         <View
             android:id="@+id/divide"
-            android:layout_width="0.3dp"
+            android:layout_width="@dimen/tv_divider_height"
             android:layout_height="match_parent"
-            android:background="@color/grey_700"
+            android:background="@color/tv_divider"
             android:visibility="gone" />
 
+        <!-- 频道列表 -->
         <com.fongmi.android.tv.ui.custom.CustomLiveListView
             android:id="@+id/channel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_channel" />
-
     </LinearLayout>
-</FrameLayout>
 
+</FrameLayout>

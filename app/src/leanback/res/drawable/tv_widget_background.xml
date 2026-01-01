@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    视频播放器 Widget 背景
+    用于中央控制、错误提示、音量亮度等弹窗
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/tv_player_control_bg" />
+    <corners android:radius="@dimen/tv_radius_lg" />
+</shape>

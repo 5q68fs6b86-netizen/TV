@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    设置项背景
-    焦点时显示焦点色
+    视频播放器强调按钮背景
+    使用品牌色/强调色
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 聚焦状态 -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/tv_focus_primary" />
-            <corners android:radius="@dimen/tv_radius_md" />
+            <corners android:radius="@dimen/tv_radius_full" />
         </shape>
     </item>
     
     <!-- 按下状态 -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/tv_button_primary_bg_pressed" />
-            <corners android:radius="@dimen/tv_radius_md" />
+            <solid android:color="@color/tv_accent_primary_variant" />
+            <corners android:radius="@dimen/tv_radius_full" />
         </shape>
     </item>
     
     <!-- 激活/选中状态 -->
     <item android:state_activated="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/tv_surface_selected" />
-            <corners android:radius="@dimen/tv_radius_md" />
+            <solid android:color="@color/tv_accent_primary" />
+            <corners android:radius="@dimen/tv_radius_full" />
         </shape>
     </item>
     
-    <!-- 默认状态 -->
+    <!-- 默认状态 - 半透明强调色背景 -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/tv_surface_variant" />
-            <corners android:radius="@dimen/tv_radius_md" />
+            <solid android:color="@color/tv_surface_selected" />
+            <corners android:radius="@dimen/tv_radius_full" />
         </shape>
     </item>
 </selector>

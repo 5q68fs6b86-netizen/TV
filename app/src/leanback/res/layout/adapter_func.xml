@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    功能按钮适配器布局 (方形卡片样式)
+    使用 TV 设计系统
+-->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="120dp"
-    android:layout_height="120dp"
-    android:layout_margin="8dp"
+    android:layout_width="@dimen/tv_func_card_size"
+    android:layout_height="@dimen/tv_func_card_size"
+    android:layout_margin="@dimen/tv_card_margin"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
+    app:cardCornerRadius="@dimen/tv_func_card_corner_radius"
+    app:cardElevation="@dimen/tv_card_elevation"
     app:cardUseCompatPadding="true"
-    app:cardBackgroundColor="@color/card_background_light">
+    app:cardBackgroundColor="@color/tv_surface_default">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/selector_item_enhanced"
+        android:background="@drawable/tv_func_card_background"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/tv_spacing_md">
 
         <!-- 图标容器 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/md_theme_primaryContainer">
+        <FrameLayout
+            android:layout_width="@dimen/tv_icon_xl"
+            android:layout_height="@dimen/tv_icon_xl"
+            android:layout_marginBottom="@dimen/tv_spacing_xs"
+            android:background="@drawable/tv_button_icon_background">
 
             <ImageView
                 android:id="@+id/icon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="@dimen/tv_icon_lg"
+                android:layout_height="@dimen/tv_icon_lg"
                 android:layout_gravity="center"
-                android:tint="@color/md_theme_onPrimaryContainer"
+                app:tint="@color/tv_icon_primary"
                 tools:src="@drawable/ic_home_vod" />
 
-        </androidx.cardview.widget.CardView>
+        </FrameLayout>
 
         <!-- 功能名称 -->
         <TextView
             android:id="@+id/text"
+            style="@style/TV.FuncCard.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="2"
-            android:textColor="@color/text_primary_high_emphasis"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="點播" />
+            tools:text="点播" />
 
     </LinearLayout>
 

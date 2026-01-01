@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    设置页面布局
+    遵循 Google TV 设计规范
+-->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/tv_background_primary"
     android:fillViewport="true"
     android:keepScreenOn="true"
     tools:ignore="NestedWeights">
@@ -11,8 +16,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/tv_spacing_lg">
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             VOD 配置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,494 +29,479 @@
 
             <LinearLayout
                 android:id="@+id/vod"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
                     android:layout_weight="0.3"
-                    android:text="@string/setting_vod"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:text="@string/setting_vod" />
 
                 <TextView
                     android:id="@+id/vodUrl"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.7"
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
-
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/vodHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:src="@drawable/ic_setting_home" />
 
             <ImageView
                 android:id="@+id/vodHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
                 android:src="@drawable/ic_setting_history" />
-
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             直播配置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/live"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
                     android:layout_weight="0.3"
-                    android:text="@string/setting_live"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:text="@string/setting_live" />
 
                 <TextView
                     android:id="@+id/liveUrl"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.7"
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
-
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/liveHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:src="@drawable/ic_setting_home" />
 
             <ImageView
                 android:id="@+id/liveHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
                 android:src="@drawable/ic_setting_history" />
-
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             壁纸配置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/wall"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
                 android:nextFocusDown="@id/player"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
                     android:layout_weight="0.3"
-                    android:text="@string/setting_wall"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:text="@string/setting_wall" />
 
                 <TextView
                     android:id="@+id/wallUrl"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.7"
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
-
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/wallDefault"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:nextFocusDown="@id/player"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
                 android:src="@drawable/ic_setting_home" />
 
             <ImageView
                 android:id="@+id/wallRefresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
+                style="@style/TV.Button.Icon"
+                android:layout_width="@dimen/tv_icon_button_md"
+                android:layout_height="@dimen/tv_icon_button_md"
                 android:nextFocusDown="@id/player"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
                 android:src="@drawable/ic_setting_refresh" />
-
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             播放器/弹幕设置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/player"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_player"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_player" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/danmu"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_danmu"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_danmu" />
             </LinearLayout>
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             自定义/代理设置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/custom"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_custom"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_custom" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/proxy"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_proxy"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_proxy" />
 
                 <TextView
                     android:id="@+id/proxyText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="http" />
-
             </LinearLayout>
-
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             备份/恢复设置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/backup"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_backup"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_backup" />
 
                 <TextView
                     android:id="@+id/backupText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="Auto" />
-
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/restore"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_restore"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_restore" />
             </LinearLayout>
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             缓存/DoH 设置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/cache"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_cache"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_cache" />
 
                 <TextView
                     android:id="@+id/cacheText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="1.0 MB" />
-
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/doh"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_doh"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_doh" />
 
                 <TextView
                     android:id="@+id/dohText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="Google" />
-
             </LinearLayout>
         </LinearLayout>
 
+        <!-- ════════════════════════════════════════════════════════════════════════════
+             版本/关于设置行
+             ════════════════════════════════════════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/tv_spacing_md"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/version"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/tv_spacing_md"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_version"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_version" />
 
                 <TextView
                     android:id="@+id/versionText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="1.2.1" />
-
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/about"
+                style="@style/TV.SettingItem"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/tv_spacing_md"
+                android:paddingTop="@dimen/tv_spacing_sm"
+                android:paddingEnd="@dimen/tv_spacing_md"
+                android:paddingBottom="@dimen/tv_spacing_sm">
 
                 <TextView
+                    style="@style/TV.SettingItem.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_about"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
+                    android:layout_marginEnd="@dimen/tv_spacing_md"
+                    android:text="@string/setting_about" />
 
                 <TextView
                     android:id="@+id/aboutText"
+                    style="@style/TV.SettingItem.Value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
                     tools:text="about" />
-
             </LinearLayout>
         </LinearLayout>
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

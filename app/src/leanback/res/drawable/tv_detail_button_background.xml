@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    设置项背景
-    焦点时显示焦点色
+    视频详情页操作按钮背景
+    用于详情/收藏/换源等按钮
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 聚焦状态 -->

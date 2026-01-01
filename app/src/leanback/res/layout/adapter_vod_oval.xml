@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    VOD 卡片适配器布局 (圆形/椭圆样式)
+    使用 TV 设计系统
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
@@ -7,40 +11,51 @@
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@color/black_20"
-        android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Circle"
-        tools:src="@drawable/ic_img_loading" />
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="@dimen/tv_card_margin">
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/image"
-        android:layout_alignStart="@+id/image"
-        android:layout_alignEnd="@+id/image"
-        android:layout_marginTop="4dp"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        <!-- 圆形图片容器 -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
-    <FrameLayout
-        android:id="@+id/frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/image"
-        android:layout_alignTop="@+id/image"
-        android:layout_alignEnd="@+id/image"
-        android:layout_alignBottom="@+id/image"
-        android:background="@drawable/selector_vod_oval"
-        android:duplicateParentState="true" />
+            <!-- 封面图片 -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/tv_placeholder_bg"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/Vod.Circle"
+                tools:src="@drawable/ic_img_loading" />
 
-</RelativeLayout>
+            <!-- 焦点边框 -->
+            <FrameLayout
+                android:id="@+id/frame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/selector_vod_oval"
+                android:duplicateParentState="true" />
+
+        </FrameLayout>
+
+        <!-- 标题 -->
+        <TextView
+            android:id="@+id/name"
+            style="@style/TV.Text.Body.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/tv_spacing_xs"
+            android:ellipsize="marquee"
+            android:gravity="center"
+            android:singleLine="true"
+            android:textColor="@color/tv_text_primary"
+            tools:text="蜘蛛人" />
+
+    </LinearLayout>
+
+</FrameLayout>

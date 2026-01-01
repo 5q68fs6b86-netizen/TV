@@ -1,30 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    搜索页面布局
+    遵循 Google TV 设计规范
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
+    android:background="@color/tv_background_primary"
     android:keepScreenOn="true"
     android:orientation="horizontal"
-    android:paddingStart="24dp"
-    android:paddingTop="24dp"
-    android:paddingEnd="24dp">
+    android:paddingStart="@dimen/tv_spacing_lg"
+    android:paddingTop="@dimen/tv_spacing_lg"
+    android:paddingEnd="@dimen/tv_spacing_lg">
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         搜索记录区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/recordLayout"
         android:layout_width="128dp"
         android:layout_height="match_parent"
-        android:layout_marginEnd="36dp"
+        android:layout_marginEnd="@dimen/tv_spacing_xl"
         android:orientation="vertical">
 
         <TextView
+            style="@style/TV.Text.Headline.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="@dimen/tv_spacing_md"
             android:text="@string/search_record"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:textColor="@color/tv_text_primary" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recordRecycler"
@@ -33,35 +41,41 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingBottom="24dp"
+            android:paddingBottom="@dimen/tv_spacing_lg"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="10"
             tools:listitem="@layout/adapter_search_record" />
-
     </LinearLayout>
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         搜索输入和键盘区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginEnd="36dp">
+        android:layout_marginEnd="@dimen/tv_spacing_xl">
 
+        <!-- 语音搜索按钮 -->
         <com.fongmi.android.tv.ui.custom.CustomMic
             android:id="@+id/mic"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginEnd="12dp"
+            android:layout_width="@dimen/tv_icon_xl"
+            android:layout_height="@dimen/tv_icon_xl"
+            android:layout_marginEnd="@dimen/tv_spacing_sm"
+            android:background="@drawable/tv_button_icon_background"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:nextFocusLeft="@id/record"
+            android:padding="@dimen/tv_spacing_xs"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_search_mic" />
 
+        <!-- 搜索输入框 -->
         <com.fongmi.android.tv.ui.custom.CustomSearchView
             android:id="@+id/keyword"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignEnd="@+id/keyboard"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="@dimen/tv_spacing_md"
             android:layout_toEndOf="@+id/mic"
             android:background="@null"
             android:focusable="true"
@@ -73,11 +87,12 @@
             android:maxLength="255"
             android:nextFocusRight="@id/word"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
+            android:textColor="@color/tv_text_primary"
+            android:textColorHint="@color/tv_text_hint"
             android:textCursorDrawable="@drawable/shape_cursor"
-            android:textSize="24sp" />
+            android:textSize="@dimen/tv_text_headline_small" />
 
+        <!-- 虚拟键盘 -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/keyboard"
             android:layout_width="wrap_content"
@@ -88,23 +103,25 @@
             app:spanCount="6"
             tools:itemCount="36"
             tools:listitem="@layout/adapter_keyboard_text" />
-
     </RelativeLayout>
 
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         热门搜索/搜索结果区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="@dimen/tv_spacing_lg"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/hint"
+            style="@style/TV.Text.Headline.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="@dimen/tv_spacing_md"
             android:text="@string/search_hot"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:textColor="@color/tv_text_primary" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/wordRecycler"
@@ -113,11 +130,10 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingBottom="24dp"
+            android:paddingBottom="@dimen/tv_spacing_lg"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="10"
             tools:listitem="@layout/adapter_search_word" />
-
     </LinearLayout>
-</LinearLayout>
 
+</LinearLayout>

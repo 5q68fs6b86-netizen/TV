@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    主页 Fragment 布局
+    使用 TV 设计系统 Token
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
 
     <com.fongmi.android.tv.ui.custom.ProgressLayout
         android:id="@+id/progressLayout"
@@ -15,10 +20,10 @@
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:paddingStart="26dp"
-            android:paddingTop="12dp"
-            android:paddingEnd="26dp"
-            android:paddingBottom="24dp"
+            android:paddingStart="@dimen/tv_row_padding_horizontal"
+            android:paddingTop="@dimen/tv_spacing_sm"
+            android:paddingEnd="@dimen/tv_row_padding_horizontal"
+            android:paddingBottom="@dimen/tv_spacing_lg"
             app:focusOutEnd="true"
             app:focusOutFront="true" />
 

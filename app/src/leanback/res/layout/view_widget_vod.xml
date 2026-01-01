@@ -1,224 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    视频播放器小部件布局
+    包含信息显示、加载、错误等状态
+    遵循 Google TV 设计规范
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="match_parent">
-
-<RelativeLayout
-    android:id="@+id/info"
-    android:visibility="invisible"
-    tools:visibility="visible"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/title"
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频信息区域 (标题和分辨率)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <RelativeLayout
+        android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="100dp"
-        android:letterSpacing="0.02"
-        android:shadowColor="@color/grey_900"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="1"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        tools:text="慶餘年第一季：第一集" />
+        android:visibility="invisible"
+        tools:visibility="visible">
 
-    <TextView
-        android:id="@+id/size"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/title"
-        android:layout_alignStart="@+id/title"
-        android:layout_marginBottom="16dp"
-        android:shadowColor="@color/grey_900"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="1"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="1920 x 1080" />
+        <TextView
+            android:id="@+id/title"
+            style="@style/VideoTitleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/tv_spacing_md"
+            android:layout_marginTop="@dimen/tv_spacing_md"
+            android:layout_marginEnd="100dp"
+            android:letterSpacing="0.02"
+            android:singleLine="true"
+            tools:text="慶餘年第一季：第一集" />
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/size"
+            style="@style/VideoInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/title"
+            android:layout_alignStart="@+id/title"
+            android:layout_marginBottom="@dimen/tv_spacing_md"
+            tools:text="1920 x 1080" />
+    </RelativeLayout>
 
-<LinearLayout
-    android:id="@+id/progress"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:orientation="vertical">
-
-    <include layout="@layout/view_progress" />
-
-    <TextView
-        android:id="@+id/traffic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:visibility="gone"
-        tools:text="120KB/s" />
-
-</LinearLayout>
-
-<LinearLayout
-    android:id="@+id/error"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:background="@drawable/shape_widget"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:visibility="gone"
-    tools:visibility="visible">
-
-    <ImageView
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_widget_error" />
-
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="@string/error_play_url" />
-
-</LinearLayout>
-
-<LinearLayout
-    android:id="@+id/center"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:background="@drawable/shape_widget"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:visibility="gone"
-    tools:visibility="visible">
-
-    <ImageView
-        android:id="@+id/action"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_widget_play" />
-
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         加载进度区域
+         ════════════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
+        android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_gravity="center"
+        android:orientation="vertical">
+
+        <include layout="@layout/view_progress" />
 
         <TextView
-            android:id="@+id/exo_position"
+            android:id="@+id/traffic"
+            style="@style/VideoInfoText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            tools:text="00:00:00" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:text="/"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/exo_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            tools:text="00:00:00" />
-
+            android:layout_marginTop="@dimen/tv_spacing_xs"
+            android:visibility="gone"
+            tools:text="120KB/s" />
     </LinearLayout>
-</LinearLayout>
 
-<ImageView
-    android:id="@+id/speed"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="top|center"
-    android:layout_marginTop="24dp"
-    android:src="@drawable/ic_widget_forward"
-    android:visibility="gone" />
-
-<LinearLayout
-    android:id="@+id/bright"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:background="@drawable/shape_widget"
-    android:gravity="center"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:visibility="gone"
-    tools:visibility="visible">
-
-    <ImageView
-        android:id="@+id/brightIcon"
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         错误提示区域
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        tools:src="@drawable/ic_widget_bright_high" />
+        android:layout_gravity="center"
+        android:background="@drawable/tv_widget_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/tv_spacing_md"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/brightProgress"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        app:indicatorColor="@color/white"
-        app:trackColor="@color/grey_500" />
+        <ImageView
+            android:layout_width="@dimen/tv_icon_xxl"
+            android:layout_height="@dimen/tv_icon_xxl"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_error"
+            android:tint="@color/tv_status_error" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/text"
+            style="@style/VideoInfoText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/tv_spacing_md"
+            android:gravity="center"
+            tools:text="@string/error_play_url" />
+    </LinearLayout>
 
-<LinearLayout
-    android:id="@+id/volume"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:background="@drawable/shape_widget"
-    android:gravity="center"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:visibility="gone"
-    tools:visibility="visible">
-
-    <ImageView
-        android:id="@+id/volumeIcon"
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         中央控制区域 (播放/暂停状态)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        tools:src="@drawable/ic_widget_volume_high" />
+        android:layout_gravity="center"
+        android:background="@drawable/tv_widget_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/tv_spacing_md"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/volumeProgress"
-        android:layout_width="200dp"
+        <ImageView
+            android:id="@+id/action"
+            android:layout_width="@dimen/tv_icon_xxl"
+            android:layout_height="@dimen/tv_icon_xxl"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_widget_play"
+            android:tint="@color/tv_icon_primary" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/exo_position"
+                style="@style/VideoTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="00:00:00" />
+
+            <TextView
+                style="@style/VideoTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/tv_spacing_xxs"
+                android:layout_marginEnd="@dimen/tv_spacing_xxs"
+                android:text="/" />
+
+            <TextView
+                android:id="@+id/exo_duration"
+                style="@style/VideoTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="00:00:00" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         快进/快退指示器
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <ImageView
+        android:id="@+id/speed"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:indicatorColor="@color/white"
-        app:trackColor="@color/grey_500" />
+        android:layout_gravity="top|center"
+        android:layout_marginTop="@dimen/tv_spacing_lg"
+        android:src="@drawable/ic_widget_forward"
+        android:tint="@color/tv_icon_primary"
+        android:visibility="gone" />
 
-</LinearLayout>
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         亮度调节提示
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/bright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/tv_widget_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/tv_spacing_md"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-<ImageView
-    android:id="@+id/preview"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:scaleType="fitCenter"
-    android:visibility="invisible" />
+        <ImageView
+            android:id="@+id/brightIcon"
+            android:layout_width="@dimen/tv_icon_lg"
+            android:layout_height="@dimen/tv_icon_lg"
+            android:layout_marginEnd="@dimen/tv_spacing_md"
+            android:tint="@color/tv_icon_primary"
+            tools:src="@drawable/ic_widget_bright_high" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/brightProgress"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            app:indicatorColor="@color/tv_focus_primary"
+            app:trackColor="@color/tv_surface_overlay" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         音量调节提示
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/volume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/tv_widget_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/tv_spacing_md"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/volumeIcon"
+            android:layout_width="@dimen/tv_icon_lg"
+            android:layout_height="@dimen/tv_icon_lg"
+            android:layout_marginEnd="@dimen/tv_spacing_md"
+            android:tint="@color/tv_icon_primary"
+            tools:src="@drawable/ic_widget_volume_high" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/volumeProgress"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            app:indicatorColor="@color/tv_focus_primary"
+            app:trackColor="@color/tv_surface_overlay" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         预览图片
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <ImageView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:visibility="invisible" />
 
 </FrameLayout>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    视频播放器图标按钮图标着色选择器
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 聚焦状态 - 深色图标（因为背景变亮） -->
+    <item android:state_focused="true" android:color="@color/tv_icon_on_focus" />
+    <!-- 按下状态 -->
+    <item android:state_pressed="true" android:color="@color/tv_icon_primary" />
+    <!-- 激活状态 -->
+    <item android:state_activated="true" android:color="@color/tv_icon_on_focus" />
+    <!-- 禁用状态 -->
+    <item android:state_enabled="false" android:color="@color/tv_icon_disabled" />
+    <!-- 默认状态 - 白色图标 -->
+    <item android:color="@color/tv_icon_primary" />
+</selector>

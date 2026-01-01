@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    视频播放器框架背景
+    圆角矩形，深色背景
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/tv_surface_default" />
+    <corners android:radius="@dimen/tv_radius_md" />
+</shape>

@@ -1,67 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    VOD 卡片适配器布局 (列表样式)
+    使用 TV 设计系统
+-->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="@dimen/tv_spacing_md"
+    android:layout_marginVertical="@dimen/tv_spacing_xxs"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_vod"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
-    app:cardBackgroundColor="@color/card_background_light">
+    android:foreground="@drawable/tv_list_item_background"
+    app:cardCornerRadius="@dimen/tv_radius_md"
+    app:cardElevation="@dimen/tv_elevation_sm"
+    app:cardBackgroundColor="@color/tv_surface_default">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/tv_spacing_sm">
 
+        <!-- 缩略图 -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/image"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@color/media_thumbnail_placeholder"
+            android:layout_width="@dimen/tv_icon_huge"
+            android:layout_height="@dimen/tv_icon_huge"
+            android:layout_marginStart="@dimen/tv_spacing_md"
+            android:layout_marginEnd="@dimen/tv_spacing_md"
+            android:background="@drawable/tv_image_placeholder"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:src="@drawable/ic_img_error" />
 
+        <!-- 信息区域 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="@dimen/tv_spacing_md"
             android:orientation="vertical">
 
+            <!-- 标题 -->
             <TextView
                 android:id="@+id/name"
+                style="@style/TV.Text.Title.Small"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/text_primary_high_emphasis"
-                android:textSize="16sp"
-                android:textStyle="bold"
+                android:textColor="@color/tv_text_primary"
                 tools:text="蜘蛛侠：英雄无归" />
 
+            <!-- 质量标签 -->
             <TextView
                 android:id="@+id/remark"
+                style="@style/TV.Badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/round"
-                android:backgroundTint="@color/media_quality_hd"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:textColor="@color/white"
-                android:textSize="12sp"
-                android:textStyle="bold"
+                android:layout_marginTop="@dimen/tv_spacing_xxs"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_badge_hd"
                 tools:text="1080P" />
 
         </LinearLayout>
@@ -69,11 +71,11 @@
         <!-- 播放指示器 -->
         <ImageView
             android:id="@+id/playIndicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="16dp"
+            android:layout_width="@dimen/tv_icon_md"
+            android:layout_height="@dimen/tv_icon_md"
+            android:layout_marginEnd="@dimen/tv_spacing_md"
             android:src="@drawable/ic_widget_play"
-            android:tint="@color/md_theme_primary"
+            app:tint="@color/tv_focus_primary"
             android:visibility="gone"
             tools:visibility="visible" />
 

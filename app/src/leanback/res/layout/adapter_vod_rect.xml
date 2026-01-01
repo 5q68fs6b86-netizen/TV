@@ -1,33 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    VOD 卡片适配器布局 (矩形海报)
+    使用 TV 设计系统
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="160dp"
-    android:layout_height="220dp"
-    android:layout_margin="8dp"
+    android:layout_width="@dimen/tv_card_poster_width_md"
+    android:layout_height="@dimen/tv_card_poster_height_md"
+    android:layout_margin="@dimen/tv_card_margin"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-    <!-- 主要卡片容器，带阴影效果 -->
+    <!-- 主要卡片容器 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
-        app:cardUseCompatPadding="true"
-        app:cardBackgroundColor="@color/card_background_light">
+        app:cardCornerRadius="@dimen/tv_card_corner_radius"
+        app:cardElevation="@dimen/tv_card_elevation"
+        app:cardBackgroundColor="@color/tv_card_surface">
 
-        <RelativeLayout
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!-- 封面图片 -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/media_thumbnail_placeholder"
+                android:background="@drawable/tv_image_placeholder"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/Vod.Grid"
                 tools:src="@drawable/ic_img_loading" />
@@ -35,98 +38,76 @@
             <!-- 年份标签 - 左上角 -->
             <TextView
                 android:id="@+id/year"
+                style="@style/TV.Badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:layout_margin="8dp"
-                android:background="@drawable/round"
-                android:backgroundTint="@color/status_info"
-                android:ellipsize="end"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:layout_gravity="top|start"
+                android:layout_margin="@dimen/tv_spacing_xs"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_badge_hd"
                 android:visibility="gone"
-                tools:text="2022"
+                tools:text="2024"
                 tools:visibility="visible" />
 
             <!-- 站点标签 - 右上角 -->
             <TextView
                 android:id="@+id/site"
+                style="@style/TV.Badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="8dp"
-                android:background="@drawable/round"
-                android:backgroundTint="@color/md_theme_secondary"
-                android:ellipsize="end"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/tv_spacing_xs"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_accent_secondary"
                 android:visibility="gone"
-                tools:text="泥巴"
+                tools:text="站点"
                 tools:visibility="visible" />
 
             <!-- 质量标签 - 右下角上方 -->
             <TextView
                 android:id="@+id/remark"
+                style="@style/TV.Badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/name"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="8dp"
-                android:background="@drawable/round"
-                android:backgroundTint="@color/media_quality_hd"
-                android:ellipsize="end"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="@dimen/tv_spacing_xs"
+                android:layout_marginBottom="@dimen/tv_spacing_xxxl"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_badge_4k"
                 tools:text="1080P" />
 
-            <!-- 渐变遮罩 -->
+            <!-- 底部渐变遮罩 -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
-                android:layout_alignParentBottom="true"
-                android:background="@drawable/video_control_gradient_bg" />
+                android:layout_gravity="bottom"
+                android:background="@drawable/tv_card_scrim" />
 
             <!-- 标题文本 -->
             <TextView
                 android:id="@+id/name"
+                style="@style/TV.Text.Card.Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_margin="12dp"
+                android:layout_gravity="bottom"
+                android:layout_margin="@dimen/tv_spacing_sm"
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"
                 android:maxLines="2"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
                 android:shadowColor="@color/black"
                 android:shadowDx="1"
                 android:shadowDy="1"
                 android:shadowRadius="2"
                 tools:text="蜘蛛侠：英雄无归" />
 
-        </RelativeLayout>
+        </FrameLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 焦点选择器 -->
+    <!-- 焦点选择器叠加层 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/selector_vod"
+        android:background="@drawable/tv_card_background"
         android:duplicateParentState="true" />
 
-</RelativeLayout>
+</FrameLayout>
