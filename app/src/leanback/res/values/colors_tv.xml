@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                     TV 设计系统颜色 Token                                      ║
+    ║                  遵循 Google TV 设计规范                                        ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         基础背景色 - TV 深色主题
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_background_primary">#0F0F0F</color>
+    <color name="tv_background_secondary">#1A1A1A</color>
+    <color name="tv_background_tertiary">#242424</color>
+    <color name="tv_background_elevated">#2D2D2D</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         表面色 - 用于卡片、对话框等容器
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_surface_default">#1F1F1F</color>
+    <color name="tv_surface_variant">#2A2A2A</color>
+    <color name="tv_surface_elevated">#333333</color>
+    <color name="tv_surface_overlay">#3D3D3D</color>
+
+    <!-- 卡片专用表面色 -->
+    <color name="tv_card_surface">#1C1C1C</color>
+    <color name="tv_card_surface_hover">#252525</color>
+    <color name="tv_card_surface_focused">#2E2E2E</color>
+    <color name="tv_card_surface_pressed">#383838</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         焦点系统颜色 - TV 的核心交互反馈
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 主焦点色 - Google TV 蓝 -->
+    <color name="tv_focus_primary">#8AB4F8</color>
+    <color name="tv_focus_primary_variant">#669DF6</color>
+    
+    <!-- 焦点边框/光环颜色 -->
+    <color name="tv_focus_ring">#8AB4F8</color>
+    <color name="tv_focus_ring_secondary">#669DF6</color>
+    <color name="tv_focus_glow">#338AB4F8</color>
+    <color name="tv_focus_glow_subtle">#1A8AB4F8</color>
+    
+    <!-- 焦点背景渐变 -->
+    <color name="tv_focus_gradient_start">#008AB4F8</color>
+    <color name="tv_focus_gradient_end">#4D8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         品牌色 / 强调色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_accent_primary">#80D4D5</color>
+    <color name="tv_accent_primary_variant">#00696A</color>
+    <color name="tv_accent_secondary">#4A90A4</color>
+    <color name="tv_accent_tertiary">#7B9EA8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         文字颜色层级 - 确保 TV 可读性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 主要文字 - 高对比度 -->
+    <color name="tv_text_primary">#FFFFFF</color>
+    <color name="tv_text_primary_variant">#F5F5F5</color>
+    
+    <!-- 次要文字 - 描述、副标题 -->
+    <color name="tv_text_secondary">#B3FFFFFF</color>
+    <color name="tv_text_secondary_variant">#99FFFFFF</color>
+    
+    <!-- 提示文字 - 占位符、辅助信息 -->
+    <color name="tv_text_hint">#66FFFFFF</color>
+    <color name="tv_text_disabled">#4DFFFFFF</color>
+    
+    <!-- 反色文字 - 用于亮色背景 -->
+    <color name="tv_text_on_light">#1F1F1F</color>
+    <color name="tv_text_on_light_secondary">#666666</color>
+    
+    <!-- 链接/可点击文字 -->
+    <color name="tv_text_link">#8AB4F8</color>
+    <color name="tv_text_link_pressed">#669DF6</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         图标颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_icon_primary">#FFFFFF</color>
+    <color name="tv_icon_secondary">#B3FFFFFF</color>
+    <color name="tv_icon_disabled">#4DFFFFFF</color>
+    <color name="tv_icon_on_focus">#1F1F1F</color>
+    <color name="tv_icon_accent">#8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         按钮颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 主要按钮 -->
+    <color name="tv_button_primary_bg">#8AB4F8</color>
+    <color name="tv_button_primary_bg_focused">#AECBFA</color>
+    <color name="tv_button_primary_bg_pressed">#669DF6</color>
+    <color name="tv_button_primary_text">#1F1F1F</color>
+    
+    <!-- 次要按钮 -->
+    <color name="tv_button_secondary_bg">#3C4043</color>
+    <color name="tv_button_secondary_bg_focused">#5F6368</color>
+    <color name="tv_button_secondary_bg_pressed">#4A4D51</color>
+    <color name="tv_button_secondary_text">#FFFFFF</color>
+    
+    <!-- 轮廓按钮 -->
+    <color name="tv_button_outline_stroke">#5F6368</color>
+    <color name="tv_button_outline_stroke_focused">#8AB4F8</color>
+    <color name="tv_button_outline_bg_focused">#1A8AB4F8</color>
+    
+    <!-- 文字按钮 -->
+    <color name="tv_button_text_default">#8AB4F8</color>
+    <color name="tv_button_text_focused">#AECBFA</color>
+    <color name="tv_button_text_pressed">#669DF6</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         分割线和边框
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_divider">#2E2E2E</color>
+    <color name="tv_divider_light">#1AFFFFFF</color>
+    <color name="tv_divider_strong">#3D3D3D</color>
+    <color name="tv_border_default">#3D3D3D</color>
+    <color name="tv_border_focused">#8AB4F8</color>
+    <color name="tv_border_error">#F28B82</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         状态颜色 - 语义化
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 成功状态 -->
+    <color name="tv_status_success">#81C995</color>
+    <color name="tv_status_success_bg">#1A81C995</color>
+    
+    <!-- 警告状态 -->
+    <color name="tv_status_warning">#FDD663</color>
+    <color name="tv_status_warning_bg">#1AFDD663</color>
+    
+    <!-- 错误状态 -->
+    <color name="tv_status_error">#F28B82</color>
+    <color name="tv_status_error_bg">#1AF28B82</color>
+    
+    <!-- 信息状态 -->
+    <color name="tv_status_info">#8AB4F8</color>
+    <color name="tv_status_info_bg">#1A8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频播放器专用颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 控制栏背景 -->
+    <color name="tv_player_control_bg">#E6000000</color>
+    <color name="tv_player_control_gradient_start">#00000000</color>
+    <color name="tv_player_control_gradient_end">#E6000000</color>
+    
+    <!-- 进度条 -->
+    <color name="tv_player_progress_played">#8AB4F8</color>
+    <color name="tv_player_progress_buffered">#4D8AB4F8</color>
+    <color name="tv_player_progress_background">#4DFFFFFF</color>
+    <color name="tv_player_progress_thumb">#FFFFFF</color>
+    
+    <!-- 播放器按钮 -->
+    <color name="tv_player_button_bg">#4DFFFFFF</color>
+    <color name="tv_player_button_bg_focused">#8AB4F8</color>
+    <color name="tv_player_button_icon">#FFFFFF</color>
+    <color name="tv_player_button_icon_focused">#1F1F1F</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         导航和Tab颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_nav_item_default">#80FFFFFF</color>
+    <color name="tv_nav_item_focused">#FFFFFF</color>
+    <color name="tv_nav_item_selected">#8AB4F8</color>
+    <color name="tv_nav_indicator">#8AB4F8</color>
+    <color name="tv_nav_background">#1A1A1A</color>
+
+    <!-- Tab 颜色 -->
+    <color name="tv_tab_default">#80FFFFFF</color>
+    <color name="tv_tab_focused">#FFFFFF</color>
+    <color name="tv_tab_selected">#8AB4F8</color>
+    <color name="tv_tab_indicator">#8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         对话框和弹窗
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_dialog_background">#2D2D2D</color>
+    <color name="tv_dialog_surface">#333333</color>
+    <color name="tv_dialog_scrim">#80000000</color>
+    <color name="tv_dialog_title">#FFFFFF</color>
+    <color name="tv_dialog_body">#B3FFFFFF</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         媒体内容相关
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 海报/缩略图 -->
+    <color name="tv_media_placeholder">#2A2A2A</color>
+    <color name="tv_media_overlay">#80000000</color>
+    <color name="tv_media_gradient_start">#00000000</color>
+    <color name="tv_media_gradient_end">#CC000000</color>
+    
+    <!-- 徽章颜色 -->
+    <color name="tv_badge_new">#81C995</color>
+    <color name="tv_badge_live">#F28B82</color>
+    <color name="tv_badge_hd">#8AB4F8</color>
+    <color name="tv_badge_4k">#FDD663</color>
+    <color name="tv_badge_premium">#D7AEFB</color>
+    
+    <!-- 评分 -->
+    <color name="tv_rating_star">#FDD663</color>
+    <color name="tv_rating_star_empty">#4DFDD663</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         渐变色定义
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 主渐变 - 用于大型背景 -->
+    <color name="tv_gradient_primary_start">#0F0F0F</color>
+    <color name="tv_gradient_primary_center">#1A1A1A</color>
+    <color name="tv_gradient_primary_end">#0F0F0F</color>
+    
+    <!-- 遮罩渐变 - 用于图片上的文字区域 -->
+    <color name="tv_scrim_top_start">#80000000</color>
+    <color name="tv_scrim_top_end">#00000000</color>
+    <color name="tv_scrim_bottom_start">#00000000</color>
+    <color name="tv_scrim_bottom_end">#E6000000</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         特效颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 水波纹效果 -->
+    <color name="tv_ripple_light">#1AFFFFFF</color>
+    <color name="tv_ripple_primary">#338AB4F8</color>
+    
+    <!-- 闪烁/骨架屏效果 -->
+    <color name="tv_shimmer_base">#2A2A2A</color>
+    <color name="tv_shimmer_highlight">#3D3D3D</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         EPG / 直播节目相关
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_epg_current_time">#F28B82</color>
+    <color name="tv_epg_program_past">#4DFFFFFF</color>
+    <color name="tv_epg_program_current">#8AB4F8</color>
+    <color name="tv_epg_program_future">#FFFFFF</color>
+    <color name="tv_epg_grid_line">#2E2E2E</color>
+    <color name="tv_live_indicator">#F28B82</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         搜索相关
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_search_bar_bg">#2A2A2A</color>
+    <color name="tv_search_bar_focused">#333333</color>
+    <color name="tv_search_text">#FFFFFF</color>
+    <color name="tv_search_hint">#80FFFFFF</color>
+    <color name="tv_search_icon">#80FFFFFF</color>
+    <color name="tv_search_highlight">#8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         键盘相关
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_keyboard_bg">#1A1A1A</color>
+    <color name="tv_keyboard_key_bg">#2A2A2A</color>
+    <color name="tv_keyboard_key_focused">#8AB4F8</color>
+    <color name="tv_keyboard_key_text">#FFFFFF</color>
+    <color name="tv_keyboard_key_text_focused">#1F1F1F</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         焦点颜色补充
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_focus_color">#8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         表面状态颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_surface_focused">#3D3D3D</color>
+    <color name="tv_surface_pressed">#474747</color>
+    <color name="tv_surface_selected">#338AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         徽章/标签背景
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_badge_bg">#4D000000</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         导航项背景色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_nav_item_pressed">#3D3D3D</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         芯片/筛选器颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_chip_bg">#2A2A2A</color>
+    <color name="tv_chip_focused">#8AB4F8</color>
+    <color name="tv_chip_selected">#338AB4F8</color>
+    <color name="tv_chip_text">#FFFFFF</color>
+    <color name="tv_chip_text_selected">#FFFFFF</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         剧集项颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_episode_bg">#2A2A2A</color>
+    <color name="tv_episode_focused">#8AB4F8</color>
+    <color name="tv_episode_pressed">#3D3D3D</color>
+    <color name="tv_episode_active">#338AB4F8</color>
+    <color name="tv_episode_text">#FFFFFF</color>
+    <color name="tv_episode_text_active">#8AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         直播频道颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_live_channel_bg">#1F1F1F</color>
+    <color name="tv_live_channel_focused">#8AB4F8</color>
+    <color name="tv_live_channel_pressed">#3D3D3D</color>
+    <color name="tv_live_channel_active">#338AB4F8</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         占位符颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_placeholder_bg">#2A2A2A</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         卡片遮罩颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_scrim_start">#CC000000</color>
+    <color name="tv_scrim_center">#66000000</color>
+    <color name="tv_scrim_end">#00000000</color>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         功能卡片颜色
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <color name="tv_func_card_bg">#2A2A2A</color>
+    <color name="tv_func_card_focused">#3D3D3D</color>
+    <color name="tv_func_card_pressed">#474747</color>
+
+</resources>

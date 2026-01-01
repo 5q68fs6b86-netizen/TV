@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 进度条 Drawable
+    背景、缓冲进度和当前进度
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 背景 -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_player_progress_background"/>
+            <corners android:radius="@dimen/tv_progress_corner_radius"/>
+        </shape>
+    </item>
+    
+    <!-- 缓冲进度 (secondaryProgress) -->
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="@color/tv_player_progress_buffered"/>
+                <corners android:radius="@dimen/tv_progress_corner_radius"/>
+            </shape>
+        </clip>
+    </item>
+    
+    <!-- 当前进度 (progress) -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="@color/tv_player_progress_played"/>
+                <corners android:radius="@dimen/tv_progress_corner_radius"/>
+            </shape>
+        </clip>
+    </item>
+    
+</layer-list>

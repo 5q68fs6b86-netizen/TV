@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                     TV 设计系统样式                                            ║
+    ║                  遵循 Google TV 设计规范                                        ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         基础 TV 主题
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="Theme.TV" parent="Theme.Leanback">
+        <item name="android:windowBackground">@color/tv_background_primary</item>
+        <item name="android:colorPrimary">@color/tv_focus_primary</item>
+        <item name="android:colorPrimaryDark">@color/tv_background_primary</item>
+        <item name="android:colorAccent">@color/tv_accent_primary</item>
+        <item name="android:textColorPrimary">@color/tv_text_primary</item>
+        <item name="android:textColorSecondary">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Theme.TV.NoActionBar" parent="Theme.TV">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+
+    <style name="Theme.TV.Fullscreen" parent="Theme.TV.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         文字样式系统
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <!-- Display 级别 - 用于 Hero 区域大标题 -->
+    <style name="TV.Text.Display.Large">
+        <item name="android:textSize">@dimen/tv_text_display_large</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TV.Text.Display.Medium">
+        <item name="android:textSize">@dimen/tv_text_display_medium</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TV.Text.Display.Small">
+        <item name="android:textSize">@dimen/tv_text_display_small</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Headline 级别 - 用于页面标题、区域标题 -->
+    <style name="TV.Text.Headline.Large">
+        <item name="android:textSize">@dimen/tv_text_headline_large</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TV.Text.Headline.Medium">
+        <item name="android:textSize">@dimen/tv_text_headline_medium</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TV.Text.Headline.Small">
+        <item name="android:textSize">@dimen/tv_text_headline_small</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Title 级别 - 用于卡片标题、项目标题 -->
+    <style name="TV.Text.Title.Large">
+        <item name="android:textSize">@dimen/tv_text_title_large</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TV.Text.Title.Medium">
+        <item name="android:textSize">@dimen/tv_text_title_medium</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TV.Text.Title.Small">
+        <item name="android:textSize">@dimen/tv_text_title_small</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Body 级别 - 用于正文、描述 -->
+    <style name="TV.Text.Body.Large">
+        <item name="android:textSize">@dimen/tv_text_body_large</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+    </style>
+
+    <style name="TV.Text.Body.Medium">
+        <item name="android:textSize">@dimen/tv_text_body_medium</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+    </style>
+
+    <style name="TV.Text.Body.Small">
+        <item name="android:textSize">@dimen/tv_text_body_small</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+    </style>
+
+    <!-- Label 级别 - 用于标签、徽章、辅助文字 -->
+    <style name="TV.Text.Label.Large">
+        <item name="android:textSize">@dimen/tv_text_label_large</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="TV.Text.Label.Medium">
+        <item name="android:textSize">@dimen/tv_text_label_medium</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TV.Text.Label.Small">
+        <item name="android:textSize">@dimen/tv_text_label_small</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         卡片样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <!-- 基础卡片样式 -->
+    <style name="TV.Card">
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">@drawable/tv_card_background</item>
+    </style>
+
+    <!-- 海报卡片 (竖版) -->
+    <style name="TV.Card.Poster">
+        <item name="android:layout_width">@dimen/tv_card_poster_width_md</item>
+        <item name="android:layout_height">@dimen/tv_card_poster_height_md</item>
+    </style>
+
+    <style name="TV.Card.Poster.Small">
+        <item name="android:layout_width">@dimen/tv_card_poster_width_sm</item>
+        <item name="android:layout_height">@dimen/tv_card_poster_height_sm</item>
+    </style>
+
+    <style name="TV.Card.Poster.Large">
+        <item name="android:layout_width">@dimen/tv_card_poster_width_lg</item>
+        <item name="android:layout_height">@dimen/tv_card_poster_height_lg</item>
+    </style>
+
+    <!-- 横版卡片 -->
+    <style name="TV.Card.Landscape">
+        <item name="android:layout_width">@dimen/tv_card_landscape_width_md</item>
+        <item name="android:layout_height">@dimen/tv_card_landscape_height_md</item>
+    </style>
+
+    <style name="TV.Card.Landscape.Small">
+        <item name="android:layout_width">@dimen/tv_card_landscape_width_sm</item>
+        <item name="android:layout_height">@dimen/tv_card_landscape_height_sm</item>
+    </style>
+
+    <style name="TV.Card.Landscape.Large">
+        <item name="android:layout_width">@dimen/tv_card_landscape_width_lg</item>
+        <item name="android:layout_height">@dimen/tv_card_landscape_height_lg</item>
+    </style>
+
+    <!-- 方形卡片 -->
+    <style name="TV.Card.Square">
+        <item name="android:layout_width">@dimen/tv_card_square_md</item>
+        <item name="android:layout_height">@dimen/tv_card_square_md</item>
+    </style>
+
+    <!-- 卡片内容区域 -->
+    <style name="TV.Card.Content">
+        <item name="android:padding">@dimen/tv_card_padding</item>
+    </style>
+
+    <!-- 卡片标题 -->
+    <style name="TV.Card.Title" parent="TV.Text.Title.Small">
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- 卡片副标题 -->
+    <style name="TV.Card.Subtitle" parent="TV.Text.Label.Medium">
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- 卡片文字样式 (用于组件布局) -->
+    <style name="TV.Text.Card.Title">
+        <item name="android:textSize">@dimen/tv_text_title_small</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="TV.Text.Card.Subtitle">
+        <item name="android:textSize">@dimen/tv_text_label_medium</item>
+        <item name="android:textColor">@color/tv_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         按钮样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <!-- 基础按钮 -->
+    <style name="TV.Button">
+        <item name="android:minHeight">@dimen/tv_button_height_md</item>
+        <item name="android:minWidth">@dimen/tv_button_min_width</item>
+        <item name="android:paddingStart">@dimen/tv_button_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/tv_button_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/tv_button_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/tv_button_padding_vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:textSize">@dimen/tv_text_body_medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- 主要按钮 (填充背景) -->
+    <style name="TV.Button.Primary">
+        <item name="android:background">@drawable/tv_button_primary_background</item>
+        <item name="android:textColor">@color/tv_button_primary_text</item>
+    </style>
+
+    <!-- 次要按钮 (灰色背景) -->
+    <style name="TV.Button.Secondary">
+        <item name="android:background">@drawable/tv_button_secondary_background</item>
+        <item name="android:textColor">@color/tv_button_secondary_text</item>
+    </style>
+
+    <!-- 轮廓按钮 (透明背景+边框) -->
+    <style name="TV.Button.Outline">
+        <item name="android:background">@drawable/tv_button_outline_background</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+    </style>
+
+    <!-- 文字按钮 (无背景) -->
+    <style name="TV.Button.Text">
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:textColor">@color/tv_button_text_default</item>
+    </style>
+
+    <!-- 图标按钮 -->
+    <style name="TV.Button.Icon">
+        <item name="android:layout_width">@dimen/tv_icon_button_md</item>
+        <item name="android:layout_height">@dimen/tv_icon_button_md</item>
+        <item name="android:padding">@dimen/tv_spacing_sm</item>
+        <item name="android:background">@drawable/tv_button_icon_background</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TV.Button.Icon.Small">
+        <item name="android:layout_width">@dimen/tv_icon_button_sm</item>
+        <item name="android:layout_height">@dimen/tv_icon_button_sm</item>
+    </style>
+
+    <style name="TV.Button.Icon.Large">
+        <item name="android:layout_width">@dimen/tv_icon_button_lg</item>
+        <item name="android:layout_height">@dimen/tv_icon_button_lg</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         列表项样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.ListItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/tv_list_item_height_md</item>
+        <item name="android:paddingStart">@dimen/tv_list_item_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/tv_list_item_padding_horizontal</item>
+        <item name="android:background">@drawable/tv_list_item_background</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TV.ListItem.Small">
+        <item name="android:layout_height">@dimen/tv_list_item_height_sm</item>
+    </style>
+
+    <style name="TV.ListItem.Large">
+        <item name="android:layout_height">@dimen/tv_list_item_height_lg</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         行标题样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.RowHeader">
+        <item name="android:layout_height">@dimen/tv_row_header_height</item>
+        <item name="android:paddingStart">@dimen/tv_row_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/tv_row_padding_horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="TV.RowHeader.Title" parent="TV.Text.Headline.Small">
+        <item name="android:textColor">@color/tv_text_primary</item>
+    </style>
+
+    <style name="TV.RowHeader.MoreButton" parent="TV.Text.Label.Medium">
+        <item name="android:textColor">@color/tv_text_link</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         Tab/分类栏样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.Tab">
+        <item name="android:layout_height">@dimen/tv_tab_height</item>
+        <item name="android:minWidth">@dimen/tv_tab_min_width</item>
+        <item name="android:paddingStart">@dimen/tv_tab_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/tv_tab_padding_horizontal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/tv_text_body_medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         对话框样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/tv_dialog_background</item>
+        <item name="android:windowMinWidthMajor">@dimen/tv_dialog_min_width</item>
+        <item name="android:windowMinWidthMinor">@dimen/tv_dialog_min_width</item>
+        <item name="android:padding">@dimen/tv_dialog_padding</item>
+    </style>
+
+    <style name="TV.Dialog.Title" parent="TV.Text.Headline.Small">
+        <item name="android:textColor">@color/tv_dialog_title</item>
+    </style>
+
+    <style name="TV.Dialog.Body" parent="TV.Text.Body.Medium">
+        <item name="android:textColor">@color/tv_dialog_body</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         徽章样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.Badge">
+        <item name="android:layout_height">@dimen/tv_badge_height</item>
+        <item name="android:minWidth">@dimen/tv_badge_min_width</item>
+        <item name="android:paddingStart">@dimen/tv_badge_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/tv_badge_padding_horizontal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/tv_badge_text_size</item>
+        <item name="android:textColor">@color/tv_text_on_light</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="TV.Badge.New">
+        <item name="android:background">@drawable/tv_badge_new</item>
+    </style>
+
+    <style name="TV.Badge.HD">
+        <item name="android:background">@drawable/tv_badge_hd</item>
+    </style>
+
+    <style name="TV.Badge.4K">
+        <item name="android:background">@drawable/tv_badge_4k</item>
+    </style>
+
+    <style name="TV.Badge.Live">
+        <item name="android:background">@drawable/tv_badge_live</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         播放器控制栏样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.PlayerControl">
+        <item name="android:background">@drawable/tv_player_control_gradient</item>
+        <item name="android:padding">@dimen/tv_player_control_padding</item>
+    </style>
+
+    <style name="TV.PlayerControl.Button">
+        <item name="android:layout_width">@dimen/tv_player_button_size</item>
+        <item name="android:layout_height">@dimen/tv_player_button_size</item>
+        <item name="android:background">@drawable/tv_player_button_background</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:padding">@dimen/tv_spacing_sm</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TV.PlayerControl.Button.Large">
+        <item name="android:layout_width">@dimen/tv_player_button_size_large</item>
+        <item name="android:layout_height">@dimen/tv_player_button_size_large</item>
+    </style>
+
+    <style name="TV.PlayerControl.Title" parent="TV.Text.Title.Medium">
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="TV.PlayerControl.Time" parent="TV.Text.Label.Medium">
+        <item name="android:textColor">@color/tv_text_secondary</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         搜索样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.SearchBar">
+        <item name="android:layout_height">@dimen/tv_search_bar_height</item>
+        <item name="android:background">@drawable/tv_search_bar_background</item>
+        <item name="android:paddingStart">@dimen/tv_spacing_lg</item>
+        <item name="android:paddingEnd">@dimen/tv_spacing_lg</item>
+    </style>
+
+    <style name="TV.SearchBar.Input">
+        <item name="android:textSize">@dimen/tv_search_input_text_size</item>
+        <item name="android:textColor">@color/tv_search_text</item>
+        <item name="android:textColorHint">@color/tv_search_hint</item>
+        <item name="android:background">@null</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         键盘样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.Keyboard">
+        <item name="android:background">@color/tv_keyboard_bg</item>
+        <item name="android:padding">@dimen/tv_keyboard_padding</item>
+    </style>
+
+    <style name="TV.Keyboard.Key">
+        <item name="android:layout_width">@dimen/tv_keyboard_key_size</item>
+        <item name="android:layout_height">@dimen/tv_keyboard_key_size</item>
+        <item name="android:background">@drawable/tv_keyboard_key_background</item>
+        <item name="android:textSize">@dimen/tv_keyboard_key_text_size</item>
+        <item name="android:textColor">@color/tv_keyboard_key_text</item>
+        <item name="android:gravity">center</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         功能按钮卡片样式 (首页)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.FuncCard">
+        <item name="android:layout_width">@dimen/tv_func_card_size</item>
+        <item name="android:layout_height">@dimen/tv_func_card_size</item>
+        <item name="android:background">@drawable/tv_func_card_background</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/tv_spacing_md</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TV.FuncCard.Icon">
+        <item name="android:layout_width">@dimen/tv_func_card_icon_size</item>
+        <item name="android:layout_height">@dimen/tv_func_card_icon_size</item>
+        <item name="android:tint">@color/tv_icon_primary</item>
+    </style>
+
+    <style name="TV.FuncCard.Text">
+        <item name="android:textSize">@dimen/tv_func_card_text_size</item>
+        <item name="android:textColor">@color/tv_text_primary</item>
+        <item name="android:layout_marginTop">@dimen/tv_spacing_xs</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         分割线样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/tv_divider</item>
+    </style>
+
+    <style name="TV.Divider.Vertical">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         进度条样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.ProgressBar">
+        <item name="android:layout_height">@dimen/tv_progress_height_md</item>
+        <item name="android:progressDrawable">@drawable/tv_progress_drawable</item>
+    </style>
+
+    <style name="TV.ProgressBar.Small">
+        <item name="android:layout_height">@dimen/tv_progress_height_sm</item>
+    </style>
+
+    <style name="TV.ProgressBar.Large">
+        <item name="android:layout_height">@dimen/tv_progress_height_lg</item>
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         设置项样式
+         ════════════════════════════════════════════════════════════════════════════ -->
+    
+    <style name="TV.SettingItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/tv_list_item_height_lg</item>
+        <item name="android:paddingStart">@dimen/tv_spacing_lg</item>
+        <item name="android:paddingEnd">@dimen/tv_spacing_lg</item>
+        <item name="android:background">@drawable/tv_setting_item_background</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TV.SettingItem.Title" parent="TV.Text.Title.Small">
+        <item name="android:textColor">@color/tv_text_primary</item>
+    </style>
+
+    <style name="TV.SettingItem.Value" parent="TV.Text.Body.Medium">
+        <item name="android:textColor">@color/tv_text_secondary</item>
+    </style>
+
+</resources>

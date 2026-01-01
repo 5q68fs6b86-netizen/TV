@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 图片占位符
+    在图片加载时显示
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <solid android:color="@color/tv_placeholder_bg"/>
+    <corners android:radius="@dimen/tv_radius_md"/>
+    
+</shape>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 分隔线
+    用于列表项之间的分隔
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <size android:height="@dimen/tv_divider_height"/>
+    <solid android:color="@color/tv_divider"/>
+    
+</shape>

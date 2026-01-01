@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                     TV 设计系统尺寸 Token                                      ║
+    ║                  遵循 Google TV 设计规范                                        ║
+    ║                  基于 8dp 网格系统                                              ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TV 安全区域 (Overscan)
+         确保内容不会被电视边框裁剪
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_safe_margin_horizontal">48dp</dimen>
+    <dimen name="tv_safe_margin_vertical">27dp</dimen>
+    <dimen name="tv_safe_margin_left">48dp</dimen>
+    <dimen name="tv_safe_margin_right">48dp</dimen>
+    <dimen name="tv_safe_margin_top">27dp</dimen>
+    <dimen name="tv_safe_margin_bottom">27dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         基础间距系统 (8dp 倍数)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_spacing_none">0dp</dimen>
+    <dimen name="tv_spacing_micro">2dp</dimen>      <!-- 4dp的一半，特殊情况 -->
+    <dimen name="tv_spacing_xxs">4dp</dimen>        <!-- 0.5x -->
+    <dimen name="tv_spacing_xs">8dp</dimen>         <!-- 1x -->
+    <dimen name="tv_spacing_sm">12dp</dimen>        <!-- 1.5x -->
+    <dimen name="tv_spacing_md">16dp</dimen>        <!-- 2x -->
+    <dimen name="tv_spacing_lg">24dp</dimen>        <!-- 3x -->
+    <dimen name="tv_spacing_xl">32dp</dimen>        <!-- 4x -->
+    <dimen name="tv_spacing_xxl">40dp</dimen>       <!-- 5x -->
+    <dimen name="tv_spacing_xxxl">48dp</dimen>      <!-- 6x -->
+    <dimen name="tv_spacing_huge">64dp</dimen>      <!-- 8x -->
+    <dimen name="tv_spacing_giant">80dp</dimen>     <!-- 10x -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         字体大小系统 (TV 优化，最小 14sp)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 显示级别 - 大标题、Hero 区域 -->
+    <dimen name="tv_text_display_large">56sp</dimen>
+    <dimen name="tv_text_display_medium">48sp</dimen>
+    <dimen name="tv_text_display_small">40sp</dimen>
+    
+    <!-- 标题级别 -->
+    <dimen name="tv_text_headline_large">32sp</dimen>
+    <dimen name="tv_text_headline_medium">28sp</dimen>
+    <dimen name="tv_text_headline_small">24sp</dimen>
+    
+    <!-- 标题级别 -->
+    <dimen name="tv_text_title_large">22sp</dimen>
+    <dimen name="tv_text_title_medium">20sp</dimen>
+    <dimen name="tv_text_title_small">18sp</dimen>
+    
+    <!-- 正文级别 -->
+    <dimen name="tv_text_body_large">18sp</dimen>
+    <dimen name="tv_text_body_medium">16sp</dimen>
+    <dimen name="tv_text_body_small">14sp</dimen>   <!-- TV 最小可读字体 -->
+    
+    <!-- 标签/辅助文字 -->
+    <dimen name="tv_text_label_large">16sp</dimen>
+    <dimen name="tv_text_label_medium">14sp</dimen>
+    <dimen name="tv_text_label_small">12sp</dimen>  <!-- 仅用于徽章等特殊场景 -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         行高 / 文字间距
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_line_height_tight">1.2</dimen>
+    <dimen name="tv_line_height_normal">1.4</dimen>
+    <dimen name="tv_line_height_relaxed">1.6</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         圆角系统
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_radius_none">0dp</dimen>
+    <dimen name="tv_radius_xs">4dp</dimen>
+    <dimen name="tv_radius_sm">6dp</dimen>
+    <dimen name="tv_radius_md">8dp</dimen>          <!-- 默认卡片圆角 -->
+    <dimen name="tv_radius_lg">12dp</dimen>
+    <dimen name="tv_radius_xl">16dp</dimen>
+    <dimen name="tv_radius_xxl">20dp</dimen>
+    <dimen name="tv_radius_full">9999dp</dimen>     <!-- 完全圆形/胶囊形 -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         边框宽度
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_stroke_thin">1dp</dimen>
+    <dimen name="tv_stroke_default">2dp</dimen>
+    <dimen name="tv_stroke_medium">3dp</dimen>
+    <dimen name="tv_stroke_thick">4dp</dimen>
+    <dimen name="tv_stroke_focus">3dp</dimen>       <!-- 焦点边框宽度 -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         阴影/Elevation
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_elevation_none">0dp</dimen>
+    <dimen name="tv_elevation_xs">2dp</dimen>
+    <dimen name="tv_elevation_sm">4dp</dimen>
+    <dimen name="tv_elevation_md">8dp</dimen>
+    <dimen name="tv_elevation_lg">12dp</dimen>
+    <dimen name="tv_elevation_xl">16dp</dimen>
+    <dimen name="tv_elevation_focus">12dp</dimen>   <!-- 焦点时的elevation -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         焦点系统尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_focus_stroke_width">3dp</dimen>
+    <dimen name="tv_focus_padding">4dp</dimen>
+    <dimen name="tv_focus_offset">2dp</dimen>
+    
+    <!-- 焦点缩放比例 (需要在代码中使用) -->
+    <item name="tv_focus_scale" format="float" type="dimen">1.05</item>
+    <item name="tv_focus_scale_large" format="float" type="dimen">1.08</item>
+    <item name="tv_focus_scale_small" format="float" type="dimen">1.03</item>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         卡片尺寸系统
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <!-- 海报卡片 (竖版 2:3 比例) -->
+    <dimen name="tv_card_poster_width_sm">120dp</dimen>
+    <dimen name="tv_card_poster_height_sm">180dp</dimen>
+    <dimen name="tv_card_poster_width_md">160dp</dimen>
+    <dimen name="tv_card_poster_height_md">240dp</dimen>
+    <dimen name="tv_card_poster_width_lg">200dp</dimen>
+    <dimen name="tv_card_poster_height_lg">300dp</dimen>
+    
+    <!-- 横版卡片 (16:9 比例) -->
+    <dimen name="tv_card_landscape_width_sm">213dp</dimen>
+    <dimen name="tv_card_landscape_height_sm">120dp</dimen>
+    <dimen name="tv_card_landscape_width_md">284dp</dimen>
+    <dimen name="tv_card_landscape_height_md">160dp</dimen>
+    <dimen name="tv_card_landscape_width_lg">356dp</dimen>
+    <dimen name="tv_card_landscape_height_lg">200dp</dimen>
+    
+    <!-- 方形卡片 (1:1 比例) -->
+    <dimen name="tv_card_square_sm">120dp</dimen>
+    <dimen name="tv_card_square_md">160dp</dimen>
+    <dimen name="tv_card_square_lg">200dp</dimen>
+    
+    <!-- 卡片通用属性 -->
+    <dimen name="tv_card_corner_radius">8dp</dimen>
+    <dimen name="tv_card_padding">12dp</dimen>
+    <dimen name="tv_card_margin">8dp</dimen>
+    <dimen name="tv_card_elevation">4dp</dimen>
+    <dimen name="tv_card_elevation_focused">12dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         行（Row）尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_row_height_poster">290dp</dimen>    <!-- 海报行高度 (含标题) -->
+    <dimen name="tv_row_height_landscape">210dp</dimen> <!-- 横版行高度 (含标题) -->
+    <dimen name="tv_row_height_square">210dp</dimen>    <!-- 方形行高度 (含标题) -->
+    <dimen name="tv_row_header_height">48dp</dimen>
+    <dimen name="tv_row_spacing">24dp</dimen>           <!-- 行之间的间距 -->
+    <dimen name="tv_row_padding_horizontal">48dp</dimen> <!-- 行的水平内边距 -->
+    <dimen name="tv_row_item_spacing">16dp</dimen>      <!-- 行内项目间距 -->
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         按钮尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_button_height_sm">40dp</dimen>
+    <dimen name="tv_button_height_md">48dp</dimen>
+    <dimen name="tv_button_height_lg">56dp</dimen>
+    <dimen name="tv_button_min_width">88dp</dimen>
+    <dimen name="tv_button_padding_horizontal">24dp</dimen>
+    <dimen name="tv_button_padding_vertical">12dp</dimen>
+    <dimen name="tv_button_corner_radius">8dp</dimen>
+    <dimen name="tv_button_icon_size">24dp</dimen>
+    <dimen name="tv_button_icon_spacing">8dp</dimen>
+    
+    <!-- 图标按钮 (圆形) -->
+    <dimen name="tv_icon_button_sm">40dp</dimen>
+    <dimen name="tv_icon_button_md">48dp</dimen>
+    <dimen name="tv_icon_button_lg">56dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         图标尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_icon_xs">16dp</dimen>
+    <dimen name="tv_icon_sm">20dp</dimen>
+    <dimen name="tv_icon_md">24dp</dimen>
+    <dimen name="tv_icon_lg">32dp</dimen>
+    <dimen name="tv_icon_xl">40dp</dimen>
+    <dimen name="tv_icon_xxl">48dp</dimen>
+    <dimen name="tv_icon_huge">64dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         导航栏尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_topbar_height">72dp</dimen>
+    <dimen name="tv_topbar_padding_horizontal">48dp</dimen>
+    <dimen name="tv_topbar_logo_height">40dp</dimen>
+    <dimen name="tv_topbar_title_size">24sp</dimen>
+    
+    <!-- Tab/分类栏 -->
+    <dimen name="tv_tab_height">48dp</dimen>
+    <dimen name="tv_tab_min_width">80dp</dimen>
+    <dimen name="tv_tab_padding_horizontal">16dp</dimen>
+    <dimen name="tv_tab_spacing">8dp</dimen>
+    <dimen name="tv_tab_indicator_height">3dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         列表项尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_list_item_height_sm">48dp</dimen>
+    <dimen name="tv_list_item_height_md">56dp</dimen>
+    <dimen name="tv_list_item_height_lg">72dp</dimen>
+    <dimen name="tv_list_item_padding_horizontal">16dp</dimen>
+    <dimen name="tv_list_item_icon_size">24dp</dimen>
+    <dimen name="tv_list_item_spacing">8dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         对话框尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_dialog_min_width">400dp</dimen>
+    <dimen name="tv_dialog_max_width">600dp</dimen>
+    <dimen name="tv_dialog_padding">24dp</dimen>
+    <dimen name="tv_dialog_corner_radius">16dp</dimen>
+    <dimen name="tv_dialog_title_size">24sp</dimen>
+    <dimen name="tv_dialog_body_size">16sp</dimen>
+    <dimen name="tv_dialog_button_spacing">16dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         视频播放器控制栏
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_player_control_height">120dp</dimen>
+    <dimen name="tv_player_control_padding">24dp</dimen>
+    <dimen name="tv_player_seekbar_height">6dp</dimen>
+    <dimen name="tv_player_seekbar_height_focused">8dp</dimen>
+    <dimen name="tv_player_seekbar_thumb_size">16dp</dimen>
+    <dimen name="tv_player_button_size">48dp</dimen>
+    <dimen name="tv_player_button_size_large">56dp</dimen>
+    <dimen name="tv_player_button_spacing">16dp</dimen>
+    <dimen name="tv_player_time_text_size">14sp</dimen>
+    <dimen name="tv_player_title_text_size">20sp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         详情页尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_detail_poster_width">200dp</dimen>
+    <dimen name="tv_detail_poster_height">300dp</dimen>
+    <dimen name="tv_detail_backdrop_height">400dp</dimen>
+    <dimen name="tv_detail_info_padding">24dp</dimen>
+    <dimen name="tv_detail_title_size">32sp</dimen>
+    <dimen name="tv_detail_subtitle_size">18sp</dimen>
+    <dimen name="tv_detail_body_size">16sp</dimen>
+    <dimen name="tv_detail_metadata_size">14sp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         搜索页尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_search_bar_height">56dp</dimen>
+    <dimen name="tv_search_bar_corner_radius">28dp</dimen>
+    <dimen name="tv_search_input_text_size">20sp</dimen>
+    <dimen name="tv_search_hint_text_size">18sp</dimen>
+    <dimen name="tv_search_icon_size">24dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         键盘尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_keyboard_key_size">56dp</dimen>
+    <dimen name="tv_keyboard_key_spacing">8dp</dimen>
+    <dimen name="tv_keyboard_key_text_size">20sp</dimen>
+    <dimen name="tv_keyboard_padding">16dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         徽章尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_badge_height">24dp</dimen>
+    <dimen name="tv_badge_min_width">24dp</dimen>
+    <dimen name="tv_badge_padding_horizontal">8dp</dimen>
+    <dimen name="tv_badge_text_size">12sp</dimen>
+    <dimen name="tv_badge_corner_radius">4dp</dimen>
+    <dimen name="tv_badge_dot_size">8dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         进度条尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_progress_height_sm">2dp</dimen>
+    <dimen name="tv_progress_height_md">4dp</dimen>
+    <dimen name="tv_progress_height_lg">6dp</dimen>
+    <dimen name="tv_progress_corner_radius">2dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         EPG 节目表尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_epg_channel_width">200dp</dimen>
+    <dimen name="tv_epg_channel_height">72dp</dimen>
+    <dimen name="tv_epg_program_height">72dp</dimen>
+    <dimen name="tv_epg_time_header_height">48dp</dimen>
+    <dimen name="tv_epg_minute_width">4dp</dimen>    <!-- 每分钟的宽度 -->
+    <dimen name="tv_epg_grid_line_width">1dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         功能按钮卡片 (首页)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_func_card_size">120dp</dimen>
+    <dimen name="tv_func_card_icon_size">40dp</dimen>
+    <dimen name="tv_func_card_text_size">14sp</dimen>
+    <dimen name="tv_func_card_corner_radius">12dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         动画时长 (毫秒，需要在代码中使用)
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <integer name="tv_anim_duration_instant">100</integer>
+    <integer name="tv_anim_duration_fast">150</integer>
+    <integer name="tv_anim_duration_normal">200</integer>
+    <integer name="tv_anim_duration_slow">300</integer>
+    <integer name="tv_anim_duration_emphasis">400</integer>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         焦点环尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_focus_ring_width">3dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         芯片/标签尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_chip_height">36dp</dimen>
+    <dimen name="tv_chip_corner_radius">18dp</dimen>
+    <dimen name="tv_chip_padding_horizontal">16dp</dimen>
+    <dimen name="tv_chip_text_size">14sp</dimen>
+    <dimen name="tv_chip_spacing">8dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         分隔线尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_divider_height">1dp</dimen>
+    <dimen name="tv_divider_height_thick">2dp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         剧集列表项尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_episode_item_width">120dp</dimen>
+    <dimen name="tv_episode_item_height">72dp</dimen>
+    <dimen name="tv_episode_item_padding">12dp</dimen>
+    <dimen name="tv_episode_item_spacing">12dp</dimen>
+    <dimen name="tv_episode_text_size">14sp</dimen>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         直播频道尺寸
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <dimen name="tv_live_channel_height">80dp</dimen>
+    <dimen name="tv_live_channel_logo_size">48dp</dimen>
+    <dimen name="tv_live_channel_padding">16dp</dimen>
+
+</resources>

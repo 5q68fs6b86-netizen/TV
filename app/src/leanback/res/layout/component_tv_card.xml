@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 卡片组件布局
+    用于 TVCardView 组件
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!-- 主卡片容器 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_container"
+        android:layout_width="@dimen/tv_card_poster_width_md"
+        android:layout_height="@dimen/tv_card_poster_height_md"
+        app:cardBackgroundColor="@color/tv_card_surface"
+        app:cardCornerRadius="@dimen/tv_card_corner_radius"
+        app:cardElevation="@dimen/tv_card_elevation"
+        app:cardUseCompatPadding="false">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- 封面图片 -->
+            <ImageView
+                android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/tv_image_placeholder"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/ic_img_loading" />
+
+            <!-- 左上角徽章（年份） -->
+            <TextView
+                android:id="@+id/badge_top_left"
+                style="@style/TV.Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="@dimen/tv_spacing_xs"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_badge_hd"
+                android:visibility="gone"
+                tools:text="2024"
+                tools:visibility="visible" />
+
+            <!-- 右上角徽章（站点） -->
+            <TextView
+                android:id="@+id/badge_top_right"
+                style="@style/TV.Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/tv_spacing_xs"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_accent_secondary"
+                android:visibility="gone"
+                tools:text="站点"
+                tools:visibility="visible" />
+
+            <!-- 右下角徽章（清晰度） -->
+            <TextView
+                android:id="@+id/badge_bottom_right"
+                style="@style/TV.Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="@dimen/tv_spacing_xs"
+                android:layout_marginBottom="@dimen/tv_spacing_xxxl"
+                android:background="@drawable/tv_badge_background"
+                android:backgroundTint="@color/tv_badge_4k"
+                android:visibility="gone"
+                tools:text="1080P"
+                tools:visibility="visible" />
+
+            <!-- 底部渐变遮罩 -->
+            <View
+                android:id="@+id/scrim"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/tv_card_scrim" />
+
+            <!-- 标题区域 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:padding="@dimen/tv_spacing_sm">
+
+                <!-- 标题 -->
+                <TextView
+                    android:id="@+id/title"
+                    style="@style/TV.Text.Card.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:shadowColor="@color/black"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    tools:text="蜘蛛侠：英雄无归" />
+
+                <!-- 副标题 -->
+                <TextView
+                    android:id="@+id/subtitle"
+                    style="@style/TV.Text.Card.Subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/tv_spacing_xxs"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:visibility="gone"
+                    tools:text="动作 / 科幻"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- 焦点叠加层 -->
+    <View
+        android:id="@+id/focus_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/tv_card_background"
+        android:duplicateParentState="true" />
+
+</FrameLayout>

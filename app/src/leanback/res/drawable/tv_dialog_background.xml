@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 对话框背景
+    圆角矩形，深色表面
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <solid android:color="@color/tv_dialog_background"/>
+    <corners android:radius="@dimen/tv_dialog_corner_radius"/>
+    
+</shape>

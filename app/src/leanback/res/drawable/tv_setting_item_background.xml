@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 设置项背景
+    支持焦点和按下状态
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 按下状态 -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_surface_pressed"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 焦点状态 -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_surface_focused"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 选中状态 -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_surface_selected"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 默认状态 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+</selector>

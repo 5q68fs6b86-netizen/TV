@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 组件自定义属性定义
+-->
+<resources>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVCardView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVCardView">
+        <!-- 卡片类型: poster(竖版), landscape(横版), square(方形) -->
+        <attr name="cardType" format="enum">
+            <enum name="poster" value="0" />
+            <enum name="landscape" value="1" />
+            <enum name="square" value="2" />
+        </attr>
+        
+        <!-- 卡片尺寸: small, medium, large -->
+        <attr name="cardSize" format="enum">
+            <enum name="small" value="0" />
+            <enum name="medium" value="1" />
+            <enum name="large" value="2" />
+        </attr>
+        
+        <!-- 是否显示标题 -->
+        <attr name="showTitle" format="boolean" />
+        
+        <!-- 是否显示副标题 -->
+        <attr name="showSubtitle" format="boolean" />
+        
+        <!-- 是否显示渐变遮罩 -->
+        <attr name="showScrim" format="boolean" />
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVButtonView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVButtonView">
+        <!-- 按钮类型: primary, secondary, outline, text, icon -->
+        <attr name="buttonType" format="enum">
+            <enum name="primary" value="0" />
+            <enum name="secondary" value="1" />
+            <enum name="outline" value="2" />
+            <enum name="text" value="3" />
+            <enum name="icon" value="4" />
+        </attr>
+        
+        <!-- 按钮尺寸: small, medium, large -->
+        <attr name="buttonSize" format="enum">
+            <enum name="small" value="0" />
+            <enum name="medium" value="1" />
+            <enum name="large" value="2" />
+        </attr>
+        
+        <!-- 按钮图标 -->
+        <attr name="buttonIcon" format="reference" />
+        
+        <!-- 图标位置: start, end, top, bottom -->
+        <attr name="iconPosition" format="enum">
+            <enum name="start" value="0" />
+            <enum name="end" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVListItemView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVListItemView">
+        <!-- 列表项高度: small, medium, large -->
+        <attr name="itemHeight" format="enum">
+            <enum name="small" value="0" />
+            <enum name="medium" value="1" />
+            <enum name="large" value="2" />
+        </attr>
+        
+        <!-- 是否显示图标 -->
+        <attr name="showIcon" format="boolean" />
+        
+        <!-- 是否显示副标题 -->
+        <attr name="showSecondaryText" format="boolean" />
+        
+        <!-- 是否显示箭头 -->
+        <attr name="showArrow" format="boolean" />
+        
+        <!-- 是否显示开关 -->
+        <attr name="showSwitch" format="boolean" />
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVRowView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVRowView">
+        <!-- 行标题 -->
+        <attr name="rowTitle" format="string" />
+        
+        <!-- 是否显示更多按钮 -->
+        <attr name="showMoreButton" format="boolean" />
+        
+        <!-- 卡片类型（同 TVCardView） -->
+        <attr name="rowCardType" format="enum">
+            <enum name="poster" value="0" />
+            <enum name="landscape" value="1" />
+            <enum name="square" value="2" />
+        </attr>
+        
+        <!-- 卡片尺寸（同 TVCardView） -->
+        <attr name="rowCardSize" format="enum">
+            <enum name="small" value="0" />
+            <enum name="medium" value="1" />
+            <enum name="large" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVChipView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVChipView">
+        <!-- 是否可选中 -->
+        <attr name="chipCheckable" format="boolean" />
+        
+        <!-- 是否已选中 -->
+        <attr name="chipChecked" format="boolean" />
+        
+        <!-- 芯片图标 -->
+        <attr name="chipIcon" format="reference" />
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVSearchBar 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVSearchBar">
+        <!-- 提示文字 -->
+        <attr name="searchHint" format="string" />
+        
+        <!-- 是否显示语音按钮 -->
+        <attr name="showVoiceButton" format="boolean" />
+        
+        <!-- 是否显示清除按钮 -->
+        <attr name="showClearButton" format="boolean" />
+    </declare-styleable>
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         TVEpisodeView 自定义属性
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <declare-styleable name="TVEpisodeView">
+        <!-- 是否为当前播放项 -->
+        <attr name="isCurrent" format="boolean" />
+        
+        <!-- 是否已观看 -->
+        <attr name="isWatched" format="boolean" />
+    </declare-styleable>
+
+</resources>

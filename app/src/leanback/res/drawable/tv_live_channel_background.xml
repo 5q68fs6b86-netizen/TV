@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    TV 直播频道项背景
+    用于直播页面的频道列表
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 按下状态 -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_live_channel_pressed"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 焦点状态 -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_live_channel_focused"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 选中/激活状态（当前播放的频道） -->
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_live_channel_active"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 选中状态 -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_live_channel_active"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+    <!-- 默认状态 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/tv_live_channel_bg"/>
+            <corners android:radius="@dimen/tv_radius_sm"/>
+        </shape>
+    </item>
+    
+</selector>
