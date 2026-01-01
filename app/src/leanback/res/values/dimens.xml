@@ -173,8 +173,7 @@
     <dimen name="dp_8">8dp</dimen>
     
     <!-- ========== TV特定的安全距离 ========== -->
-    <dimen name="tv_safe_margin_horizontal">48dp</dimen>
-    <dimen name="tv_safe_margin_vertical">32dp</dimen>
+    <!-- 注意: tv_safe_margin_horizontal 和 tv_safe_margin_vertical 已移至 dimens_tv.xml -->
     <dimen name="tv_overscan_margin">24dp</dimen>
     
     <!-- ========== 响应式断点尺寸 ========== -->

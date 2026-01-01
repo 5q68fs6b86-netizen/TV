@@ -8,6 +8,18 @@
     -->
 
     <!-- ════════════════════════════════════════════════════════════════════════════
+         基础样式（用于样式继承链）
+         ════════════════════════════════════════════════════════════════════════════ -->
+    <style name="TV" parent="" />
+    <style name="TV.Text" parent="TV" />
+    <style name="TV.Text.Display" parent="TV.Text" />
+    <style name="TV.Text.Headline" parent="TV.Text" />
+    <style name="TV.Text.Title" parent="TV.Text" />
+    <style name="TV.Text.Body" parent="TV.Text" />
+    <style name="TV.Text.Label" parent="TV.Text" />
+    <style name="TV.Text.Card" parent="TV.Text" />
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
          基础 TV 主题
          ════════════════════════════════════════════════════════════════════════════ -->
     <style name="Theme.TV" parent="Theme.Leanback">
@@ -378,19 +390,23 @@
     </style>
 
     <style name="TV.Badge.New">
-        <item name="android:background">@drawable/tv_badge_new</item>
+        <item name="android:background">@drawable/tv_badge_background</item>
+        <item name="android:backgroundTint">@color/tv_badge_new</item>
     </style>
 
     <style name="TV.Badge.HD">
-        <item name="android:background">@drawable/tv_badge_hd</item>
+        <item name="android:background">@drawable/tv_badge_background</item>
+        <item name="android:backgroundTint">@color/tv_badge_hd</item>
     </style>
 
     <style name="TV.Badge.4K">
-        <item name="android:background">@drawable/tv_badge_4k</item>
+        <item name="android:background">@drawable/tv_badge_background</item>
+        <item name="android:backgroundTint">@color/tv_badge_4k</item>
     </style>
 
     <style name="TV.Badge.Live">
-        <item name="android:background">@drawable/tv_badge_live</item>
+        <item name="android:background">@drawable/tv_badge_background</item>
+        <item name="android:backgroundTint">@color/tv_badge_live</item>
     </style>
 
     <!-- ════════════════════════════════════════════════════════════════════════════

@@ -9,7 +9,8 @@
          ════════════════════════════════════════════════════════════════════════════ -->
     <declare-styleable name="TVCardView">
         <!-- 卡片类型: poster(竖版), landscape(横版), square(方形) -->
-        <attr name="cardType" format="enum">
+        <!-- 注意：使用 tvCardType 避免与 leanback 库的 cardType 冲突 -->
+        <attr name="tvCardType" format="enum">
             <enum name="poster" value="0" />
             <enum name="landscape" value="1" />
             <enum name="square" value="2" />
@@ -36,6 +37,9 @@
          TVButtonView 自定义属性
          ════════════════════════════════════════════════════════════════════════════ -->
     <declare-styleable name="TVButtonView">
+        <!-- 引用 Android 系统的 text 属性 -->
+        <attr name="android:text" />
+        
         <!-- 按钮类型: primary, secondary, outline, text, icon -->
         <attr name="buttonType" format="enum">
             <enum name="primary" value="0" />

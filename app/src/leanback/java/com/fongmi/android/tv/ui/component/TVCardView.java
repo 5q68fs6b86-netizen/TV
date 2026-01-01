@@ -135,7 +135,7 @@ public class TVCardView extends FrameLayout {
         if (attrs != null) {
             TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TVCardView);
             try {
-                cardType = CardType.fromValue(ta.getInt(R.styleable.TVCardView_cardType, CardType.POSTER.getValue()));
+                cardType = CardType.fromValue(ta.getInt(R.styleable.TVCardView_tvCardType, CardType.POSTER.getValue()));
                 cardSize = CardSize.fromValue(ta.getInt(R.styleable.TVCardView_cardSize, CardSize.MEDIUM.getValue()));
                 showTitle = ta.getBoolean(R.styleable.TVCardView_showTitle, true);
                 showSubtitle = ta.getBoolean(R.styleable.TVCardView_showSubtitle, false);
