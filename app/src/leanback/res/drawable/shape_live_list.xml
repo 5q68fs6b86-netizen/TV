@@ -2,11 +2,9 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <gradient
-        android:angle="0"
-        android:centerColor="@color/black_60"
-        android:endColor="@color/black_05"
-        android:startColor="@color/black_80"
-        android:type="linear" />
+    <solid android:color="#E6000000" /> <!-- 90% opacity black -->
+    
+    <!-- Optional: Add a subtle border or gradient if needed -->
+    <!-- But solid dark background is best for readability over video -->
 
 </shape>

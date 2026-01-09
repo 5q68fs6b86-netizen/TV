@@ -56,6 +56,8 @@
         android:layout_height="match_parent"
         android:background="@drawable/shape_live_list"
         android:orientation="horizontal"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:visibility="gone"
         tools:visibility="visible">
 
