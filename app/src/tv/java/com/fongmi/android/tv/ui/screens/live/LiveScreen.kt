@@ -261,7 +261,7 @@ fun LiveScreen(
                                 isSelected = channel == uiState.selectedChannel,
                                 onClick = {
                                     viewModel.selectChannel(channel)
-                                    val url = viewModel.getChannelUrl(channel)
+                                    val url = viewModel.prepareChannelForPlayback(channel)
                                     if (url.isNotEmpty()) {
                                         onChannelClick(url)
                                     }

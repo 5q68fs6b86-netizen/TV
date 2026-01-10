@@ -221,15 +221,9 @@ fun TvNavGraph(
                     defaultValue = ""
                 }
             )
-        ) { backStackEntry ->
-            val url = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.Player.ARG_URL) ?: "")
-            val vodName = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.Player.ARG_NAME) ?: "")
-            val episodeName = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.Player.ARG_EPISODE) ?: "")
-
+        ) {
+            // PlayerScreen now uses PlayerViewModel which gets data from PlayerStateHolder
             PlayerScreen(
-                url = url,
-                vodName = vodName,
-                episodeName = episodeName,
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -248,14 +242,10 @@ fun TvNavGraph(
                     defaultValue = ""
                 }
             )
-        ) { backStackEntry ->
-            val url = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.LivePlayer.ARG_URL) ?: "")
-            val channelName = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.LivePlayer.ARG_NAME) ?: "")
-
+        ) {
+            // PlayerScreen uses PlayerViewModel which gets data from PlayerStateHolder
+            // LiveScreen sets the PlayerStateHolder before navigating here
             PlayerScreen(
-                url = url,
-                vodName = channelName,
-                episodeName = "直播",
                 onBackClick = { navController.popBackStack() }
             )
         }

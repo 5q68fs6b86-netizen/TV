@@ -7,6 +7,7 @@ import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.bean.Live
 import com.fongmi.android.tv.impl.Callback
+import com.fongmi.android.tv.ui.state.PlayerStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,9 @@ data class LiveUiState(
  * Manages live TV data and channel selection
  */
 @HiltViewModel
-class LiveViewModel @Inject constructor() : ViewModel() {
+class LiveViewModel @Inject constructor(
+    private val playerStateHolder: PlayerStateHolder
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LiveUiState())
     val uiState: StateFlow<LiveUiState> = _uiState.asStateFlow()
@@ -113,6 +116,22 @@ class LiveViewModel @Inject constructor() : ViewModel() {
      */
     fun getChannelUrl(channel: Channel): String {
         return channel.urls?.firstOrNull() ?: ""
+    }
+
+    /**
+     * Prepare channel for playback (sets PlayerStateHolder)
+     * Returns URL if valid, empty string otherwise
+     */
+    fun prepareChannelForPlayback(channel: Channel): String {
+        val url = channel.urls?.firstOrNull() ?: return ""
+        if (url.isNotEmpty()) {
+            playerStateHolder.setLivePlayback(
+                channelName = channel.name ?: "直播",
+                url = url,
+                headers = null
+            )
+        }
+        return url
     }
 
     /**

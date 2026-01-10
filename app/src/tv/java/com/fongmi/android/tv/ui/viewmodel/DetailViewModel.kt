@@ -11,6 +11,7 @@ import com.fongmi.android.tv.data.repository.DetailResult
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.DetailUiState
+import com.fongmi.android.tv.ui.state.PlayerStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     private val vodRepository: VodRepository,
+    private val playerStateHolder: PlayerStateHolder,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -125,6 +127,11 @@ class DetailViewModel @Inject constructor(
         val episode = _selectedEpisode.value ?: return
         val site = vod.site ?: return
 
+        // Calculate current indices
+        val flags = vod.vodFlags ?: emptyList()
+        val flagIndex = flags.indexOf(flag).coerceAtLeast(0)
+        val episodeIndex = (flag.episodes?.indexOf(episode) ?: 0).coerceAtLeast(0)
+
         viewModelScope.launch {
             _playUrlState.update { PlayUrlState.Loading }
 
@@ -134,6 +141,19 @@ class DetailViewModel @Inject constructor(
                         _playUrlState.update { PlayUrlState.Loading }
                     }
                     is PlayUrlResult.Success -> {
+                        // Set player state for sharing with PlayerScreen
+                        playerStateHolder.setPlaybackData(
+                            vodName = vod.vodName ?: "",
+                            vodPic = vod.vodPic ?: "",
+                            siteKey = site.key ?: "",
+                            vodId = vod.vodId ?: "",
+                            flags = flags,
+                            currentFlagIndex = flagIndex,
+                            currentEpisodeIndex = episodeIndex,
+                            url = result.url,
+                            headers = result.headers
+                        )
+
                         _playUrlState.update {
                             PlayUrlState.Ready(
                                 url = result.url,
