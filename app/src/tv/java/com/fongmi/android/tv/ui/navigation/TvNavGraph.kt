@@ -7,8 +7,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.fongmi.android.tv.ui.screens.category.CategoryScreen
 import com.fongmi.android.tv.ui.screens.detail.DetailScreen
+import com.fongmi.android.tv.ui.screens.favorites.FavoritesScreen
+import com.fongmi.android.tv.ui.screens.history.HistoryScreen
 import com.fongmi.android.tv.ui.screens.home.HomeScreen
+import com.fongmi.android.tv.ui.screens.live.LiveScreen
 import com.fongmi.android.tv.ui.screens.player.PlayerScreen
 import com.fongmi.android.tv.ui.screens.search.SearchScreen
 import com.fongmi.android.tv.ui.screens.settings.SettingsScreen
@@ -29,9 +33,11 @@ sealed class TvRoute(val route: String) {
     data object Favorites : TvRoute("favorites")
 
     // Detail screens with arguments
-    data object Category : TvRoute("category/{typeId}") {
-        fun createRoute(typeId: String) = "category/${encode(typeId)}"
+    data object Category : TvRoute("category/{typeId}?typeName={typeName}") {
+        fun createRoute(typeId: String, typeName: String = "") =
+            "category/${encode(typeId)}?typeName=${encode(typeName)}"
         const val ARG_TYPE_ID = "typeId"
+        const val ARG_TYPE_NAME = "typeName"
     }
 
     data object Detail : TvRoute("detail/{siteKey}/{vodId}") {
@@ -52,11 +58,12 @@ sealed class TvRoute(val route: String) {
         const val ARG_EPISODE = "episode"
     }
 
-    // Live TV screens
-    data object LiveChannel : TvRoute("live/channel/{groupIndex}/{channelIndex}") {
-        fun createRoute(groupIndex: Int, channelIndex: Int) = "live/channel/$groupIndex/$channelIndex"
-        const val ARG_GROUP_INDEX = "groupIndex"
-        const val ARG_CHANNEL_INDEX = "channelIndex"
+    // Live player
+    data object LivePlayer : TvRoute("live/player?url={url}&name={name}") {
+        fun createRoute(url: String, channelName: String) =
+            "live/player?url=${encode(url)}&name=${encode(channelName)}"
+        const val ARG_URL = "url"
+        const val ARG_NAME = "name"
     }
 
     // Settings sub-screens
@@ -132,18 +139,30 @@ fun TvNavGraph(
         }
 
         composable(TvRoute.Live.route) {
-            // TODO: LiveScreen
-            PlaceholderScreen(title = "Live TV", onBack = { navController.popBackStack() })
+            LiveScreen(
+                onChannelClick = { url ->
+                    navController.navigate(TvRoute.LivePlayer.createRoute(url, "直播"))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable(TvRoute.History.route) {
-            // TODO: HistoryScreen
-            PlaceholderScreen(title = "History", onBack = { navController.popBackStack() })
+            HistoryScreen(
+                onItemClick = { siteKey, vodId ->
+                    navController.navigate(TvRoute.Detail.createRoute(siteKey, vodId))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable(TvRoute.Favorites.route) {
-            // TODO: FavoritesScreen
-            PlaceholderScreen(title = "Favorites", onBack = { navController.popBackStack() })
+            FavoritesScreen(
+                onItemClick = { siteKey, vodId ->
+                    navController.navigate(TvRoute.Detail.createRoute(siteKey, vodId))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         // ========== Detail Screens ==========
@@ -151,16 +170,23 @@ fun TvNavGraph(
         composable(
             route = TvRoute.Category.route,
             arguments = listOf(
-                navArgument(TvRoute.Category.ARG_TYPE_ID) {
+                navArgument(TvRoute.Category.ARG_TYPE_ID) { type = NavType.StringType },
+                navArgument(TvRoute.Category.ARG_TYPE_NAME) {
                     type = NavType.StringType
+                    defaultValue = ""
                 }
             )
         ) { backStackEntry ->
-            val typeId = backStackEntry.arguments?.getString(TvRoute.Category.ARG_TYPE_ID) ?: ""
-            // TODO: CategoryScreen
-            PlaceholderScreen(
-                title = "Category: ${TvRoute.decode(typeId)}",
-                onBack = { navController.popBackStack() }
+            val typeId = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.Category.ARG_TYPE_ID) ?: "")
+            val typeName = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.Category.ARG_TYPE_NAME) ?: "")
+
+            CategoryScreen(
+                typeId = typeId,
+                typeName = typeName,
+                onVodClick = { siteKey, vodId ->
+                    navController.navigate(TvRoute.Detail.createRoute(siteKey, vodId))
+                },
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -208,46 +234,51 @@ fun TvNavGraph(
             )
         }
 
-        // ========== Live TV Screens ==========
+        // ========== Live Player ==========
 
         composable(
-            route = TvRoute.LiveChannel.route,
+            route = TvRoute.LivePlayer.route,
             arguments = listOf(
-                navArgument(TvRoute.LiveChannel.ARG_GROUP_INDEX) { type = NavType.IntType },
-                navArgument(TvRoute.LiveChannel.ARG_CHANNEL_INDEX) { type = NavType.IntType }
+                navArgument(TvRoute.LivePlayer.ARG_URL) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(TvRoute.LivePlayer.ARG_NAME) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
             )
         ) { backStackEntry ->
-            val groupIndex = backStackEntry.arguments?.getInt(TvRoute.LiveChannel.ARG_GROUP_INDEX) ?: 0
-            val channelIndex = backStackEntry.arguments?.getInt(TvRoute.LiveChannel.ARG_CHANNEL_INDEX) ?: 0
-            // TODO: LiveChannelScreen
-            PlaceholderScreen(
-                title = "Live Channel",
-                onBack = { navController.popBackStack() }
+            val url = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.LivePlayer.ARG_URL) ?: "")
+            val channelName = TvRoute.decode(backStackEntry.arguments?.getString(TvRoute.LivePlayer.ARG_NAME) ?: "")
+
+            PlayerScreen(
+                url = url,
+                vodName = channelName,
+                episodeName = "直播",
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         // ========== Settings Sub-screens ==========
 
         composable(TvRoute.SettingsPlayer.route) {
-            // TODO: SettingsPlayerScreen
             PlaceholderScreen(
-                title = "Player Settings",
+                title = "播放器设置",
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(TvRoute.SettingsDanmu.route) {
-            // TODO: SettingsDanmuScreen
             PlaceholderScreen(
-                title = "Danmu Settings",
+                title = "弹幕设置",
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(TvRoute.SettingsCustom.route) {
-            // TODO: SettingsCustomScreen
             PlaceholderScreen(
-                title = "Custom Settings",
+                title = "自定义设置",
                 onBack = { navController.popBackStack() }
             )
         }
