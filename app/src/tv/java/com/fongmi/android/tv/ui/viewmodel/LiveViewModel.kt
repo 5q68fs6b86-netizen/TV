@@ -125,10 +125,17 @@ class LiveViewModel @Inject constructor(
     fun prepareChannelForPlayback(channel: Channel): String {
         val url = channel.urls?.firstOrNull() ?: return ""
         if (url.isNotEmpty()) {
+            val state = _uiState.value
+            val groupIndex = state.groups.indexOf(state.selectedGroup).coerceAtLeast(0)
+            val channelIndex = state.selectedGroup?.channel?.indexOf(channel)?.coerceAtLeast(0) ?: 0
+
             playerStateHolder.setLivePlayback(
                 channelName = channel.name ?: "直播",
                 url = url,
-                headers = null
+                headers = null,
+                groups = state.groups,
+                groupIndex = groupIndex,
+                channelIndex = channelIndex
             )
         }
         return url

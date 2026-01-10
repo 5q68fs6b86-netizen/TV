@@ -196,13 +196,19 @@ fun PlayerScreen(
             showNumberInput = true
             delay(2000) // 2 seconds to complete input
             if (numberInput.isNotEmpty()) {
-                // Try to jump to episode
-                val episodeNum = numberInput.toIntOrNull()
-                if (episodeNum != null && episodeNum > 0) {
-                    val episodes = uiState.currentFlag?.episodes ?: emptyList()
-                    val targetIndex = episodeNum - 1 // Convert to 0-based index
-                    if (targetIndex in episodes.indices) {
-                        viewModel.selectEpisode(episodes[targetIndex])
+                val inputNum = numberInput.toIntOrNull()
+                if (inputNum != null && inputNum > 0) {
+                    if (uiState.isLive) {
+                        // Live mode: jump to channel number
+                        val targetIndex = inputNum - 1 // Convert to 0-based index
+                        viewModel.switchToChannel(targetIndex)
+                    } else {
+                        // VOD mode: jump to episode number
+                        val episodes = uiState.currentFlag?.episodes ?: emptyList()
+                        val targetIndex = inputNum - 1 // Convert to 0-based index
+                        if (targetIndex in episodes.indices) {
+                            viewModel.selectEpisode(episodes[targetIndex])
+                        }
                     }
                 }
                 numberInput = ""
@@ -213,7 +219,8 @@ fun PlayerScreen(
 
     // Helper function to handle number key input
     fun handleNumberKey(num: Int): Boolean {
-        if (!uiState.hasEpisodes) return false
+        // Support number input for both VOD episodes and live channels
+        if (!uiState.hasEpisodes && !uiState.hasChannels) return false
         numberInput += num.toString()
         showControls = true
         return true
@@ -317,13 +324,23 @@ fun PlayerScreen(
                             onBackClick()
                             true
                         }
-                        // Channel keys for episode navigation
+                        // Channel keys for episode/channel navigation
                         keyCode == TvKeyHandler.CHANNEL_UP -> {
-                            viewModel.playNext()
+                            showControls = true
+                            if (uiState.isLive) {
+                                viewModel.nextChannel()
+                            } else {
+                                viewModel.playNext()
+                            }
                             true
                         }
                         keyCode == TvKeyHandler.CHANNEL_DOWN -> {
-                            viewModel.playPrevious()
+                            showControls = true
+                            if (uiState.isLive) {
+                                viewModel.previousChannel()
+                            } else {
+                                viewModel.playPrevious()
+                            }
                             true
                         }
                         // Menu/Info key
@@ -436,12 +453,24 @@ fun PlayerScreen(
                 duration = duration,
                 progress = progress,
                 hasEpisodes = uiState.hasEpisodes,
-                hasPrevious = uiState.currentEpisodeIndex > 0,
-                hasNext = uiState.currentFlag?.episodes?.let {
-                    uiState.currentEpisodeIndex < it.size - 1
-                } ?: false,
+                hasPrevious = if (uiState.isLive) {
+                    uiState.flatChannelIndex > 0
+                } else {
+                    uiState.currentEpisodeIndex > 0
+                },
+                hasNext = if (uiState.isLive) {
+                    uiState.flatChannelIndex < uiState.totalChannels - 1
+                } else {
+                    uiState.currentFlag?.episodes?.let {
+                        uiState.currentEpisodeIndex < it.size - 1
+                    } ?: false
+                },
                 hasDanmu = uiState.hasDanmu,
                 isDanmuEnabled = danmakuState.isEnabled,
+                isLive = uiState.isLive,
+                channelNumber = if (uiState.isLive) uiState.flatChannelIndex + 1 else 0,
+                totalChannels = uiState.totalChannels,
+                groupName = uiState.currentGroup?.name ?: "",
                 onPlayPause = {
                     if (isPlaying) exoPlayer.pause() else exoPlayer.play()
                 },
@@ -451,8 +480,12 @@ fun PlayerScreen(
                 onSeekForward = {
                     exoPlayer.seekTo((exoPlayer.currentPosition + 10000).coerceAtMost(duration))
                 },
-                onPrevious = { viewModel.playPrevious() },
-                onNext = { viewModel.playNext() },
+                onPrevious = {
+                    if (uiState.isLive) viewModel.previousChannel() else viewModel.playPrevious()
+                },
+                onNext = {
+                    if (uiState.isLive) viewModel.nextChannel() else viewModel.playNext()
+                },
                 onShowEpisodes = {
                     showEpisodeSidebar = true
                 },
@@ -466,7 +499,7 @@ fun PlayerScreen(
             )
         }
 
-        // Number input overlay for quick episode selection
+        // Number input overlay for quick episode/channel selection
         AnimatedVisibility(
             visible = showNumberInput && numberInput.isNotEmpty(),
             enter = fadeIn(animationSpec = tween(200)),
@@ -486,7 +519,7 @@ fun PlayerScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "跳转到第",
+                        text = if (uiState.isLive) "跳转到频道" else "跳转到第",
                         style = TvTypography.BodyMedium,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -495,11 +528,13 @@ fun PlayerScreen(
                         style = TvTypography.HeadlineLarge.copy(fontSize = 48.sp),
                         color = TvColors.Primary
                     )
-                    Text(
-                        text = "集",
-                        style = TvTypography.BodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
+                    if (!uiState.isLive) {
+                        Text(
+                            text = "集",
+                            style = TvTypography.BodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
@@ -551,6 +586,10 @@ private fun PlayerControlsOverlay(
     hasNext: Boolean,
     hasDanmu: Boolean = false,
     isDanmuEnabled: Boolean = false,
+    isLive: Boolean = false,
+    channelNumber: Int = 0,
+    totalChannels: Int = 0,
+    groupName: String = "",
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
@@ -584,12 +623,40 @@ private fun PlayerControlsOverlay(
             verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = vodName,
-                    style = TvTypography.HeadlineMedium,
-                    color = Color.White
-                )
-                if (episodeName.isNotEmpty() && episodeName != "直播") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Channel number badge for live TV
+                    if (isLive && channelNumber > 0) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = TvColors.Primary,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = String.format("%03d", channelNumber),
+                                style = TvTypography.TitleMedium,
+                                color = Color.White
+                            )
+                        }
+                    }
+                    Text(
+                        text = vodName,
+                        style = TvTypography.HeadlineMedium,
+                        color = Color.White
+                    )
+                }
+                if (isLive && groupName.isNotEmpty()) {
+                    Text(
+                        text = groupName,
+                        style = TvTypography.BodyLarge,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                } else if (!isLive && episodeName.isNotEmpty() && episodeName != "直播") {
                     Text(
                         text = episodeName,
                         style = TvTypography.BodyLarge,
@@ -624,21 +691,23 @@ private fun PlayerControlsOverlay(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Previous episode
+            // Previous episode/channel
             if (hasPrevious) {
                 PlayerControlButton(
                     icon = Icons.Default.SkipPrevious,
-                    contentDescription = "上一集",
+                    contentDescription = if (isLive) "上一频道" else "上一集",
                     onClick = onPrevious
                 )
             }
 
-            // Rewind
-            PlayerControlButton(
-                icon = Icons.Default.FastRewind,
-                contentDescription = "后退10秒",
-                onClick = onSeekBack
-            )
+            if (!isLive) {
+                // Rewind (VOD only)
+                PlayerControlButton(
+                    icon = Icons.Default.FastRewind,
+                    contentDescription = "后退10秒",
+                    onClick = onSeekBack
+                )
+            }
 
             // Play/Pause
             PlayerControlButton(
@@ -648,61 +717,103 @@ private fun PlayerControlsOverlay(
                 isLarge = true
             )
 
-            // Fast forward
-            PlayerControlButton(
-                icon = Icons.Default.FastForward,
-                contentDescription = "快进10秒",
-                onClick = onSeekForward
-            )
+            if (!isLive) {
+                // Fast forward (VOD only)
+                PlayerControlButton(
+                    icon = Icons.Default.FastForward,
+                    contentDescription = "快进10秒",
+                    onClick = onSeekForward
+                )
+            }
 
-            // Next episode
+            // Next episode/channel
             if (hasNext) {
                 PlayerControlButton(
                     icon = Icons.Default.SkipNext,
-                    contentDescription = "下一集",
+                    contentDescription = if (isLive) "下一频道" else "下一集",
                     onClick = onNext
                 )
             }
         }
 
-        // Bottom bar - Progress
+        // Bottom bar - Progress (VOD) or Channel info (Live)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomStart)
                 .padding(24.dp)
         ) {
-            // Progress bar
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp)),
-                color = TvColors.Primary,
-                trackColor = Color.White.copy(alpha = 0.3f)
-            )
+            if (isLive) {
+                // Live TV info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Live indicator
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(Color.Red, CircleShape)
+                        )
+                        Text(
+                            text = "直播中",
+                            style = TvTypography.LabelMedium,
+                            color = Color.White
+                        )
+                    }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "频道 $channelNumber / $totalChannels",
+                        style = TvTypography.LabelMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
 
-            // Time and hint
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = "${formatTime(currentPosition)} / ${formatTime(duration)}",
-                    style = TvTypography.LabelMedium,
-                    color = Color.White
+                    text = "频道+/- 切换频道 | 数字键快速跳转",
+                    style = TvTypography.LabelSmall,
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            } else {
+                // VOD Progress bar
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = TvColors.Primary,
+                    trackColor = Color.White.copy(alpha = 0.3f)
                 )
 
-                if (hasEpisodes) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Time and hint
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "按 菜单键 选集",
-                        style = TvTypography.LabelSmall,
-                        color = Color.White.copy(alpha = 0.5f)
+                        text = "${formatTime(currentPosition)} / ${formatTime(duration)}",
+                        style = TvTypography.LabelMedium,
+                        color = Color.White
                     )
+
+                    if (hasEpisodes) {
+                        Text(
+                            text = "按 菜单键 选集",
+                            style = TvTypography.LabelSmall,
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    }
                 }
             }
         }

@@ -3,8 +3,10 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.api.config.VodConfig
+import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
+import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.PlayerStateHolder
@@ -29,7 +31,12 @@ data class PlayerUiState(
     val currentFlagIndex: Int = 0,
     val currentEpisodeIndex: Int = 0,
     val isLoadingEpisode: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    // Live TV specific fields
+    val isLive: Boolean = false,
+    val liveGroups: List<Group> = emptyList(),
+    val currentGroupIndex: Int = 0,
+    val currentChannelIndex: Int = 0
 ) {
     val hasEpisodes: Boolean
         get() = flags.isNotEmpty() && flags.any { (it.episodes?.size ?: 0) > 0 }
@@ -42,6 +49,28 @@ data class PlayerUiState(
 
     val hasDanmu: Boolean
         get() = danmuUrl.isNotEmpty()
+
+    // Live TV helpers
+    val hasChannels: Boolean
+        get() = isLive && liveGroups.any { (it.channel?.size ?: 0) > 0 }
+
+    val currentGroup: Group?
+        get() = liveGroups.getOrNull(currentGroupIndex)
+
+    val currentChannel: Channel?
+        get() = currentGroup?.channel?.getOrNull(currentChannelIndex)
+
+    val totalChannels: Int
+        get() = liveGroups.sumOf { it.channel?.size ?: 0 }
+
+    val flatChannelIndex: Int
+        get() {
+            var index = 0
+            for (i in 0 until currentGroupIndex) {
+                index += liveGroups.getOrNull(i)?.channel?.size ?: 0
+            }
+            return index + currentChannelIndex
+        }
 }
 
 /**
@@ -76,7 +105,12 @@ class PlayerViewModel @Inject constructor(
                 danmuUrl = data.danmuUrl,
                 flags = data.flags,
                 currentFlagIndex = data.currentFlagIndex,
-                currentEpisodeIndex = data.currentEpisodeIndex
+                currentEpisodeIndex = data.currentEpisodeIndex,
+                // Live TV fields
+                isLive = data.isLive,
+                liveGroups = data.liveGroups,
+                currentGroupIndex = data.currentGroupIndex,
+                currentChannelIndex = data.currentChannelIndex
             )
         }
     }
@@ -196,6 +230,63 @@ class PlayerViewModel @Inject constructor(
      */
     fun clearState() {
         playerStateHolder.clear()
+    }
+
+    // ========== Live TV Channel Methods ==========
+
+    /**
+     * Switch to next channel (live mode only)
+     */
+    fun nextChannel(): Boolean {
+        if (!_uiState.value.isLive) return false
+
+        val success = playerStateHolder.nextChannel()
+        if (success) {
+            refreshFromStateHolder()
+        }
+        return success
+    }
+
+    /**
+     * Switch to previous channel (live mode only)
+     */
+    fun previousChannel(): Boolean {
+        if (!_uiState.value.isLive) return false
+
+        val success = playerStateHolder.previousChannel()
+        if (success) {
+            refreshFromStateHolder()
+        }
+        return success
+    }
+
+    /**
+     * Switch to a specific channel by flat index (live mode only)
+     */
+    fun switchToChannel(flatIndex: Int): Boolean {
+        if (!_uiState.value.isLive) return false
+
+        val success = playerStateHolder.switchToChannel(flatIndex)
+        if (success) {
+            refreshFromStateHolder()
+        }
+        return success
+    }
+
+    /**
+     * Refresh UI state from PlayerStateHolder
+     */
+    private fun refreshFromStateHolder() {
+        val data = playerStateHolder.playbackData ?: return
+        _uiState.update {
+            it.copy(
+                vodName = data.vodName,
+                url = data.url,
+                headers = data.headers,
+                currentGroupIndex = data.currentGroupIndex,
+                currentChannelIndex = data.currentChannelIndex
+            )
+        }
     }
 
     override fun onCleared() {
