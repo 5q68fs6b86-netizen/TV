@@ -55,12 +55,8 @@ class CategoryViewModel @Inject constructor(
         currentTypeId = categoryId
         val site = VodConfig.get().home ?: return
 
-        // Find category name from site types
-        val name = if (categoryName.isNotEmpty()) {
-            categoryName
-        } else {
-            site.types?.find { it.typeId == categoryId }?.typeName ?: categoryId
-        }
+        // Use provided name or fallback to categoryId
+        val name = categoryName.ifEmpty { categoryId }
 
         viewModelScope.launch {
             vodRepository.loadCategoryContent(site, categoryId, 1).collect { result ->

@@ -24,6 +24,7 @@ data class PlayerUiState(
     val episodeName: String = "",
     val url: String = "",
     val headers: Map<String, String>? = null,
+    val danmuUrl: String = "",
     val flags: List<Flag> = emptyList(),
     val currentFlagIndex: Int = 0,
     val currentEpisodeIndex: Int = 0,
@@ -38,6 +39,9 @@ data class PlayerUiState(
 
     val currentEpisode: Episode?
         get() = currentFlag?.episodes?.getOrNull(currentEpisodeIndex)
+
+    val hasDanmu: Boolean
+        get() = danmuUrl.isNotEmpty()
 }
 
 /**
@@ -69,6 +73,7 @@ class PlayerViewModel @Inject constructor(
                 episodeName = data.episodeName,
                 url = data.url,
                 headers = data.headers,
+                danmuUrl = data.danmuUrl,
                 flags = data.flags,
                 currentFlagIndex = data.currentFlagIndex,
                 currentEpisodeIndex = data.currentEpisodeIndex

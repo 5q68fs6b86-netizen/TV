@@ -24,7 +24,8 @@ class PlayerStateHolder @Inject constructor() {
         val currentFlagIndex: Int = 0,
         val currentEpisodeIndex: Int = 0,
         val url: String = "",
-        val headers: Map<String, String>? = null
+        val headers: Map<String, String>? = null,
+        val danmuUrl: String = ""
     ) {
         val currentFlag: Flag?
             get() = flags.getOrNull(currentFlagIndex)
@@ -59,7 +60,8 @@ class PlayerStateHolder @Inject constructor() {
         currentFlagIndex: Int,
         currentEpisodeIndex: Int,
         url: String,
-        headers: Map<String, String>?
+        headers: Map<String, String>?,
+        danmuUrl: String = ""
     ) {
         _playbackData = PlaybackData(
             vodName = vodName,
@@ -70,7 +72,8 @@ class PlayerStateHolder @Inject constructor() {
             currentFlagIndex = currentFlagIndex,
             currentEpisodeIndex = currentEpisodeIndex,
             url = url,
-            headers = headers
+            headers = headers,
+            danmuUrl = danmuUrl
         )
     }
 
@@ -87,10 +90,11 @@ class PlayerStateHolder @Inject constructor() {
     /**
      * Update URL for new episode
      */
-    fun updateUrl(url: String, headers: Map<String, String>? = null) {
+    fun updateUrl(url: String, headers: Map<String, String>? = null, danmuUrl: String = "") {
         _playbackData = _playbackData?.copy(
             url = url,
-            headers = headers
+            headers = headers,
+            danmuUrl = danmuUrl
         )
     }
 

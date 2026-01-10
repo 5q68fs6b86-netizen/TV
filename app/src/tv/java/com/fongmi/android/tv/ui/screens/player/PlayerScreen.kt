@@ -3,6 +3,8 @@ package com.fongmi.android.tv.ui.screens.player
 import android.view.KeyEvent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -63,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.MediaItem
@@ -71,9 +74,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
+import com.fongmi.android.tv.ui.components.DanmakuOverlay
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.components.rememberDanmakuState
 import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
+import com.fongmi.android.tv.ui.utils.TvKeyHandler
 import com.fongmi.android.tv.ui.viewmodel.PlayerViewModel
 import kotlinx.coroutines.delay
 
@@ -100,7 +106,14 @@ fun PlayerScreen(
     // Episode selection state
     var selectedFlagIndex by remember { mutableIntStateOf(uiState.currentFlagIndex) }
 
+    // Number input for quick episode selection
+    var numberInput by remember { mutableStateOf("") }
+    var showNumberInput by remember { mutableStateOf(false) }
+
     val sidebarFocusRequester = remember { FocusRequester() }
+
+    // Danmaku state
+    val danmakuState = rememberDanmakuState()
 
     // Current URL (tracks changes from ViewModel)
     val currentUrl = uiState.url
@@ -177,17 +190,52 @@ fun PlayerScreen(
         selectedFlagIndex = uiState.currentFlagIndex
     }
 
+    // Auto-clear number input after delay
+    LaunchedEffect(numberInput) {
+        if (numberInput.isNotEmpty()) {
+            showNumberInput = true
+            delay(2000) // 2 seconds to complete input
+            if (numberInput.isNotEmpty()) {
+                // Try to jump to episode
+                val episodeNum = numberInput.toIntOrNull()
+                if (episodeNum != null && episodeNum > 0) {
+                    val episodes = uiState.currentFlag?.episodes ?: emptyList()
+                    val targetIndex = episodeNum - 1 // Convert to 0-based index
+                    if (targetIndex in episodes.indices) {
+                        viewModel.selectEpisode(episodes[targetIndex])
+                    }
+                }
+                numberInput = ""
+                showNumberInput = false
+            }
+        }
+    }
+
+    // Helper function to handle number key input
+    fun handleNumberKey(num: Int): Boolean {
+        if (!uiState.hasEpisodes) return false
+        numberInput += num.toString()
+        showControls = true
+        return true
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .onKeyEvent { event ->
                 if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
-                    when (event.nativeKeyEvent.keyCode) {
-                        KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                    val keyCode = event.nativeKeyEvent.keyCode
+                    when {
+                        // Number keys for quick episode selection
+                        TvKeyHandler.isNumberKey(keyCode) -> {
+                            val num = TvKeyHandler.getNumberFromKey(keyCode)
+                            if (num != null) handleNumberKey(num) else false
+                        }
+                        // Navigation and control keys
+                        keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER -> {
                             if (showEpisodeSidebar) {
-                                // Let focus handle it
-                                false
+                                false // Let focus handle it
                             } else if (showControls) {
                                 if (isPlaying) exoPlayer.pause() else exoPlayer.play()
                                 true
@@ -196,7 +244,7 @@ fun PlayerScreen(
                                 true
                             }
                         }
-                        KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        keyCode == KeyEvent.KEYCODE_DPAD_LEFT -> {
                             if (showEpisodeSidebar) {
                                 showEpisodeSidebar = false
                                 true
@@ -206,38 +254,94 @@ fun PlayerScreen(
                                 true
                             }
                         }
-                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT -> {
                             if (!showEpisodeSidebar) {
                                 showControls = true
                                 exoPlayer.seekTo((exoPlayer.currentPosition + 10000).coerceAtMost(duration))
                             }
                             true
                         }
-                        KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        keyCode == KeyEvent.KEYCODE_DPAD_UP -> {
                             if (!showEpisodeSidebar) {
                                 showControls = true
+                                // Long seek forward (30 seconds)
+                                exoPlayer.seekTo((exoPlayer.currentPosition + 30000).coerceAtMost(duration))
                             }
-                            // Let focus system handle vertical navigation
-                            false
+                            true
                         }
-                        KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                        keyCode == KeyEvent.KEYCODE_DPAD_DOWN -> {
+                            if (!showEpisodeSidebar) {
+                                showControls = true
+                                // Long seek backward (30 seconds)
+                                exoPlayer.seekTo((exoPlayer.currentPosition - 30000).coerceAtLeast(0))
+                            }
+                            true
+                        }
+                        // Media control keys
+                        keyCode == TvKeyHandler.MEDIA_PLAY_PAUSE -> {
+                            if (isPlaying) exoPlayer.pause() else exoPlayer.play()
+                            showControls = true
+                            true
+                        }
+                        keyCode == TvKeyHandler.MEDIA_PLAY -> {
+                            exoPlayer.play()
+                            showControls = true
+                            true
+                        }
+                        keyCode == TvKeyHandler.MEDIA_PAUSE -> {
+                            exoPlayer.pause()
+                            showControls = true
+                            true
+                        }
+                        keyCode == TvKeyHandler.MEDIA_FAST_FORWARD -> {
+                            exoPlayer.seekTo((exoPlayer.currentPosition + 30000).coerceAtMost(duration))
+                            showControls = true
+                            true
+                        }
+                        keyCode == TvKeyHandler.MEDIA_REWIND -> {
+                            exoPlayer.seekTo((exoPlayer.currentPosition - 30000).coerceAtLeast(0))
+                            showControls = true
+                            true
+                        }
+                        keyCode == TvKeyHandler.MEDIA_NEXT -> {
                             viewModel.playNext()
                             true
                         }
-                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                        keyCode == TvKeyHandler.MEDIA_PREVIOUS -> {
                             viewModel.playPrevious()
                             true
                         }
-                        KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> {
-                            // Show episode sidebar
+                        keyCode == TvKeyHandler.MEDIA_STOP -> {
+                            exoPlayer.stop()
+                            viewModel.clearState()
+                            onBackClick()
+                            true
+                        }
+                        // Channel keys for episode navigation
+                        keyCode == TvKeyHandler.CHANNEL_UP -> {
+                            viewModel.playNext()
+                            true
+                        }
+                        keyCode == TvKeyHandler.CHANNEL_DOWN -> {
+                            viewModel.playPrevious()
+                            true
+                        }
+                        // Menu/Info key
+                        keyCode == TvKeyHandler.MENU || keyCode == TvKeyHandler.INFO -> {
                             if (uiState.hasEpisodes) {
                                 showEpisodeSidebar = !showEpisodeSidebar
                                 showControls = true
                             }
                             true
                         }
-                        KeyEvent.KEYCODE_BACK -> {
+                        // Back key
+                        keyCode == TvKeyHandler.BACK -> {
                             when {
+                                numberInput.isNotEmpty() -> {
+                                    numberInput = ""
+                                    showNumberInput = false
+                                    true
+                                }
                                 showEpisodeSidebar -> {
                                     showEpisodeSidebar = false
                                     true
@@ -268,6 +372,17 @@ fun PlayerScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
+
+        // Danmaku overlay
+        if (uiState.hasDanmu) {
+            DanmakuOverlay(
+                state = danmakuState,
+                modifier = Modifier.fillMaxSize(),
+                danmuUrl = uiState.danmuUrl,
+                isPlaying = isPlaying,
+                currentPosition = currentPosition
+            )
+        }
 
         // Loading indicator (initial or episode change)
         if (isLoading || uiState.isLoadingEpisode) {
@@ -325,6 +440,8 @@ fun PlayerScreen(
                 hasNext = uiState.currentFlag?.episodes?.let {
                     uiState.currentEpisodeIndex < it.size - 1
                 } ?: false,
+                hasDanmu = uiState.hasDanmu,
+                isDanmuEnabled = danmakuState.isEnabled,
                 onPlayPause = {
                     if (isPlaying) exoPlayer.pause() else exoPlayer.play()
                 },
@@ -339,11 +456,52 @@ fun PlayerScreen(
                 onShowEpisodes = {
                     showEpisodeSidebar = true
                 },
+                onToggleDanmu = {
+                    danmakuState.toggle()
+                },
                 onBackClick = {
                     viewModel.clearState()
                     onBackClick()
                 }
             )
+        }
+
+        // Number input overlay for quick episode selection
+        AnimatedVisibility(
+            visible = showNumberInput && numberInput.isNotEmpty(),
+            enter = fadeIn(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(horizontal = 32.dp, vertical = 24.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "跳转到第",
+                        style = TvTypography.BodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = numberInput,
+                        style = TvTypography.HeadlineLarge.copy(fontSize = 48.sp),
+                        color = TvColors.Primary
+                    )
+                    Text(
+                        text = "集",
+                        style = TvTypography.BodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
+            }
         }
 
         // Episode sidebar
@@ -391,12 +549,15 @@ private fun PlayerControlsOverlay(
     hasEpisodes: Boolean,
     hasPrevious: Boolean,
     hasNext: Boolean,
+    hasDanmu: Boolean = false,
+    isDanmuEnabled: Boolean = false,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onShowEpisodes: () -> Unit,
+    onToggleDanmu: () -> Unit = {},
     onBackClick: () -> Unit
 ) {
     Box(
@@ -439,6 +600,14 @@ private fun PlayerControlsOverlay(
 
             // Top right actions
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (hasDanmu) {
+                    TopActionButton(
+                        icon = Icons.Default.PlayArrow, // Placeholder icon
+                        label = if (isDanmuEnabled) "弹幕开" else "弹幕关",
+                        isActive = isDanmuEnabled,
+                        onClick = onToggleDanmu
+                    )
+                }
                 if (hasEpisodes) {
                     TopActionButton(
                         icon = Icons.Default.List,
@@ -544,13 +713,18 @@ private fun PlayerControlsOverlay(
 private fun TopActionButton(
     icon: ImageVector,
     label: String,
+    isActive: Boolean = false,
     onClick: () -> Unit
 ) {
     FocusableItem(onClick = onClick) { isFocused ->
         Row(
             modifier = Modifier
                 .background(
-                    color = if (isFocused) TvColors.Primary else Color.White.copy(alpha = 0.2f),
+                    color = when {
+                        isFocused -> TvColors.Primary
+                        isActive -> TvColors.Primary.copy(alpha = 0.5f)
+                        else -> Color.White.copy(alpha = 0.2f)
+                    },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp),
