@@ -23,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +32,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.ui.components.CategoryChipRow
 import com.fongmi.android.tv.ui.components.CategoryItem
 import com.fongmi.android.tv.ui.components.ContentRow
@@ -38,6 +42,7 @@ import com.fongmi.android.tv.ui.components.VodItem
 import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
+import com.fongmi.android.tv.ui.viewmodel.HomeViewModel
 
 /**
  * Home Screen for TV App
@@ -45,6 +50,7 @@ import com.fongmi.android.tv.ui.theme.TvTypography
  */
 @Composable
 fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
     onCategoryClick: (String) -> Unit,
     onVodClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
@@ -53,97 +59,132 @@ fun HomeScreen(
     onHistoryClick: () -> Unit,
     onFavoritesClick: () -> Unit
 ) {
-    // TODO: Replace with actual ViewModel data
-    val categories = remember {
-        listOf(
-            CategoryItem("all", "全部", isSelected = true),
-            CategoryItem("movie", "电影"),
-            CategoryItem("tv", "电视剧"),
-            CategoryItem("anime", "动漫"),
-            CategoryItem("variety", "综艺"),
-            CategoryItem("documentary", "纪录片")
-        )
+    val uiState by viewModel.uiState.collectAsState()
+    val categoryContent by viewModel.categoryContent.collectAsState()
+
+    // Convert bean Classes to UI CategoryItems
+    val categories = remember(uiState.categories) {
+        uiState.categories.map { clazz ->
+            CategoryItem(
+                id = clazz.typeId ?: "",
+                name = clazz.typeName ?: "",
+                isSelected = clazz.typeId == uiState.selectedCategory?.typeId
+            )
+        }
     }
 
-    val recommendations = remember {
-        listOf(
-            VodItem("1", "default", "示例影片 1", null, "2024 · 动作"),
-            VodItem("2", "default", "示例影片 2", null, "2024 · 喜剧"),
-            VodItem("3", "default", "示例影片 3", null, "2024 · 科幻"),
-            VodItem("4", "default", "示例影片 4", null, "2024 · 爱情"),
-            VodItem("5", "default", "示例影片 5", null, "2024 · 悬疑"),
-            VodItem("6", "default", "示例影片 6", null, "2024 · 恐怖")
+    // Convert bean Vods to UI VodItems
+    fun vodToVodItem(vod: Vod): VodItem {
+        return VodItem(
+            id = vod.vodId ?: "",
+            siteKey = uiState.currentSite?.key ?: "",
+            title = vod.vodName ?: "",
+            imageUrl = vod.vodPic,
+            subtitle = vod.vodRemarks
         )
     }
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(TvColors.Background)
-    ) {
-        // Header
-        HomeHeader(
-            siteName = "影視",
-            onSearchClick = onSearchClick,
-            onSettingsClick = onSettingsClick,
-            onLiveClick = onLiveClick,
-            onHistoryClick = onHistoryClick,
-            onFavoritesClick = onFavoritesClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Category chips
-        CategoryChipRow(
-            categories = categories,
-            onCategoryClick = { category ->
-                onCategoryClick(category.id)
-            },
-            modifier = Modifier.focusRequester(focusRequester)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Content rows
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
-        ) {
-            item {
-                ContentRow(
-                    title = "热门推荐",
-                    items = recommendations,
-                    onItemClick = { vodItem ->
-                        onVodClick(vodItem.siteKey, vodItem.id)
-                    }
-                )
+    when {
+        uiState.isLoading -> {
+            HomeLoadingState()
+        }
+        uiState.error != null -> {
+            HomeErrorState(
+                message = uiState.error ?: "Unknown error",
+                onRetry = { viewModel.refresh() }
+            )
+        }
+        else -> {
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
             }
 
-            item {
-                ContentRow(
-                    title = "最近更新",
-                    items = recommendations.shuffled(),
-                    onItemClick = { vodItem ->
-                        onVodClick(vodItem.siteKey, vodItem.id)
-                    }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(TvColors.Background)
+            ) {
+                // Header
+                HomeHeader(
+                    siteName = uiState.currentSite?.name ?: "影視",
+                    onSearchClick = onSearchClick,
+                    onSettingsClick = onSettingsClick,
+                    onLiveClick = onLiveClick,
+                    onHistoryClick = onHistoryClick,
+                    onFavoritesClick = onFavoritesClick
                 )
-            }
 
-            item {
-                ContentRow(
-                    title = "电影精选",
-                    items = recommendations.shuffled(),
-                    onItemClick = { vodItem ->
-                        onVodClick(vodItem.siteKey, vodItem.id)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Category chips
+                if (categories.isNotEmpty()) {
+                    CategoryChipRow(
+                        categories = categories,
+                        onCategoryClick = { category ->
+                            // Find the original Class object
+                            val clazz = uiState.categories.find { it.typeId == category.id }
+                            if (clazz != null) {
+                                viewModel.selectCategory(clazz)
+                            }
+                            onCategoryClick(category.id)
+                        },
+                        modifier = Modifier.focusRequester(focusRequester)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Content rows
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(32.dp)
+                ) {
+                    // Featured content from home
+                    if (uiState.featuredContent.isNotEmpty()) {
+                        item {
+                            ContentRow(
+                                title = "热门推荐",
+                                items = uiState.featuredContent.take(10).map { vodToVodItem(it) },
+                                onItemClick = { vodItem ->
+                                    onVodClick(vodItem.siteKey, vodItem.id)
+                                }
+                            )
+                        }
                     }
-                )
+
+                    // Content for each category
+                    uiState.categories.take(5).forEach { category ->
+                        val content = categoryContent[category.typeId]
+                        if (!content.isNullOrEmpty()) {
+                            item {
+                                ContentRow(
+                                    title = category.typeName ?: "",
+                                    items = content.take(10).map { vodToVodItem(it) },
+                                    onItemClick = { vodItem ->
+                                        onVodClick(vodItem.siteKey, vodItem.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // If no content yet, show placeholder
+                    if (uiState.featuredContent.isEmpty() && categoryContent.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = TvColors.Primary)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -253,7 +294,17 @@ fun HomeLoadingState() {
             .background(TvColors.Background),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = TvColors.Primary)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CircularProgressIndicator(color = TvColors.Primary)
+            Text(
+                text = "加载中...",
+                style = TvTypography.BodyMedium,
+                color = TvColors.TextSecondary
+            )
+        }
     }
 }
 
