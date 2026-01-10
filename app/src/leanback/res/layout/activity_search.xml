@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@drawable/bg_home_gradient"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    android:orientation="horizontal"
+    android:paddingStart="24dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="24dp">
 
-    <!-- Search History (Left) -->
     <LinearLayout
         android:id="@+id/recordLayout"
-        android:layout_width="200dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="48dp"
-        android:layout_marginBottom="48dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="128dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="36dp"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/search_record"
             android:textColor="@color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textSize="24sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recordRecycler"
@@ -37,106 +33,78 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:overScrollMode="never"
+            android:paddingBottom="24dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:itemCount="5"
+            tools:itemCount="10"
             tools:listitem="@layout/adapter_search_record" />
 
     </LinearLayout>
 
-    <!-- Keyboard & Input (Center) -->
-    <LinearLayout
-        android:id="@+id/inputLayout"
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/resultLayout"
-        app:layout_constraintStart_toEndOf="@+id/recordLayout"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:layout_marginEnd="36dp">
 
-        <LinearLayout
+        <com.fongmi.android.tv.ui.custom.CustomMic
+            android:id="@+id/mic"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="12dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusLeft="@id/record"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_search_mic" />
+
+        <com.fongmi.android.tv.ui.custom.CustomSearchView
+            android:id="@+id/keyword"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.fongmi.android.tv.ui.custom.CustomMic
-                android:id="@+id/mic"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/video_button_secondary_selector"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:nextFocusLeft="@id/record"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_search_mic"
-                app:tint="@color/icon_tint_selector" />
-
-            <com.fongmi.android.tv.ui.custom.CustomSearchView
-                android:id="@+id/keyword"
-                android:layout_width="300dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/video_button_secondary_selector"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:hint="@string/search_keyword"
-                android:imeOptions="actionDone"
-                android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
-                android:letterSpacing="0.02"
-                android:maxLength="255"
-                android:nextFocusRight="@id/word"
-                android:paddingStart="20dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="10dp"
-                android:singleLine="true"
-                android:textColor="@color/video_button_secondary_text"
-                android:textColorHint="#80FFFFFF"
-                android:textCursorDrawable="@drawable/shape_cursor"
-                android:textSize="20sp" />
-
-        </LinearLayout>
+            android:layout_alignEnd="@+id/keyboard"
+            android:layout_marginBottom="16dp"
+            android:layout_toEndOf="@+id/mic"
+            android:background="@null"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint="@string/search_keyword"
+            android:imeOptions="actionDone"
+            android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
+            android:letterSpacing="0.02"
+            android:maxLength="255"
+            android:nextFocusRight="@id/word"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textCursorDrawable="@drawable/shape_cursor"
+            android:textSize="24sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/keyboard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/keyword"
             android:overScrollMode="never"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             app:spanCount="6"
             tools:itemCount="36"
             tools:listitem="@layout/adapter_keyboard_text" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
-    <!-- Hot Words / Results (Right) -->
     <LinearLayout
-        android:id="@+id/resultLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="48dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginBottom="48dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/inputLayout"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="24dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/search_hot"
             android:textColor="@color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textSize="24sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/wordRecycler"
@@ -145,10 +113,11 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:overScrollMode="never"
+            android:paddingBottom="24dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="10"
             tools:listitem="@layout/adapter_search_word" />
 
     </LinearLayout>
+</LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>

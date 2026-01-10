@@ -7,329 +7,354 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <!-- 1. Video Player Container (Fullscreen Background) -->
-        <FrameLayout
-            android:id="@+id/video"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@android:color/black"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.media3.ui.PlayerView
-                android:id="@+id/exo"
-                style="@style/Player.Vod"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <tv.danmaku.ijk.media.player.ui.IjkVideoView
-                android:id="@+id/ijk"
-                style="@style/Player.Vod"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-
-            <master.flame.danmaku.ui.widget.DanmakuView
-                android:id="@+id/danmaku"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-
-            <include
-                android:id="@+id/widget"
-                layout="@layout/view_widget_vod"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <include
-                android:id="@+id/display"
-                layout="@layout/view_widget_display"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <include
-                android:id="@+id/control"
-                layout="@layout/view_control_vod"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:visibility="gone" />
-        </FrameLayout>
-
-        <!-- 2. Detail Content Overlay (Visible when not fullscreen/playing) -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/detail_content_layout"
+    <FrameLayout
+        android:id="@+id/video"
+        android:layout_width="435.5dp"
+        android:layout_height="245dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="12dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:foreground="@drawable/selector_video"
+        android:background="@drawable/rounded_corners"
+        android:nextFocusLeft="@id/video"
+        android:nextFocusRight="@id/desc"
+        android:nextFocusUp="@id/video"
+        android:nextFocusDown="@id/flag">
+        
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/exo"
+            style="@style/Player.Vod"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
+        <tv.danmaku.ijk.media.player.ui.IjkVideoView
+            android:id="@+id/ijk"
+            style="@style/Player.Vod"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+        <master.flame.danmaku.ui.widget.DanmakuView
+            android:id="@+id/danmaku"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+        <include
+            android:id="@+id/widget"
+            layout="@layout/view_widget_vod"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <include
+            android:id="@+id/display"
+            layout="@layout/view_widget_display"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <include
+            android:id="@+id/control"
+            layout="@layout/view_control_vod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:visibility="gone" />
+    </FrameLayout>
 
-            <!-- Gradient Overlay for readability -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_home_gradient" />
+    
+    <FrameLayout
+        android:id="@+id/titleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/detail_title_area_height" 
+        android:layout_toEndOf="@id/video"
+        android:layout_alignTop="@id/video"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp">
 
-            <!-- Poster / Key Visual -->
-             <!-- We reuse the id 'logoImageView' from previous discussion for the poster -->
-            <ImageView
-                android:id="@+id/logoImageView"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_marginStart="56dp"
-                android:layout_marginTop="56dp"
-                android:layout_marginBottom="56dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitStart"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHeight_percent="0.6"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                tools:src="@drawable/ic_banner" />
-                
-            <!-- Fallback Title if no Logo -->
-             <TextView
-                android:id="@+id/nameTextView"
-                style="@style/TVTextAppearance.Display"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginEnd="56dp"
-                android:layout_marginTop="56dp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                app:layout_constraintStart_toEndOf="@id/logoImageView"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Breaking Bad" />
-                
-            <!-- Metadata Row -->
-            <LinearLayout
-                android:id="@+id/meta_row"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="16dp"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintEnd_toEndOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/nameTextView">
+        
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" 
+            android:layout_gravity="start|center_vertical" 
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart" 
+            android:visibility="gone" />
 
-                <TextView
-                    android:id="@+id/year"
-                    style="@style/TVTextAppearance.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    tools:text="2013" />
+        
+        <TextView
+            android:id="@+id/nameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical" 
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            />
 
-                <TextView
-                    android:id="@+id/area"
-                    style="@style/TVTextAppearance.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    tools:text="United States" />
-                    
-                 <TextView
-                    android:id="@+id/type"
-                    style="@style/TVTextAppearance.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    tools:text="Drama" />
-                
-                 <TextView
-                    android:id="@+id/site"
-                    style="@style/TVTextAppearance.Caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="Netflix" />
-            </LinearLayout>
+    </FrameLayout>
+
+    
+    <TextView
+        android:id="@+id/remark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/titleContainer" 
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        />
+
+    <LinearLayout
+        android:id="@+id/row1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/remark"
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="horizontal">
+        
+        <TextView
+            android:id="@+id/site"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+             />
+        <TextView
+            android:id="@+id/year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+             />
+        <TextView
+            android:id="@+id/area"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+             />
+        <TextView
+            android:id="@+id/type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+             />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/director"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/row1"
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:nextFocusDown="@id/actor"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        />
+
+    <TextView
+        android:id="@+id/actor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/director"
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:nextFocusDown="@id/content"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        />
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/actor"
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:ellipsize="end"
+        android:lineSpacingExtra="4dp"
+        android:maxLines="1"
+        android:nextFocusDown="@id/desc"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+         />
+
+    <LinearLayout
+        android:id="@+id/row2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@id/titleContainer" 
+        android:layout_alignBottom="@+id/video"
+        android:orientation="horizontal">
+        
+         <TextView
+            android:id="@+id/desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/selector_item"
+            android:drawablePadding="6dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:nextFocusDown="@id/flag"
+            android:singleLine="true"
+            android:text="@string/detail_desc"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:drawableStartCompat="@drawable/ic_detail_desc" />
+        <TextView
+            android:id="@+id/keep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/selector_item"
+            android:drawablePadding="6dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:nextFocusDown="@id/flag"
+            android:singleLine="true"
+            android:text="@string/keep"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:drawableStartCompat="@drawable/ic_detail_keep_off" />
+        <TextView
+            android:id="@+id/change1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_item"
+            android:drawablePadding="6dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:nextFocusRight="@id/change1"
+            android:nextFocusDown="@id/flag"
+            android:singleLine="true"
+            android:text="@string/play_change"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:drawableStartCompat="@drawable/ic_detail_change" />
+    </LinearLayout>
+
+    
+    <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+        android:id="@+id/flag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/video"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_marginBottom="12dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:visibility="gone" />
+
+    
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/flag"
+        android:layout_alignParentBottom="true" 
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" 
+            android:orientation="vertical"
+            android:paddingBottom="24dp"> 
             
-             <TextView
-                android:id="@+id/remark"
-                style="@style/TVTextAppearance.Caption"
-                android:layout_width="0dp"
+             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                android:id="@+id/quality"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintEnd_toEndOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/meta_row"
-                tools:text="Updated to Ep 10" />
-
-            <!-- People -->
-             <TextView
-                android:id="@+id/director"
-                style="@style/TVTextAppearance.Body"
-                android:layout_width="0dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:visibility="gone" />
+             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                android:id="@+id/episodeHori"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintEnd_toEndOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/remark"
-                tools:text="Director: Vince Gilligan" />
-
-             <TextView
-                android:id="@+id/actor"
-                style="@style/TVTextAppearance.Body"
-                android:layout_width="0dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:focusable="false"
+                app:focusOutEnd="true"
+                app:focusOutFront="true"
+                android:visibility="gone" />
+             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                android:id="@+id/array"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintEnd_toEndOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/director"
-                tools:text="Starring: Bryan Cranston, Aaron Paul" />
-
-            <!-- Description -->
-             <TextView
-                android:id="@+id/content"
-                style="@style/TVTextAppearance.Body"
-                android:layout_width="0dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:visibility="gone" />
+             <androidx.leanback.widget.VerticalGridView
+                android:id="@+id/episodeVert"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:maxLines="3"
-                android:ellipsize="end"
-                android:lineSpacingExtra="4dp"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintEnd_toEndOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/actor"
-                tools:text="A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future." />
-
-            <!-- Action Buttons Row (Play, Keep, etc.) -->
-            <!-- We need to align this carefully. It corresponds to 'row2' in old layout -->
-            <LinearLayout
-                android:id="@+id/row2"
-                android:layout_width="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:focusable="false"
+                app:focusOutEnd="true"
+                app:focusOutFront="true"
+                android:visibility="gone" />
+             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+                android:id="@+id/part"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="32dp"
-                app:layout_constraintStart_toStartOf="@id/nameTextView"
-                app:layout_constraintTop_toBottomOf="@id/content">
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:visibility="gone" />
+             <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/quick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-                <!-- Play Button (Actually 'desc' was the play button in some context or we add a new one? No, usually clicking video plays. But we need a button.) -->
-                <!-- The old layout had 'desc', 'keep', 'change1' buttons. 'desc' opened description dialog. -->
-                <!-- We should add a big 'Play' button. -->
-                
-                <TextView
-                    android:id="@+id/btn_play"
-                    style="@style/TVButton.Primary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/play_now"
-                    android:layout_marginEnd="16dp"
-                    app:icon="@drawable/ic_action_choose" />
-
-                 <TextView
-                    android:id="@+id/keep"
-                    style="@style/TVButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/keep"
-                    android:layout_marginEnd="16dp"
-                    app:icon="@drawable/ic_detail_keep_off" />
-                    
-                 <TextView
-                    android:id="@+id/desc"
-                    style="@style/TVButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/detail_desc"
-                    android:layout_marginEnd="16dp"
-                    app:icon="@drawable/ic_detail_desc" />
-
-                 <TextView
-                    android:id="@+id/change1"
-                    style="@style/TVButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/play_change"
-                    app:icon="@drawable/ic_detail_change" />
-            </LinearLayout>
-
-            <!-- ScrollView for Episodes/Related (Bottom) -->
-             <androidx.core.widget.NestedScrollView
-                android:id="@+id/scroll"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@id/row2"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:overScrollMode="never">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingBottom="24dp">
-
-                    <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-                        android:id="@+id/flag"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:paddingStart="56dp"
-                        android:paddingEnd="56dp"
-                        android:clipToPadding="false"
-                        android:clipChildren="false" />
-
-                     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-                        android:id="@+id/episodeHori"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:paddingStart="56dp"
-                        android:paddingEnd="56dp"
-                        android:clipToPadding="false"
-                        android:clipChildren="false"
-                        app:focusOutEnd="true"
-                        app:focusOutFront="true" />
-                        
-                     <!-- Other grids... keeping them compatible -->
-                     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-                        android:id="@+id/quality"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-                        
-                     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-                        android:id="@+id/array"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-
-                     <androidx.leanback.widget.VerticalGridView
-                        android:id="@+id/episodeVert"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-
-                     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-                        android:id="@+id/part"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-                        
-                     <androidx.leanback.widget.HorizontalGridView
-                        android:id="@+id/quick"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-                </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    
 
 </com.fongmi.android.tv.ui.custom.ProgressLayout>

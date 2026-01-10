@@ -1,175 +1,355 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Color Palette -->
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
-        
         <item name="colorSecondary">@color/md_theme_secondary</item>
         <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
-        
         <item name="colorTertiary">@color/md_theme_tertiary</item>
         <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
-        
         <item name="colorError">@color/md_theme_error</item>
         <item name="colorOnError">@color/md_theme_onError</item>
         <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
-        
         <item name="android:colorBackground">@color/md_theme_background</item>
         <item name="colorOnBackground">@color/md_theme_onBackground</item>
-        
         <item name="colorSurface">@color/md_theme_surface</item>
         <item name="colorOnSurface">@color/md_theme_onSurface</item>
         <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
-        
         <item name="colorOutline">@color/md_theme_outline</item>
         <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
-        
-        <!-- Standard Windows Attributes -->
-        <item name="android:windowBackground">@color/md_theme_background</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+        <item name="colorPrimaryFixed">@color/md_theme_primaryFixed</item>
+        <item name="colorOnPrimaryFixed">@color/md_theme_onPrimaryFixed</item>
+        <item name="colorPrimaryFixedDim">@color/md_theme_primaryFixedDim</item>
+        <item name="colorOnPrimaryFixedVariant">@color/md_theme_onPrimaryFixedVariant</item>
+        <item name="colorSecondaryFixed">@color/md_theme_secondaryFixed</item>
+        <item name="colorOnSecondaryFixed">@color/md_theme_onSecondaryFixed</item>
+        <item name="colorSecondaryFixedDim">@color/md_theme_secondaryFixedDim</item>
+        <item name="colorOnSecondaryFixedVariant">@color/md_theme_onSecondaryFixedVariant</item>
+        <item name="colorTertiaryFixed">@color/md_theme_tertiaryFixed</item>
+        <item name="colorOnTertiaryFixed">@color/md_theme_onTertiaryFixed</item>
+        <item name="colorTertiaryFixedDim">@color/md_theme_tertiaryFixedDim</item>
+        <item name="colorOnTertiaryFixedVariant">@color/md_theme_onTertiaryFixedVariant</item>
+        <item name="colorSurfaceDim">@color/md_theme_surfaceDim</item>
+        <item name="colorSurfaceBright">@color/md_theme_surfaceBright</item>
+        <item name="colorSurfaceContainerLowest">@color/md_theme_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md_theme_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md_theme_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
     </style>
 
     <style name="AppTheme.Live" parent="AppTheme">
         <item name="android:windowBackground">@color/black</item>
     </style>
 
-    <!-- ======================================= -->
-    <!--          Typography System              -->
-    <!-- ======================================= -->
+    <!-- ========== TV界面组件样式系统 ========== -->
 
+    <!-- ========== 文本样式系列 ========== -->
     <style name="TVTextAppearance" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textColor">@color/md_theme_onSurface</item>
-        <item name="fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/text_primary_high_emphasis</item>
     </style>
 
     <style name="TVTextAppearance.Display" parent="TVTextAppearance">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">@dimen/text_size_display</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:lineSpacingExtra">4dp</item>
-    </style>
-
-    <style name="TVTextAppearance.Headline" parent="TVTextAppearance">
-        <item name="android:textSize">24sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:lineSpacingExtra">2dp</item>
+        <item name="fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="TVTextAppearance.Title" parent="TVTextAppearance">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">@dimen/text_size_title</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/md_theme_onSurface</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TVTextAppearance.Headline" parent="TVTextAppearance">
+        <item name="android:textSize">@dimen/text_size_huge</item>
+        <item name="android:textStyle">normal</item>
+        <item name="fontFamily">sans-serif</item>
     </style>
 
     <style name="TVTextAppearance.Body" parent="TVTextAppearance">
-        <item name="android:textSize">14sp</item>
-        <item name="android:lineSpacingExtra">2dp</item>
-        <item name="android:textColor">@color/card_text_primary</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="fontFamily">sans-serif</item>
     </style>
 
     <style name="TVTextAppearance.Caption" parent="TVTextAppearance">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/card_text_secondary</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="fontFamily">sans-serif</item>
     </style>
 
-    <!-- ======================================= -->
-    <!--          Card Styles                    -->
-    <!-- ======================================= -->
+    <style name="TVTextAppearance.Label" parent="TVTextAppearance">
+        <item name="android:textSize">@dimen/text_size_tiny</item>
+        <item name="android:textColor">@color/text_hint</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
 
+    <!-- ========== 卡片样式系列 ========== -->
     <style name="TVCard" parent="">
+        <item name="cardCornerRadius">@dimen/radius_large</item>
+        <item name="cardElevation">@dimen/elevation_medium</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="cardBackgroundColor">@color/card_background_light</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
-        <item name="cardBackgroundColor">@color/card_bg_default</item>
-        <item name="cardCornerRadius">12dp</item>
-        <item name="cardElevation">2dp</item>
-        <item name="android:stateListAnimator">@null</item> <!-- Handled by custom focus logic -->
     </style>
 
-    <style name="TVVodCard" parent="TVCard">
-        <item name="android:layout_width">150dp</item>
-        <item name="android:layout_height">225dp</item>
-        <item name="android:layout_margin">8dp</item>
+    <style name="TVCard.Small" parent="TVCard">
+        <item name="cardCornerRadius">@dimen/radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_small</item>
     </style>
 
-    <style name="TVVodCard.Landscape" parent="TVVodCard">
-        <item name="android:layout_width">260dp</item>
-        <item name="android:layout_height">146dp</item>
+    <style name="TVCard.Large" parent="TVCard">
+        <item name="cardCornerRadius">@dimen/radius_xlarge</item>
+        <item name="cardElevation">@dimen/elevation_large</item>
     </style>
 
-    <!-- ======================================= -->
-    <!--          Navigation Rail                -->
-    <!-- ======================================= -->
-
-    <style name="TVNavRail" parent="">
-        <item name="android:background">@color/nav_rail_background</item>
-        <item name="android:elevation">8dp</item>
+    <style name="TVCard.Elevated" parent="TVCard">
+        <item name="cardElevation">@dimen/elevation_xlarge</item>
+        <item name="cardBackgroundColor">@color/card_background_elevated</item>
     </style>
 
-    <style name="TVNavItem" parent="">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">56dp</item>
-        <item name="android:padding">12dp</item>
-        <item name="android:gravity">center</item>
-        <item name="android:focusable">true</item>
-        <item name="android:background">?attr/selectableItemBackground</item>
-    </style>
-
-    <style name="TVNavItem.Icon" parent="">
-        <item name="android:layout_width">24dp</item>
-        <item name="android:layout_height">24dp</item>
-        <item name="android:tint">@color/nav_item_icon_default</item>
-    </style>
-
-    <style name="TVNavItem.Text" parent="TVTextAppearance.Body">
-        <item name="android:textColor">@color/nav_item_text_default</item>
-        <item name="android:layout_marginTop">4dp</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:gravity">center</item>
-    </style>
-
-    <!-- ======================================= -->
-    <!--          Buttons                        -->
-    <!-- ======================================= -->
-
+    <!-- ========== 按钮样式系列 ========== -->
     <style name="TVButton" parent="Widget.Material3.Button">
-        <item name="android:stateListAnimator">@null</item>
-        <item name="backgroundTint">@color/md_theme_surfaceContainerHigh</item>
-        <item name="android:textColor">@color/md_theme_onSurface</item>
-        <item name="iconTint">@color/md_theme_onSurface</item>
-        <item name="cornerRadius">24dp</item>
+        <item name="android:layout_height">@dimen/button_height_large</item>
+        <item name="android:minWidth">@dimen/button_min_width</item>
+        <item name="android:paddingHorizontal">@dimen/button_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/button_padding_vertical</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">@dimen/radius_large</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
     </style>
 
     <style name="TVButton.Primary" parent="TVButton">
         <item name="backgroundTint">@color/md_theme_primary</item>
         <item name="android:textColor">@color/md_theme_onPrimary</item>
-        <item name="iconTint">@color/md_theme_onPrimary</item>
     </style>
 
-    <style name="TVButton.Text" parent="Widget.Material3.Button.TextButton">
+    <style name="TVButton.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_height">@dimen/button_height_large</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="cornerRadius">@dimen/radius_large</item>
+        <item name="strokeColor">@color/md_theme_outline</item>
         <item name="android:textColor">@color/md_theme_primary</item>
     </style>
 
-    <!-- ======================================= -->
-    <!--          Player Styles                  -->
-    <!-- ======================================= -->
-    
-    <style name="Player" parent="" />
+    <style name="TVButton.Tertiary" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_height">@dimen/button_height_large</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="android:textColor">@color/md_theme_primary</item>
+    </style>
 
-    <style name="Player.Vod" parent="Player">
-        <item name="use_controller">false</item>
-        <item name="surface_type">texture_view</item>
-        <item name="resize_mode">fit</item>
-        <item name="shutter_background_color">@android:color/transparent</item>
+    <!-- ========== 图标按钮样式 ========== -->
+    <style name="TVIconButton" parent="">
+        <item name="android:layout_width">@dimen/button_height_large</item>
+        <item name="android:layout_height">@dimen/button_height_large</item>
+        <item name="android:background">@drawable/selector_item_round</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:padding">@dimen/spacing_medium</item>
+    </style>
+
+    <style name="TVIconButton.Large" parent="TVIconButton">
+        <item name="android:layout_width">@dimen/button_height_xlarge</item>
+        <item name="android:layout_height">@dimen/button_height_xlarge</item>
+        <item name="android:padding">@dimen/spacing_normal</item>
+    </style>
+
+    <!-- ========== 列表项样式 ========== -->
+    <style name="TVListItem" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/list_item_height_medium</item>
+        <item name="android:background">@drawable/selector_item</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_normal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+
+    <style name="TVListItem.Small" parent="TVListItem">
+        <item name="android:layout_height">@dimen/list_item_height_small</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_small</item>
+    </style>
+
+    <style name="TVListItem.Large" parent="TVListItem">
+        <item name="android:layout_height">@dimen/list_item_height_large</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_large</item>
+    </style>
+
+    <!-- ========== VOD卡片专用样式 ========== -->
+    <style name="TVVodCard" parent="TVCard">
+        <item name="android:layout_width">@dimen/vod_card_width</item>
+        <item name="android:layout_height">@dimen/vod_card_height</item>
+        <item name="android:layout_margin">@dimen/card_margin_medium</item>
+    </style>
+
+    <style name="TVVodCard.Large" parent="TVVodCard">
+        <item name="android:layout_width">@dimen/vod_card_width_large</item>
+        <item name="android:layout_height">@dimen/vod_card_height_large</item>
+    </style>
+
+    <style name="TVVodTitle" parent="TVTextAppearance.Body">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:shadowColor">@color/black</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- ========== 频道列表样式 ========== -->
+    <style name="TVChannelItem" parent="TVCard.Small">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/channel_item_height</item>
+        <item name="android:layout_margin">@dimen/spacing_tiny</item>
+        <item name="cardCornerRadius">@dimen/radius_xxlarge</item>
+    </style>
+
+    <style name="TVChannelNumber" parent="TVTextAppearance.Body">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/round</item>
+        <item name="android:backgroundTint">@color/channel_number_bg</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">@dimen/channel_number_min_width</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_tiny</item>
+        <item name="android:paddingVertical">@dimen/spacing_tiny</item>
+    </style>
+
+    <style name="TVChannelName" parent="TVTextAppearance.Body">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary_high_emphasis</item>
+        <item name="android:maxWidth">200dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">marquee</item>
+    </style>
+
+    <!-- ========== 功能按钮样式 ========== -->
+    <style name="TVFunctionButton" parent="TVCard">
+        <item name="android:layout_width">@dimen/func_button_size</item>
+        <item name="android:layout_height">@dimen/func_button_size</item>
+        <item name="android:layout_margin">@dimen/spacing_small</item>
+    </style>
+
+    <style name="TVFunctionButton.Large" parent="TVFunctionButton">
+        <item name="android:layout_width">@dimen/func_button_size_large</item>
+        <item name="android:layout_height">@dimen/func_button_size_large</item>
+    </style>
+
+    <style name="TVFunctionIcon" parent="">
+        <item name="android:layout_width">@dimen/func_icon_container_size</item>
+        <item name="android:layout_height">@dimen/func_icon_container_size</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="cardCornerRadius">@dimen/radius_circle</item>
+        <item name="cardElevation">@dimen/elevation_small</item>
+        <item name="cardBackgroundColor">@color/md_theme_primaryContainer</item>
+    </style>
+
+    <style name="TVFunctionText" parent="TVTextAppearance.Body">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary_high_emphasis</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- ========== 标签样式 ========== -->
+    <style name="TVTag" parent="">
+        <item name="android:background">@drawable/round</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_small</item>
+        <item name="android:paddingVertical">@dimen/spacing_tiny</item>
+        <item name="android:textSize">@dimen/text_size_tiny</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="TVTag.Primary" parent="TVTag">
+        <item name="android:backgroundTint">@color/md_theme_primary</item>
+    </style>
+
+    <style name="TVTag.Secondary" parent="TVTag">
+        <item name="android:backgroundTint">@color/md_theme_secondary</item>
+    </style>
+
+    <style name="TVTag.Success" parent="TVTag">
+        <item name="android:backgroundTint">@color/status_success</item>
+    </style>
+
+    <style name="TVTag.Warning" parent="TVTag">
+        <item name="android:backgroundTint">@color/status_warning</item>
+    </style>
+
+    <style name="TVTag.Error" parent="TVTag">
+        <item name="android:backgroundTint">@color/status_error</item>
+    </style>
+
+    <style name="TVTag.Info" parent="TVTag">
+        <item name="android:backgroundTint">@color/status_info</item>
+    </style>
+
+    <!-- ========== 分割线样式 ========== -->
+    <style name="TVDivider" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/divider_height</item>
+        <item name="android:background">@color/divider_light</item>
+        <item name="android:layout_marginHorizontal">@dimen/divider_margin</item>
+    </style>
+
+    <style name="TVDivider.Strong" parent="TVDivider">
+        <item name="android:background">@color/divider_strong</item>
+    </style>
+
+    <!-- ========== 搜索组件样式 ========== -->
+    <style name="TVSearchBar" parent="Widget.Material3.SearchBar">
+        <item name="android:layout_height">@dimen/search_bar_height</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="backgroundTint">@color/search_suggestion_bg</item>
+    </style>
+
+    <!-- ========== Shape样式变体 ========== -->
+    <style name="Vod.Grid" parent="">
+        <item name="cornerSize">@dimen/radius_large</item>
+    </style>
+
+    <style name="Vod.Grid.Round" parent="Vod.Grid">
+        <item name="cornerSize">@dimen/radius_circle</item>
+    </style>
+
+    <!-- ========== 工具栏样式 ========== -->
+    <style name="TVToolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:layout_height">@dimen/toolbar_height_large</item>
+        <item name="android:background">@color/md_theme_surface</item>
+        <item name="android:elevation">@dimen/elevation_medium</item>
+        <item name="titleTextAppearance">@style/TVTextAppearance.Title</item>
+    </style>
+
+    <!-- ========== 动画样式 ========== -->
+    <style name="TVAnimation.FadeIn" parent="">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="TVAnimation.SlideIn" parent="">
+        <item name="android:windowEnterAnimation">@android:anim/slide_in_left</item>
+        <item name="android:windowExitAnimation">@android:anim/slide_out_right</item>
     </style>
 
 </resources>

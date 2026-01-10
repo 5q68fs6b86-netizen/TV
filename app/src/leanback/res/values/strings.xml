@@ -1,20 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="http://schemas.android.com/apk/res-auto" tools:ignore="MissingTranslation">
 
-    <string name="title_setting">Settings</string>
-    <string name="setting_vod">VOD</string>
-    <string name="setting_live">LIVE</string>
-    <string name="setting_wall">WALL</string>
-    <string name="setting_player">Player</string>
-    <string name="setting_danmu">Danmu</string>
-    <string name="setting_custom">Custom</string>
-    <string name="setting_proxy">Proxy</string>
-    <string name="setting_backup">Backup</string>
-    <string name="setting_restore">Restore</string>
-    <string name="setting_cache">Cache</string>
-    <string name="setting_doh">DOH</string>
-    <string name="setting_version">Version</string>
-    <string name="setting_about">About</string>
-
     <!-- Home -->
     <string name="home">Home</string>
     <string name="home_vod">Vod</string>

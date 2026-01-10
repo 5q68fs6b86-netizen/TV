@@ -44,13 +44,8 @@ import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
-import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import androidx.leanback.widget.OnItemViewSelectedListener;
-import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.Row;
-import androidx.leanback.widget.RowPresenter;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -109,18 +104,11 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
-
-        CustomRowPresenter vodRowPresenter = new CustomRowPresenter(16);
-        selector.addPresenter(ListRow.class, vodRowPresenter, VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(22), FuncPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
-    }
-
-    private void updateBackground(Vod item) {
-        if (item == null || TextUtils.isEmpty(item.getVodPic())) return;
-        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), mBinding.background);
     }
 
     private void setAdapter() {
@@ -160,13 +148,10 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     }
 
     private void setTitleNextFocus(ListRow funcRow) {
-        // Disabled for new Side Nav layout
-        /*
         if (funcRow == null) return;
         Func func = (Func) funcRow.getAdapter().get(0);
         int downId = getHomeActicity().mBinding.recycler.getVisibility() == View.VISIBLE ? -1 : func.getId();
         getHomeActicity().mBinding.title.setNextFocusDownId(downId);
-        */
     }
 
     private void refreshFuncRow() {

@@ -152,19 +152,26 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setTitleView() {
         mBinding.homeSiteLock.setVisibility(Setting.isHomeSiteLock() ? View.VISIBLE : View.GONE);
-        // Force modern text size
-        mBinding.title.setTextSize(20);
-        mBinding.clock.setTextSize(20);
+        if (Setting.getHomeUI() == 0) {
+            mBinding.title.setTextSize(24);
+            mBinding.clock.setTextSize(24);
+        } else {
+            mBinding.title.setTextSize(20);
+            mBinding.clock.setTextSize(20);
+        }
     }
 
     private void setRecyclerView() {
-        // Always show Side Nav
-        mBinding.recycler.setVisibility(View.VISIBLE);
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        setHomeUI();
+        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new TypePresenter(this))));
     }
 
-    // Removed setHomeUI as it's no longer used/needed
+    private void setHomeUI() {
+        if (Setting.getHomeUI() == 0) mBinding.recycler.setVisibility(View.GONE);
+        else mBinding.recycler.setVisibility(View.VISIBLE);
+    }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
@@ -235,9 +242,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         public void run() {
             int position = mBinding.recycler.getSelectedPosition();
             mBinding.pager.setCurrentItem(position);
-            // Toolbar logic might need adjustment for side nav, but keeping it simple for now
-            // if (position == 0) showToolBar();
-            // else hideToolBar();
+            if (position == 0) showToolBar();
+            else hideToolBar();
         }
     };
 
@@ -492,9 +498,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setFocus() {
         setLoading(false);
+        if (!mBinding.title.isFocusable()) App.post(() -> mBinding.title.setFocusable(true), 500);
         if (mFocus != mBinding.title) {
-            // Default focus to Side Nav
-            mBinding.recycler.requestFocus();
+            if (Setting.getHomeUI() == 0) getHomeFragment().mBinding.recycler.requestFocus();
+            else mBinding.recycler.requestFocus();
         }
     }
 
@@ -538,6 +545,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         super.onResume();
         mClock.start();
         setTitleView();
+        setHomeUI();
     }
 
     @Override
