@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TV App Theme for Compose-based UI -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Status bar and navigation bar colors -->
+        <item name="android:windowBackground">@color/tv_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Disable transitions for TV -->
+        <item name="android:windowContentTransitions">false</item>
+    </style>
+
+    <!-- TV-specific colors -->
+    <color name="tv_background">#0F0F1A</color>
+    <color name="tv_surface">#1A1A2E</color>
+    <color name="tv_primary">#00696A</color>
+    <color name="tv_on_primary">#FFFFFF</color>
+</resources>
