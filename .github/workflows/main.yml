@@ -34,6 +34,9 @@ jobs:
 
     - name: Build APKs
       run: |
+         # 这一行命令会强制删除 gradle.properties 里关于 java.home 的设置
+         sed -i '/org.gradle.java.home/d' gradle.properties
+         
          ./gradlew assembleLeanbackPythonArm64_v8aRelease
          ./gradlew assembleLeanbackPythonArmeabi_v7aRelease
 
