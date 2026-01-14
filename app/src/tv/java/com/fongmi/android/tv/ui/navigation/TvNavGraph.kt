@@ -15,6 +15,7 @@ import com.fongmi.android.tv.ui.screens.home.HomeScreen
 import com.fongmi.android.tv.ui.screens.live.LiveScreen
 import com.fongmi.android.tv.ui.screens.player.PlayerScreen
 import com.fongmi.android.tv.ui.screens.search.SearchScreen
+import com.fongmi.android.tv.ui.screens.settings.DanmuSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.SettingsScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -134,7 +135,8 @@ fun TvNavGraph(
 
         composable(TvRoute.Settings.route) {
             SettingsScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onDanmuSettingsClick = { navController.navigate(TvRoute.SettingsDanmu.route) }
             )
         }
 
@@ -260,9 +262,8 @@ fun TvNavGraph(
         }
 
         composable(TvRoute.SettingsDanmu.route) {
-            PlaceholderScreen(
-                title = "弹幕设置",
-                onBack = { navController.popBackStack() }
+            DanmuSettingsScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

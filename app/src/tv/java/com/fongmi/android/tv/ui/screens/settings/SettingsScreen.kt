@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -36,7 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
+import android.view.KeyEvent
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.ui.components.FocusableItem
@@ -51,7 +56,8 @@ import com.fongmi.android.tv.ui.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onDanmuSettingsClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusRequester = remember { FocusRequester() }
@@ -66,13 +72,48 @@ fun SettingsScreen(
             .background(TvColors.Background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
+            .onKeyEvent { event ->
+                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                    event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                    onBackClick()
+                    true
+                } else {
+                    false
+                }
+            }
     ) {
-        // Header
-        Text(
-            text = "设置",
-            style = TvTypography.HeadlineLarge,
-            color = TvColors.TextPrimary
-        )
+        // Header with back button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            FocusableItem(
+                onClick = onBackClick,
+                modifier = Modifier.focusRequester(focusRequester)
+            ) { isFocused ->
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                            shape = CircleShape
+                        )
+                        .padding(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                    )
+                }
+            }
+
+            Text(
+                text = "设置",
+                style = TvTypography.HeadlineLarge,
+                color = TvColors.TextPrimary
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -153,6 +194,20 @@ fun SettingsScreen(
                         range = 1..5,
                         valueLabel = { "${it}MB" },
                         onValueChange = { viewModel.setBufferSize(it) }
+                    )
+                }
+            }
+
+            // Danmu settings
+            item {
+                SettingsSection(
+                    icon = Icons.Default.Comment,
+                    title = "弹幕"
+                ) {
+                    SettingsItem(
+                        title = "弹幕设置",
+                        value = "字体、速度、显示区域等",
+                        onClick = onDanmuSettingsClick
                     )
                 }
             }
