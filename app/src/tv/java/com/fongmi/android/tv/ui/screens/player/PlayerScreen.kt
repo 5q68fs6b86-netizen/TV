@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.List
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -115,6 +117,9 @@ fun PlayerScreen(
     // Danmaku state
     val danmakuState = rememberDanmakuState()
 
+    // Subtitle state
+    var isSubtitleEnabled by remember { mutableStateOf(true) }
+
     // Current URL (tracks changes from ViewModel)
     val currentUrl = uiState.url
 
@@ -131,6 +136,20 @@ fun PlayerScreen(
             exoPlayer.prepare()
             exoPlayer.playWhenReady = true
             isLoading = true
+        }
+    }
+
+    // Control subtitle track based on isSubtitleEnabled
+    LaunchedEffect(isSubtitleEnabled) {
+        val trackSelector = exoPlayer.trackSelector
+        if (trackSelector is androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+            trackSelector.setParameters(
+                trackSelector.buildUponParameters()
+                    .setTrackTypeDisabled(
+                        androidx.media3.common.C.TRACK_TYPE_TEXT,
+                        !isSubtitleEnabled
+                    )
+            )
         }
     }
 
@@ -492,6 +511,10 @@ fun PlayerScreen(
                 onToggleDanmu = {
                     danmakuState.toggle()
                 },
+                isSubtitleEnabled = isSubtitleEnabled,
+                onToggleSubtitle = {
+                    isSubtitleEnabled = !isSubtitleEnabled
+                },
                 onBackClick = {
                     viewModel.clearState()
                     onBackClick()
@@ -597,6 +620,8 @@ private fun PlayerControlsOverlay(
     onNext: () -> Unit,
     onShowEpisodes: () -> Unit,
     onToggleDanmu: () -> Unit = {},
+    isSubtitleEnabled: Boolean = true,
+    onToggleSubtitle: () -> Unit = {},
     onBackClick: () -> Unit
 ) {
     Box(
@@ -667,9 +692,16 @@ private fun PlayerControlsOverlay(
 
             // Top right actions
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Subtitle toggle button
+                TopActionButton(
+                    icon = Icons.Default.ClosedCaption,
+                    label = if (isSubtitleEnabled) "字幕开" else "字幕关",
+                    isActive = isSubtitleEnabled,
+                    onClick = onToggleSubtitle
+                )
                 if (hasDanmu) {
                     TopActionButton(
-                        icon = Icons.Default.PlayArrow, // Placeholder icon
+                        icon = Icons.Default.Subtitles,
                         label = if (isDanmuEnabled) "弹幕开" else "弹幕关",
                         isActive = isDanmuEnabled,
                         onClick = onToggleDanmu

@@ -25,13 +25,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
+import android.app.Activity
+import android.view.KeyEvent
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.ui.components.CategoryChipRow
@@ -61,6 +68,11 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val categoryContent by viewModel.categoryContent.collectAsState()
+    val context = LocalContext.current
+
+    // Double-click back to exit
+    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+    val backPressThreshold = 2000L // 2 seconds
 
     // Convert bean Classes to UI CategoryItems
     val categories = remember(uiState.categories) {
@@ -105,6 +117,23 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(TvColors.Background)
+                    .onKeyEvent { event ->
+                        if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                            event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - lastBackPressTime < backPressThreshold) {
+                                // Double-click detected, exit app
+                                (context as? Activity)?.finish()
+                            } else {
+                                // First click, show toast
+                                lastBackPressTime = currentTime
+                                Toast.makeText(context, "再按一次退出", Toast.LENGTH_SHORT).show()
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    }
             ) {
                 // Header
                 HomeHeader(

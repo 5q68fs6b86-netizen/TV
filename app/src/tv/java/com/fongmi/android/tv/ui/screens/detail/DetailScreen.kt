@@ -32,9 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,6 +68,8 @@ fun DetailScreen(
     val selectedFlag by viewModel.selectedFlag.collectAsState()
     val selectedEpisode by viewModel.selectedEpisode.collectAsState()
     val playUrlState by viewModel.playUrlState.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
+    val history by viewModel.history.collectAsState()
 
     // Handle play URL ready
     LaunchedEffect(playUrlState) {
@@ -176,7 +176,10 @@ fun DetailScreen(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Play button
+                            // Play button - shows "Continue" if has history
+                            val hasHistory = history != null && (history?.position ?: 0) > 0
+                            val progressText = viewModel.getProgressText()
+
                             FocusableButton(
                                 onClick = { viewModel.play() },
                                 modifier = Modifier.focusRequester(focusRequester)
@@ -191,18 +194,30 @@ fun DetailScreen(
                                         contentDescription = "Play",
                                         tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
                                     )
-                                    Text(
-                                        text = if (playUrlState is PlayUrlState.Loading) "加载中..." else "立即播放",
-                                        style = TvTypography.LabelLarge,
-                                        color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
-                                    )
+                                    Column {
+                                        Text(
+                                            text = when {
+                                                playUrlState is PlayUrlState.Loading -> "加载中..."
+                                                hasHistory -> "继续播放"
+                                                else -> "立即播放"
+                                            },
+                                            style = TvTypography.LabelLarge,
+                                            color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                                        )
+                                        if (hasHistory && progressText.isNotEmpty()) {
+                                            Text(
+                                                text = progressText,
+                                                style = TvTypography.LabelSmall,
+                                                color = if (isFocused) TvColors.OnPrimary.copy(alpha = 0.7f) else TvColors.TextSecondary
+                                            )
+                                        }
+                                    }
                                 }
                             }
 
                             // Favorite button
-                            var isFavorite by remember { mutableStateOf(false) }
                             FocusableButton(
-                                onClick = { isFavorite = !isFavorite }
+                                onClick = { viewModel.toggleFavorite() }
                             ) { isFocused ->
                                 Row(
                                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),

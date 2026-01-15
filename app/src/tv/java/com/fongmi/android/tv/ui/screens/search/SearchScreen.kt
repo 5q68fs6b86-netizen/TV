@@ -39,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import android.view.KeyEvent
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.api.config.VodConfig
 import com.fongmi.android.tv.bean.Vod
@@ -74,6 +76,15 @@ fun SearchScreen(
             .background(TvColors.Background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
+            .onKeyEvent { event ->
+                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                    event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                    onBackClick()
+                    true
+                } else {
+                    false
+                }
+            }
     ) {
         // Search bar
         SearchBar(

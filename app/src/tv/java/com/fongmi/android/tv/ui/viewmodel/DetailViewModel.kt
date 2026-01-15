@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.api.config.VodConfig
 import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
+import com.fongmi.android.tv.bean.History
+import com.fongmi.android.tv.bean.Keep
 import com.fongmi.android.tv.bean.Vod
+import com.fongmi.android.tv.db.AppDatabase
 import com.fongmi.android.tv.data.repository.DetailResult
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
@@ -45,6 +48,14 @@ class DetailViewModel @Inject constructor(
     private val _playUrlState = MutableStateFlow<PlayUrlState>(PlayUrlState.Idle)
     val playUrlState: StateFlow<PlayUrlState> = _playUrlState.asStateFlow()
 
+    // Favorite state
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    // History state
+    private val _history = MutableStateFlow<History?>(null)
+    val history: StateFlow<History?> = _history.asStateFlow()
+
     // Get site key and vod id from navigation arguments
     private val siteKey: String? = savedStateHandle["siteKey"]
     private val vodId: String? = savedStateHandle["vodId"]
@@ -80,6 +91,10 @@ class DetailViewModel @Inject constructor(
                         vod.vodFlags?.firstOrNull()?.let { flag ->
                             selectFlag(flag)
                         }
+                        // Check favorite status
+                        checkFavoriteStatus(siteKey, vod.vodId ?: "")
+                        // Load history
+                        loadHistory(siteKey, vod.vodId ?: "", vod.vodFlags ?: emptyList())
                     }
                     is DetailResult.Error -> {
                         _uiState.update { it.copy(isLoading = false, error = result.message) }
@@ -185,6 +200,98 @@ class DetailViewModel @Inject constructor(
         if (siteKey != null && vodId != null) {
             loadDetail(siteKey, vodId)
         }
+    }
+
+    /**
+     * Check if current vod is in favorites
+     */
+    private fun checkFavoriteStatus(siteKey: String, vodId: String) {
+        viewModelScope.launch {
+            val key = siteKey + AppDatabase.SYMBOL + vodId
+            val keep = Keep.find(VodConfig.getCid(), key)
+            _isFavorite.update { keep != null }
+        }
+    }
+
+    /**
+     * Toggle favorite status
+     */
+    fun toggleFavorite() {
+        val vod = _uiState.value.vod ?: return
+        val currentSiteKey = siteKey ?: return
+        val currentVodId = vod.vodId ?: return
+
+        viewModelScope.launch {
+            val key = currentSiteKey + AppDatabase.SYMBOL + currentVodId
+            val cid = VodConfig.getCid()
+
+            if (_isFavorite.value) {
+                // Remove from favorites
+                Keep.find(cid, key)?.delete()
+                _isFavorite.update { false }
+            } else {
+                // Add to favorites
+                val keep = Keep().apply {
+                    setKey(key)
+                    setSiteName(VodConfig.get().home?.name ?: "")
+                    setVodName(vod.vodName ?: "")
+                    setVodPic(vod.vodPic ?: "")
+                    setCreateTime(System.currentTimeMillis())
+                    setType(0) // VOD type
+                }
+                keep.save(cid)
+                _isFavorite.update { true }
+            }
+        }
+    }
+
+    /**
+     * Load history for current vod
+     */
+    private fun loadHistory(siteKey: String, vodId: String, flags: List<Flag>) {
+        viewModelScope.launch {
+            val key = siteKey + AppDatabase.SYMBOL + vodId
+            val history = History.find(key)
+            _history.update { history }
+
+            // If history exists, restore last played episode
+            if (history != null && flags.isNotEmpty()) {
+                // Find the flag that matches history
+                val historyFlag = flags.find { it.flag == history.vodFlag }
+                if (historyFlag != null) {
+                    selectFlag(historyFlag)
+                    // Find the episode that matches history
+                    val historyEpisode = historyFlag.episodes?.find {
+                        it.name == history.vodRemarks
+                    }
+                    if (historyEpisode != null) {
+                        selectEpisode(historyEpisode)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Continue playing from history
+     */
+    fun continuePlay() {
+        play()
+    }
+
+    /**
+     * Get formatted progress text
+     */
+    fun getProgressText(): String {
+        val history = _history.value ?: return ""
+        val position = history.position
+        val duration = history.duration
+        if (position <= 0 || duration <= 0) return ""
+
+        val progress = (position * 100 / duration).toInt()
+        val positionMin = position / 1000 / 60
+        val positionSec = position / 1000 % 60
+        return String.format("已观看 %d:%02d (%d%%)", positionMin, positionSec, progress)
     }
 }
 
