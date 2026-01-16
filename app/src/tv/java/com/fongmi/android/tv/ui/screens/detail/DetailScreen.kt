@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -100,10 +101,37 @@ fun DetailScreen(
                 focusRequester.requestFocus()
             }
 
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Blurred background from poster
+                AsyncImage(
+                    model = vod.vodPic,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(60.dp),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // Dark overlay gradient
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    TvColors.Background.copy(alpha = 0.95f),
+                                    TvColors.Background.copy(alpha = 0.85f),
+                                    TvColors.Background.copy(alpha = 0.7f)
+                                )
+                            )
+                        )
+                )
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(TvColors.Background)
                     .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
                     .padding(top = TvDimens.ScreenPaddingVertical)
             ) {

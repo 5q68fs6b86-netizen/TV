@@ -212,6 +212,45 @@ fun SettingsScreen(
                 }
             }
 
+            // Theme settings
+            item {
+                SettingsSection(
+                    icon = Icons.Default.Palette,
+                    title = "主题"
+                ) {
+                    // Theme selection
+                    val themeConfig = com.fongmi.android.tv.ui.theme.ThemeState.config
+                    val themeNames = listOf("Aurora (紫蓝)", "Sakura (粉蓝)")
+                    val currentThemeIndex = themeConfig.theme.ordinal
+                    
+                    SettingsOptionRow(
+                        title = "主题风格",
+                        options = themeNames,
+                        selectedIndex = currentThemeIndex,
+                        onSelect = { index ->
+                            val newTheme = com.fongmi.android.tv.ui.theme.AppTheme.entries[index]
+                            com.fongmi.android.tv.ui.theme.ThemeState.setTheme(newTheme)
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Mode selection
+                    val modeNames = listOf("深色", "浅色", "跟随系统")
+                    val currentModeIndex = themeConfig.mode.ordinal
+                    
+                    SettingsOptionRow(
+                        title = "显示模式",
+                        options = modeNames,
+                        selectedIndex = currentModeIndex,
+                        onSelect = { index ->
+                            val newMode = com.fongmi.android.tv.ui.theme.ThemeMode.entries[index]
+                            com.fongmi.android.tv.ui.theme.ThemeState.setMode(newMode)
+                        }
+                    )
+                }
+            }
+
             // Display settings
             item {
                 SettingsSection(

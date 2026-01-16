@@ -1,59 +1,47 @@
 package com.fongmi.android.tv.ui.screens.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LiveTv
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
-import android.app.Activity
-import android.view.KeyEvent
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.bean.Vod
-import com.fongmi.android.tv.ui.components.CategoryChipRow
-import com.fongmi.android.tv.ui.components.CategoryItem
+import com.fongmi.android.tv.ui.components.BannerItem
+import com.fongmi.android.tv.ui.components.ContentItem
 import com.fongmi.android.tv.ui.components.ContentRow
-import com.fongmi.android.tv.ui.components.FocusableButton
-import com.fongmi.android.tv.ui.components.VodItem
-import com.fongmi.android.tv.ui.theme.TvColors
-import com.fongmi.android.tv.ui.theme.TvDimens
+import com.fongmi.android.tv.ui.components.HeroBanner
+import com.fongmi.android.tv.ui.components.NavItem
+import com.fongmi.android.tv.ui.components.TvNavigationRail
+import com.fongmi.android.tv.ui.components.WideContentRow
+import com.fongmi.android.tv.ui.components.defaultNavItems
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.HomeViewModel
 
 /**
- * Home Screen for TV App
- * Displays categories, recommendations, and quick access buttons.
+ * Redesigned Home Screen with Side Navigation + Banner + Content Rows
  */
 @Composable
 fun HomeScreen(
@@ -67,305 +55,251 @@ fun HomeScreen(
     onFavoritesClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val categoryContent by viewModel.categoryContent.collectAsState()
-    val context = LocalContext.current
+    var selectedNavIndex by remember { mutableIntStateOf(0) }
 
-    // Double-click back to exit
-    var lastBackPressTime by remember { mutableLongStateOf(0L) }
-    val backPressThreshold = 2000L // 2 seconds
-
-    // Convert bean Classes to UI CategoryItems
-    val categories = remember(uiState.categories) {
-        uiState.categories.map { clazz ->
-            CategoryItem(
-                id = clazz.typeId ?: "",
-                name = clazz.typeName ?: "",
-                isSelected = clazz.typeId == uiState.selectedCategory?.typeId
-            )
-        }
+    // Load home content on first composition
+    LaunchedEffect(Unit) {
+        viewModel.loadHomeContent()
     }
 
-    // Convert bean Vods to UI VodItems
-    fun vodToVodItem(vod: Vod): VodItem {
-        return VodItem(
-            id = vod.vodId ?: "",
-            siteKey = uiState.currentSite?.key ?: "",
-            title = vod.vodName ?: "",
-            imageUrl = vod.vodPic,
-            subtitle = vod.vodRemarks
-        )
-    }
-
-    val focusRequester = remember { FocusRequester() }
-
-    when {
-        uiState.isLoading -> {
-            HomeLoadingState()
-        }
-        uiState.error != null -> {
-            HomeErrorState(
-                message = uiState.error ?: "Unknown error",
-                onRetry = { viewModel.refresh() }
-            )
-        }
-        else -> {
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(TvColors.Background)
-                    .onKeyEvent { event ->
-                        if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
-                            event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
-                            val currentTime = System.currentTimeMillis()
-                            if (currentTime - lastBackPressTime < backPressThreshold) {
-                                // Double-click detected, exit app
-                                (context as? Activity)?.finish()
-                            } else {
-                                // First click, show toast
-                                lastBackPressTime = currentTime
-                                Toast.makeText(context, "再按一次退出", Toast.LENGTH_SHORT).show()
-                            }
-                            true
-                        } else {
-                            false
-                        }
-                    }
-            ) {
-                // Header
-                HomeHeader(
-                    siteName = uiState.currentSite?.name ?: "影視",
-                    onSearchClick = onSearchClick,
-                    onSettingsClick = onSettingsClick,
-                    onLiveClick = onLiveClick,
-                    onHistoryClick = onHistoryClick,
-                    onFavoritesClick = onFavoritesClick
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Category chips
-                if (categories.isNotEmpty()) {
-                    CategoryChipRow(
-                        categories = categories,
-                        onCategoryClick = { category ->
-                            // Find the original Class object
-                            val clazz = uiState.categories.find { it.typeId == category.id }
-                            if (clazz != null) {
-                                viewModel.selectCategory(clazz)
-                            }
-                            onCategoryClick(category.id)
-                        },
-                        modifier = Modifier.focusRequester(focusRequester)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Content rows
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(32.dp)
-                ) {
-                    // Featured content from home
-                    if (uiState.featuredContent.isNotEmpty()) {
-                        item {
-                            ContentRow(
-                                title = "热门推荐",
-                                items = uiState.featuredContent.take(10).map { vodToVodItem(it) },
-                                onItemClick = { vodItem ->
-                                    onVodClick(vodItem.siteKey, vodItem.id)
-                                }
-                            )
-                        }
-                    }
-
-                    // Content for each category
-                    uiState.categories.take(5).forEach { category ->
-                        val content = categoryContent[category.typeId]
-                        if (!content.isNullOrEmpty()) {
-                            item {
-                                ContentRow(
-                                    title = category.typeName ?: "",
-                                    items = content.take(10).map { vodToVodItem(it) },
-                                    onItemClick = { vodItem ->
-                                        onVodClick(vodItem.siteKey, vodItem.id)
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    // If no content yet, show placeholder
-                    if (uiState.featuredContent.isEmpty() && categoryContent.isEmpty()) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = TvColors.Primary)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Home screen header with logo and quick access buttons.
- */
-@Composable
-private fun HomeHeader(
-    siteName: String,
-    onSearchClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onLiveClick: () -> Unit,
-    onHistoryClick: () -> Unit,
-    onFavoritesClick: () -> Unit
-) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
-            .padding(top = TvDimens.ScreenPaddingVertical),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Logo / Site name
-        Text(
-            text = siteName,
-            style = TvTypography.HeadlineLarge,
-            color = TvColors.Primary
+        // Side Navigation Rail
+        TvNavigationRail(
+            items = defaultNavItems,
+            selectedIndex = selectedNavIndex,
+            onItemSelected = { index, item ->
+                selectedNavIndex = index
+                when (item.route) {
+                    "home" -> { /* Already here */ }
+                    "search" -> onSearchClick()
+                    "live" -> onLiveClick()
+                    "favorites" -> onFavoritesClick()
+                    "history" -> onHistoryClick()
+                    "settings" -> onSettingsClick()
+                }
+            }
         )
 
-        // Quick access buttons
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Main Content Area
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         ) {
-            HeaderButton(
-                icon = Icons.Default.LiveTv,
-                label = "直播",
-                onClick = onLiveClick
-            )
-            HeaderButton(
-                icon = Icons.Default.History,
-                label = "历史",
-                onClick = onHistoryClick
-            )
-            HeaderButton(
-                icon = Icons.Default.Star,
-                label = "收藏",
-                onClick = onFavoritesClick
-            )
-            HeaderButton(
-                icon = Icons.Default.Search,
-                label = "搜索",
-                onClick = onSearchClick
-            )
-            HeaderButton(
-                icon = Icons.Default.Settings,
-                label = "设置",
-                onClick = onSettingsClick
-            )
+            when {
+                uiState.isLoading -> {
+                    HomeLoadingState()
+                }
+                uiState.error != null -> {
+                    HomeErrorState(
+                        message = uiState.error ?: "未知错误",
+                        onRetry = { viewModel.loadHomeContent() }
+                    )
+                }
+                else -> {
+                    HomeContent(
+                        siteName = uiState.currentSite?.name ?: "",
+                        categories = uiState.categories,
+                        featuredVods = uiState.featuredContent.take(5),
+                        recommendedVods = uiState.featuredContent,
+                        onCategoryClick = onCategoryClick,
+                        onVodClick = onVodClick
+                    )
+                }
+            }
         }
     }
 }
 
 /**
- * Header button with icon and label.
+ * Main content area with Banner and Content Rows
  */
 @Composable
-private fun HeaderButton(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
+private fun HomeContent(
+    siteName: String,
+    categories: List<com.fongmi.android.tv.bean.Class>,
+    featuredVods: List<Vod>,
+    recommendedVods: List<Vod>,
+    onCategoryClick: (String) -> Unit,
+    onVodClick: (String, String) -> Unit
 ) {
-    FocusableButton(
-        onClick = onClick,
-        modifier = Modifier.padding(4.dp)
-    ) { isFocused ->
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
-            )
-            Text(
-                text = label,
-                style = TvTypography.LabelMedium,
-                color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
-            )
-        }
-    }
-}
+    val scrollState = rememberScrollState()
 
-/**
- * Loading indicator for home screen.
- */
-@Composable
-fun HomeLoadingState() {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background),
+            .verticalScroll(scrollState)
+    ) {
+        // Hero Banner (featured content)
+        if (featuredVods.isNotEmpty()) {
+            HeroBanner(
+                items = featuredVods.map { vod ->
+                    BannerItem(
+                        id = vod.vodId ?: "",
+                        title = vod.vodName ?: "",
+                        subtitle = vod.vodYear ?: vod.typeName,
+                        description = vod.vodContent,
+                        imageUrl = vod.vodPic,
+                        vodId = vod.vodId
+                    )
+                },
+                onItemClick = { banner ->
+                    banner.vodId?.let { vodId ->
+                        onVodClick("", vodId)
+                    }
+                },
+                height = 380.dp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Categories Row (horizontal scrollable categories)
+        if (categories.isNotEmpty()) {
+            ContentRow(
+                title = "分类",
+                items = categories.take(10).map { cls ->
+                    ContentItem(
+                        id = cls.typeId ?: "",
+                        title = cls.typeName ?: "",
+                        imageUrl = null,
+                        siteKey = cls.typeId
+                    )
+                },
+                onItemClick = { item ->
+                    item.siteKey?.let { onCategoryClick(it) }
+                },
+                onSeeAllClick = { /* Navigate to all categories */ },
+                cardWidth = 120.dp,
+                cardAspectRatio = 1f
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Recommended Content Row
+        if (recommendedVods.isNotEmpty()) {
+            ContentRow(
+                title = "推荐",
+                items = recommendedVods.take(15).map { vod ->
+                    ContentItem(
+                        id = vod.vodId ?: "",
+                        title = vod.vodName ?: "",
+                        imageUrl = vod.vodPic,
+                        subtitle = vod.vodYear ?: vod.vodRemarks,
+                        badge = vod.vodRemarks,
+                        vodId = vod.vodId
+                    )
+                },
+                onItemClick = { item ->
+                    item.vodId?.let { vodId ->
+                        onVodClick(item.siteKey ?: "", vodId)
+                    }
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Additional content rows based on categories
+        categories.take(3).forEach { category ->
+            ContentRow(
+                title = category.typeName ?: "",
+                items = recommendedVods
+                    .filter { it.typeName == category.typeName }
+                    .take(10)
+                    .map { vod ->
+                        ContentItem(
+                            id = vod.vodId ?: "",
+                            title = vod.vodName ?: "",
+                            imageUrl = vod.vodPic,
+                            subtitle = vod.vodYear,
+                            badge = vod.vodRemarks,
+                            vodId = vod.vodId
+                        )
+                    },
+                onItemClick = { item ->
+                    item.vodId?.let { vodId ->
+                        onVodClick(item.siteKey ?: "", vodId)
+                    }
+                },
+                onSeeAllClick = {
+                    category.typeId?.let { onCategoryClick(it) }
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
+    }
+}
+
+/**
+ * Loading state
+ */
+@Composable
+private fun HomeLoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CircularProgressIndicator(color = TvColors.Primary)
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "加载中...",
                 style = TvTypography.BodyMedium,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 /**
- * Error state for home screen.
+ * Error state
  */
 @Composable
-fun HomeErrorState(
+private fun HomeErrorState(
     message: String,
     onRetry: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(TvColors.Background),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = "😢",
+                style = TvTypography.DisplayLarge
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = message,
                 style = TvTypography.BodyLarge,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.error
             )
-            FocusableButton(onClick = onRetry) { isFocused ->
+            Spacer(modifier = Modifier.height(24.dp))
+            com.fongmi.android.tv.ui.components.FocusableButton(
+                onClick = onRetry,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+            ) { isFocused ->
                 Text(
                     text = "重试",
                     style = TvTypography.LabelLarge,
-                    color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                    color = if (isFocused) 
+                        MaterialTheme.colorScheme.onPrimary 
+                    else 
+                        MaterialTheme.colorScheme.onSurface
                 )
             }
         }
