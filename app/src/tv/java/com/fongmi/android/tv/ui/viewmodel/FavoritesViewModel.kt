@@ -3,14 +3,14 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.bean.Keep
+import com.fongmi.android.tv.data.repository.FavoritesListResult
+import com.fongmi.android.tv.data.repository.FavoritesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -27,7 +27,9 @@ data class FavoritesUiState(
  * Manages favorites (Keep) data
  */
 @HiltViewModel
-class FavoritesViewModel @Inject constructor() : ViewModel() {
+class FavoritesViewModel @Inject constructor(
+    private val favoritesRepository: FavoritesRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FavoritesUiState())
     val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
@@ -41,17 +43,21 @@ class FavoritesViewModel @Inject constructor() : ViewModel() {
      */
     fun loadFavorites() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val items = withContext(Dispatchers.IO) {
-                    Keep.getVod()
-                }
-                _uiState.update {
-                    it.copy(isLoading = false, items = items)
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = e.message ?: "加载失败")
+            favoritesRepository.getFavorites().collect { result ->
+                when (result) {
+                    is FavoritesListResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+                    is FavoritesListResult.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, items = result.items)
+                        }
+                    }
+                    is FavoritesListResult.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, error = result.message)
+                        }
+                    }
                 }
             }
         }
@@ -62,9 +68,7 @@ class FavoritesViewModel @Inject constructor() : ViewModel() {
      */
     fun deleteItem(item: Keep) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                item.delete()
-            }
+            favoritesRepository.removeFavorite(item)
             _uiState.update {
                 it.copy(items = it.items.filter { k -> k.key != item.key })
             }
@@ -76,9 +80,7 @@ class FavoritesViewModel @Inject constructor() : ViewModel() {
      */
     fun clearAll() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                Keep.deleteAll()
-            }
+            favoritesRepository.clearFavorites()
             _uiState.update { it.copy(items = emptyList()) }
         }
     }
@@ -90,3 +92,4 @@ class FavoritesViewModel @Inject constructor() : ViewModel() {
         loadFavorites()
     }
 }
+

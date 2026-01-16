@@ -18,10 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -101,7 +101,7 @@ fun SettingsScreen(
                         .padding(12.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
                     )
@@ -201,7 +201,7 @@ fun SettingsScreen(
             // Danmu settings
             item {
                 SettingsSection(
-                    icon = Icons.Default.Comment,
+                    icon = Icons.AutoMirrored.Filled.Comment,
                     title = "弹幕"
                 ) {
                     SettingsItem(

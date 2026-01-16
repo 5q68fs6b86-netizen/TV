@@ -6,16 +6,16 @@ import com.fongmi.android.tv.api.config.LiveConfig
 import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.bean.Live
+import com.fongmi.android.tv.data.repository.LiveConfigResult
+import com.fongmi.android.tv.data.repository.LiveRepository
 import com.fongmi.android.tv.impl.Callback
 import com.fongmi.android.tv.ui.state.PlayerStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -36,7 +36,8 @@ data class LiveUiState(
  */
 @HiltViewModel
 class LiveViewModel @Inject constructor(
-    private val playerStateHolder: PlayerStateHolder
+    private val playerStateHolder: PlayerStateHolder,
+    private val liveRepository: LiveRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LiveUiState())
@@ -55,9 +56,8 @@ class LiveViewModel @Inject constructor(
 
             try {
                 // Check if LiveConfig is already loaded
-                val home = LiveConfig.get().home
-                if (home != null && home.groups?.isNotEmpty() == true) {
-                    val groups = home.groups ?: emptyList()
+                val groups = liveRepository.getGroups()
+                if (groups.isNotEmpty()) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -66,26 +66,28 @@ class LiveViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    // Load live config
-                    LiveConfig.get().load(object : Callback() {
-                        override fun success() {
-                            val liveHome = LiveConfig.get().home
-                            val groups = liveHome?.groups ?: emptyList()
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    groups = groups,
-                                    selectedGroup = groups.firstOrNull()
-                                )
+                    // Load live config via Flow
+                    liveRepository.loadLiveConfig().collect { result ->
+                        when (result) {
+                            is LiveConfigResult.Loading -> {
+                                _uiState.update { it.copy(isLoading = true, error = null) }
+                            }
+                            is LiveConfigResult.Success -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        groups = result.groups,
+                                        selectedGroup = result.groups.firstOrNull()
+                                    )
+                                }
+                            }
+                            is LiveConfigResult.Error -> {
+                                _uiState.update {
+                                    it.copy(isLoading = false, error = result.message)
+                                }
                             }
                         }
-
-                        override fun error(msg: String?) {
-                            _uiState.update {
-                                it.copy(isLoading = false, error = msg ?: "加载失败")
-                            }
-                        }
-                    })
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -115,7 +117,7 @@ class LiveViewModel @Inject constructor(
      * Get channel URL for playback
      */
     fun getChannelUrl(channel: Channel): String {
-        return channel.urls?.firstOrNull() ?: ""
+        return liveRepository.getChannelUrl(channel)
     }
 
     /**
@@ -123,7 +125,7 @@ class LiveViewModel @Inject constructor(
      * Returns URL if valid, empty string otherwise
      */
     fun prepareChannelForPlayback(channel: Channel): String {
-        val url = channel.urls?.firstOrNull() ?: return ""
+        val url = liveRepository.getChannelUrl(channel)
         if (url.isNotEmpty()) {
             val state = _uiState.value
             val groupIndex = state.groups.indexOf(state.selectedGroup).coerceAtLeast(0)
@@ -149,6 +151,20 @@ class LiveViewModel @Inject constructor(
     }
 
     /**
+     * Get channel by number (1-indexed)
+     */
+    fun getChannelByNumber(number: Int): Channel? {
+        return liveRepository.getChannelByNumber(number)
+    }
+
+    /**
+     * Switch to next URL for current channel
+     */
+    fun switchChannelUrl(channel: Channel) {
+        liveRepository.nextChannelUrl(channel)
+    }
+
+    /**
      * Refresh live data
      */
     fun refresh() {
@@ -156,3 +172,4 @@ class LiveViewModel @Inject constructor(
         loadLive()
     }
 }
+
