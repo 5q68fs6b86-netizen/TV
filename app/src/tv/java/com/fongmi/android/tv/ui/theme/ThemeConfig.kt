@@ -78,7 +78,12 @@ object ThemeState {
     }
 
     fun initialize() {
-        config = ThemeConfig.load()
+        try {
+            config = ThemeConfig.load()
+        } catch (e: Exception) {
+            // If loading fails, use default config
+            config = ThemeConfig()
+        }
     }
 }
 

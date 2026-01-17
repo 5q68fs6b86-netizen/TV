@@ -24,9 +24,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize theme state from saved preferences
-        ThemeState.initialize()
-
         setContent {
             TvApp()
         }

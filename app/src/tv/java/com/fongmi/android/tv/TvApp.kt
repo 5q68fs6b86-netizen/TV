@@ -67,6 +67,8 @@ class TvApp : Application() {
         OkHttp.get().setProxy(Setting.getProxy())
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()))
 
+        // Theme state will initialize with defaults lazily
+
         // Setup crash handler
         CaocConfig.Builder.create()
             .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT)
