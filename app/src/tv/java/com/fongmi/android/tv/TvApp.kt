@@ -46,8 +46,8 @@ class TvApp : Application() {
     }
 
     private fun initializeApp() {
-        // Create notification channels
-        Notify.createChannel()
+        // Create notification channels directly (avoid Notify.createChannel which uses App.get())
+        createNotificationChannel()
 
         // Initialize language settings
         LanguageUtil.init(this)
@@ -74,6 +74,18 @@ class TvApp : Application() {
             .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT)
             .errorActivity(CrashActivity::class.java)
             .apply()
+    }
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                "default",
+                "TV",
+                android.app.NotificationManager.IMPORTANCE_LOW
+            )
+            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+            notificationManager?.createNotificationChannel(channel)
+        }
     }
 
     private fun registerActivityCallbacks() {
