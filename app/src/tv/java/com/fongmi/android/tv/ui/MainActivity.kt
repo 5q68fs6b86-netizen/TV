@@ -5,12 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.fongmi.android.tv.ui.navigation.TvNavGraph
+import com.fongmi.android.tv.ui.theme.ThemeState
 import com.fongmi.android.tv.ui.theme.TvAppTheme
-import com.fongmi.android.tv.ui.theme.TvColors
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -23,6 +24,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize theme state from saved preferences
+        ThemeState.initialize()
+
         setContent {
             TvApp()
         }
@@ -31,14 +35,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TvApp() {
-    TvAppTheme {
+    // Use ThemeState.config to get current theme configuration
+    TvAppTheme(config = ThemeState.config) {
         val navController = rememberNavController()
 
         TvNavGraph(
             navController = navController,
             modifier = Modifier
                 .fillMaxSize()
-                .background(TvColors.Background)
+                .background(MaterialTheme.colorScheme.background)
         )
     }
 }
