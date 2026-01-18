@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.screens.settings
 
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,23 +12,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Comment
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Source
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,24 +50,27 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import android.view.KeyEvent
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.ui.components.FocusableItem
-import com.fongmi.android.tv.ui.theme.TvColors
-import com.fongmi.android.tv.ui.theme.TvDimens
-import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.SettingsViewModel
 
 /**
- * Settings Screen for app configuration
+ * Complete Settings Screen with all options from original XML layout
+ * Matches Material3 design with all configuration options
  */
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onDanmuSettingsClick: () -> Unit = {}
+    onVodConfigClick: () -> Unit = {},
+    onLiveConfigClick: () -> Unit = {},
+    onWallConfigClick: () -> Unit = {},
+    onPlayerSettingsClick: () -> Unit = {},
+    onDanmuSettingsClick: () -> Unit = {},
+    onCustomSettingsClick: () -> Unit = {},
+    onAboutClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusRequester = remember { FocusRequester() }
@@ -69,9 +82,8 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
-            .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
-            .padding(top = TvDimens.ScreenPaddingVertical)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp)
             .onKeyEvent { event ->
                 if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
                     event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
@@ -82,76 +94,209 @@ fun SettingsScreen(
                 }
             }
     ) {
-        // Header with back button
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            FocusableItem(
+            SettingsIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
                 onClick = onBackClick,
                 modifier = Modifier.focusRequester(focusRequester)
-            ) { isFocused ->
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = if (isFocused) TvColors.Primary else TvColors.Surface,
-                            shape = CircleShape
-                        )
-                        .padding(12.dp)
+            )
+            Text(
+                text = "设置",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // ========== VOD 配置 ==========
+            item {
+                ConfigRow(
+                    title = "点播配置",
+                    value = uiState.currentSite?.name ?: "未配置",
+                    onClick = onVodConfigClick,
+                    onHomeClick = { uiState.currentSite?.let { viewModel.setHomeSite(it) } },
+                    onHistoryClick = { /* Show VOD history dialog */ }
+                )
+            }
+
+            // ========== Live 配置 ==========
+            item {
+                ConfigRow(
+                    title = "直播配置",
+                    value = "未配置",
+                    onClick = onLiveConfigClick,
+                    onHomeClick = { /* Set live home */ },
+                    onHistoryClick = { /* Show live history */ }
+                )
+            }
+
+            // ========== Wall 配置 ==========
+            item {
+                ConfigRow(
+                    title = "壁纸配置",
+                    value = "默认",
+                    onClick = onWallConfigClick,
+                    onHomeClick = { /* Set default wall */ },
+                    onHistoryClick = null,
+                    historyIcon = Icons.Default.Refresh,
+                    historyLabel = "刷新"
+                )
+            }
+
+            // ========== 播放器 & 弹幕 ==========
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                    SettingsButton(
+                        title = "播放设置",
+                        onClick = onPlayerSettingsClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SettingsButton(
+                        title = "弹幕设置",
+                        onClick = onDanmuSettingsClick,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            Text(
-                text = "设置",
-                style = TvTypography.HeadlineLarge,
-                color = TvColors.TextPrimary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Source settings
+            // ========== 自定义 & 代理 ==========
             item {
-                SettingsSection(
-                    icon = Icons.Default.Source,
-                    title = "数据源",
-                    modifier = Modifier.focusRequester(focusRequester)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Current source
-                    SettingsItem(
-                        title = "当前源",
-                        value = uiState.currentSite?.name ?: "未设置",
-                        onClick = { /* Show source picker */ }
+                    SettingsButton(
+                        title = "自定义",
+                        onClick = onCustomSettingsClick,
+                        modifier = Modifier.weight(1f)
                     )
+                    SettingsValueButton(
+                        title = "代理",
+                        value = viewModel.getProxyText(),
+                        onClick = { viewModel.showProxyDialog() },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+            // ========== 备份 & 恢复 ==========
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SettingsValueButton(
+                        title = "备份",
+                        value = viewModel.getBackupModeText(),
+                        onClick = { viewModel.toggleBackupMode() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    SettingsButton(
+                        title = "恢复",
+                        onClick = { viewModel.restore() },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
-                    // Source list
-                    if (uiState.sites.isNotEmpty()) {
-                        Text(
-                            text = "可用源",
-                            style = TvTypography.LabelMedium,
-                            color = TvColors.TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(uiState.sites.take(10)) { site ->
-                                SiteChip(
-                                    site = site,
-                                    isSelected = site.key == uiState.currentSite?.key,
-                                    onClick = { viewModel.setHomeSite(site) }
+            // ========== 缓存 & DOH ==========
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SettingsValueButton(
+                        title = "缓存",
+                        value = viewModel.getCacheText(),
+                        onClick = { viewModel.clearCache() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    SettingsValueButton(
+                        title = "DOH",
+                        value = viewModel.getDohText(),
+                        onClick = { viewModel.showDohDialog() },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            // ========== 主题设置 ==========
+            item {
+                SettingsSection(title = "主题") {
+                    val themeConfig = com.fongmi.android.tv.ui.theme.ThemeState.config
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Theme style
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "主题风格",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ThemeChip(
+                                    text = "Aurora",
+                                    isSelected = themeConfig.theme == com.fongmi.android.tv.ui.theme.AppTheme.AURORA,
+                                    onClick = { 
+                                        com.fongmi.android.tv.ui.theme.ThemeState.setTheme(
+                                            com.fongmi.android.tv.ui.theme.AppTheme.AURORA
+                                        )
+                                    }
+                                )
+                                ThemeChip(
+                                    text = "Sakura",
+                                    isSelected = themeConfig.theme == com.fongmi.android.tv.ui.theme.AppTheme.SAKURA,
+                                    onClick = { 
+                                        com.fongmi.android.tv.ui.theme.ThemeState.setTheme(
+                                            com.fongmi.android.tv.ui.theme.AppTheme.SAKURA
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        
+                        // Theme mode
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "显示模式",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ThemeChip(
+                                    text = "深色",
+                                    isSelected = themeConfig.mode == com.fongmi.android.tv.ui.theme.ThemeMode.DARK,
+                                    onClick = { 
+                                        com.fongmi.android.tv.ui.theme.ThemeState.setMode(
+                                            com.fongmi.android.tv.ui.theme.ThemeMode.DARK
+                                        )
+                                    }
+                                )
+                                ThemeChip(
+                                    text = "浅色",
+                                    isSelected = themeConfig.mode == com.fongmi.android.tv.ui.theme.ThemeMode.LIGHT,
+                                    onClick = { 
+                                        com.fongmi.android.tv.ui.theme.ThemeState.setMode(
+                                            com.fongmi.android.tv.ui.theme.ThemeMode.LIGHT
+                                        )
+                                    }
                                 )
                             }
                         }
@@ -159,146 +304,27 @@ fun SettingsScreen(
                 }
             }
 
-            // Player settings
+            // ========== 版本 & 关于 ==========
             item {
-                SettingsSection(
-                    icon = Icons.Default.PlayCircle,
-                    title = "播放器"
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Player selection
-                    val playerNames = viewModel.getPlayerNames()
-                    SettingsOptionRow(
-                        title = "默认播放器",
-                        options = playerNames,
-                        selectedIndex = uiState.playerSettings.defaultPlayer,
-                        onSelect = { viewModel.setPlayer(it) }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Decode type
-                    val decodeNames = viewModel.getDecodeTypeNames()
-                    SettingsOptionRow(
-                        title = "解码方式",
-                        options = decodeNames,
-                        selectedIndex = uiState.playerSettings.decodeType,
-                        onSelect = { viewModel.setDecodeType(it) }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Buffer size
-                    SettingsSlider(
-                        title = "缓冲大小",
-                        value = uiState.playerSettings.bufferSize,
-                        range = 1..5,
-                        valueLabel = { "${it}MB" },
-                        onValueChange = { viewModel.setBufferSize(it) }
-                    )
-                }
-            }
-
-            // Danmu settings
-            item {
-                SettingsSection(
-                    icon = Icons.AutoMirrored.Filled.Comment,
-                    title = "弹幕"
-                ) {
-                    SettingsItem(
-                        title = "弹幕设置",
-                        value = "字体、速度、显示区域等",
-                        onClick = onDanmuSettingsClick
-                    )
-                }
-            }
-
-            // Theme settings
-            item {
-                SettingsSection(
-                    icon = Icons.Default.Palette,
-                    title = "主题"
-                ) {
-                    // Theme selection
-                    val themeConfig = com.fongmi.android.tv.ui.theme.ThemeState.config
-                    val themeNames = listOf("Aurora (紫蓝)", "Sakura (粉蓝)")
-                    val currentThemeIndex = themeConfig.theme.ordinal
-                    
-                    SettingsOptionRow(
-                        title = "主题风格",
-                        options = themeNames,
-                        selectedIndex = currentThemeIndex,
-                        onSelect = { index ->
-                            val newTheme = com.fongmi.android.tv.ui.theme.AppTheme.entries[index]
-                            com.fongmi.android.tv.ui.theme.ThemeState.setTheme(newTheme)
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mode selection
-                    val modeNames = listOf("深色", "浅色", "跟随系统")
-                    val currentModeIndex = themeConfig.mode.ordinal
-                    
-                    SettingsOptionRow(
-                        title = "显示模式",
-                        options = modeNames,
-                        selectedIndex = currentModeIndex,
-                        onSelect = { index ->
-                            val newMode = com.fongmi.android.tv.ui.theme.ThemeMode.entries[index]
-                            com.fongmi.android.tv.ui.theme.ThemeState.setMode(newMode)
-                        }
-                    )
-                }
-            }
-
-            // Display settings
-            item {
-                SettingsSection(
-                    icon = Icons.Default.Palette,
-                    title = "显示"
-                ) {
-                    // Display size
-                    SettingsSlider(
-                        title = "海报大小",
-                        value = uiState.displaySettings.size,
-                        range = 1..7,
-                        valueLabel = { "级别 $it" },
-                        onValueChange = { viewModel.setDisplaySize(it) }
-                    )
-                }
-            }
-
-            // Language settings
-            item {
-                SettingsSection(
-                    icon = Icons.Default.Language,
-                    title = "语言"
-                ) {
-                    val languageNames = viewModel.getLanguageNames()
-                    SettingsOptionRow(
-                        title = "界面语言",
-                        options = languageNames,
-                        selectedIndex = uiState.displaySettings.language,
-                        onSelect = { viewModel.setLanguage(it) }
-                    )
-                }
-            }
-
-            // About
-            item {
-                SettingsSection(
-                    icon = Icons.Default.Info,
-                    title = "关于"
-                ) {
-                    SettingsItem(
+                    SettingsValueButton(
                         title = "版本",
-                        value = "TV Compose v1.0.0",
-                        onClick = { }
+                        value = viewModel.getVersionText(),
+                        onClick = { viewModel.checkUpdate() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    SettingsValueButton(
+                        title = "关于",
+                        value = "",
+                        onClick = onAboutClick,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            // Bottom spacing
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -307,76 +333,147 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsSection(
-    icon: ImageVector,
+private fun ConfigRow(
     title: String,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    value: String,
+    onClick: () -> Unit,
+    onHomeClick: () -> Unit,
+    onHistoryClick: (() -> Unit)?,
+    historyIcon: ImageVector = Icons.Default.History,
+    historyLabel: String = "历史"
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(TvColors.Surface, RoundedCornerShape(16.dp))
-            .padding(20.dp)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = TvColors.Primary
-            )
-            Text(
-                text = title,
-                style = TvTypography.TitleMedium,
-                color = TvColors.TextPrimary
-            )
+        // Main config button
+        FocusableItem(
+            onClick = onClick,
+            modifier = Modifier.weight(1f)
+        ) { isFocused ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
+                               else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .border(
+                        width = if (isFocused) 2.dp else 0.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).padding(start = 16.dp)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // Home button
+        SettingsIconButton(
+            icon = Icons.Default.Home,
+            onClick = onHomeClick
+        )
 
-        content()
+        // History/Refresh button
+        if (onHistoryClick != null) {
+            SettingsIconButton(
+                icon = historyIcon,
+                onClick = onHistoryClick
+            )
+        }
     }
 }
 
 @Composable
-private fun SettingsItem(
+private fun SettingsButton(
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FocusableItem(
+        onClick = onClick,
+        modifier = modifier
+    ) { isFocused ->
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
+                           else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsValueButton(
     title: String,
     value: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        modifier = modifier
+    ) { isFocused ->
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = if (isFocused) TvColors.Primary.copy(alpha = 0.1f) else TvColors.Background,
+                    color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
+                           else MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp)
                 )
-                .padding(12.dp),
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,
-                style = TvTypography.BodyMedium,
-                color = TvColors.TextPrimary
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            if (value.isNotEmpty()) {
                 Text(
                     text = value,
-                    style = TvTypography.BodyMedium,
-                    color = TvColors.TextSecondary
-                )
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = TvColors.TextSecondary
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -384,35 +481,66 @@ private fun SettingsItem(
 }
 
 @Composable
-private fun SettingsOptionRow(
-    title: String,
-    options: List<String>,
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit
+private fun SettingsIconButton(
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    FocusableItem(
+        onClick = onClick,
+        modifier = modifier
+    ) { isFocused ->
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isFocused) MaterialTheme.colorScheme.onPrimary
+                      else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
         Text(
             text = title,
-            style = TvTypography.BodyMedium,
-            color = TvColors.TextPrimary
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(options.size) { index ->
-                OptionChip(
-                    text = options[index],
-                    isSelected = index == selectedIndex,
-                    onClick = { onSelect(index) }
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(12.dp))
+        content()
     }
 }
 
 @Composable
-private fun OptionChip(
+private fun ThemeChip(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -422,129 +550,28 @@ private fun OptionChip(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.2f)
-                        else -> TvColors.Background
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                        else -> MaterialTheme.colorScheme.surface
                     },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = TvColors.Primary,
-                    shape = RoundedCornerShape(8.dp)
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = if (isFocused) TvColors.OnPrimary else TvColors.Primary
-                    )
-                }
-                Text(
-                    text = text,
-                    style = TvTypography.LabelMedium,
-                    color = when {
-                        isFocused -> TvColors.OnPrimary
-                        isSelected -> TvColors.Primary
-                        else -> TvColors.TextPrimary
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsSlider(
-    title: String,
-    value: Int,
-    range: IntRange,
-    valueLabel: (Int) -> String,
-    onValueChange: (Int) -> Unit
-) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
             Text(
-                text = title,
-                style = TvTypography.BodyMedium,
-                color = TvColors.TextPrimary
-            )
-            Text(
-                text = valueLabel(value),
-                style = TvTypography.BodyMedium,
-                color = TvColors.Primary
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(range.count()) { index ->
-                val itemValue = range.first + index
-                OptionChip(
-                    text = valueLabel(itemValue),
-                    isSelected = itemValue == value,
-                    onClick = { onValueChange(itemValue) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SiteChip(
-    site: Site,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.2f)
-                        else -> TvColors.Background
-                    },
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .border(
-                    width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = TvColors.Primary,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = if (isFocused) TvColors.OnPrimary else TvColors.Primary
-                    )
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                color = when {
+                    isFocused -> MaterialTheme.colorScheme.onPrimary
+                    isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+                    else -> MaterialTheme.colorScheme.onSurface
                 }
-                Text(
-                    text = site.name ?: site.key ?: "",
-                    style = TvTypography.LabelMedium,
-                    color = when {
-                        isFocused -> TvColors.OnPrimary
-                        isSelected -> TvColors.Primary
-                        else -> TvColors.TextPrimary
-                    }
-                )
-            }
+            )
         }
     }
 }

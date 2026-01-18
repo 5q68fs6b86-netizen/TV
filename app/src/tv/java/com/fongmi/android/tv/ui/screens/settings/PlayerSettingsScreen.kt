@@ -35,17 +35,24 @@ import com.fongmi.android.tv.Setting
 import com.fongmi.android.tv.ui.components.FocusableItem
 
 /**
- * Danmu (Barrage) Settings Screen
+ * Player Settings Screen with all player options from original XML
  */
 @Composable
-fun DanmuSettingsScreen(
+fun PlayerSettingsScreen(
     onBackClick: () -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
     
-    // Danmu settings state - use safe defaults if methods don't exist
-    var danmuSpeed by remember { mutableIntStateOf(Setting.getDanmuSpeed()) }
-    var danmuAlpha by remember { mutableIntStateOf(Setting.getDanmuAlpha()) }
+    // Player settings state
+    var player by remember { mutableIntStateOf(Setting.getPlayer()) }
+    var decode by remember { mutableIntStateOf(Setting.getDecode(player)) }
+    var render by remember { mutableIntStateOf(Setting.getRender()) }
+    var scale by remember { mutableIntStateOf(Setting.getScale()) }
+    var flag by remember { mutableIntStateOf(Setting.getFlag()) }
+    var tunnel by remember { mutableIntStateOf(if (Setting.isTunnel()) 1 else 0) }
+    var http by remember { mutableIntStateOf(Setting.getHttp()) }
+    var buffer by remember { mutableIntStateOf(Setting.getBuffer()) }
+    var rtsp by remember { mutableIntStateOf(Setting.getRtsp()) }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -72,13 +79,13 @@ fun DanmuSettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DanmuIconButton(
+            SettingsIconButton(
                 icon = Icons.AutoMirrored.Filled.ArrowBack,
                 onClick = onBackClick,
                 modifier = Modifier.focusRequester(focusRequester)
             )
             Text(
-                text = "弹幕设置",
+                text = "播放设置",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -89,30 +96,129 @@ fun DanmuSettingsScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 弹幕速度
+            // 播放器选择
             item {
-                DanmuSelector(
-                    title = "弹幕速度",
-                    options = listOf("极慢", "慢", "正常", "快", "极快"),
-                    selectedIndex = danmuSpeed.coerceIn(0, 4),
+                SettingSelector(
+                    title = "播放器",
+                    options = listOf("系统", "ExoPlayer", "IJKPlayer"),
+                    selectedIndex = player,
                     onSelect = { index ->
-                        danmuSpeed = index
-                        Setting.putDanmuSpeed(index)
+                        player = index
+                        Setting.putPlayer(index)
                     }
                 )
             }
 
-            // 弹幕透明度
+            // 解码方式
             item {
-                DanmuSelector(
-                    title = "弹幕透明度",
-                    options = listOf("20%", "40%", "60%", "80%", "100%"),
-                    selectedIndex = ((danmuAlpha - 20) / 20).coerceIn(0, 4),
+                SettingSelector(
+                    title = "解码",
+                    options = listOf("软解", "硬解"),
+                    selectedIndex = decode,
                     onSelect = { index ->
-                        val alpha = (index + 1) * 20
-                        danmuAlpha = alpha
-                        Setting.putDanmuAlpha(alpha)
+                        decode = index
+                        Setting.putDecode(player, index)
                     }
+                )
+            }
+
+            // 渲染
+            item {
+                SettingSelector(
+                    title = "渲染",
+                    options = listOf("SurfaceView", "TextureView"),
+                    selectedIndex = render,
+                    onSelect = { index ->
+                        render = index
+                        Setting.putRender(index)
+                    }
+                )
+            }
+
+            // 画面比例
+            item {
+                SettingSelector(
+                    title = "画面比例",
+                    options = listOf("默认", "16:9", "4:3", "填充", "原始", "裁剪"),
+                    selectedIndex = scale,
+                    onSelect = { index ->
+                        scale = index
+                        Setting.putScale(index)
+                    }
+                )
+            }
+
+            // 线路选择
+            item {
+                SettingSelector(
+                    title = "线路",
+                    options = listOf("自动", "手动"),
+                    selectedIndex = flag,
+                    onSelect = { index ->
+                        flag = index
+                        Setting.putFlag(index)
+                    }
+                )
+            }
+
+            // Tunnel 模式
+            item {
+                SettingSelector(
+                    title = "隧道播放",
+                    options = listOf("关闭", "开启"),
+                    selectedIndex = tunnel,
+                    onSelect = { index ->
+                        tunnel = index
+                        Setting.putTunnel(index == 1)
+                    }
+                )
+            }
+
+            // HTTP 库
+            item {
+                SettingSelector(
+                    title = "HTTP",
+                    options = listOf("OkHttp", "Cronet", "默认"),
+                    selectedIndex = http,
+                    onSelect = { index ->
+                        http = index
+                        Setting.putHttp(index)
+                    }
+                )
+            }
+
+            // 缓冲倍数
+            item {
+                SettingSelector(
+                    title = "缓冲",
+                    options = listOf("0.5x", "1x", "1.5x", "2x", "3x", "5x"),
+                    selectedIndex = buffer.coerceIn(0, 5),
+                    onSelect = { index ->
+                        buffer = index
+                        Setting.putBuffer(index)
+                    }
+                )
+            }
+
+            // RTSP
+            item {
+                SettingSelector(
+                    title = "RTSP",
+                    options = listOf("UDP", "TCP", "自动"),
+                    selectedIndex = rtsp,
+                    onSelect = { index ->
+                        rtsp = index
+                        Setting.putRtsp(index)
+                    }
+                )
+            }
+
+            // UA 设置
+            item {
+                SettingTextItem(
+                    title = "User-Agent",
+                    value = Setting.getUa().ifEmpty { "默认" },
+                    onClick = { /* Show UA input dialog */ }
                 )
             }
 
@@ -124,7 +230,7 @@ fun DanmuSettingsScreen(
 }
 
 @Composable
-private fun DanmuSelector(
+private fun SettingSelector(
     title: String,
     options: List<String>,
     selectedIndex: Int,
@@ -149,7 +255,7 @@ private fun DanmuSelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             options.forEachIndexed { index, option ->
-                DanmuChip(
+                OptionChip(
                     text = option,
                     isSelected = index == selectedIndex,
                     onClick = { onSelect(index) }
@@ -160,7 +266,7 @@ private fun DanmuSelector(
 }
 
 @Composable
-private fun DanmuChip(
+private fun OptionChip(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -197,7 +303,46 @@ private fun DanmuChip(
 }
 
 @Composable
-private fun DanmuIconButton(
+private fun SettingTextItem(
+    title: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    FocusableItem(onClick = onClick) { isFocused ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
+                           else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsIconButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
