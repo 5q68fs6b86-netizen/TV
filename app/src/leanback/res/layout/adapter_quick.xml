@@ -1,42 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/selector_item"
+    style="@style/TVQuickCard"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:nextFocusUp="@id/part"
-    android:orientation="vertical">
+    android:nextFocusUp="@id/part">
 
-    <TextView
-        android:id="@+id/name"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        android:background="@drawable/selector_item_enhanced"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_medium">
 
-    <TextView
-        android:id="@+id/site"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:singleLine="true"
-        android:textColor="#ccffffff"
-        android:textSize="14sp"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+        <TextView
+            android:id="@+id/name"
+            style="@style/TVTextAppearance.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textStyle="bold"
+            tools:text="蜘蛛人" />
 
-    <TextView
-        android:id="@+id/remark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:singleLine="true"
-        android:textColor="#ccffffff"
-        android:textSize="14sp"
-        tools:text="1080p" />
+        <TextView
+            android:id="@+id/site"
+            style="@style/TVTextAppearance.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_micro"
+            android:singleLine="true"
+            tools:text="泥巴"
+            tools:visibility="visible" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/remark"
+            style="@style/TVTextAppearance.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_micro"
+            android:singleLine="true"
+            tools:text="1080p" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

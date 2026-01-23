@@ -11,25 +11,24 @@
         android:id="@+id/image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@color/black_20"
+        android:layout_margin="@dimen/card_margin_medium"
+        android:background="@color/media_thumbnail_placeholder"
         android:scaleType="center"
         app:shapeAppearanceOverlay="@style/Vod.Circle"
         tools:src="@drawable/ic_img_loading" />
 
     <TextView
         android:id="@+id/name"
+        style="@style/TVTextAppearance.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/image"
         android:layout_alignStart="@+id/image"
         android:layout_alignEnd="@+id/image"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/spacing_tiny"
         android:ellipsize="marquee"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
         tools:text="蜘蛛人" />
 
     <FrameLayout

@@ -352,4 +352,39 @@
         <item name="android:windowExitAnimation">@android:anim/slide_out_right</item>
     </style>
 
+    <!-- ========== Chip/膠囊按鈕樣式 ========== -->
+    <style name="TVChip" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/selector_item_enhanced</item>
+        <item name="android:gravity">center</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">marquee</item>
+    </style>
+
+    <style name="TVChip.Text" parent="TVChip">
+        <item name="android:textAppearance">@style/TVTextAppearance.Body</item>
+        <item name="android:textColor">@color/text_primary_high_emphasis</item>
+    </style>
+
+    <style name="TVChip.Small" parent="TVChip">
+        <item name="android:textAppearance">@style/TVTextAppearance.Caption</item>
+        <item name="android:textColor">@color/text_primary_high_emphasis</item>
+    </style>
+
+    <!-- ========== 快捷項卡片樣式 ========== -->
+    <style name="TVQuickCard" parent="TVCard.Small">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">@dimen/spacing_small</item>
+    </style>
+
+    <style name="TVQuickCard.Content" parent="">
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/spacing_medium</item>
+        <item name="android:background">@drawable/selector_item_enhanced</item>
+    </style>
+
 </resources>

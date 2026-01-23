@@ -2,32 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="@drawable/selector_group"
+    android:layout_height="@dimen/list_item_height_medium"
+    android:background="@drawable/selector_item_enhanced"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:gravity="center"
     android:orientation="horizontal"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp">
+    android:paddingHorizontal="@dimen/spacing_large">
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_marginEnd="12dp"
+        android:layout_width="@dimen/icon_size_xlarge"
+        android:layout_height="@dimen/icon_size_xlarge"
+        android:layout_marginEnd="@dimen/spacing_medium"
         android:scaleType="fitCenter"
         android:visibility="gone" />
 
     <TextView
         android:id="@+id/name"
+        style="@style/TVTextAppearance.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:ellipsize="marquee"
         android:singleLine="true"
         android:textColor="@color/group"
-        android:textSize="16sp"
         android:textStyle="bold"
         tools:text="收藏" />
 

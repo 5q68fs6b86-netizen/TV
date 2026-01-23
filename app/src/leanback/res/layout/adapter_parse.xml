@@ -2,9 +2,6 @@
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/text"
-    style="@style/VideoControlButton.Secondary"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp"
+    style="@style/TVChip.Text"
+    android:paddingVertical="@dimen/spacing_small"
     tools:text="解析" />
