@@ -11,337 +11,238 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/spacing_xlarge">
 
+        <!-- Player -->
         <LinearLayout
             android:id="@+id/player"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player" />
 
             <TextView
                 android:id="@+id/playerText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="EXO" />
 
         </LinearLayout>
 
+        <!-- Decode -->
         <LinearLayout
             android:id="@+id/decode"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_decode"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_decode" />
 
             <TextView
                 android:id="@+id/decodeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="Hard" />
 
         </LinearLayout>
 
+        <!-- Render -->
         <LinearLayout
             android:id="@+id/render"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_render"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_render" />
 
             <TextView
                 android:id="@+id/renderText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="Surface" />
 
         </LinearLayout>
 
+        <!-- Scale -->
         <LinearLayout
             android:id="@+id/scale"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_scale"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_scale" />
 
             <TextView
                 android:id="@+id/scaleText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="16:9" />
 
         </LinearLayout>
 
+        <!-- Caption -->
         <LinearLayout
             android:id="@+id/caption"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_caption"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_caption" />
 
             <TextView
                 android:id="@+id/captionText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="開" />
 
         </LinearLayout>
 
+        <!-- Flag -->
         <LinearLayout
             android:id="@+id/flag"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_flag"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_flag" />
 
             <TextView
                 android:id="@+id/flagText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="自動" />
 
         </LinearLayout>
 
+        <!-- Tunnel -->
         <LinearLayout
             android:id="@+id/tunnel"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_exo_tunnel"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_exo_tunnel" />
 
             <TextView
                 android:id="@+id/tunnelText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="關" />
 
         </LinearLayout>
 
+        <!-- HTTP -->
         <LinearLayout
             android:id="@+id/http"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_exo_http"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_exo_http" />
 
             <TextView
                 android:id="@+id/httpText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="OkHttp" />
 
         </LinearLayout>
 
+        <!-- Buffer -->
         <LinearLayout
             android:id="@+id/buffer"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_exo_buffer"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_exo_buffer" />
 
             <TextView
                 android:id="@+id/bufferText"
+                style="@style/TVSettingValue"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
                 tools:text="1" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="@string/times"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginStart="@dimen/spacing_tiny"
+                android:text="@string/times" />
 
         </LinearLayout>
 
+        <!-- RTSP -->
         <LinearLayout
             android:id="@+id/rtsp"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_rtsp"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_rtsp" />
 
             <TextView
                 android:id="@+id/rtspText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="UDP" />
 
         </LinearLayout>
 
+        <!-- UA -->
         <LinearLayout
             android:id="@+id/ua"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
+                style="@style/TVSettingLabel"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
                 android:layout_weight="0.3"
-                android:text="@string/player_ua"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_ua" />
 
             <TextView
                 android:id="@+id/uaText"
+                style="@style/TVSettingValue"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="0.7"
-                android:ellipsize="middle"
-                android:gravity="end"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="18sp"
                 tools:text="okhttp/4.11.0" />
 
         </LinearLayout>
+
     </LinearLayout>
+
 </androidx.core.widget.NestedScrollView>

@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp">
+    android:paddingStart="@dimen/spacing_small"
+    android:paddingEnd="@dimen/spacing_small">
 
     <com.google.android.material.slider.Slider
         android:id="@+id/timeBar"
@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/timeBar"
         android:layout_alignStart="@id/timeBar"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/spacing_tiny"
         android:textColor="#80FFFFFF"
         android:textSize="12sp"
         tools:text="01:23" />
@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/timeBar"
         android:layout_alignEnd="@id/timeBar"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/spacing_tiny"
         android:textColor="#80FFFFFF"
         android:textSize="12sp"
         tools:text="1:45:00" />

@@ -15,10 +15,10 @@
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:paddingStart="26dp"
-            android:paddingTop="12dp"
-            android:paddingEnd="26dp"
-            android:paddingBottom="24dp"
+            android:paddingStart="@dimen/spacing_xlarge"
+            android:paddingTop="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_xlarge"
+            android:paddingBottom="@dimen/spacing_xlarge"
             app:focusOutEnd="true"
             app:focusOutFront="true" />
 
