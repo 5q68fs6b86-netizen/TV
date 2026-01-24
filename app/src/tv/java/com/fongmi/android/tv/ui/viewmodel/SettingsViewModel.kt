@@ -206,5 +206,81 @@ class SettingsViewModel @Inject constructor(
     fun checkUpdate() {
         // This would check for updates
     }
+
+    // ========== Dialog control methods ==========
+
+    fun showVodConfigDialog() {
+        _uiState.update { it.copy(showVodConfigDialog = true) }
+    }
+
+    fun dismissVodConfigDialog() {
+        _uiState.update { it.copy(showVodConfigDialog = false) }
+    }
+
+    fun showLiveConfigDialog() {
+        _uiState.update { it.copy(showLiveConfigDialog = true) }
+    }
+
+    fun dismissLiveConfigDialog() {
+        _uiState.update { it.copy(showLiveConfigDialog = false) }
+    }
+
+    fun showWallConfigDialog() {
+        _uiState.update { it.copy(showWallConfigDialog = true) }
+    }
+
+    fun dismissWallConfigDialog() {
+        _uiState.update { it.copy(showWallConfigDialog = false) }
+    }
+
+    fun showSiteDialog() {
+        _uiState.update { it.copy(showSiteDialog = true) }
+    }
+
+    fun dismissSiteDialog() {
+        _uiState.update { it.copy(showSiteDialog = false) }
+    }
+
+    fun showProxyDialogAction() {
+        _uiState.update { it.copy(showProxyDialog = true) }
+    }
+
+    fun dismissProxyDialog() {
+        _uiState.update { it.copy(showProxyDialog = false) }
+    }
+
+    fun showDohDialogAction() {
+        _uiState.update { it.copy(showDohDialog = true) }
+    }
+
+    fun dismissDohDialog() {
+        _uiState.update { it.copy(showDohDialog = false) }
+    }
+
+    fun showBackupDialogAction() {
+        _uiState.update { it.copy(showBackupDialog = true) }
+    }
+
+    fun dismissBackupDialog() {
+        _uiState.update { it.copy(showBackupDialog = false) }
+    }
+
+    fun setProxy(proxy: String) {
+        Setting.putProxy(proxy)
+    }
+
+    fun setDoh(doh: com.github.catvod.bean.Doh) {
+        Setting.putDoh(doh.toString())
+    }
+
+    fun restoreBackup(file: java.io.File) {
+        viewModelScope.launch {
+            try {
+                com.fongmi.android.tv.db.AppDatabase.restore(file)
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
 }
 

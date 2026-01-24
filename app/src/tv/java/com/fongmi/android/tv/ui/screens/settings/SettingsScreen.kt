@@ -54,6 +54,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.dialog.BackupDialog
+import com.fongmi.android.tv.ui.dialog.ConfigDialog
+import com.fongmi.android.tv.ui.dialog.ConfigType
+import com.fongmi.android.tv.ui.dialog.DohDialog
+import com.fongmi.android.tv.ui.dialog.ProxyDialog
+import com.fongmi.android.tv.ui.dialog.SiteDialog
 import com.fongmi.android.tv.ui.viewmodel.SettingsViewModel
 
 /**
@@ -122,8 +128,8 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "点播配置",
                     value = uiState.currentSite?.name ?: "未配置",
-                    onClick = onVodConfigClick,
-                    onHomeClick = { uiState.currentSite?.let { viewModel.setHomeSite(it) } },
+                    onClick = { viewModel.showVodConfigDialog() },
+                    onHomeClick = { viewModel.showSiteDialog() },
                     onHistoryClick = { /* Show VOD history dialog */ }
                 )
             }
@@ -133,7 +139,7 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "直播配置",
                     value = "未配置",
-                    onClick = onLiveConfigClick,
+                    onClick = { viewModel.showLiveConfigDialog() },
                     onHomeClick = { /* Set live home */ },
                     onHistoryClick = { /* Show live history */ }
                 )
@@ -144,7 +150,7 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "壁纸配置",
                     value = "默认",
-                    onClick = onWallConfigClick,
+                    onClick = { viewModel.showWallConfigDialog() },
                     onHomeClick = { /* Set default wall */ },
                     onHistoryClick = null,
                     historyIcon = Icons.Default.Refresh,
@@ -185,7 +191,7 @@ fun SettingsScreen(
                     SettingsValueButton(
                         title = "代理",
                         value = viewModel.getProxyText(),
-                        onClick = { viewModel.showProxyDialog() },
+                        onClick = { viewModel.showProxyDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -205,7 +211,7 @@ fun SettingsScreen(
                     )
                     SettingsButton(
                         title = "恢复",
-                        onClick = { viewModel.restore() },
+                        onClick = { viewModel.showBackupDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -226,7 +232,7 @@ fun SettingsScreen(
                     SettingsValueButton(
                         title = "DOH",
                         value = viewModel.getDohText(),
-                        onClick = { viewModel.showDohDialog() },
+                        onClick = { viewModel.showDohDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -329,6 +335,87 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+
+    // ========== Dialogs ==========
+
+    // VOD Config Dialog
+    if (uiState.showVodConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.VOD,
+            onDismiss = { viewModel.dismissVodConfigDialog() },
+            onConfirm = { config ->
+                viewModel.dismissVodConfigDialog()
+                // Handle config change
+            }
+        )
+    }
+
+    // Live Config Dialog
+    if (uiState.showLiveConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.LIVE,
+            onDismiss = { viewModel.dismissLiveConfigDialog() },
+            onConfirm = { config ->
+                viewModel.dismissLiveConfigDialog()
+            }
+        )
+    }
+
+    // Wall Config Dialog
+    if (uiState.showWallConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.WALL,
+            onDismiss = { viewModel.dismissWallConfigDialog() },
+            onConfirm = { config ->
+                viewModel.dismissWallConfigDialog()
+            }
+        )
+    }
+
+    // Site Dialog
+    if (uiState.showSiteDialog) {
+        SiteDialog(
+            onDismiss = { viewModel.dismissSiteDialog() },
+            onSiteSelected = { site ->
+                viewModel.setHomeSite(site)
+                viewModel.dismissSiteDialog()
+            }
+        )
+    }
+
+    // Proxy Dialog
+    if (uiState.showProxyDialog) {
+        ProxyDialog(
+            onDismiss = { viewModel.dismissProxyDialog() },
+            onConfirm = { proxy ->
+                viewModel.setProxy(proxy)
+                viewModel.dismissProxyDialog()
+            }
+        )
+    }
+
+    // DOH Dialog
+    if (uiState.showDohDialog) {
+        DohDialog(
+            selectedIndex = uiState.dohIndex,
+            onDismiss = { viewModel.dismissDohDialog() },
+            onSelect = { doh ->
+                viewModel.setDoh(doh)
+                viewModel.dismissDohDialog()
+            }
+        )
+    }
+
+    // Backup Dialog
+    if (uiState.showBackupDialog) {
+        BackupDialog(
+            onDismiss = { viewModel.dismissBackupDialog() },
+            onRestore = { file ->
+                viewModel.restoreBackup(file)
+                viewModel.dismissBackupDialog()
+            }
+        )
     }
 }
 

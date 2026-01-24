@@ -63,7 +63,16 @@ data class SettingsUiState(
     val sites: List<Site> = emptyList(),
     val currentSite: Site? = null,
     val playerSettings: PlayerSettings = PlayerSettings(),
-    val displaySettings: DisplaySettings = DisplaySettings()
+    val displaySettings: DisplaySettings = DisplaySettings(),
+    // Dialog states
+    val showVodConfigDialog: Boolean = false,
+    val showLiveConfigDialog: Boolean = false,
+    val showWallConfigDialog: Boolean = false,
+    val showSiteDialog: Boolean = false,
+    val showProxyDialog: Boolean = false,
+    val showDohDialog: Boolean = false,
+    val showBackupDialog: Boolean = false,
+    val dohIndex: Int = 0
 )
 
 data class PlayerSettings(
