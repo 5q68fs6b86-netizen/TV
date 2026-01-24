@@ -14,7 +14,9 @@ import com.fongmi.android.tv.ui.screens.history.HistoryScreen
 import com.fongmi.android.tv.ui.screens.home.HomeScreen
 import com.fongmi.android.tv.ui.screens.live.LiveScreen
 import com.fongmi.android.tv.ui.screens.player.PlayerScreen
+import com.fongmi.android.tv.ui.screens.push.PushScreen
 import com.fongmi.android.tv.ui.screens.search.SearchScreen
+import com.fongmi.android.tv.ui.screens.settings.CustomSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.DanmuSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.PlayerSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.SettingsScreen
@@ -72,6 +74,9 @@ sealed class TvRoute(val route: String) {
     data object SettingsPlayer : TvRoute("settings/player")
     data object SettingsDanmu : TvRoute("settings/danmu")
     data object SettingsCustom : TvRoute("settings/custom")
+
+    // Push screen
+    data object Push : TvRoute("push")
 
     companion object {
         fun encode(value: String): String =
@@ -270,9 +275,19 @@ fun TvNavGraph(
         }
 
         composable(TvRoute.SettingsCustom.route) {
-            PlaceholderScreen(
-                title = "自定义设置",
-                onBack = { navController.popBackStack() }
+            CustomSettingsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ========== Push Screen ==========
+
+        composable(TvRoute.Push.route) {
+            PushScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlayUrl = { url ->
+                    navController.navigate(TvRoute.Player.createRoute(url, "", ""))
+                }
             )
         }
     }

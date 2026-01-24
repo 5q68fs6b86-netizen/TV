@@ -1,5 +1,9 @@
 package com.fongmi.android.tv.ui.screens.live
 
+import android.view.KeyEvent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +44,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
-import android.view.KeyEvent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,6 +55,7 @@ import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.LiveViewModel
+import kotlinx.coroutines.delay
 
 /**
  * Live TV Screen - displays live TV groups and channels
@@ -287,6 +292,56 @@ fun LiveScreen(
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    // 数字输入自动确认
+    LaunchedEffect(uiState.channelNumber) {
+        if (uiState.channelNumber.isNotEmpty()) {
+            delay(2000) // 2秒后自动确认
+            val channel = viewModel.confirmNumber()
+            if (channel != null) {
+                val url = viewModel.prepareChannelForPlayback(channel)
+                if (url.isNotEmpty()) {
+                    onChannelClick(url)
+                }
+            }
+        }
+    }
+
+    // 频道号输入显示
+    AnimatedVisibility(
+        visible = uiState.channelNumber.isNotEmpty(),
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        ChannelNumberOverlay(number = uiState.channelNumber)
+    }
+}
+
+/**
+ * 频道号输入显示
+ */
+@Composable
+private fun ChannelNumberOverlay(number: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(32.dp)
+                .background(
+                    color = TvColors.Surface.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = number,
+                style = TvTypography.DisplayMedium,
+                color = TvColors.Primary
+            )
+        }
     }
 }
 
