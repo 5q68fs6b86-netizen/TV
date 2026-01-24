@@ -276,7 +276,7 @@ class SettingsViewModel @Inject constructor(
     fun restoreBackup(file: java.io.File) {
         viewModelScope.launch {
             try {
-                com.fongmi.android.tv.db.AppDatabase.restore(file, object : com.fongmi.android.tv.impl.Callback {
+                com.fongmi.android.tv.db.AppDatabase.restore(file, object : com.fongmi.android.tv.impl.Callback() {
                     override fun success() {
                         // Restore completed
                     }
