@@ -313,8 +313,9 @@ private fun CustomValueButton(
     onLongClick: (() -> Unit)? = null
 ) {
     FocusableItem(
-        onClick = onClick,
-        onLongClick = onLongClick,
+        onClick = {
+            onClick()
+        },
         modifier = modifier
     ) { isFocused ->
         Row(
