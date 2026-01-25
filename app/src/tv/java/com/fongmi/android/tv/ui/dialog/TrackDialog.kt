@@ -29,7 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.components.TabChip
 
 /**
  * 轨道类型
@@ -143,7 +145,7 @@ fun TrackDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TrackButton(text = "关闭", onClick = onDismiss)
+                    DialogButton(text = "关闭", onClick = onDismiss)
                 }
             }
         }
@@ -265,46 +267,9 @@ fun MultiTrackDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TrackButton(text = "关闭", onClick = onDismiss)
+                    DialogButton(text = "关闭", onClick = onDismiss)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun TabChip(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = when {
-                        isFocused -> MaterialTheme.colorScheme.primary
-                        isSelected -> MaterialTheme.colorScheme.primaryContainer
-                        else -> MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .border(
-                    width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = when {
-                    isFocused -> MaterialTheme.colorScheme.onPrimary
-                    isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
         }
     }
 }
@@ -368,32 +333,6 @@ private fun TrackItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun TrackButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

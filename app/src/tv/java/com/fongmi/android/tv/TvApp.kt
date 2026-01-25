@@ -9,6 +9,7 @@ import android.os.Looper
 import androidx.core.os.HandlerCompat
 import cat.ereza.customactivityoncrash.config.CaocConfig
 import com.fongmi.android.tv.ui.activity.CrashActivity
+import com.fongmi.android.tv.ui.theme.ThemeState
 import com.fongmi.android.tv.utils.LanguageUtil
 import com.fongmi.android.tv.utils.Notify
 import com.github.catvod.Init
@@ -67,7 +68,8 @@ class TvApp : Application() {
         OkHttp.get().setProxy(Setting.getProxy())
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()))
 
-        // Theme state will initialize with defaults lazily
+        // Initialize theme state from saved preferences
+        ThemeState.initialize()
 
         // Setup crash handler
         CaocConfig.Builder.create()

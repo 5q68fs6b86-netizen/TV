@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fongmi.android.tv.api.config.LiveConfig
 import com.fongmi.android.tv.bean.Live
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
 
 /**
@@ -119,7 +120,7 @@ fun LiveDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    LiveButton(text = "关闭", onClick = onDismiss)
+                    DialogButton(text = "关闭", onClick = onDismiss)
                 }
             }
         }
@@ -184,32 +185,6 @@ private fun LiveItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun LiveButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

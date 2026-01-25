@@ -34,7 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fongmi.android.tv.api.config.VodConfig
 import com.fongmi.android.tv.bean.Site
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.components.TabChip
 
 /**
  * 站点模式
@@ -112,17 +114,17 @@ fun SiteDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ModeChip(
+                    TabChip(
                         text = "首页",
                         isSelected = currentMode == SiteMode.NORMAL,
                         onClick = { currentMode = SiteMode.NORMAL }
                     )
-                    ModeChip(
+                    TabChip(
                         text = "搜索",
                         isSelected = currentMode == SiteMode.SEARCH,
                         onClick = { currentMode = SiteMode.SEARCH }
                     )
-                    ModeChip(
+                    TabChip(
                         text = "换源",
                         isSelected = currentMode == SiteMode.CHANGE,
                         onClick = { currentMode = SiteMode.CHANGE }
@@ -178,7 +180,7 @@ fun SiteDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     if (currentMode != SiteMode.NORMAL) {
-                        SiteActionButton(
+                        DialogButton(
                             text = "全选",
                             onClick = {
                                 sites.forEach { site ->
@@ -191,7 +193,7 @@ fun SiteDialog(
                             }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        SiteActionButton(
+                        DialogButton(
                             text = "取消全选",
                             onClick = {
                                 sites.forEach { site ->
@@ -205,50 +207,13 @@ fun SiteDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    SiteActionButton(
+                    DialogButton(
                         text = "关闭",
                         isPrimary = true,
                         onClick = onDismiss
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ModeChip(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = when {
-                        isFocused -> MaterialTheme.colorScheme.primary
-                        isSelected -> MaterialTheme.colorScheme.primaryContainer
-                        else -> MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .border(
-                    width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = when {
-                    isFocused -> MaterialTheme.colorScheme.onPrimary
-                    isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
         }
     }
 }
@@ -322,39 +287,6 @@ private fun SiteItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SiteActionButton(
-    text: String,
-    onClick: () -> Unit,
-    isPrimary: Boolean = false
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = when {
-                        isFocused -> MaterialTheme.colorScheme.primary
-                        isPrimary -> MaterialTheme.colorScheme.primaryContainer
-                        else -> MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = when {
-                    isFocused -> MaterialTheme.colorScheme.onPrimary
-                    isPrimary -> MaterialTheme.colorScheme.onPrimaryContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fongmi.android.tv.db.AppDatabase
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.github.catvod.utils.Path
 import java.io.File
@@ -132,7 +133,7 @@ fun BackupDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    BackupButton(
+                    DialogButton(
                         text = "关闭",
                         onClick = onDismiss
                     )
@@ -201,32 +202,6 @@ private fun BackupItem(
                           else MaterialTheme.colorScheme.onErrorContainer
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun BackupButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
