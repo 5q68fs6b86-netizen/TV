@@ -6,19 +6,19 @@
 ## 实现批次
 
 ### 第一批：播放器增强
-- [ ] TrackDialog - 音轨/字幕轨道选择
-- [ ] 画中画模式支持
-- [ ] 投屏功能（基础）
+- [x] TrackDialog - 音轨/字幕轨道选择
+- [x] 画中画模式支持
+- [x] 投屏功能（基础）
 
 ### 第二批：搜索功能
-- [ ] 多站点聚合搜索
-- [ ] 搜索历史管理
-- [ ] 搜索建议
+- [x] 多站点聚合搜索
+- [x] 搜索历史管理
+- [x] 搜索建议
 
 ### 第三批：直播功能
-- [ ] EPG 节目单显示
-- [ ] 频道收藏
-- [ ] 回看功能
+- [x] EPG 节目单显示
+- [x] 频道收藏
+- [x] 回看功能
 
 ### 第四批：数据管理
 - [ ] 历史记录清理
@@ -32,41 +32,29 @@
 
 ---
 
-## 第一批详细计划：播放器增强
-
-### 1. TrackDialog（音轨/字幕选择）
-
-**文件**: `ui/dialog/TrackDialog.kt`
-
-**功能**:
-- 显示可用音轨列表
-- 显示可用字幕轨道列表
-- 支持切换选择
-
-**依赖**: PlayerScreen, PlayerViewModel
-
-### 2. 画中画模式
-
-**修改文件**:
-- `PlayerScreen.kt` - 添加 PiP 按钮和逻辑
-- `PlayerViewModel.kt` - 添加 PiP 状态管理
-- `AndroidManifest.xml` - 添加 PiP 权限声明
-
-### 3. 投屏功能（基础）
-
-**新增文件**:
-- `ui/dialog/CastDialog.kt` - 投屏设备选择
-
-**修改文件**:
-- `PlayerScreen.kt` - 添加投屏按钮
-
----
-
 ## 执行状态
 
 - [x] 计划创建
-- [ ] 第一批执行中
-- [ ] 第二批待执行
-- [ ] 第三批待执行
+- [x] 第一批完成
+- [x] 第二批完成
+- [x] 第三批完成
 - [ ] 第四批待执行
 - [ ] 第五批待执行
+
+## 第一批完成详情
+
+### 1. TrackDialog（音轨/字幕选择）✅
+- 新建 `ui/dialog/TrackDialog.kt`
+- 包含 `TrackType`、`TrackInfo`、`TrackDialog`、`MultiTrackDialog`
+- 更新 `PlayerViewModel.kt` 添加轨道状态管理
+- 更新 `PlayerScreen.kt` 集成轨道监听和对话框
+
+### 2. 画中画模式 ✅
+- 更新 `PlayerViewModel.kt` 添加 PiP 状态（`isInPipMode`、`enterPipMode()`、`exitPipMode()`）
+- 注：完整 PiP 需要 Activity 层配合，已预留接口
+
+### 3. 投屏功能 ✅
+- 新建 `ui/dialog/CastDialog.kt`
+- 包含 `CastDevice`、`CastDeviceType`、`CastDialog`
+- 更新 `PlayerViewModel.kt` 添加投屏状态和方法
+- 更新 `PlayerScreen.kt` 集成 CastDialog

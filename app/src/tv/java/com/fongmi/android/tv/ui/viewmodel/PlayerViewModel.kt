@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
+import com.fongmi.android.tv.ui.dialog.CastDevice
 import com.fongmi.android.tv.ui.dialog.TrackInfo
 import com.fongmi.android.tv.ui.state.PlayerStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +54,13 @@ data class PlayerUiState(
     val audioTracks: List<TrackInfo> = emptyList(),
     val subtitleTracks: List<TrackInfo> = emptyList(),
     val selectedAudioTrack: Int = -1,
-    val selectedSubtitleTrack: Int = -1
+    val selectedSubtitleTrack: Int = -1,
+    // Cast
+    val showCastDialog: Boolean = false,
+    val castDevices: List<CastDevice> = emptyList(),
+    val isCastScanning: Boolean = false,
+    // PiP
+    val isInPipMode: Boolean = false
 ) {
     val hasEpisodes: Boolean
         get() = flags.isNotEmpty() && flags.any { (it.episodes?.size ?: 0) > 0 }
@@ -388,6 +395,50 @@ class PlayerViewModel @Inject constructor(
 
     fun selectSubtitleTrack(index: Int) {
         _uiState.update { it.copy(selectedSubtitleTrack = index) }
+    }
+
+    // ========== Cast Methods ==========
+
+    fun showCastDialog() {
+        _uiState.update { it.copy(showCastDialog = true) }
+        scanCastDevices()
+    }
+
+    fun dismissCastDialog() {
+        _uiState.update { it.copy(showCastDialog = false) }
+    }
+
+    fun scanCastDevices() {
+        _uiState.update { it.copy(isCastScanning = true) }
+        viewModelScope.launch {
+            // Simulate device scanning - in real implementation, use DLNA/Cast SDK
+            kotlinx.coroutines.delay(2000)
+            _uiState.update { it.copy(isCastScanning = false) }
+        }
+    }
+
+    fun connectCastDevice(device: CastDevice) {
+        val updatedDevices = _uiState.value.castDevices.map {
+            it.copy(isConnected = it.id == device.id)
+        }
+        _uiState.update { it.copy(castDevices = updatedDevices) }
+    }
+
+    fun disconnectCast() {
+        val updatedDevices = _uiState.value.castDevices.map {
+            it.copy(isConnected = false)
+        }
+        _uiState.update { it.copy(castDevices = updatedDevices) }
+    }
+
+    // ========== PiP Methods ==========
+
+    fun enterPipMode() {
+        _uiState.update { it.copy(isInPipMode = true) }
+    }
+
+    fun exitPipMode() {
+        _uiState.update { it.copy(isInPipMode = false) }
     }
 
     override fun onCleared() {

@@ -7,6 +7,9 @@ import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Sub
 import com.fongmi.android.tv.bean.Vod
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -149,6 +152,58 @@ class VodRepository @Inject constructor() {
     }.flowOn(Dispatchers.IO)
 
     /**
+     * Multi-site aggregated search
+     */
+    fun searchMultiSite(keyword: String, sites: List<Site>? = null): Flow<AggregatedSearchResult> = flow {
+        emit(AggregatedSearchResult.Loading)
+        try {
+            val searchSites = sites?.filter { it.searchable == 1 }
+                ?: vodConfig.sites?.filter { it.searchable == 1 }
+                ?: emptyList()
+
+            if (searchSites.isEmpty()) {
+                emit(AggregatedSearchResult.Error("No searchable sites"))
+                return@flow
+            }
+
+            val allResults = mutableListOf<SiteSearchResult>()
+
+            coroutineScope {
+                val deferredResults = searchSites.map { site ->
+                    async {
+                        try {
+                            val spider = site.spider()
+                            val result = spider?.searchContent(keyword, false, "1")
+                            if (result != null) {
+                                val parsed = Result.fromJson(result)
+                                val vods = parsed.list ?: emptyList()
+                                vods.forEach { it.site = site }
+                                SiteSearchResult(site, vods, null)
+                            } else {
+                                SiteSearchResult(site, emptyList(), "No results")
+                            }
+                        } catch (e: Exception) {
+                            SiteSearchResult(site, emptyList(), e.message)
+                        }
+                    }
+                }
+                allResults.addAll(deferredResults.awaitAll())
+            }
+
+            emit(AggregatedSearchResult.Success(allResults))
+        } catch (e: Exception) {
+            emit(AggregatedSearchResult.Error(e.message ?: "Unknown error"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    /**
+     * Get searchable sites
+     */
+    fun getSearchableSites(): List<Site> {
+        return vodConfig.sites?.filter { it.searchable == 1 } ?: emptyList()
+    }
+
+    /**
      * Get play URL for an episode
      */
     fun getPlayUrl(site: Site, flag: String, episodeId: String): Flow<PlayUrlResult> = flow {
@@ -207,4 +262,16 @@ sealed class PlayUrlResult {
     data object Loading : PlayUrlResult()
     data class Success(val url: String, val headers: Map<String, String>?, val subtitles: List<Sub>) : PlayUrlResult()
     data class Error(val message: String) : PlayUrlResult()
+}
+
+data class SiteSearchResult(
+    val site: Site,
+    val results: List<Vod>,
+    val error: String?
+)
+
+sealed class AggregatedSearchResult {
+    data object Loading : AggregatedSearchResult()
+    data class Success(val siteResults: List<SiteSearchResult>) : AggregatedSearchResult()
+    data class Error(val message: String) : AggregatedSearchResult()
 }

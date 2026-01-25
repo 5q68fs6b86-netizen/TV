@@ -81,6 +81,7 @@ import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.ui.components.DanmakuOverlay
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.rememberDanmakuState
+import com.fongmi.android.tv.ui.dialog.CastDialog
 import com.fongmi.android.tv.ui.dialog.DecodeDialog
 import com.fongmi.android.tv.ui.dialog.DisplayDialog
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog
@@ -716,6 +717,18 @@ fun PlayerScreen(
                     trackSelector.setParameters(params)
                 }
             }
+        )
+    }
+
+    // Cast Dialog
+    if (uiState.showCastDialog) {
+        CastDialog(
+            devices = uiState.castDevices,
+            isScanning = uiState.isCastScanning,
+            onDismiss = { viewModel.dismissCastDialog() },
+            onSelect = { device -> viewModel.connectCastDevice(device) },
+            onRefresh = { viewModel.scanCastDevices() },
+            onDisconnect = { viewModel.disconnectCast() }
         )
     }
 }

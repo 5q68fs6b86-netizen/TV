@@ -28,10 +28,17 @@ data class LiveUiState(
     val selectedChannel: Channel? = null,
     val playUrl: String? = null,
     val error: String? = null,
-    val channelNumber: String = "",  // 数字输入缓冲
-    val showChannelInfo: Boolean = false,  // 显示频道信息
-    val currentLineIndex: Int = 0,  // 当前线路索引
-    val totalLines: Int = 0  // 总线路数
+    val channelNumber: String = "",
+    val showChannelInfo: Boolean = false,
+    val currentLineIndex: Int = 0,
+    val totalLines: Int = 0,
+    // EPG
+    val showEpgDialog: Boolean = false,
+    val epgPrograms: List<com.fongmi.android.tv.ui.dialog.EpgProgram> = emptyList(),
+    // Favorites
+    val showFavoriteDialog: Boolean = false,
+    val favoriteChannels: List<Channel> = emptyList(),
+    val isCurrentChannelFavorite: Boolean = false
 )
 
 /**
@@ -114,7 +121,8 @@ class LiveViewModel @Inject constructor(
      * Select a channel
      */
     fun selectChannel(channel: Channel) {
-        _uiState.update { it.copy(selectedChannel = channel) }
+        val isFavorite = liveRepository.isFavorite(channel)
+        _uiState.update { it.copy(selectedChannel = channel, isCurrentChannelFavorite = isFavorite) }
     }
 
     /**
@@ -277,6 +285,59 @@ class LiveViewModel @Inject constructor(
      */
     fun hideChannelInfo() {
         _uiState.update { it.copy(showChannelInfo = false) }
+    }
+
+    // ========== EPG Methods ==========
+
+    fun showEpgDialog() {
+        val channel = _uiState.value.selectedChannel ?: return
+        val programs = liveRepository.getEpgPrograms(channel)
+        _uiState.update { it.copy(showEpgDialog = true, epgPrograms = programs) }
+    }
+
+    fun dismissEpgDialog() {
+        _uiState.update { it.copy(showEpgDialog = false) }
+    }
+
+    fun playCatchup(program: com.fongmi.android.tv.ui.dialog.EpgProgram): String? {
+        return program.catchupUrl
+    }
+
+    // ========== Favorite Methods ==========
+
+    fun showFavoriteDialog() {
+        val favorites = liveRepository.getFavoriteChannels()
+        _uiState.update { it.copy(showFavoriteDialog = true, favoriteChannels = favorites) }
+    }
+
+    fun dismissFavoriteDialog() {
+        _uiState.update { it.copy(showFavoriteDialog = false) }
+    }
+
+    fun toggleFavorite() {
+        val channel = _uiState.value.selectedChannel ?: return
+        val isFavorite = liveRepository.toggleFavorite(channel)
+        _uiState.update { it.copy(isCurrentChannelFavorite = isFavorite) }
+    }
+
+    fun removeFavorite(channel: Channel) {
+        liveRepository.removeFavorite(channel)
+        _uiState.update { it.copy(favoriteChannels = liveRepository.getFavoriteChannels()) }
+    }
+
+    fun clearFavorites() {
+        liveRepository.clearFavorites()
+        _uiState.update { it.copy(favoriteChannels = emptyList()) }
+    }
+
+    fun isFavorite(channel: Channel): Boolean {
+        return liveRepository.isFavorite(channel)
+    }
+
+    private fun updateFavoriteStatus() {
+        val channel = _uiState.value.selectedChannel
+        val isFavorite = channel?.let { liveRepository.isFavorite(it) } ?: false
+        _uiState.update { it.copy(isCurrentChannelFavorite = isFavorite) }
     }
 }
 

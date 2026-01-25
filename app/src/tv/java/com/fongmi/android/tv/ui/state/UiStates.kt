@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.state
 import com.fongmi.android.tv.bean.Class
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
+import com.fongmi.android.tv.data.repository.SiteSearchResult
 
 /**
  * UI State for Home Screen
@@ -36,9 +37,16 @@ data class SearchUiState(
     val isSearching: Boolean = false,
     val results: List<Vod> = emptyList(),
     val searchHistory: List<String> = emptyList(),
+    val hotSearches: List<String> = emptyList(),
+    val suggestions: List<String> = emptyList(),
     val currentPage: Int = 1,
     val totalPages: Int = 1,
-    val error: String? = null
+    val error: String? = null,
+    // Multi-site search
+    val isAggregatedSearch: Boolean = false,
+    val siteResults: List<SiteSearchResult> = emptyList(),
+    val searchableSites: List<Site> = emptyList(),
+    val selectedSites: List<Site> = emptyList()
 )
 
 /**
