@@ -424,11 +424,14 @@ fun SettingsScreen(
     // VOD History Dialog
     if (uiState.showVodHistoryDialog) {
         HistoryDialog(
-            type = 0, // VOD type
+            configs = emptyList(), // TODO: Load from ViewModel
             onDismiss = { viewModel.dismissVodHistoryDialog() },
             onSelect = { config ->
                 viewModel.dismissVodHistoryDialog()
                 // Handle config selection
+            },
+            onDelete = { config ->
+                // Handle config deletion
             }
         )
     }
@@ -436,10 +439,13 @@ fun SettingsScreen(
     // Live History Dialog
     if (uiState.showLiveHistoryDialog) {
         HistoryDialog(
-            type = 1, // Live type
+            configs = emptyList(), // TODO: Load from ViewModel
             onDismiss = { viewModel.dismissLiveHistoryDialog() },
             onSelect = { config ->
                 viewModel.dismissLiveHistoryDialog()
+            },
+            onDelete = { config ->
+                // Handle config deletion
             }
         )
     }
