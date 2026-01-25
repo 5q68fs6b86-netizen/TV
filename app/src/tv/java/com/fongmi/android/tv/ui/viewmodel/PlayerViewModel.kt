@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
+import com.fongmi.android.tv.ui.dialog.TrackInfo
 import com.fongmi.android.tv.ui.state.PlayerStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,10 +44,16 @@ data class PlayerUiState(
     val showDecodeDialog: Boolean = false,
     val showEpisodeDialog: Boolean = false,
     val showDisplayDialog: Boolean = false,
+    val showTrackDialog: Boolean = false,
     val currentSpeed: Float = 1.0f,
     val currentPlayer: Int = 0,
     val currentDecode: Int = 0,
-    val currentScale: Int = 0
+    val currentScale: Int = 0,
+    // Track selection
+    val audioTracks: List<TrackInfo> = emptyList(),
+    val subtitleTracks: List<TrackInfo> = emptyList(),
+    val selectedAudioTrack: Int = -1,
+    val selectedSubtitleTrack: Int = -1
 ) {
     val hasEpisodes: Boolean
         get() = flags.isNotEmpty() && flags.any { (it.episodes?.size ?: 0) > 0 }
@@ -357,6 +364,30 @@ class PlayerViewModel @Inject constructor(
 
     fun setScale(scale: Int) {
         _uiState.update { it.copy(currentScale = scale, showDisplayDialog = false) }
+    }
+
+    // ========== Track Dialog Methods ==========
+
+    fun showTrackDialog() {
+        _uiState.update { it.copy(showTrackDialog = true) }
+    }
+
+    fun dismissTrackDialog() {
+        _uiState.update { it.copy(showTrackDialog = false) }
+    }
+
+    fun updateTracks(audioTracks: List<TrackInfo>, subtitleTracks: List<TrackInfo>) {
+        _uiState.update {
+            it.copy(audioTracks = audioTracks, subtitleTracks = subtitleTracks)
+        }
+    }
+
+    fun selectAudioTrack(index: Int) {
+        _uiState.update { it.copy(selectedAudioTrack = index) }
+    }
+
+    fun selectSubtitleTrack(index: Int) {
+        _uiState.update { it.copy(selectedSubtitleTrack = index) }
     }
 
     override fun onCleared() {

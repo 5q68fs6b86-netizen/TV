@@ -70,8 +70,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.fongmi.android.tv.bean.Episode
@@ -82,8 +84,10 @@ import com.fongmi.android.tv.ui.components.rememberDanmakuState
 import com.fongmi.android.tv.ui.dialog.DecodeDialog
 import com.fongmi.android.tv.ui.dialog.DisplayDialog
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog
+import com.fongmi.android.tv.ui.dialog.MultiTrackDialog
 import com.fongmi.android.tv.ui.dialog.PlayerDialog
 import com.fongmi.android.tv.ui.dialog.SpeedDialog
+import com.fongmi.android.tv.ui.dialog.TrackInfo
 import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.utils.TvKeyHandler
@@ -174,6 +178,31 @@ fun PlayerScreen(
 
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                val audioList = mutableListOf<TrackInfo>()
+                val subtitleList = mutableListOf<TrackInfo>()
+
+                tracks.groups.forEachIndexed { groupIndex, group ->
+                    val trackType = group.type
+                    for (i in 0 until group.length) {
+                        val format = group.getTrackFormat(i)
+                        val isSelected = group.isTrackSelected(i)
+                        val name = format.label ?: "轨道 ${i + 1}"
+                        val language = format.language
+
+                        when (trackType) {
+                            C.TRACK_TYPE_AUDIO -> {
+                                audioList.add(TrackInfo(groupIndex * 100 + i, name, language, isSelected))
+                            }
+                            C.TRACK_TYPE_TEXT -> {
+                                subtitleList.add(TrackInfo(groupIndex * 100 + i, name, language, isSelected))
+                            }
+                        }
+                    }
+                }
+                viewModel.updateTracks(audioList, subtitleList)
             }
         }
         exoPlayer.addListener(listener)
@@ -651,6 +680,42 @@ fun PlayerScreen(
             selectedIndex = uiState.currentScale,
             onDismiss = { viewModel.dismissDisplayDialog() },
             onSelect = { scale -> viewModel.setScale(scale) }
+        )
+    }
+
+    // Track Dialog (Audio/Subtitle)
+    if (uiState.showTrackDialog) {
+        MultiTrackDialog(
+            audioTracks = uiState.audioTracks,
+            subtitleTracks = uiState.subtitleTracks,
+            onDismiss = { viewModel.dismissTrackDialog() },
+            onSelectAudio = { index ->
+                viewModel.selectAudioTrack(index)
+                // Apply audio track selection to ExoPlayer
+                val trackSelector = exoPlayer.trackSelector
+                if (trackSelector is androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+                    val params = trackSelector.buildUponParameters()
+                    if (index >= 0) {
+                        params.setPreferredAudioLanguage(uiState.audioTracks.find { it.index == index }?.language)
+                    }
+                    trackSelector.setParameters(params)
+                }
+            },
+            onSelectSubtitle = { index ->
+                viewModel.selectSubtitleTrack(index)
+                // Apply subtitle track selection to ExoPlayer
+                val trackSelector = exoPlayer.trackSelector
+                if (trackSelector is androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+                    val params = trackSelector.buildUponParameters()
+                    if (index < 0) {
+                        params.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                    } else {
+                        params.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                        params.setPreferredTextLanguage(uiState.subtitleTracks.find { it.index == index }?.language)
+                    }
+                    trackSelector.setParameters(params)
+                }
+            }
         )
     }
 }
