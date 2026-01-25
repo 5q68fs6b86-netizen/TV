@@ -37,17 +37,18 @@ import com.fongmi.android.tv.ui.components.FocusableItem
  */
 @Composable
 fun HistoryDialog(
-    type: Int,
+    configs: List<Config>,
     onDismiss: () -> Unit,
-    onSelect: (Config) -> Unit
+    onSelect: (Config) -> Unit,
+    onDelete: (Config) -> Unit
 ) {
-    val configs = remember {
+    val configList = remember(configs) {
         mutableStateListOf<Config>().apply {
-            addAll(Config.findAll(type))
+            addAll(configs)
         }
     }
 
-    if (configs.isEmpty()) {
+    if (configList.isEmpty()) {
         onDismiss()
         return
     }
@@ -86,7 +87,7 @@ fun HistoryDialog(
                         .fillMaxWidth()
                         .height(300.dp)
                 ) {
-                    items(configs.toList(), key = { it.url ?: it.hashCode() }) { config ->
+                    items(configList.toList(), key = { it.url ?: it.hashCode() }) { config ->
                         HistoryItem(
                             config = config,
                             onSelect = {
@@ -94,9 +95,9 @@ fun HistoryDialog(
                                 onDismiss()
                             },
                             onDelete = {
-                                config.delete()
-                                configs.remove(config)
-                                if (configs.isEmpty()) onDismiss()
+                                onDelete(config)
+                                configList.remove(config)
+                                if (configList.isEmpty()) onDismiss()
                             }
                         )
                     }

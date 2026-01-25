@@ -5,7 +5,6 @@ import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Epg
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.bean.Live
-import com.fongmi.android.tv.db.AppDatabase
 import com.fongmi.android.tv.ui.dialog.EpgProgram
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -124,7 +123,7 @@ class LiveRepository @Inject constructor() {
                 endTime = timeFormat.format(Date(endTime)),
                 isLive = isLive,
                 isPast = isPast,
-                catchupUrl = if (isPast) channel.catchup?.replace("{start}", startTime.toString())?.replace("{end}", endTime.toString()) else null
+                catchupUrl = if (isPast && channel.catchup?.source != null) channel.catchup.source else null
             ))
         }
         return programs

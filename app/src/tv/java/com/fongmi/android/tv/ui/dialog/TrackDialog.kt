@@ -64,8 +64,6 @@ fun TrackDialog(
         TrackType.SUBTITLE -> "字幕选择"
     }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
-
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),

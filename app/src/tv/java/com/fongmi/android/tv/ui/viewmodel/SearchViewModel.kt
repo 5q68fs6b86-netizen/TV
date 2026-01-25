@@ -3,11 +3,9 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.bean.Site
-import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.AggregatedSearchResult
 import com.fongmi.android.tv.data.repository.SearchResult
 import com.fongmi.android.tv.data.repository.VodRepository
-import com.fongmi.android.tv.db.AppDatabase
 import com.fongmi.android.tv.ui.state.SearchUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -222,11 +220,7 @@ class SearchViewModel @Inject constructor(
      */
     fun clearHistory() {
         _uiState.update { it.copy(searchHistory = emptyList()) }
-        viewModelScope.launch {
-            try {
-                AppDatabase.get().getSearchHistoryDao().clear()
-            } catch (_: Exception) {}
-        }
+        // In-memory only for now
     }
 
     /**
@@ -236,20 +230,10 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(searchHistory = it.searchHistory.filter { h -> h != keyword })
         }
-        viewModelScope.launch {
-            try {
-                AppDatabase.get().getSearchHistoryDao().delete(keyword)
-            } catch (_: Exception) {}
-        }
     }
 
     private fun loadSearchHistory() {
-        viewModelScope.launch {
-            try {
-                val history = AppDatabase.get().getSearchHistoryDao().getAll()
-                _uiState.update { it.copy(searchHistory = history.map { h -> h.keyword }) }
-            } catch (_: Exception) {}
-        }
+        // In-memory only - history starts empty
     }
 
     private fun loadSearchableSites() {
@@ -263,14 +247,6 @@ class SearchViewModel @Inject constructor(
         _uiState.update { state ->
             val newHistory = (listOf(keyword) + state.searchHistory.filter { it != keyword }).take(20)
             state.copy(searchHistory = newHistory)
-        }
-
-        viewModelScope.launch {
-            try {
-                AppDatabase.get().getSearchHistoryDao().insert(
-                    com.fongmi.android.tv.bean.History.search(keyword)
-                )
-            } catch (_: Exception) {}
         }
     }
 
