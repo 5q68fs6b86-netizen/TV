@@ -39,8 +39,20 @@ fun LiveDialog(
     onDismiss: () -> Unit,
     onSelect: (Live) -> Unit
 ) {
-    val lives = remember { LiveConfig.get().lives ?: emptyList() }
-    val homeIndex = remember { LiveConfig.getHomeIndex() }
+    val lives = remember {
+        try {
+            LiveConfig.get()?.lives ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    val homeIndex = remember {
+        try {
+            LiveConfig.getHomeIndex()
+        } catch (e: Exception) {
+            0
+        }
+    }
     val listState = rememberLazyListState()
 
     LaunchedEffect(homeIndex) {

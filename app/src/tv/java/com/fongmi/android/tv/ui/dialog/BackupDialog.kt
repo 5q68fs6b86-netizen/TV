@@ -45,18 +45,16 @@ fun BackupDialog(
 ) {
     val backupFiles = remember {
         mutableStateListOf<String>().apply {
-            Path.list(Path.tv())
-                .filter { it.absolutePath.endsWith(AppDatabase.BACKUP_SUFFIX) }
-                .map { it.name.replace(".${AppDatabase.BACKUP_SUFFIX}", "") }
-                .sorted()
-                .let { addAll(it) }
+            try {
+                Path.list(Path.tv())
+                    .filter { it.absolutePath.endsWith(AppDatabase.BACKUP_SUFFIX) }
+                    .map { it.name.replace(".${AppDatabase.BACKUP_SUFFIX}", "") }
+                    .sorted()
+                    .let { addAll(it) }
+            } catch (e: Exception) {
+                // Ignore
+            }
         }
-    }
-
-    // 如果没有备份文件，直接关闭
-    if (backupFiles.isEmpty()) {
-        onDismiss()
-        return
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -87,29 +85,43 @@ fun BackupDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 备份列表
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                ) {
-                    items(backupFiles.toList(), key = { it }) { item ->
-                        BackupItem(
-                            name = item,
-                            onRestore = {
-                                val file = File(Path.tv(), "$item.${AppDatabase.BACKUP_SUFFIX}")
-                                onRestore(file)
-                                onDismiss()
-                            },
-                            onDelete = {
-                                val file = File(Path.tv(), "$item.${AppDatabase.BACKUP_SUFFIX}")
-                                if (file.exists()) file.delete()
-                                backupFiles.remove(item)
-                                if (backupFiles.isEmpty()) onDismiss()
-                            }
+                if (backupFiles.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "暂无备份文件",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                } else {
+                    // 备份列表
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) {
+                        items(backupFiles.toList(), key = { it }) { item ->
+                            BackupItem(
+                                name = item,
+                                onRestore = {
+                                    val file = File(Path.tv(), "$item.${AppDatabase.BACKUP_SUFFIX}")
+                                    onRestore(file)
+                                    onDismiss()
+                                },
+                                onDelete = {
+                                    val file = File(Path.tv(), "$item.${AppDatabase.BACKUP_SUFFIX}")
+                                    if (file.exists()) file.delete()
+                                    backupFiles.remove(item)
+                                }
+                            )
+                        }
                     }
                 }
 

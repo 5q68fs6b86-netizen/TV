@@ -48,11 +48,6 @@ fun HistoryDialog(
         }
     }
 
-    if (configList.isEmpty()) {
-        onDismiss()
-        return
-    }
-
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -80,26 +75,40 @@ fun HistoryDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                ) {
-                    items(configList.toList(), key = { it.url ?: it.hashCode() }) { config ->
-                        HistoryItem(
-                            config = config,
-                            onSelect = {
-                                onSelect(config)
-                                onDismiss()
-                            },
-                            onDelete = {
-                                onDelete(config)
-                                configList.remove(config)
-                                if (configList.isEmpty()) onDismiss()
-                            }
+                if (configList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "暂无历史记录",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) {
+                        items(configList.toList(), key = { it.url ?: it.hashCode() }) { config ->
+                            HistoryItem(
+                                config = config,
+                                onSelect = {
+                                    onSelect(config)
+                                    onDismiss()
+                                },
+                                onDelete = {
+                                    onDelete(config)
+                                    configList.remove(config)
+                                }
+                            )
+                        }
                     }
                 }
 

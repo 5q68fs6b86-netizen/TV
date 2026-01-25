@@ -54,8 +54,20 @@ fun SiteDialog(
     onDismiss: () -> Unit,
     onSiteSelected: (Site) -> Unit
 ) {
-    val sites = remember { VodConfig.get().getSites() ?: emptyList() }
-    val homeIndex = remember { VodConfig.getHomeIndex() }
+    val sites = remember {
+        try {
+            VodConfig.get()?.getSites() ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    val homeIndex = remember {
+        try {
+            VodConfig.getHomeIndex()
+        } catch (e: Exception) {
+            0
+        }
+    }
     val listState = rememberLazyListState()
 
     var currentMode by remember { mutableStateOf(mode) }

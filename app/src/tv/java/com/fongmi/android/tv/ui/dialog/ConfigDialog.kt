@@ -61,11 +61,15 @@ fun ConfigDialog(
     onConfirm: (Config) -> Unit
 ) {
     val initialUrl = remember {
-        when (type) {
-            ConfigType.VOD -> VodConfig.getUrl()
-            ConfigType.LIVE -> LiveConfig.getUrl()
-            ConfigType.WALL -> WallConfig.getUrl()
-        } ?: ""
+        try {
+            when (type) {
+                ConfigType.VOD -> VodConfig.getUrl()
+                ConfigType.LIVE -> LiveConfig.getUrl()
+                ConfigType.WALL -> WallConfig.getUrl()
+            } ?: ""
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     var url by remember { mutableStateOf(initialUrl) }
@@ -80,7 +84,13 @@ fun ConfigDialog(
         }
     }
 
-    val serverAddress = remember { Server.get().address }
+    val serverAddress = remember {
+        try {
+            Server.get().getAddress() ?: "未启动"
+        } catch (e: Exception) {
+            "未启动"
+        }
+    }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
