@@ -72,6 +72,10 @@ data class SettingsUiState(
     val showProxyDialog: Boolean = false,
     val showDohDialog: Boolean = false,
     val showBackupDialog: Boolean = false,
+    val showVodHistoryDialog: Boolean = false,
+    val showLiveHistoryDialog: Boolean = false,
+    val showLiveDialog: Boolean = false,
+    val showUaDialog: Boolean = false,
     val dohIndex: Int = 0
 )
 

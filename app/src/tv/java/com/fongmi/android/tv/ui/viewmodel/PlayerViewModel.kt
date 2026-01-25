@@ -36,7 +36,17 @@ data class PlayerUiState(
     val isLive: Boolean = false,
     val liveGroups: List<Group> = emptyList(),
     val currentGroupIndex: Int = 0,
-    val currentChannelIndex: Int = 0
+    val currentChannelIndex: Int = 0,
+    // Dialog states
+    val showSpeedDialog: Boolean = false,
+    val showPlayerDialog: Boolean = false,
+    val showDecodeDialog: Boolean = false,
+    val showEpisodeDialog: Boolean = false,
+    val showDisplayDialog: Boolean = false,
+    val currentSpeed: Float = 1.0f,
+    val currentPlayer: Int = 0,
+    val currentDecode: Int = 0,
+    val currentScale: Int = 0
 ) {
     val hasEpisodes: Boolean
         get() = flags.isNotEmpty() && flags.any { (it.episodes?.size ?: 0) > 0 }
@@ -287,6 +297,66 @@ class PlayerViewModel @Inject constructor(
                 currentChannelIndex = data.currentChannelIndex
             )
         }
+    }
+
+    // ========== Dialog Control Methods ==========
+
+    fun showSpeedDialog() {
+        _uiState.update { it.copy(showSpeedDialog = true) }
+    }
+
+    fun dismissSpeedDialog() {
+        _uiState.update { it.copy(showSpeedDialog = false) }
+    }
+
+    fun setSpeed(speed: Float) {
+        _uiState.update { it.copy(currentSpeed = speed, showSpeedDialog = false) }
+    }
+
+    fun showPlayerDialog() {
+        _uiState.update { it.copy(showPlayerDialog = true) }
+    }
+
+    fun dismissPlayerDialog() {
+        _uiState.update { it.copy(showPlayerDialog = false) }
+    }
+
+    fun setPlayer(player: Int) {
+        com.fongmi.android.tv.Setting.putPlayer(player)
+        _uiState.update { it.copy(currentPlayer = player, showPlayerDialog = false) }
+    }
+
+    fun showDecodeDialog() {
+        _uiState.update { it.copy(showDecodeDialog = true) }
+    }
+
+    fun dismissDecodeDialog() {
+        _uiState.update { it.copy(showDecodeDialog = false) }
+    }
+
+    fun setDecode(decode: Int) {
+        com.fongmi.android.tv.Setting.putDecode(com.fongmi.android.tv.Setting.getPlayer(), decode)
+        _uiState.update { it.copy(currentDecode = decode, showDecodeDialog = false) }
+    }
+
+    fun showEpisodeDialog() {
+        _uiState.update { it.copy(showEpisodeDialog = true) }
+    }
+
+    fun dismissEpisodeDialog() {
+        _uiState.update { it.copy(showEpisodeDialog = false) }
+    }
+
+    fun showDisplayDialog() {
+        _uiState.update { it.copy(showDisplayDialog = true) }
+    }
+
+    fun dismissDisplayDialog() {
+        _uiState.update { it.copy(showDisplayDialog = false) }
+    }
+
+    fun setScale(scale: Int) {
+        _uiState.update { it.copy(currentScale = scale, showDisplayDialog = false) }
     }
 
     override fun onCleared() {

@@ -79,6 +79,11 @@ import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.ui.components.DanmakuOverlay
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.rememberDanmakuState
+import com.fongmi.android.tv.ui.dialog.DecodeDialog
+import com.fongmi.android.tv.ui.dialog.DisplayDialog
+import com.fongmi.android.tv.ui.dialog.EpisodeDialog
+import com.fongmi.android.tv.ui.dialog.PlayerDialog
+import com.fongmi.android.tv.ui.dialog.SpeedDialog
 import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.utils.TvKeyHandler
@@ -593,6 +598,60 @@ fun PlayerScreen(
                 }
             )
         }
+    }
+
+    // ========== Dialogs ==========
+
+    // Speed Dialog
+    if (uiState.showSpeedDialog) {
+        SpeedDialog(
+            currentSpeed = uiState.currentSpeed,
+            onDismiss = { viewModel.dismissSpeedDialog() },
+            onSelect = { speed ->
+                viewModel.setSpeed(speed)
+                exoPlayer.setPlaybackSpeed(speed)
+            }
+        )
+    }
+
+    // Player Dialog
+    if (uiState.showPlayerDialog) {
+        PlayerDialog(
+            selectedIndex = uiState.currentPlayer,
+            onDismiss = { viewModel.dismissPlayerDialog() },
+            onSelect = { player -> viewModel.setPlayer(player) }
+        )
+    }
+
+    // Decode Dialog
+    if (uiState.showDecodeDialog) {
+        DecodeDialog(
+            selectedIndex = uiState.currentDecode,
+            onDismiss = { viewModel.dismissDecodeDialog() },
+            onSelect = { decode -> viewModel.setDecode(decode) }
+        )
+    }
+
+    // Episode Dialog
+    if (uiState.showEpisodeDialog && uiState.hasEpisodes) {
+        val episodes = uiState.currentFlag?.episodes ?: emptyList()
+        EpisodeDialog(
+            episodes = episodes,
+            onDismiss = { viewModel.dismissEpisodeDialog() },
+            onSelect = { episode ->
+                viewModel.selectEpisode(episode)
+                viewModel.dismissEpisodeDialog()
+            }
+        )
+    }
+
+    // Display Dialog
+    if (uiState.showDisplayDialog) {
+        DisplayDialog(
+            selectedIndex = uiState.currentScale,
+            onDismiss = { viewModel.dismissDisplayDialog() },
+            onSelect = { scale -> viewModel.setScale(scale) }
+        )
     }
 }
 

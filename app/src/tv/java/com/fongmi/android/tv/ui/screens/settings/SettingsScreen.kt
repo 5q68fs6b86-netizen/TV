@@ -58,8 +58,11 @@ import com.fongmi.android.tv.ui.dialog.BackupDialog
 import com.fongmi.android.tv.ui.dialog.ConfigDialog
 import com.fongmi.android.tv.ui.dialog.ConfigType
 import com.fongmi.android.tv.ui.dialog.DohDialog
+import com.fongmi.android.tv.ui.dialog.HistoryDialog
+import com.fongmi.android.tv.ui.dialog.LiveDialog
 import com.fongmi.android.tv.ui.dialog.ProxyDialog
 import com.fongmi.android.tv.ui.dialog.SiteDialog
+import com.fongmi.android.tv.ui.dialog.UaDialog
 import com.fongmi.android.tv.ui.viewmodel.SettingsViewModel
 
 /**
@@ -130,7 +133,7 @@ fun SettingsScreen(
                     value = uiState.currentSite?.name ?: "未配置",
                     onClick = { viewModel.showVodConfigDialog() },
                     onHomeClick = { viewModel.showSiteDialog() },
-                    onHistoryClick = { /* Show VOD history dialog */ }
+                    onHistoryClick = { viewModel.showVodHistoryDialog() }
                 )
             }
 
@@ -140,8 +143,8 @@ fun SettingsScreen(
                     title = "直播配置",
                     value = "未配置",
                     onClick = { viewModel.showLiveConfigDialog() },
-                    onHomeClick = { /* Set live home */ },
-                    onHistoryClick = { /* Show live history */ }
+                    onHomeClick = { viewModel.showLiveDialogAction() },
+                    onHistoryClick = { viewModel.showLiveHistoryDialog() }
                 )
             }
 
@@ -414,6 +417,50 @@ fun SettingsScreen(
             onRestore = { file ->
                 viewModel.restoreBackup(file)
                 viewModel.dismissBackupDialog()
+            }
+        )
+    }
+
+    // VOD History Dialog
+    if (uiState.showVodHistoryDialog) {
+        HistoryDialog(
+            type = 0, // VOD type
+            onDismiss = { viewModel.dismissVodHistoryDialog() },
+            onSelect = { config ->
+                viewModel.dismissVodHistoryDialog()
+                // Handle config selection
+            }
+        )
+    }
+
+    // Live History Dialog
+    if (uiState.showLiveHistoryDialog) {
+        HistoryDialog(
+            type = 1, // Live type
+            onDismiss = { viewModel.dismissLiveHistoryDialog() },
+            onSelect = { config ->
+                viewModel.dismissLiveHistoryDialog()
+            }
+        )
+    }
+
+    // Live Dialog
+    if (uiState.showLiveDialog) {
+        LiveDialog(
+            onDismiss = { viewModel.dismissLiveDialog() },
+            onSelect = { live ->
+                viewModel.dismissLiveDialog()
+            }
+        )
+    }
+
+    // UA Dialog
+    if (uiState.showUaDialog) {
+        UaDialog(
+            onDismiss = { viewModel.dismissUaDialog() },
+            onConfirm = { ua ->
+                viewModel.setUa(ua)
+                viewModel.dismissUaDialog()
             }
         )
     }

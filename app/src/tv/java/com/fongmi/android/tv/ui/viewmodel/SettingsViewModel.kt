@@ -265,6 +265,42 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showBackupDialog = false) }
     }
 
+    fun showVodHistoryDialog() {
+        _uiState.update { it.copy(showVodHistoryDialog = true) }
+    }
+
+    fun dismissVodHistoryDialog() {
+        _uiState.update { it.copy(showVodHistoryDialog = false) }
+    }
+
+    fun showLiveHistoryDialog() {
+        _uiState.update { it.copy(showLiveHistoryDialog = true) }
+    }
+
+    fun dismissLiveHistoryDialog() {
+        _uiState.update { it.copy(showLiveHistoryDialog = false) }
+    }
+
+    fun showLiveDialogAction() {
+        _uiState.update { it.copy(showLiveDialog = true) }
+    }
+
+    fun dismissLiveDialog() {
+        _uiState.update { it.copy(showLiveDialog = false) }
+    }
+
+    fun showUaDialog() {
+        _uiState.update { it.copy(showUaDialog = true) }
+    }
+
+    fun dismissUaDialog() {
+        _uiState.update { it.copy(showUaDialog = false) }
+    }
+
+    fun setUa(ua: String) {
+        Setting.putUa(ua)
+    }
+
     fun setProxy(proxy: String) {
         Setting.putProxy(proxy)
     }

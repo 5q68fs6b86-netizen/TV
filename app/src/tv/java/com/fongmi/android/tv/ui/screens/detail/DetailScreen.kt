@@ -32,7 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -50,6 +52,7 @@ import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.ui.components.FocusableButton
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.dialog.DescDialog
 import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
@@ -71,6 +74,9 @@ fun DetailScreen(
     val playUrlState by viewModel.playUrlState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     val history by viewModel.history.collectAsState()
+
+    // Dialog state
+    var showDescDialog by remember { mutableStateOf(false) }
 
     // Handle play URL ready
     LaunchedEffect(playUrlState) {
@@ -163,14 +169,21 @@ fun DetailScreen(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Description
-                            Text(
-                                text = vod.vodContent?.replace("<[^>]*>".toRegex(), "") ?: "",
-                                style = TvTypography.BodyMedium,
-                                color = TvColors.TextSecondary,
-                                maxLines = 4,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            // Description (clickable to show full)
+                            val descContent = vod.vodContent?.replace("<[^>]*>".toRegex(), "") ?: ""
+                            if (descContent.isNotEmpty()) {
+                                FocusableItem(
+                                    onClick = { showDescDialog = true }
+                                ) { isFocused ->
+                                    Text(
+                                        text = descContent,
+                                        style = TvTypography.BodyMedium,
+                                        color = if (isFocused) TvColors.Primary else TvColors.TextSecondary,
+                                        maxLines = 4,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
 
                         // Action buttons
@@ -300,6 +313,17 @@ fun DetailScreen(
                 }
             }
         }
+    }
+
+    // DescDialog
+    if (showDescDialog) {
+        val vod = uiState.vod
+        val descContent = vod?.vodContent?.replace("<[^>]*>".toRegex(), "") ?: ""
+        DescDialog(
+            title = vod?.vodName ?: "简介",
+            desc = descContent,
+            onDismiss = { showDescDialog = false }
+        )
     }
 }
 
