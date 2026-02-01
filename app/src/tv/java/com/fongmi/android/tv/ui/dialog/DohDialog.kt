@@ -28,6 +28,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fongmi.android.tv.App
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.github.catvod.bean.Doh
 
@@ -40,7 +41,13 @@ fun DohDialog(
     onDismiss: () -> Unit,
     onSelect: (Doh) -> Unit
 ) {
-    val dohList = remember { Doh.get(App.get()) }
+    val dohList = remember {
+        try {
+            Doh.get(App.get()) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
     val listState = rememberLazyListState()
 
     // 滚动到当前选中项
@@ -48,11 +55,6 @@ fun DohDialog(
         if (selectedIndex >= 0 && selectedIndex < dohList.size) {
             listState.scrollToItem(selectedIndex)
         }
-    }
-
-    if (dohList.isEmpty()) {
-        onDismiss()
-        return
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -91,24 +93,40 @@ fun DohDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // DOH 列表
-                LazyColumn(
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                ) {
-                    itemsIndexed(dohList) { index, doh ->
-                        DohItem(
-                            doh = doh,
-                            isSelected = index == selectedIndex,
-                            onClick = {
-                                onSelect(doh)
-                                onDismiss()
-                            }
+                if (dohList.isEmpty()) {
+                    // 空状态
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "暂无 DOH 配置",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                } else {
+                    // DOH 列表
+                    LazyColumn(
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) {
+                        itemsIndexed(dohList) { index, doh ->
+                            DohItem(
+                                doh = doh,
+                                isSelected = index == selectedIndex,
+                                onClick = {
+                                    onSelect(doh)
+                                    onDismiss()
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -119,7 +137,7 @@ fun DohDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    DohButton(
+                    DialogButton(
                         text = "关闭",
                         onClick = onDismiss
                     )
@@ -188,32 +206,6 @@ private fun DohItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DohButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

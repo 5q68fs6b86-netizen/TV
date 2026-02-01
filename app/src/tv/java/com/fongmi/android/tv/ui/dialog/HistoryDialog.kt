@@ -30,6 +30,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fongmi.android.tv.bean.Config
+import com.fongmi.android.tv.ui.components.DialogButton
 import com.fongmi.android.tv.ui.components.FocusableItem
 
 /**
@@ -118,7 +119,7 @@ fun HistoryDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    HistoryButton(text = "关闭", onClick = onDismiss)
+                    DialogButton(text = "关闭", onClick = onDismiss)
                 }
             }
         }
@@ -190,32 +191,6 @@ private fun HistoryItem(
                           else MaterialTheme.colorScheme.onErrorContainer
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun HistoryButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    FocusableItem(onClick = onClick) { isFocused ->
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

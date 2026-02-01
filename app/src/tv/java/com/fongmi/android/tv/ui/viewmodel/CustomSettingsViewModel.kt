@@ -17,7 +17,7 @@ data class CustomSettingsUiState(
     val qualityText: String = "",
     val sizeText: String = "",
     val episodeText: String = "",
-    val speedText: String = "",
+    val speedText: String = "1.00",
     val homeUIText: String = "",
     val fullscreenMenuKeyText: String = "",
     val smallWindowBackKeyText: String = "",
@@ -39,19 +39,27 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     private val _uiState = MutableStateFlow(CustomSettingsUiState())
     val uiState: StateFlow<CustomSettingsUiState> = _uiState.asStateFlow()
 
-    private val quality: Array<String> = getStringArray(R.array.select_quality)
-    private val size: Array<String> = getStringArray(R.array.select_size)
-    private val episode: Array<String> = getStringArray(R.array.select_episode)
-    private val homeUI: Array<String> = getStringArray(R.array.select_home_ui)
-    private val fullscreenMenuKey: Array<String> = getStringArray(R.array.select_fullscreen_menu_key)
-    private val smallWindowBackKey: Array<String> = getStringArray(R.array.select_small_window_back_key)
-    private val homeMenuKey: Array<String> = getStringArray(R.array.select_home_menu_key)
-    private val parseWebView: Array<String> = getStringArray(R.array.select_parse_webview)
-    private val configCache: Array<String> = getStringArray(R.array.select_config_cache)
-    private val language: Array<String> = getStringArray(R.array.select_language)
+    private val quality: Array<String> = safeGetStringArray(R.array.select_quality)
+    private val size: Array<String> = safeGetStringArray(R.array.select_size)
+    private val episode: Array<String> = safeGetStringArray(R.array.select_episode)
+    private val homeUI: Array<String> = safeGetStringArray(R.array.select_home_ui)
+    private val fullscreenMenuKey: Array<String> = safeGetStringArray(R.array.select_fullscreen_menu_key)
+    private val smallWindowBackKey: Array<String> = safeGetStringArray(R.array.select_small_window_back_key)
+    private val homeMenuKey: Array<String> = safeGetStringArray(R.array.select_home_menu_key)
+    private val parseWebView: Array<String> = safeGetStringArray(R.array.select_parse_webview)
+    private val configCache: Array<String> = safeGetStringArray(R.array.select_config_cache)
+    private val language: Array<String> = safeGetStringArray(R.array.select_language)
 
     init {
         loadSettings()
+    }
+
+    private fun safeGetStringArray(resId: Int): Array<String> {
+        return try {
+            App.get().resources.getStringArray(resId)
+        } catch (e: Exception) {
+            arrayOf("默认")
+        }
     }
 
     private fun getStringArray(resId: Int): Array<String> {
@@ -59,33 +67,42 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun getSwitch(value: Boolean): String {
-        return App.get().getString(if (value) R.string.setting_on else R.string.setting_off)
+        return try {
+            App.get().getString(if (value) R.string.setting_on else R.string.setting_off)
+        } catch (e: Exception) {
+            if (value) "开" else "关"
+        }
     }
 
     private fun loadSettings() {
-        _uiState.update {
-            it.copy(
-                qualityText = quality.getOrElse(Setting.getQuality()) { quality[0] },
-                sizeText = size.getOrElse(Setting.getSize()) { size[0] },
-                episodeText = episode.getOrElse(Setting.getEpisode()) { episode[0] },
-                speedText = String.format(Locale.getDefault(), "%.2f", Setting.getPlaySpeed()),
-                homeUIText = homeUI.getOrElse(Setting.getHomeUI()) { homeUI[0] },
-                fullscreenMenuKeyText = fullscreenMenuKey.getOrElse(Setting.getFullscreenMenuKey()) { fullscreenMenuKey[0] },
-                smallWindowBackKeyText = smallWindowBackKey.getOrElse(Setting.getSmallWindowBackKey()) { smallWindowBackKey[0] },
-                homeMenuKeyText = homeMenuKey.getOrElse(Setting.getHomeMenuKey()) { homeMenuKey[0] },
-                homeSiteLockText = getSwitch(Setting.isHomeSiteLock()),
-                homeHistoryText = getSwitch(Setting.isHomeHistory()),
-                aggregatedSearchText = getSwitch(Setting.isAggregatedSearch()),
-                incognitoText = getSwitch(Setting.isIncognito()),
-                removeAdText = getSwitch(Setting.isRemoveAd()),
-                parseWebViewText = parseWebView.getOrElse(Setting.getParseWebView()) { parseWebView[0] },
-                configCacheText = configCache.getOrElse(Setting.getConfigCache()) { configCache[0] },
-                languageText = language.getOrElse(Setting.getLanguage()) { language[0] }
-            )
+        try {
+            _uiState.update {
+                it.copy(
+                    qualityText = quality.getOrElse(Setting.getQuality()) { quality.firstOrNull() ?: "默认" },
+                    sizeText = size.getOrElse(Setting.getSize()) { size.firstOrNull() ?: "默认" },
+                    episodeText = episode.getOrElse(Setting.getEpisode()) { episode.firstOrNull() ?: "默认" },
+                    speedText = String.format(Locale.getDefault(), "%.2f", Setting.getPlaySpeed()),
+                    homeUIText = homeUI.getOrElse(Setting.getHomeUI()) { homeUI.firstOrNull() ?: "默认" },
+                    fullscreenMenuKeyText = fullscreenMenuKey.getOrElse(Setting.getFullscreenMenuKey()) { fullscreenMenuKey.firstOrNull() ?: "默认" },
+                    smallWindowBackKeyText = smallWindowBackKey.getOrElse(Setting.getSmallWindowBackKey()) { smallWindowBackKey.firstOrNull() ?: "默认" },
+                    homeMenuKeyText = homeMenuKey.getOrElse(Setting.getHomeMenuKey()) { homeMenuKey.firstOrNull() ?: "默认" },
+                    homeSiteLockText = getSwitch(Setting.isHomeSiteLock()),
+                    homeHistoryText = getSwitch(Setting.isHomeHistory()),
+                    aggregatedSearchText = getSwitch(Setting.isAggregatedSearch()),
+                    incognitoText = getSwitch(Setting.isIncognito()),
+                    removeAdText = getSwitch(Setting.isRemoveAd()),
+                    parseWebViewText = parseWebView.getOrElse(Setting.getParseWebView()) { parseWebView.firstOrNull() ?: "默认" },
+                    configCacheText = configCache.getOrElse(Setting.getConfigCache()) { configCache.firstOrNull() ?: "默认" },
+                    languageText = language.getOrElse(Setting.getLanguage()) { language.firstOrNull() ?: "默认" }
+                )
+            }
+        } catch (e: Exception) {
+            // 加载失败时保持默认值
         }
     }
 
     fun toggleQuality() {
+        if (quality.isEmpty()) return
         val index = (Setting.getQuality() + 1) % quality.size
         Setting.putQuality(index)
         _uiState.update { it.copy(qualityText = quality[index]) }
@@ -93,6 +110,7 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     }
 
     fun toggleSize() {
+        if (size.isEmpty()) return
         val index = (Setting.getSize() + 1) % size.size
         Setting.putSize(index)
         _uiState.update { it.copy(sizeText = size[index]) }
@@ -100,6 +118,7 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     }
 
     fun toggleEpisode() {
+        if (episode.isEmpty()) return
         val index = (Setting.getEpisode() + 1) % episode.size
         Setting.putEpisode(index)
         _uiState.update { it.copy(episodeText = episode[index]) }
@@ -123,24 +142,28 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     }
 
     fun toggleHomeUI() {
+        if (homeUI.isEmpty()) return
         val index = (Setting.getHomeUI() + 1) % homeUI.size
         Setting.putHomeUI(index)
         _uiState.update { it.copy(homeUIText = homeUI[index]) }
     }
 
     fun toggleFullscreenMenuKey() {
+        if (fullscreenMenuKey.isEmpty()) return
         val index = (Setting.getFullscreenMenuKey() + 1) % fullscreenMenuKey.size
         Setting.putFullscreenMenuKey(index)
         _uiState.update { it.copy(fullscreenMenuKeyText = fullscreenMenuKey[index]) }
     }
 
     fun toggleSmallWindowBackKey() {
+        if (smallWindowBackKey.isEmpty()) return
         val index = (Setting.getSmallWindowBackKey() + 1) % smallWindowBackKey.size
         Setting.putSmallWindowBackKey(index)
         _uiState.update { it.copy(smallWindowBackKeyText = smallWindowBackKey[index]) }
     }
 
     fun toggleHomeMenuKey() {
+        if (homeMenuKey.isEmpty()) return
         val index = (Setting.getHomeMenuKey() + 1) % homeMenuKey.size
         Setting.putHomeMenuKey(index)
         _uiState.update { it.copy(homeMenuKeyText = homeMenuKey[index]) }
@@ -172,18 +195,21 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     }
 
     fun toggleParseWebView() {
+        if (parseWebView.isEmpty()) return
         val index = (Setting.getParseWebView() + 1) % parseWebView.size
         Setting.putParseWebView(index)
         _uiState.update { it.copy(parseWebViewText = parseWebView[index]) }
     }
 
     fun toggleConfigCache() {
+        if (configCache.isEmpty()) return
         val index = (Setting.getConfigCache() + 1) % configCache.size
         Setting.putConfigCache(index)
         _uiState.update { it.copy(configCacheText = configCache[index]) }
     }
 
     fun toggleLanguage() {
+        if (language.isEmpty()) return
         val index = (Setting.getLanguage() + 1) % language.size
         Setting.putLanguage(index)
         _uiState.update { it.copy(languageText = language[index]) }
