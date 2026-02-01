@@ -183,18 +183,17 @@ fun ConfigDialog(
                         text = if (isEdit) "编辑" else "确定",
                         isPrimary = true,
                         onClick = {
-                            val trimmedUrl = url.trim()
-                            val trimmedName = name.trim()
-                            // Create config - always set url (even if empty)
-                            val config = Config.create(type.value)
-                            val fixedUrl = if (trimmedUrl.isNotEmpty()) {
-                                UrlUtil.fixUrl(trimmedUrl)
-                            } else {
-                                ""
+                            val fixedUrl = UrlUtil.fixUrl(url.trim())
+                            if (isEdit) {
+                                Config.find(initialUrl, type.value).url(fixedUrl).update()
                             }
-                            config.url = fixedUrl
-                            if (trimmedName.isNotEmpty()) {
-                                config.name = trimmedName
+                            if (fixedUrl.isEmpty()) {
+                                Config.delete(initialUrl, type.value)
+                            }
+                            val config = if (name.trim().isEmpty()) {
+                                Config.find(fixedUrl, type.value)
+                            } else {
+                                Config.find(fixedUrl, name.trim(), type.value)
                             }
                             onConfirm(config)
                         }
