@@ -185,11 +185,14 @@ fun ConfigDialog(
                         onClick = {
                             val trimmedUrl = url.trim()
                             val trimmedName = name.trim()
-                            // Create config without DB operations in UI thread
+                            // Create config - always set url (even if empty)
                             val config = Config.create(type.value)
-                            if (trimmedUrl.isNotEmpty()) {
-                                config.url = UrlUtil.fixUrl(trimmedUrl)
+                            val fixedUrl = if (trimmedUrl.isNotEmpty()) {
+                                UrlUtil.fixUrl(trimmedUrl)
+                            } else {
+                                ""
                             }
+                            config.url = fixedUrl
                             if (trimmedName.isNotEmpty()) {
                                 config.name = trimmedName
                             }
@@ -267,7 +270,11 @@ private fun DialogButton(
     onClick: () -> Unit,
     isPrimary: Boolean = false
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        focusElevation = 0.dp
+    ) { isFocused ->
         Box(
             modifier = Modifier
                 .background(

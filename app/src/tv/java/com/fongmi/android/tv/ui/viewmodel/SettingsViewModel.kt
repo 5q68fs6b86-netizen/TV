@@ -318,6 +318,10 @@ class SettingsViewModel @Inject constructor(
      * Load VOD config
      */
     fun loadVodConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
         _uiState.update { it.copy(isLoading = true) }
         VodConfig.load(config, object : Callback() {
             override fun success() {
@@ -339,6 +343,10 @@ class SettingsViewModel @Inject constructor(
      * Load Live config
      */
     fun loadLiveConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
         _uiState.update { it.copy(isLoading = true) }
         LiveConfig.load(config, object : Callback() {
             override fun success() {
@@ -356,6 +364,10 @@ class SettingsViewModel @Inject constructor(
      * Load Wall config
      */
     fun loadWallConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
         _uiState.update { it.copy(isLoading = true) }
         WallConfig.load(config, object : Callback() {
             override fun success() {
