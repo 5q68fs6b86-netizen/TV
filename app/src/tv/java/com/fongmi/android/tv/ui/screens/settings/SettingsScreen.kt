@@ -348,8 +348,8 @@ fun SettingsScreen(
             type = ConfigType.VOD,
             onDismiss = { viewModel.dismissVodConfigDialog() },
             onConfirm = { config ->
-                viewModel.dismissVodConfigDialog()
                 viewModel.loadVodConfig(config)
+                viewModel.dismissVodConfigDialog()
             }
         )
     }
@@ -360,8 +360,8 @@ fun SettingsScreen(
             type = ConfigType.LIVE,
             onDismiss = { viewModel.dismissLiveConfigDialog() },
             onConfirm = { config ->
-                viewModel.dismissLiveConfigDialog()
                 viewModel.loadLiveConfig(config)
+                viewModel.dismissLiveConfigDialog()
             }
         )
     }
@@ -372,8 +372,8 @@ fun SettingsScreen(
             type = ConfigType.WALL,
             onDismiss = { viewModel.dismissWallConfigDialog() },
             onConfirm = { config ->
-                viewModel.dismissWallConfigDialog()
                 viewModel.loadWallConfig(config)
+                viewModel.dismissWallConfigDialog()
             }
         )
     }

@@ -183,28 +183,17 @@ fun ConfigDialog(
                         text = if (isEdit) "编辑" else "确定",
                         isPrimary = true,
                         onClick = {
-                            try {
-                                val fixedUrl = UrlUtil.fixUrl(url.trim())
-                                if (isEdit) {
-                                    Config.find(initialUrl, type.value).url(fixedUrl).update()
-                                }
-                                if (fixedUrl.isEmpty()) {
-                                    Config.delete(initialUrl, type.value)
-                                }
-                                val config = if (name.isEmpty()) {
-                                    Config.find(fixedUrl, type.value)
-                                } else {
-                                    Config.find(fixedUrl, name, type.value)
-                                }
-                                onConfirm(config)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                // Create a minimal config and proceed
-                                val config = Config.create(type.value)
-                                config.url = url.trim()
-                                if (name.isNotEmpty()) config.name = name
-                                onConfirm(config)
+                            val trimmedUrl = url.trim()
+                            val trimmedName = name.trim()
+                            // Create config without DB operations in UI thread
+                            val config = Config.create(type.value)
+                            if (trimmedUrl.isNotEmpty()) {
+                                config.url = UrlUtil.fixUrl(trimmedUrl)
                             }
+                            if (trimmedName.isNotEmpty()) {
+                                config.name = trimmedName
+                            }
+                            onConfirm(config)
                         }
                     )
                 }
