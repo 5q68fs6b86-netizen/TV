@@ -6,7 +6,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -41,6 +42,7 @@ private val DefaultPrimary = androidx.compose.ui.graphics.Color(0xFF7C4DFF) // S
  *
  * @param onClick Called when the item is clicked/selected
  * @param modifier Modifier for the container
+ * @param onLongClick Called when the item is long-pressed (optional)
  * @param enabled Whether the item is clickable
  * @param shape Shape of the item
  * @param focusRequester Optional focus requester for programmatic focus
@@ -50,10 +52,12 @@ private val DefaultPrimary = androidx.compose.ui.graphics.Color(0xFF7C4DFF) // S
  * @param focusElevation Elevation when focused
  * @param content Content of the item
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FocusableItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     shape: Shape = TvShapes.Card,
     focusRequester: FocusRequester? = null,
@@ -105,11 +109,12 @@ fun FocusableItem(
                 }
             )
             .focusable(interactionSource = interactionSource)
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
-                onClick = onClick
+                onClick = onClick,
+                onLongClick = onLongClick
             )
     ) {
         content(isFocused)

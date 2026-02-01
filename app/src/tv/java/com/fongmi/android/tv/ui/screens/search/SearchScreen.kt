@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,20 +22,16 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TravelExplore
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,22 +43,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.SiteSearchResult
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.components.TvKeyboard
 import com.fongmi.android.tv.ui.components.VodCard
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.SearchViewModel
 
 /**
- * Search Screen with keyboard input, multi-site search, and results grid
+ * Search Screen with A-Z keyboard, multi-site search, and results grid
+ * Layout: Left side - Keyboard | Right side - Hot/Suggestions/Results
  */
 @Composable
 fun SearchScreen(
@@ -76,7 +73,7 @@ fun SearchScreen(
         focusRequester.requestFocus()
     }
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -90,85 +87,247 @@ fun SearchScreen(
                 } else false
             }
     ) {
-        // Search bar with aggregated search toggle
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Left side: Keyboard area
+        Column(
+            modifier = Modifier
+                .width(300.dp)
+                .fillMaxHeight()
+                .padding(end = 24.dp)
         ) {
-            SearchBar(
+            // Search input display (shows current keyword)
+            SearchInputDisplay(
                 keyword = uiState.keyword,
-                onKeywordChange = { viewModel.updateKeyword(it) },
-                onSearch = { if (uiState.isAggregatedSearch) viewModel.searchMultiSite() else viewModel.search() },
-                onClear = { viewModel.clearSearch() },
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester)
+                isSearching = uiState.isSearching
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // A-Z Keyboard
+            TvKeyboard(
+                onCharClick = { char -> viewModel.appendKeyword(char) },
+                onDeleteClick = { viewModel.deleteLastChar() },
+                onDeleteLongClick = { viewModel.clearSearch() },
+                onSearchClick = {
+                    if (uiState.isAggregatedSearch) viewModel.searchMultiSite()
+                    else viewModel.search()
+                },
+                modifier = Modifier.focusRequester(focusRequester)
+            )
+        }
+
+        // Right side: Hot/Suggestions/Results area
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
             // Aggregated search toggle
-            AggregatedSearchToggle(
-                isEnabled = uiState.isAggregatedSearch,
-                onToggle = { viewModel.toggleAggregatedSearch(it) }
-            )
-        }
-
-        // Suggestions
-        if (uiState.suggestions.isNotEmpty() && uiState.keyword.isNotBlank()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            SuggestionsRow(
-                suggestions = uiState.suggestions,
-                onSuggestionClick = { viewModel.searchFromHistory(it) }
-            )
-        }
-
-        // Site filter (when aggregated search is enabled)
-        if (uiState.isAggregatedSearch && uiState.searchableSites.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            SiteFilterRow(
-                sites = uiState.searchableSites,
-                selectedSites = uiState.selectedSites,
-                onSiteToggle = { viewModel.toggleSiteSelection(it) }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        when {
-            uiState.isSearching && uiState.results.isEmpty() -> {
-                SearchLoadingState()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                AggregatedSearchToggle(
+                    isEnabled = uiState.isAggregatedSearch,
+                    onToggle = { viewModel.toggleAggregatedSearch(it) }
+                )
             }
-            uiState.results.isNotEmpty() -> {
-                if (uiState.isAggregatedSearch && uiState.siteResults.isNotEmpty()) {
-                    AggregatedSearchResults(
-                        siteResults = uiState.siteResults,
-                        onVodClick = { vod ->
-                            val siteKey = vod.site?.key ?: ""
-                            onVodClick(siteKey, vod.vodId ?: "")
-                        }
+
+            // Suggestions (when typing)
+            if (uiState.suggestions.isNotEmpty() && uiState.keyword.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SuggestionsSection(
+                    suggestions = uiState.suggestions,
+                    onSuggestionClick = { viewModel.searchFromHistory(it) }
+                )
+            }
+
+            // Site filter (when aggregated search is enabled)
+            if (uiState.isAggregatedSearch && uiState.searchableSites.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SiteFilterRow(
+                    sites = uiState.searchableSites,
+                    selectedSites = uiState.selectedSites,
+                    onSiteToggle = { viewModel.toggleSiteSelection(it) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when {
+                uiState.isSearching && uiState.results.isEmpty() -> {
+                    SearchLoadingState()
+                }
+                uiState.results.isNotEmpty() -> {
+                    if (uiState.isAggregatedSearch && uiState.siteResults.isNotEmpty()) {
+                        AggregatedSearchResults(
+                            siteResults = uiState.siteResults,
+                            onVodClick = { vod ->
+                                val siteKey = vod.site?.key ?: ""
+                                onVodClick(siteKey, vod.vodId ?: "")
+                            }
+                        )
+                    } else {
+                        SearchResults(
+                            results = uiState.results,
+                            isLoading = uiState.isSearching,
+                            onVodClick = { vod ->
+                                val siteKey = vod.site?.key ?: com.fongmi.android.tv.api.config.VodConfig.get().home?.key ?: ""
+                                onVodClick(siteKey, vod.vodId ?: "")
+                            },
+                            onLoadMore = { viewModel.loadNextPage() }
+                        )
+                    }
+                }
+                uiState.keyword.isBlank() -> {
+                    // Hot searches
+                    if (uiState.hotSearches.isNotEmpty()) {
+                        HotSearchesSection(
+                            hotSearches = uiState.hotSearches,
+                            onHotClick = { viewModel.searchFromHistory(it) }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    // Search history
+                    SearchHistorySection(
+                        history = uiState.searchHistory,
+                        onHistoryClick = { viewModel.searchFromHistory(it) },
+                        onClearHistory = { viewModel.clearHistory() },
+                        onRemoveItem = { viewModel.removeFromHistory(it) }
                     )
-                } else {
-                    SearchResults(
-                        results = uiState.results,
-                        isLoading = uiState.isSearching,
-                        onVodClick = { vod ->
-                            val siteKey = vod.site?.key ?: com.fongmi.android.tv.api.config.VodConfig.get().home?.key ?: ""
-                            onVodClick(siteKey, vod.vodId ?: "")
-                        },
-                        onLoadMore = { viewModel.loadNextPage() }
+                }
+                else -> {
+                    NoResultsState()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Search input display showing current keyword
+ */
+@Composable
+private fun SearchInputDisplay(
+    keyword: String,
+    isSearching: Boolean
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = "Search",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = keyword.ifEmpty { "输入首字母搜索..." },
+            style = TvTypography.BodyLarge,
+            color = if (keyword.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (isSearching) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+/**
+ * Hot searches section
+ */
+@Composable
+private fun HotSearchesSection(
+    hotSearches: List<String>,
+    onHotClick: (String) -> Unit
+) {
+    Column {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Whatshot,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "热门搜索",
+                style = TvTypography.TitleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(hotSearches) { keyword ->
+                FocusableItem(onClick = { onHotClick(keyword) }) { isFocused ->
+                    Text(
+                        text = keyword,
+                        style = TvTypography.LabelMedium,
+                        color = if (isFocused) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .background(
+                                color = if (isFocused) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surfaceContainer,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
                     )
                 }
             }
-            uiState.keyword.isBlank() -> {
-                SearchHistorySection(
-                    history = uiState.searchHistory,
-                    onHistoryClick = { viewModel.searchFromHistory(it) },
-                    onClearHistory = { viewModel.clearHistory() },
-                    onRemoveItem = { viewModel.removeFromHistory(it) }
-                )
-            }
-            else -> {
-                NoResultsState()
+        }
+    }
+}
+
+/**
+ * Suggestions section with title
+ */
+@Composable
+private fun SuggestionsSection(
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = "搜索建议",
+            style = TvTypography.TitleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(suggestions) { suggestion ->
+                FocusableItem(onClick = { onSuggestionClick(suggestion) }) { isFocused ->
+                    Text(
+                        text = suggestion,
+                        style = TvTypography.LabelMedium,
+                        color = if (isFocused) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .background(
+                                color = if (isFocused) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }
@@ -207,30 +366,6 @@ private fun AggregatedSearchToggle(
                     contentDescription = null,
                     tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SuggestionsRow(
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit
-) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(suggestions) { suggestion ->
-            FocusableItem(onClick = { onSuggestionClick(suggestion) }) { isFocused ->
-                Text(
-                    text = suggestion,
-                    style = TvTypography.LabelSmall,
-                    color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .background(
-                            color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
         }
@@ -327,64 +462,6 @@ private fun AggregatedSearchResults(
                     imageUrl = vod.vodPic,
                     subtitle = vod.vodRemarks,
                     onClick = { onVodClick(vod) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchBar(
-    keyword: String,
-    onKeywordChange: (String) -> Unit,
-    onSearch: () -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "Search",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        BasicTextField(
-            value = keyword,
-            onValueChange = onKeywordChange,
-            modifier = Modifier.weight(1f),
-            textStyle = TvTypography.BodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-            singleLine = true,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-            decorationBox = { innerTextField ->
-                Box {
-                    if (keyword.isEmpty()) {
-                        Text(
-                            text = "搜索影片、演员、导演...",
-                            style = TvTypography.BodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        )
-
-        if (keyword.isNotEmpty()) {
-            IconButton(onClick = onClear) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

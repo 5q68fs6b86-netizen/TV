@@ -2,19 +2,30 @@ package com.fongmi.android.tv.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fongmi.android.tv.Setting
+import com.fongmi.android.tv.bean.Hot
 import com.fongmi.android.tv.bean.Site
+import com.fongmi.android.tv.bean.Suggest
+import com.fongmi.android.tv.bean.SuggestTwo
 import com.fongmi.android.tv.data.repository.AggregatedSearchResult
 import com.fongmi.android.tv.data.repository.SearchResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.SearchUiState
+import com.github.catvod.net.OkHttp
+import com.github.catvod.utils.Trans
+import com.google.common.net.HttpHeaders
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.Headers
+import java.net.URLEncoder
 import javax.inject.Inject
 
 /**
@@ -30,10 +41,12 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var suggestJob: Job? = null
 
     init {
         loadSearchHistory()
         loadSearchableSites()
+        loadHotSearches()
     }
 
     /**
@@ -188,6 +201,7 @@ class SearchViewModel @Inject constructor(
      */
     fun clearSearch() {
         searchJob?.cancel()
+        suggestJob?.cancel()
         _uiState.update {
             it.copy(
                 keyword = "",
@@ -199,6 +213,31 @@ class SearchViewModel @Inject constructor(
                 totalPages = 1,
                 error = null
             )
+        }
+    }
+
+    /**
+     * Append a character to the keyword (for keyboard input)
+     */
+    fun appendKeyword(char: String) {
+        if (_uiState.value.keyword.length >= 20) return
+        val newKeyword = _uiState.value.keyword + char
+        _uiState.update { it.copy(keyword = newKeyword) }
+        updateSuggestions(newKeyword)
+    }
+
+    /**
+     * Delete the last character from the keyword (for keyboard input)
+     */
+    fun deleteLastChar() {
+        val current = _uiState.value.keyword
+        if (current.isEmpty()) return
+        val newKeyword = current.dropLast(1)
+        _uiState.update { it.copy(keyword = newKeyword) }
+        if (newKeyword.isBlank()) {
+            _uiState.update { it.copy(suggestions = emptyList()) }
+        } else {
+            updateSuggestions(newKeyword)
         }
     }
 
@@ -241,6 +280,33 @@ class SearchViewModel @Inject constructor(
         _uiState.update { it.copy(searchableSites = sites) }
     }
 
+    /**
+     * Load hot searches from API with cache support
+     */
+    private fun loadHotSearches() {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Load from cache first
+            val cached = Hot.get(Setting.getHot())
+            if (cached.isNotEmpty()) {
+                _uiState.update { it.copy(hotSearches = cached) }
+            }
+
+            // Fetch fresh data from API
+            try {
+                val response = OkHttp.newCall(
+                    "https://hot.api.coolmarket.eu.org/api/douban-hot-mixed",
+                    Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")
+                ).execute()
+                val items = Hot.get(response.body?.string() ?: "")
+                if (items.isNotEmpty()) {
+                    _uiState.update { it.copy(hotSearches = items) }
+                }
+            } catch (e: Exception) {
+                // Use cached data on error
+            }
+        }
+    }
+
     private fun addToHistory(keyword: String) {
         if (keyword.isBlank()) return
 
@@ -250,11 +316,59 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Update search suggestions by calling external APIs
+     * Uses pinyin conversion for better Chinese input support
+     */
     private fun updateSuggestions(keyword: String) {
-        // Generate suggestions from history
-        val suggestions = _uiState.value.searchHistory
-            .filter { it.contains(keyword, ignoreCase = true) && it != keyword }
-            .take(5)
-        _uiState.update { it.copy(suggestions = suggestions) }
+        suggestJob?.cancel()
+
+        if (keyword.isBlank()) {
+            _uiState.update { it.copy(suggestions = emptyList()) }
+            return
+        }
+
+        suggestJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val encoded = URLEncoder.encode(Trans.z2p(keyword), "UTF-8")
+                val results = mutableListOf<String>()
+
+                // Parallel requests to two suggestion APIs
+                val aiseetDeferred = async {
+                    try {
+                        val response = OkHttp.newCall(
+                            "https://tv.aiseet.atianqi.com/i-tvbin/qtv_video/search/get_search_smart_box?format=json&page_num=0&page_size=10&key=$encoded"
+                        ).execute()
+                        SuggestTwo.get(response.body?.string() ?: "")
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+                }
+
+                val iqiyiDeferred = async {
+                    try {
+                        val response = OkHttp.newCall(
+                            "https://suggest.video.iqiyi.com/?if=mobile&key=$encoded"
+                        ).execute()
+                        Suggest.get(response.body?.string() ?: "")
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+                }
+
+                results.addAll(aiseetDeferred.await())
+                results.addAll(iqiyiDeferred.await())
+
+                // Remove duplicates and limit to 10 suggestions
+                val uniqueSuggestions = results.distinct().take(10)
+                _uiState.update { it.copy(suggestions = uniqueSuggestions) }
+            } catch (e: Exception) {
+                // Fallback to history-based suggestions on error
+                val historySuggestions = _uiState.value.searchHistory
+                    .filter { it.contains(keyword, ignoreCase = true) && it != keyword }
+                    .take(5)
+                _uiState.update { it.copy(suggestions = historySuggestions) }
+            }
+        }
     }
 }
