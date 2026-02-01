@@ -295,7 +295,7 @@ class SearchViewModel @Inject constructor(
             try {
                 val response = OkHttp.newCall(
                     "https://hot.api.coolmarket.eu.org/api/douban-hot-mixed",
-                    Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")
+                    Headers.headersOf(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")
                 ).execute()
                 val items = Hot.get(response.body?.string() ?: "")
                 if (items.isNotEmpty()) {
