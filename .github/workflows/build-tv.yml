@@ -1,7 +1,9 @@
 name: Build TV APKs
 
 on:
-  workflow_dispatch:
+  push:
+  pull_request:
+  workflow_d。ispatch:
 
 jobs:
   build:
