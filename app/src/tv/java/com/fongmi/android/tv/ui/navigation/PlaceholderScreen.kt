@@ -22,7 +22,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
 
 /**
@@ -63,17 +62,17 @@ fun PlaceholderScreen(
             Text(
                 text = title,
                 style = TvTypography.HeadlineLarge,
-                color = TvColors.TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Coming Soon...",
                 style = TvTypography.BodyLarge,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "Press BACK to return",
                 style = TvTypography.BodyMedium,
-                color = TvColors.TextHint,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(top = 32.dp)
             )
         }

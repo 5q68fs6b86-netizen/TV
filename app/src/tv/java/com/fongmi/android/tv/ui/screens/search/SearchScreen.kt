@@ -56,7 +56,6 @@ import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.SiteSearchResult
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.VodCard
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.SearchViewModel
@@ -184,7 +183,7 @@ private fun AggregatedSearchToggle(
         Row(
             modifier = Modifier
                 .background(
-                    color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -194,19 +193,19 @@ private fun AggregatedSearchToggle(
             Icon(
                 imageVector = Icons.Default.TravelExplore,
                 contentDescription = null,
-                tint = if (isFocused) TvColors.OnPrimary else if (isEnabled) TvColors.Primary else TvColors.TextSecondary,
+                tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
             Text(
                 text = "聚合",
                 style = TvTypography.LabelMedium,
-                color = if (isFocused) TvColors.OnPrimary else if (isEnabled) TvColors.Primary else TvColors.TextPrimary
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimary else if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
             if (isEnabled) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = if (isFocused) TvColors.OnPrimary else TvColors.Primary,
+                    tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -225,10 +224,10 @@ private fun SuggestionsRow(
                 Text(
                     text = suggestion,
                     style = TvTypography.LabelSmall,
-                    color = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary,
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .background(
-                            color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                            color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(16.dp)
                         )
                         .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -252,15 +251,15 @@ private fun SiteFilterRow(
                     modifier = Modifier
                         .background(
                             color = when {
-                                isFocused -> TvColors.Primary
-                                isSelected -> TvColors.Primary.copy(alpha = 0.2f)
-                                else -> TvColors.Surface
+                                isFocused -> MaterialTheme.colorScheme.primary
+                                isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                else -> MaterialTheme.colorScheme.surface
                             },
                             shape = RoundedCornerShape(8.dp)
                         )
                         .border(
                             width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                            color = TvColors.Primary,
+                            color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -269,9 +268,9 @@ private fun SiteFilterRow(
                         text = site.name ?: "未知",
                         style = TvTypography.LabelSmall,
                         color = when {
-                            isFocused -> TvColors.OnPrimary
-                            isSelected -> TvColors.Primary
-                            else -> TvColors.TextSecondary
+                            isFocused -> MaterialTheme.colorScheme.onPrimary
+                            isSelected -> MaterialTheme.colorScheme.primary
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }
@@ -287,8 +286,8 @@ private fun SearchLoadingState() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CircularProgressIndicator(color = TvColors.Primary)
-            Text(text = "搜索中...", style = TvTypography.BodyMedium, color = TvColors.TextSecondary)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            Text(text = "搜索中...", style = TvTypography.BodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -296,7 +295,7 @@ private fun SearchLoadingState() {
 @Composable
 private fun NoResultsState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "未找到相关内容", style = TvTypography.BodyLarge, color = TvColors.TextSecondary)
+        Text(text = "未找到相关内容", style = TvTypography.BodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -317,7 +316,7 @@ private fun AggregatedSearchResults(
                 Text(
                     text = "${siteResult.site.name} (${siteResult.results.size})",
                     style = TvTypography.TitleSmall,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
@@ -345,14 +344,14 @@ private fun SearchBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(TvColors.Surface, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = TvColors.TextSecondary
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -361,9 +360,9 @@ private fun SearchBar(
             value = keyword,
             onValueChange = onKeywordChange,
             modifier = Modifier.weight(1f),
-            textStyle = TvTypography.BodyLarge.copy(color = TvColors.TextPrimary),
+            textStyle = TvTypography.BodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
             singleLine = true,
-            cursorBrush = SolidColor(TvColors.Primary),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch() }),
             decorationBox = { innerTextField ->
@@ -372,7 +371,7 @@ private fun SearchBar(
                         Text(
                             text = "搜索影片、演员、导演...",
                             style = TvTypography.BodyLarge,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     innerTextField()
@@ -385,7 +384,7 @@ private fun SearchBar(
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = "Clear",
-                    tint = TvColors.TextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -422,7 +421,7 @@ private fun SearchResults(
                         .height(100.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = TvColors.Primary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -448,13 +447,13 @@ private fun SearchHistorySection(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    tint = TvColors.TextSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
                 )
                 Text(
                     text = "输入关键词开始搜索",
                     style = TvTypography.BodyLarge,
-                    color = TvColors.TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -474,12 +473,12 @@ private fun SearchHistorySection(
                 Icon(
                     imageVector = Icons.Default.History,
                     contentDescription = null,
-                    tint = TvColors.TextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "搜索历史",
                     style = TvTypography.TitleMedium,
-                    color = TvColors.TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -487,7 +486,7 @@ private fun SearchHistorySection(
                 Text(
                     text = "清除",
                     style = TvTypography.LabelMedium,
-                    color = if (isFocused) TvColors.Primary else TvColors.TextSecondary,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -519,7 +518,7 @@ private fun HistoryChip(
         Row(
             modifier = Modifier
                 .background(
-                    color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
@@ -529,7 +528,7 @@ private fun HistoryChip(
             Text(
                 text = keyword,
                 style = TvTypography.LabelMedium,
-                color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
             )
             IconButton(
                 onClick = onRemove,
@@ -538,7 +537,7 @@ private fun HistoryChip(
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = "Remove",
-                    tint = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                    tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

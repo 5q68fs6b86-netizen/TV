@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 
@@ -85,9 +85,9 @@ fun CategoryChip(
             text = text,
             style = TvTypography.CategoryChip,
             color = when {
-                isSelected -> TvColors.OnPrimary
-                isFocused -> TvColors.TextPrimary
-                else -> TvColors.TextSecondary
+                isSelected -> MaterialTheme.colorScheme.onPrimary
+                isFocused -> MaterialTheme.colorScheme.onSurface
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             },
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
@@ -114,7 +114,7 @@ fun ContentRow(
         Text(
             text = title,
             style = TvTypography.TitleLarge,
-            color = TvColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = TvDimens.ScreenPaddingHorizontal)
         )
 
@@ -160,7 +160,7 @@ fun WideContentRow(
         Text(
             text = title,
             style = TvTypography.TitleLarge,
-            color = TvColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = TvDimens.ScreenPaddingHorizontal)
         )
 

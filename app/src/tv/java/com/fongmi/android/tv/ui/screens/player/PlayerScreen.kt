@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -89,7 +90,6 @@ import com.fongmi.android.tv.ui.dialog.MultiTrackDialog
 import com.fongmi.android.tv.ui.dialog.PlayerDialog
 import com.fongmi.android.tv.ui.dialog.SpeedDialog
 import com.fongmi.android.tv.ui.dialog.TrackInfo
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.utils.TvKeyHandler
 import com.fongmi.android.tv.ui.viewmodel.PlayerViewModel
@@ -465,7 +465,7 @@ fun PlayerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CircularProgressIndicator(color = TvColors.Primary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     if (uiState.isLoadingEpisode) {
                         Text(
                             text = "加载中...",
@@ -584,7 +584,7 @@ fun PlayerScreen(
                     Text(
                         text = numberInput,
                         style = TvTypography.HeadlineLarge.copy(fontSize = 48.sp),
-                        color = TvColors.Primary
+                        color = MaterialTheme.colorScheme.primary
                     )
                     if (!uiState.isLive) {
                         Text(
@@ -794,7 +794,7 @@ private fun PlayerControlsOverlay(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = TvColors.Primary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -958,7 +958,7 @@ private fun PlayerControlsOverlay(
                         .fillMaxWidth()
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = Color.White.copy(alpha = 0.3f)
                 )
 
@@ -1001,8 +1001,8 @@ private fun TopActionButton(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isActive -> TvColors.Primary.copy(alpha = 0.5f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isActive -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         else -> Color.White.copy(alpha = 0.2f)
                     },
                     shape = RoundedCornerShape(8.dp)
@@ -1125,15 +1125,15 @@ private fun FlagTab(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.3f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                         else -> Color.White.copy(alpha = 0.1f)
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -1160,8 +1160,8 @@ private fun EpisodeItem(
                 .fillMaxWidth()
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isPlaying -> TvColors.Primary.copy(alpha = 0.2f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isPlaying -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                         else -> Color.White.copy(alpha = 0.05f)
                     },
                     shape = RoundedCornerShape(8.dp)
@@ -1175,7 +1175,7 @@ private fun EpisodeItem(
                 style = TvTypography.BodyMedium,
                 color = when {
                     isFocused -> Color.White
-                    isPlaying -> TvColors.Primary
+                    isPlaying -> MaterialTheme.colorScheme.primary
                     else -> Color.White.copy(alpha = 0.9f)
                 },
                 maxLines = 1,
@@ -1187,7 +1187,7 @@ private fun EpisodeItem(
                 Icon(
                     imageVector = if (isFocused) Icons.Default.Check else Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = if (isFocused) Color.White else TvColors.Primary,
+                    tint = if (isFocused) Color.White else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -1206,7 +1206,7 @@ private fun PlayerControlButton(
         Box(
             modifier = Modifier
                 .background(
-                    color = if (isFocused) TvColors.Primary else Color.White.copy(alpha = 0.2f),
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.2f),
                     shape = CircleShape
                 )
                 .padding(if (isLarge) 20.dp else 12.dp),

@@ -37,7 +37,6 @@ import android.view.KeyEvent
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.VodCard
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.CategoryViewModel
@@ -106,7 +105,7 @@ fun CategoryScreen(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                            color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                             shape = androidx.compose.foundation.shape.CircleShape
                         )
                         .padding(12.dp)
@@ -114,7 +113,7 @@ fun CategoryScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                        tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -123,13 +122,13 @@ fun CategoryScreen(
                 Text(
                     text = uiState.categoryName.ifEmpty { "分类" },
                     style = TvTypography.HeadlineLarge,
-                    color = TvColors.TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (uiState.totalPages > 1) {
                     Text(
                         text = "第 ${uiState.currentPage} / ${uiState.totalPages} 页",
                         style = TvTypography.BodySmall,
-                        color = TvColors.TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -147,11 +146,11 @@ fun CategoryScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(color = TvColors.Primary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Text(
                             text = "加载中...",
                             style = TvTypography.BodyMedium,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -168,16 +167,16 @@ fun CategoryScreen(
                         Text(
                             text = uiState.error ?: "加载失败",
                             style = TvTypography.BodyLarge,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         FocusableItem(onClick = { viewModel.refresh() }) { isFocused ->
                             Text(
                                 text = "重试",
                                 style = TvTypography.LabelLarge,
-                                color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary,
+                                color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier
                                     .background(
-                                        color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                                        color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                                         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                                     )
                                     .padding(horizontal = 24.dp, vertical = 12.dp)
@@ -194,7 +193,7 @@ fun CategoryScreen(
                     Text(
                         text = "暂无内容",
                         style = TvTypography.BodyLarge,
-                        color = TvColors.TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -226,7 +225,7 @@ fun CategoryScreen(
                                     .height(100.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = TvColors.Primary)
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

@@ -52,7 +52,6 @@ import coil.compose.AsyncImage
 import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.ui.components.FocusableItem
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.LiveViewModel
@@ -139,7 +138,7 @@ fun LiveScreen(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                            color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(12.dp)
@@ -147,7 +146,7 @@ fun LiveScreen(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh",
-                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                        tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -165,11 +164,11 @@ fun LiveScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(color = TvColors.Primary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Text(
                             text = "加载直播源中...",
                             style = TvTypography.BodyMedium,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -186,22 +185,22 @@ fun LiveScreen(
                         Icon(
                             imageVector = Icons.Default.LiveTv,
                             contentDescription = null,
-                            tint = TvColors.TextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(64.dp)
                         )
                         Text(
                             text = uiState.error ?: "加载失败",
                             style = TvTypography.BodyLarge,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         FocusableItem(onClick = { viewModel.refresh() }) { isFocused ->
                             Text(
                                 text = "重试",
                                 style = TvTypography.LabelLarge,
-                                color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary,
+                                color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier
                                     .background(
-                                        color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                                        color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                                         shape = RoundedCornerShape(8.dp)
                                     )
                                     .padding(horizontal = 24.dp, vertical = 12.dp)
@@ -222,18 +221,18 @@ fun LiveScreen(
                         Icon(
                             imageVector = Icons.Default.LiveTv,
                             contentDescription = null,
-                            tint = TvColors.TextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(64.dp)
                         )
                         Text(
                             text = "暂无直播源",
                             style = TvTypography.BodyLarge,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "请在设置中配置直播源",
                             style = TvTypography.BodyMedium,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -332,7 +331,7 @@ private fun ChannelNumberOverlay(number: String) {
             modifier = Modifier
                 .padding(32.dp)
                 .background(
-                    color = TvColors.Surface.copy(alpha = 0.9f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(horizontal = 24.dp, vertical = 16.dp)
@@ -340,7 +339,7 @@ private fun ChannelNumberOverlay(number: String) {
             Text(
                 text = number,
                 style = TvTypography.DisplayMedium,
-                color = TvColors.Primary
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -358,15 +357,15 @@ private fun GroupItem(
                 .fillMaxWidth()
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.2f)
-                        else -> TvColors.Surface
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        else -> MaterialTheme.colorScheme.surface
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -375,9 +374,9 @@ private fun GroupItem(
                 text = group.name ?: "",
                 style = TvTypography.TitleSmall,
                 color = when {
-                    isFocused -> TvColors.OnPrimary
-                    isSelected -> TvColors.Primary
-                    else -> TvColors.TextPrimary
+                    isFocused -> MaterialTheme.colorScheme.onPrimary
+                    isSelected -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface
                 },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -398,15 +397,15 @@ private fun ChannelItem(
                 .fillMaxWidth()
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary.copy(alpha = 0.1f)
-                        isSelected -> TvColors.Primary.copy(alpha = 0.05f)
-                        else -> TvColors.Surface
+                        isFocused -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                        else -> MaterialTheme.colorScheme.surface
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isFocused) 2.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(12.dp),
@@ -432,7 +431,7 @@ private fun ChannelItem(
                     Icon(
                         imageVector = Icons.Default.LiveTv,
                         contentDescription = null,
-                        tint = TvColors.TextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -446,7 +445,7 @@ private fun ChannelItem(
                 Text(
                     text = channel.name ?: "",
                     style = TvTypography.TitleSmall,
-                    color = if (isFocused) TvColors.Primary else TvColors.TextPrimary,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -454,7 +453,7 @@ private fun ChannelItem(
                     Text(
                         text = "频道 ${channel.number}",
                         style = TvTypography.BodySmall,
-                        color = TvColors.TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -464,7 +463,7 @@ private fun ChannelItem(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = TvColors.Primary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
