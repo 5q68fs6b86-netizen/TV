@@ -177,7 +177,8 @@ private fun NavRailItem(
             .onFocusChanged { onFocusChanged(it.isFocused) },
         shape = RoundedCornerShape(12.dp),
         focusBorderWidth = 0.dp,
-        focusScale = 1.0f
+        focusScale = 1.0f,
+        focusElevation = 0.dp
     ) { focused ->
         Box(
             modifier = Modifier

@@ -81,7 +81,7 @@ fun FocusableItem(
     )
 
     val elevation by animateDpAsState(
-        targetValue = if (isFocused) focusElevation else 2.dp,
+        targetValue = if (isFocused) focusElevation else if (focusElevation > 0.dp) 2.dp else 0.dp,
         animationSpec = spring(stiffness = 400f),
         label = "focus_elevation"
     )
