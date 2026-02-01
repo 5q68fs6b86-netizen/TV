@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +80,7 @@ fun CategoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
             .onKeyEvent { event ->

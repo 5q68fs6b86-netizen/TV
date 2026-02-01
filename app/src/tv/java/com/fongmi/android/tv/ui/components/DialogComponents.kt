@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -33,16 +32,20 @@ fun DialogButton(
                     color = when {
                         isFocused -> MaterialTheme.colorScheme.primary
                         isPrimary -> MaterialTheme.colorScheme.primaryContainer
-                        else -> Color.Transparent
+                        else -> MaterialTheme.colorScheme.surface
                     },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(
-                    width = if (!isFocused && !isPrimary) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.outline,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = when {
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isPrimary -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant
+                    },
+                    shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 20.dp, vertical = 10.dp),
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -78,13 +81,17 @@ fun TabChip(
                     color = when {
                         isFocused -> MaterialTheme.colorScheme.primary
                         isSelected -> MaterialTheme.colorScheme.primaryContainer
-                        else -> Color.Transparent
+                        else -> MaterialTheme.colorScheme.surface
                     },
                     shape = RoundedCornerShape(20.dp)
                 )
                 .border(
-                    width = if (!isFocused && !isSelected) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.outline,
+                    width = 1.dp,
+                    color = when {
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant
+                    },
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)

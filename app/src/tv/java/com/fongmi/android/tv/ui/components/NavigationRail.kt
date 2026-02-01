@@ -90,7 +90,8 @@ fun TvNavigationRail(
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 shape = RoundedCornerShape(16.dp)
-            )
+            ),
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier = Modifier

@@ -104,7 +104,7 @@ fun LiveScreen(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                                color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                                 shape = CircleShape
                             )
                             .padding(12.dp)
@@ -112,7 +112,7 @@ fun LiveScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                            tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -124,12 +124,12 @@ fun LiveScreen(
                     Icon(
                         imageVector = Icons.Default.LiveTv,
                         contentDescription = null,
-                        tint = TvColors.Primary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "电视直播",
                         style = TvTypography.HeadlineLarge,
-                        color = TvColors.TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -418,7 +418,7 @@ private fun ChannelItem(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(TvColors.Background),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 if (!channel.logo.isNullOrEmpty()) {

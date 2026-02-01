@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +80,7 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
             .onKeyEvent { event ->

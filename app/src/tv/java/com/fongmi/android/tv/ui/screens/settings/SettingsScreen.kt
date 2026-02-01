@@ -497,27 +497,30 @@ private fun ConfigRow(
                     .fillMaxWidth()
                     .background(
                         color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                               else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
+                               else MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     .border(
-                        width = if (isFocused) 2.dp else 0.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(8.dp)
+                        width = 1.dp,
+                        color = if (isFocused) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(12.dp)
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                           else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                           else MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false).padding(start = 16.dp)
@@ -556,21 +559,23 @@ private fun SettingsButton(
                 .fillMaxWidth()
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                       else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -592,28 +597,31 @@ private fun SettingsValueButton(
                 .fillMaxWidth()
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                       else MaterialTheme.colorScheme.onSurface
             )
             if (value.isNotEmpty()) {
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                           else MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -632,16 +640,17 @@ private fun SettingsIconButton(
     ) { isFocused ->
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(44.dp)
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = CircleShape
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -649,7 +658,8 @@ private fun SettingsIconButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                      else MaterialTheme.colorScheme.onSurfaceVariant
+                      else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -664,17 +674,22 @@ private fun SettingsSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp)
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = RoundedCornerShape(16.dp)
             )
-            .padding(16.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(20.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         content()
     }
 }
@@ -694,12 +709,16 @@ private fun ThemeChip(
                         isSelected -> MaterialTheme.colorScheme.primaryContainer
                         else -> MaterialTheme.colorScheme.surface
                     },
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .border(
-                    width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp)
+                    width = 1.dp,
+                    color = when {
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant
+                    },
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {

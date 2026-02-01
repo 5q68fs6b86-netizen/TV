@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -110,7 +111,7 @@ fun DetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(TvColors.Background)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
                     .padding(top = TvDimens.ScreenPaddingVertical)
             ) {
@@ -432,7 +433,7 @@ fun DetailLoadingState() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -458,7 +459,7 @@ fun DetailErrorState(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(

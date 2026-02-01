@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,7 +64,7 @@ fun HistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
     ) {
@@ -84,7 +85,7 @@ fun HistoryScreen(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                                color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                                 shape = androidx.compose.foundation.shape.CircleShape
                             )
                             .padding(12.dp)
@@ -92,7 +93,7 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                            tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -104,12 +105,12 @@ fun HistoryScreen(
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
-                        tint = TvColors.Primary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "观看历史",
                         style = TvTypography.HeadlineLarge,
-                        color = TvColors.TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -120,7 +121,7 @@ fun HistoryScreen(
                     Row(
                         modifier = Modifier
                             .background(
-                                color = if (isFocused) TvColors.Error else TvColors.Surface,
+                                color = if (isFocused) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -130,7 +131,7 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.Default.DeleteSweep,
                             contentDescription = null,
-                            tint = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                            tint = if (isFocused) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "清空",
