@@ -3,8 +3,13 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.Setting
+import com.fongmi.android.tv.api.config.LiveConfig
 import com.fongmi.android.tv.api.config.VodConfig
+import com.fongmi.android.tv.api.config.WallConfig
+import com.fongmi.android.tv.bean.Config
 import com.fongmi.android.tv.bean.Site
+import com.fongmi.android.tv.event.RefreshEvent
+import com.fongmi.android.tv.impl.Callback
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.DisplaySettings
 import com.fongmi.android.tv.ui.state.PlayerSettings
@@ -307,6 +312,68 @@ class SettingsViewModel @Inject constructor(
 
     fun setDoh(doh: com.github.catvod.bean.Doh) {
         Setting.putDoh(doh.toString())
+    }
+
+    /**
+     * Load VOD config
+     */
+    fun loadVodConfig(config: Config) {
+        _uiState.update { it.copy(isLoading = true) }
+        VodConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.history()
+                RefreshEvent.config()
+                RefreshEvent.video()
+                // Reload settings to update UI
+                loadSettings()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Load Live config
+     */
+    fun loadLiveConfig(config: Config) {
+        _uiState.update { it.copy(isLoading = true) }
+        LiveConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.config()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Load Wall config
+     */
+    fun loadWallConfig(config: Config) {
+        _uiState.update { it.copy(isLoading = true) }
+        WallConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.config()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Clear error message
+     */
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun restoreBackup(file: java.io.File) {

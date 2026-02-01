@@ -68,6 +68,8 @@ data class PlayerUiState(
  * UI State for Settings Screen
  */
 data class SettingsUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
     val sites: List<Site> = emptyList(),
     val currentSite: Site? = null,
     val playerSettings: PlayerSettings = PlayerSettings(),
