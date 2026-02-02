@@ -92,16 +92,10 @@ fun FocusableItem(
         label = "focus_border"
     )
 
+    // Apply shadow BEFORE scale to prevent misalignment
+    // Use graphicsLayer for better shadow rendering with scale
     Box(
         modifier = modifier
-            .scale(scale)
-            .shadow(elevation = elevation, shape = shape)
-            .clip(shape)
-            .border(
-                width = borderWidth,
-                color = if (isFocused) focusBorderColor else Color.Transparent,
-                shape = shape
-            )
             .then(
                 if (focusRequester != null) {
                     Modifier.focusRequester(focusRequester)
@@ -117,6 +111,18 @@ fun FocusableItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
+            .scale(scale)
+            .shadow(
+                elevation = elevation,
+                shape = shape,
+                clip = false  // Don't clip shadow
+            )
+            .clip(shape)
+            .border(
+                width = borderWidth,
+                color = if (isFocused) focusBorderColor else Color.Transparent,
+                shape = shape
+            )
     ) {
         content(isFocused)
     }
@@ -124,6 +130,7 @@ fun FocusableItem(
 
 /**
  * Simple focusable button with TV focus effects.
+ * For circular buttons, use CircleShape and provide explicit background.
  */
 @Composable
 fun FocusableButton(
@@ -145,11 +152,14 @@ fun FocusableButton(
         label = "button_scale"
     )
 
+    val elevation by animateDpAsState(
+        targetValue = if (isFocused) 8.dp else 2.dp,
+        animationSpec = spring(stiffness = 400f),
+        label = "button_elevation"
+    )
+
     Box(
         modifier = modifier
-            .scale(scale)
-            .clip(shape)
-            .background(if (isFocused) focusedBackgroundColor else backgroundColor)
             .then(
                 if (focusRequester != null) {
                     Modifier.focusRequester(focusRequester)
@@ -164,6 +174,14 @@ fun FocusableButton(
                 enabled = enabled,
                 onClick = onClick
             )
+            .scale(scale)
+            .shadow(
+                elevation = elevation,
+                shape = shape,
+                clip = false
+            )
+            .clip(shape)
+            .background(if (isFocused) focusedBackgroundColor else backgroundColor)
     ) {
         content(isFocused)
     }

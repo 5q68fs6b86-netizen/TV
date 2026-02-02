@@ -40,6 +40,7 @@ import com.fongmi.android.tv.ui.theme.TvTypography
  * @param modifier Modifier for the card
  * @param subtitle Optional subtitle (year, type, etc.)
  * @param badge Optional badge text (HD, 4K, etc.)
+ * @param siteName Optional site source name (shown at top-left)
  * @param progress Optional playback progress (0.0 - 1.0)
  * @param width Card width
  * @param aspectRatio Card aspect ratio (default 3:4 for posters)
@@ -53,6 +54,7 @@ fun VodCard(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     badge: String? = null,
+    siteName: String? = null,
     progress: Float? = null,
     width: Dp = TvDimens.CardWidthMedium,
     aspectRatio: Float = 3f / 4f,
@@ -97,7 +99,25 @@ fun VodCard(
                         )
                 )
 
-                // Badge (HD, 4K, etc.)
+                // Site name (top-left)
+                if (!siteName.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(6.dp)
+                            .align(Alignment.TopStart)
+                            .clip(TvShapes.Badge)
+                            .background(CommonColors.Black70)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = siteName,
+                            style = TvTypography.LabelSmall,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // Badge (HD, 4K, etc.) - top-right
                 if (badge != null) {
                     Box(
                         modifier = Modifier

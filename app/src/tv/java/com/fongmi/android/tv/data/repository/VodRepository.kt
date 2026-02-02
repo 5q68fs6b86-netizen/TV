@@ -6,6 +6,8 @@ import com.fongmi.android.tv.bean.Result
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Sub
 import com.fongmi.android.tv.bean.Vod
+import com.fongmi.android.tv.impl.ParseCallback
+import com.fongmi.android.tv.player.ParseJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -13,8 +15,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 /**
  * Repository for VOD (Video on Demand) data access
@@ -263,6 +267,7 @@ class VodRepository @Inject constructor() {
 
     /**
      * Get play URL for an episode
+     * Returns needParse=true if the URL requires web parsing (jx=1 or parse=1)
      */
     fun getPlayUrl(site: Site, flag: String, episodeId: String): Flow<PlayUrlResult> = flow {
         emit(PlayUrlResult.Loading)
@@ -273,11 +278,23 @@ class VodRepository @Inject constructor() {
             if (result != null) {
                 val parsed = Result.fromJson(result)
                 val url = parsed.url?.v() ?: parsed.playUrl
+
                 if (!url.isNullOrEmpty()) {
+                    // Check if parsing is needed:
+                    // 1. jx == 1 (explicit request to parse)
+                    // 2. playUrl is empty AND flag is in configured parse flags
+                    val hasParsers = vodConfig.parses?.isNotEmpty() == true
+                    val needParse = hasParsers && (
+                        parsed.jx == 1 ||
+                        (parsed.playUrl.isNullOrEmpty() && vodConfig.flags?.contains(flag) == true)
+                    )
+
                     emit(PlayUrlResult.Success(
                         url = url,
                         headers = parsed.headers,
-                        subtitles = parsed.subs ?: emptyList()
+                        subtitles = parsed.subs ?: emptyList(),
+                        needParse = needParse,
+                        parseFlag = if (needParse) parsed.flag else null
                     ))
                 } else {
                     emit(PlayUrlResult.Error("No play URL found"))
@@ -289,6 +306,65 @@ class VodRepository @Inject constructor() {
             emit(PlayUrlResult.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
+
+    /**
+     * Parse a URL that requires web parsing (jx/parse)
+     * Uses ParseJob to sniff/parse the actual video URL
+     */
+    fun parseUrl(
+        siteKey: String,
+        url: String,
+        flag: String
+    ): Flow<ParseUrlResult> = flow {
+        emit(ParseUrlResult.Loading)
+        try {
+            // Create Result object for ParseJob
+            val result = Result.empty().apply {
+                setUrl(url)
+                setFlag(flag)
+                key = siteKey
+            }
+
+            // Use suspendCancellableCoroutine to bridge callback to coroutine
+            val parseResult = suspendCancellableCoroutine { continuation ->
+                var parseJob: ParseJob? = null
+
+                parseJob = ParseJob.create(object : ParseCallback {
+                    override fun onParseSuccess(headers: MutableMap<String, String>?, parsedUrl: String?, from: String?) {
+                        if (continuation.isActive) {
+                            if (!parsedUrl.isNullOrEmpty()) {
+                                continuation.resume(ParseUrlResult.Success(
+                                    url = parsedUrl,
+                                    headers = headers,
+                                    from = from
+                                ))
+                            } else {
+                                continuation.resume(ParseUrlResult.Error("Parse returned empty URL"))
+                            }
+                        }
+                    }
+
+                    override fun onParseError() {
+                        if (continuation.isActive) {
+                            continuation.resume(ParseUrlResult.Error("Parse failed"))
+                        }
+                    }
+                })
+
+                // Start parsing (useParse=true to force parsing)
+                parseJob.start(result, true)
+
+                // Cancel ParseJob if coroutine is cancelled
+                continuation.invokeOnCancellation {
+                    parseJob.stop()
+                }
+            }
+
+            emit(parseResult)
+        } catch (e: Exception) {
+            emit(ParseUrlResult.Error(e.message ?: "Parse error"))
+        }
+    }.flowOn(Dispatchers.Main) // ParseJob uses WebView which needs main thread
 }
 
 // Result sealed classes for type-safe results
@@ -318,8 +394,27 @@ sealed class SearchResult {
 
 sealed class PlayUrlResult {
     data object Loading : PlayUrlResult()
-    data class Success(val url: String, val headers: Map<String, String>?, val subtitles: List<Sub>) : PlayUrlResult()
+    data class Success(
+        val url: String,
+        val headers: Map<String, String>?,
+        val subtitles: List<Sub>,
+        val needParse: Boolean = false,  // Whether URL needs web parsing
+        val parseFlag: String? = null    // Flag for parsing service selection
+    ) : PlayUrlResult()
     data class Error(val message: String) : PlayUrlResult()
+}
+
+/**
+ * Result for URL parsing (web sniffing/jx parsing)
+ */
+sealed class ParseUrlResult {
+    data object Loading : ParseUrlResult()
+    data class Success(
+        val url: String,
+        val headers: Map<String, String>?,
+        val from: String?  // Parser name that succeeded
+    ) : ParseUrlResult()
+    data class Error(val message: String) : ParseUrlResult()
 }
 
 data class SiteSearchResult(
