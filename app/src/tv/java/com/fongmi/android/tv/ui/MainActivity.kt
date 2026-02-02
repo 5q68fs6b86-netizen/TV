@@ -1,8 +1,8 @@
 package com.fongmi.android.tv.ui
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -17,9 +17,13 @@ import dagger.hilt.android.AndroidEntryPoint
 /**
  * Main Activity for the Compose-based TV UI.
  * Uses single Activity architecture with Navigation Compose.
+ *
+ * NOTE: Uses AppCompatActivity instead of ComponentActivity to support
+ * MaterialAlertDialogBuilder used by jar plugins and WebDialog. The Compose
+ * setContent extension works with AppCompatActivity via ActivityResultCaller.
  */
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
