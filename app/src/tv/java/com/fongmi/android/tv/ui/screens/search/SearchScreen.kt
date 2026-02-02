@@ -446,21 +446,13 @@ private fun AggregatedSearchResults(
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
         siteResults.filter { it.results.isNotEmpty() }.forEach { siteResult ->
-            // Site header
-            item {
-                Text(
-                    text = "${siteResult.site.name} (${siteResult.results.size})",
-                    style = TvTypography.TitleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-            // Results from this site
-            items(siteResult.results.take(6)) { vod ->
+            // Results from this site - show site name on each card
+            items(siteResult.results) { vod ->
                 VodCard(
                     title = vod.vodName ?: "",
                     imageUrl = vod.vodPic,
                     subtitle = vod.vodRemarks,
+                    siteName = siteResult.site.name,  // Show site source on each poster
                     onClick = { onVodClick(vod) }
                 )
             }

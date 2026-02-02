@@ -11,6 +11,7 @@ import com.fongmi.android.tv.bean.Keep
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.db.AppDatabase
 import com.fongmi.android.tv.data.repository.DetailResult
+import com.fongmi.android.tv.data.repository.ParseUrlResult
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.DetailUiState
@@ -135,6 +136,7 @@ class DetailViewModel @Inject constructor(
 
     /**
      * Play selected episode
+     * Handles both direct URLs and URLs that need parsing
      */
     fun play() {
         val vod = _uiState.value.vod ?: return
@@ -156,25 +158,30 @@ class DetailViewModel @Inject constructor(
                         _playUrlState.update { PlayUrlState.Loading }
                     }
                     is PlayUrlResult.Success -> {
-                        // Set player state for sharing with PlayerScreen
-                        playerStateHolder.setPlaybackData(
-                            vodName = vod.vodName ?: "",
-                            vodPic = vod.vodPic ?: "",
-                            siteKey = site.key ?: "",
-                            vodId = vod.vodId ?: "",
-                            flags = flags,
-                            currentFlagIndex = flagIndex,
-                            currentEpisodeIndex = episodeIndex,
-                            url = result.url,
-                            headers = result.headers
-                        )
-
-                        _playUrlState.update {
-                            PlayUrlState.Ready(
+                        if (result.needParse) {
+                            // URL needs parsing - use ParseJob
+                            _playUrlState.update { PlayUrlState.Parsing }
+                            parseAndPlay(
+                                siteKey = site.key ?: "",
+                                url = result.url,
+                                flag = result.parseFlag ?: flag.flag ?: "",
+                                vod = vod,
+                                episode = episode,
+                                flags = flags,
+                                flagIndex = flagIndex,
+                                episodeIndex = episodeIndex
+                            )
+                        } else {
+                            // Direct URL - play immediately
+                            setPlayerStateAndPlay(
                                 url = result.url,
                                 headers = result.headers,
-                                vodName = vod.vodName ?: "",
-                                episodeName = episode.name ?: ""
+                                vod = vod,
+                                episode = episode,
+                                site = site,
+                                flags = flags,
+                                flagIndex = flagIndex,
+                                episodeIndex = episodeIndex
                             )
                         }
                     }
@@ -183,6 +190,81 @@ class DetailViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Parse URL and then play
+     */
+    private fun parseAndPlay(
+        siteKey: String,
+        url: String,
+        flag: String,
+        vod: Vod,
+        episode: Episode,
+        flags: List<Flag>,
+        flagIndex: Int,
+        episodeIndex: Int
+    ) {
+        viewModelScope.launch {
+            vodRepository.parseUrl(siteKey, url, flag).collect { result ->
+                when (result) {
+                    is ParseUrlResult.Loading -> {
+                        _playUrlState.update { PlayUrlState.Parsing }
+                    }
+                    is ParseUrlResult.Success -> {
+                        setPlayerStateAndPlay(
+                            url = result.url,
+                            headers = result.headers,
+                            vod = vod,
+                            episode = episode,
+                            site = vod.site!!,
+                            flags = flags,
+                            flagIndex = flagIndex,
+                            episodeIndex = episodeIndex
+                        )
+                    }
+                    is ParseUrlResult.Error -> {
+                        _playUrlState.update { PlayUrlState.Error(result.message) }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Set player state and trigger playback
+     */
+    private fun setPlayerStateAndPlay(
+        url: String,
+        headers: Map<String, String>?,
+        vod: Vod,
+        episode: Episode,
+        site: com.fongmi.android.tv.bean.Site,
+        flags: List<Flag>,
+        flagIndex: Int,
+        episodeIndex: Int
+    ) {
+        // Set player state for sharing with PlayerScreen
+        playerStateHolder.setPlaybackData(
+            vodName = vod.vodName ?: "",
+            vodPic = vod.vodPic ?: "",
+            siteKey = site.key ?: "",
+            vodId = vod.vodId ?: "",
+            flags = flags,
+            currentFlagIndex = flagIndex,
+            currentEpisodeIndex = episodeIndex,
+            url = url,
+            headers = headers
+        )
+
+        _playUrlState.update {
+            PlayUrlState.Ready(
+                url = url,
+                headers = headers,
+                vodName = vod.vodName ?: "",
+                episodeName = episode.name ?: ""
+            )
         }
     }
 
@@ -301,6 +383,7 @@ class DetailViewModel @Inject constructor(
 sealed class PlayUrlState {
     data object Idle : PlayUrlState()
     data object Loading : PlayUrlState()
+    data object Parsing : PlayUrlState()  // URL is being parsed (jx/sniff)
     data class Ready(
         val url: String,
         val headers: Map<String, String>?,

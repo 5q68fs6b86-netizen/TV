@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -220,10 +221,10 @@ fun DetailScreen(
                                     )
                                     Column {
                                         Text(
-                                            text = when {
-                                                playUrlState is PlayUrlState.Loading -> "加载中..."
-                                                hasHistory -> "继续播放"
-                                                else -> "立即播放"
+                                            text = when (playUrlState) {
+                                                is PlayUrlState.Loading -> "加载中..."
+                                                is PlayUrlState.Parsing -> "解析中..."
+                                                else -> if (hasHistory) "继续播放" else "立即播放"
                                             },
                                             style = TvTypography.LabelLarge,
                                             color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
@@ -345,12 +346,15 @@ private fun MetaChip(text: String) {
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(4.dp)
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .height(IntrinsicSize.Min)  // Ensure consistent height
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             style = TvTypography.LabelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
         )
     }
 }
