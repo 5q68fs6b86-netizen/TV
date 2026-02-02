@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,22 +31,28 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.view.KeyEvent
+import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.VodCard
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
+import com.fongmi.android.tv.ui.viewmodel.ActionResult
 import com.fongmi.android.tv.ui.viewmodel.CategoryViewModel
+import kotlinx.coroutines.launch
 
 /**
  * Category Screen - displays content for a specific category with pagination
+ * Supports folder navigation for jar plugins that return nested content
  */
 @Composable
 fun CategoryScreen(
@@ -53,8 +63,32 @@ fun CategoryScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val actionResult by viewModel.actionResult.collectAsState()
     val focusRequester = remember { FocusRequester() }
     val gridState = rememberLazyGridState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    // Handle action results
+    LaunchedEffect(actionResult) {
+        when (val result = actionResult) {
+            is ActionResult.Error -> {
+                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                viewModel.clearActionResult()
+            }
+            is ActionResult.Success -> {
+                // Action completed successfully
+                // If result contains a message, show it
+                result.result.msg?.let { msg ->
+                    if (msg.isNotEmpty()) {
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                viewModel.clearActionResult()
+            }
+            else -> {}
+        }
+    }
 
     // Load category on first composition
     LaunchedEffect(typeId) {
@@ -76,6 +110,25 @@ fun CategoryScreen(
         }
     }
 
+    /**
+     * Handle back navigation - if inside folder, go back; else exit screen
+     */
+    fun handleBackNavigation() {
+        if (viewModel.canNavigateBack()) {
+            val scrollPosition = viewModel.navigateBack()
+            // Restore scroll position after content loads
+            scrollPosition?.let { pos ->
+                coroutineScope.launch {
+                    // Wait a bit for content to load
+                    kotlinx.coroutines.delay(100)
+                    gridState.scrollToItem(pos)
+                }
+            }
+        } else {
+            onBackClick()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +138,7 @@ fun CategoryScreen(
             .onKeyEvent { event ->
                 if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
                     event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
-                    onBackClick()
+                    handleBackNavigation()
                     true
                 } else {
                     false
@@ -99,14 +152,14 @@ fun CategoryScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             FocusableItem(
-                onClick = onBackClick,
+                onClick = { handleBackNavigation() },
                 modifier = Modifier.focusRequester(focusRequester)
             ) { isFocused ->
                 Box(
                     modifier = Modifier
                         .background(
                             color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                            shape = androidx.compose.foundation.shape.CircleShape
+                            shape = CircleShape
                         )
                         .padding(12.dp)
                 ) {
@@ -118,12 +171,41 @@ fun CategoryScreen(
                 }
             }
 
-            Column {
-                Text(
-                    text = uiState.categoryName.ifEmpty { "分类" },
-                    style = TvTypography.HeadlineLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = uiState.categoryName.ifEmpty { "分类" },
+                        style = TvTypography.HeadlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    // Show folder depth indicator
+                    if (uiState.folderDepth > 0) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Folder,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.height(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "深度 ${uiState.folderDepth}",
+                                    style = TvTypography.LabelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
                 if (uiState.totalPages > 1) {
                     Text(
                         text = "第 ${uiState.currentPage} / ${uiState.totalPages} 页",
@@ -177,7 +259,7 @@ fun CategoryScreen(
                                 modifier = Modifier
                                     .background(
                                         color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        shape = RoundedCornerShape(8.dp)
                                     )
                                     .padding(horizontal = 24.dp, vertical = 12.dp)
                             )
@@ -210,8 +292,25 @@ fun CategoryScreen(
                             title = vod.vodName ?: "",
                             imageUrl = vod.vodPic,
                             subtitle = vod.vodRemarks,
+                            // Show folder icon for folder items
+                            badge = if (vod.isFolder) "📁" else null,
                             onClick = {
-                                onVodClick(viewModel.getSiteKey(), vod.vodId ?: "")
+                                when {
+                                    // Action button from jar plugin
+                                    vod.isAction -> {
+                                        viewModel.executeAction(vod.action ?: "")
+                                    }
+                                    // Folder navigation
+                                    vod.isFolder -> {
+                                        // Get current scroll position before navigating
+                                        val currentPosition = gridState.firstVisibleItemIndex
+                                        viewModel.navigateIntoFolder(vod, currentPosition)
+                                    }
+                                    // Normal video click
+                                    else -> {
+                                        onVodClick(viewModel.getSiteKey(), vod.vodId ?: "")
+                                    }
+                                }
                             }
                         )
                     }
@@ -236,5 +335,27 @@ fun CategoryScreen(
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    // Action loading overlay
+    if (uiState.isActionLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = "处理中...",
+                    style = TvTypography.BodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     }
 }
