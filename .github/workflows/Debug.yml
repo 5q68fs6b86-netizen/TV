@@ -1,0 +1,58 @@
+name: Build TV APKs
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: ${{ runner.os }}-gradle-
+
+    - name: Grant gradlew permission
+      run: chmod +x ./gradlew
+
+    - name: Build TV APKs
+      run: |
+        sed -i '/org.gradle.java.home/d' gradle.properties
+        ./gradlew assembleTvJavaArm64_v8aDebug
+
+    - name: Verify APKs exist
+      id: apk-check
+      run: |
+        ls app/build/outputs/apk
+        if ls app/build/outputs/apk/**/*debug/*.apk 1> /dev/null 2>&1; then
+          echo "apk_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "APK not found!" >&2
+          exit 1
+        fi
+
+    - name: Create Release
+      if: steps.apk-check.outputs.apk_exists == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "TV Release ${{ github.run_number }}"
+        tag_name: "tv-v${{ github.run_number }}"
+        files: |
+          app/build/outputs/apk/**/*debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
