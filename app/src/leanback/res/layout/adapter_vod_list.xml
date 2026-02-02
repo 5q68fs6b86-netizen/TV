@@ -2,31 +2,28 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/TVCard.Small"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="@dimen/spacing_normal"
+    android:layout_marginVertical="@dimen/spacing_tiny"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_vod"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
-    app:cardBackgroundColor="@color/card_background_light">
+    android:foreground="@drawable/selector_vod">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_medium">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/image"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_width="@dimen/vod_thumbnail_width"
+            android:layout_height="@dimen/vod_thumbnail_height"
+            android:layout_marginStart="@dimen/spacing_normal"
+            android:layout_marginEnd="@dimen/spacing_normal"
             android:background="@color/media_thumbnail_placeholder"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/Vod.Grid"
@@ -36,32 +33,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="@dimen/spacing_normal"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/name"
+                style="@style/TVTextAppearance.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/text_primary_high_emphasis"
-                android:textSize="16sp"
                 android:textStyle="bold"
-                tools:text="蜘蛛侠：英雄无归" />
+                tools:text="蜘蛛俠：英雄無歸" />
 
             <TextView
                 android:id="@+id/remark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/round"
-                android:backgroundTint="@color/media_quality_hd"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:textColor="@color/white"
-                android:textSize="12sp"
-                android:textStyle="bold"
+                style="@style/TVTag.Primary"
+                android:layout_marginTop="@dimen/spacing_tiny"
                 tools:text="1080P" />
 
         </LinearLayout>
@@ -69,9 +57,9 @@
         <!-- 播放指示器 -->
         <ImageView
             android:id="@+id/playIndicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="16dp"
+            android:layout_width="@dimen/icon_size_medium"
+            android:layout_height="@dimen/icon_size_medium"
+            android:layout_marginEnd="@dimen/spacing_normal"
             android:src="@drawable/ic_widget_play"
             android:tint="@color/md_theme_primary"
             android:visibility="gone"

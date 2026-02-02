@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +22,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvTypography
 
 /**
@@ -42,7 +42,7 @@ fun PlaceholderScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
@@ -62,17 +62,17 @@ fun PlaceholderScreen(
             Text(
                 text = title,
                 style = TvTypography.HeadlineLarge,
-                color = TvColors.TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Coming Soon...",
                 style = TvTypography.BodyLarge,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "Press BACK to return",
                 style = TvTypography.BodyMedium,
-                color = TvColors.TextHint,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(top = 32.dp)
             )
         }

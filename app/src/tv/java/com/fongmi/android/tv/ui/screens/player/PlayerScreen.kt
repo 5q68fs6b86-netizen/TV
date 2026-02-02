@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -70,8 +71,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.fongmi.android.tv.bean.Episode
@@ -79,7 +82,14 @@ import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.ui.components.DanmakuOverlay
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.rememberDanmakuState
-import com.fongmi.android.tv.ui.theme.TvColors
+import com.fongmi.android.tv.ui.dialog.CastDialog
+import com.fongmi.android.tv.ui.dialog.DecodeDialog
+import com.fongmi.android.tv.ui.dialog.DisplayDialog
+import com.fongmi.android.tv.ui.dialog.EpisodeDialog
+import com.fongmi.android.tv.ui.dialog.MultiTrackDialog
+import com.fongmi.android.tv.ui.dialog.PlayerDialog
+import com.fongmi.android.tv.ui.dialog.SpeedDialog
+import com.fongmi.android.tv.ui.dialog.TrackInfo
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.utils.TvKeyHandler
 import com.fongmi.android.tv.ui.viewmodel.PlayerViewModel
@@ -169,6 +179,31 @@ fun PlayerScreen(
 
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                val audioList = mutableListOf<TrackInfo>()
+                val subtitleList = mutableListOf<TrackInfo>()
+
+                tracks.groups.forEachIndexed { groupIndex, group ->
+                    val trackType = group.type
+                    for (i in 0 until group.length) {
+                        val format = group.getTrackFormat(i)
+                        val isSelected = group.isTrackSelected(i)
+                        val name = format.label ?: "轨道 ${i + 1}"
+                        val language = format.language
+
+                        when (trackType) {
+                            C.TRACK_TYPE_AUDIO -> {
+                                audioList.add(TrackInfo(groupIndex * 100 + i, name, language, isSelected))
+                            }
+                            C.TRACK_TYPE_TEXT -> {
+                                subtitleList.add(TrackInfo(groupIndex * 100 + i, name, language, isSelected))
+                            }
+                        }
+                    }
+                }
+                viewModel.updateTracks(audioList, subtitleList)
             }
         }
         exoPlayer.addListener(listener)
@@ -430,7 +465,7 @@ fun PlayerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CircularProgressIndicator(color = TvColors.Primary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     if (uiState.isLoadingEpisode) {
                         Text(
                             text = "加载中...",
@@ -549,7 +584,7 @@ fun PlayerScreen(
                     Text(
                         text = numberInput,
                         style = TvTypography.HeadlineLarge.copy(fontSize = 48.sp),
-                        color = TvColors.Primary
+                        color = MaterialTheme.colorScheme.primary
                     )
                     if (!uiState.isLive) {
                         Text(
@@ -593,6 +628,108 @@ fun PlayerScreen(
                 }
             )
         }
+    }
+
+    // ========== Dialogs ==========
+
+    // Speed Dialog
+    if (uiState.showSpeedDialog) {
+        SpeedDialog(
+            currentSpeed = uiState.currentSpeed,
+            onDismiss = { viewModel.dismissSpeedDialog() },
+            onSelect = { speed ->
+                viewModel.setSpeed(speed)
+                exoPlayer.setPlaybackSpeed(speed)
+            }
+        )
+    }
+
+    // Player Dialog
+    if (uiState.showPlayerDialog) {
+        PlayerDialog(
+            selectedIndex = uiState.currentPlayer,
+            onDismiss = { viewModel.dismissPlayerDialog() },
+            onSelect = { player -> viewModel.setPlayer(player) }
+        )
+    }
+
+    // Decode Dialog
+    if (uiState.showDecodeDialog) {
+        DecodeDialog(
+            selectedIndex = uiState.currentDecode,
+            onDismiss = { viewModel.dismissDecodeDialog() },
+            onSelect = { decode -> viewModel.setDecode(decode) }
+        )
+    }
+
+    // Episode Dialog
+    if (uiState.showEpisodeDialog && uiState.hasEpisodes) {
+        val episodes = uiState.currentFlag?.episodes ?: emptyList()
+        EpisodeDialog(
+            episodes = episodes,
+            onDismiss = { viewModel.dismissEpisodeDialog() },
+            onSelect = { episode ->
+                viewModel.selectEpisode(episode)
+                viewModel.dismissEpisodeDialog()
+            }
+        )
+    }
+
+    // Display Dialog
+    if (uiState.showDisplayDialog) {
+        DisplayDialog(
+            selectedIndex = uiState.currentScale,
+            onDismiss = { viewModel.dismissDisplayDialog() },
+            onSelect = { scale -> viewModel.setScale(scale) }
+        )
+    }
+
+    // Track Dialog (Audio/Subtitle)
+    if (uiState.showTrackDialog) {
+        MultiTrackDialog(
+            audioTracks = uiState.audioTracks,
+            subtitleTracks = uiState.subtitleTracks,
+            onDismiss = { viewModel.dismissTrackDialog() },
+            onSelectAudio = { index ->
+                viewModel.selectAudioTrack(index)
+                // Apply audio track selection to ExoPlayer
+                val trackSelector = exoPlayer.trackSelector
+                if (trackSelector is androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+                    val params = trackSelector.buildUponParameters()
+                    if (index >= 0) {
+                        params.setPreferredAudioLanguage(uiState.audioTracks.find { it.index == index }?.language)
+                    }
+                    trackSelector.setParameters(params)
+                }
+            },
+            onSelectSubtitle = { index ->
+                viewModel.selectSubtitleTrack(index)
+                // Apply subtitle track selection to ExoPlayer
+                val trackSelector = exoPlayer.trackSelector
+                if (trackSelector is androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+                    val params = trackSelector.buildUponParameters()
+                    if (index < 0) {
+                        params.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                    } else {
+                        params.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                        params.setPreferredTextLanguage(uiState.subtitleTracks.find { it.index == index }?.language)
+                    }
+                    trackSelector.setParameters(params)
+                }
+            }
+        )
+    }
+
+    // Cast Dialog
+    if (uiState.showCastDialog) {
+        CastDialog(
+            devices = uiState.castDevices,
+            isScanning = uiState.isCastScanning,
+            onDismiss = { viewModel.dismissCastDialog() },
+            onSelect = { device -> viewModel.connectCastDevice(device) },
+            onRefresh = { viewModel.scanCastDevices() },
+            onDisconnect = { viewModel.disconnectCast() }
+        )
     }
 }
 
@@ -657,7 +794,7 @@ private fun PlayerControlsOverlay(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = TvColors.Primary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -821,7 +958,7 @@ private fun PlayerControlsOverlay(
                         .fillMaxWidth()
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = Color.White.copy(alpha = 0.3f)
                 )
 
@@ -864,8 +1001,8 @@ private fun TopActionButton(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isActive -> TvColors.Primary.copy(alpha = 0.5f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isActive -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         else -> Color.White.copy(alpha = 0.2f)
                     },
                     shape = RoundedCornerShape(8.dp)
@@ -988,15 +1125,15 @@ private fun FlagTab(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.3f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                         else -> Color.White.copy(alpha = 0.1f)
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -1023,8 +1160,8 @@ private fun EpisodeItem(
                 .fillMaxWidth()
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isPlaying -> TvColors.Primary.copy(alpha = 0.2f)
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isPlaying -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                         else -> Color.White.copy(alpha = 0.05f)
                     },
                     shape = RoundedCornerShape(8.dp)
@@ -1038,7 +1175,7 @@ private fun EpisodeItem(
                 style = TvTypography.BodyMedium,
                 color = when {
                     isFocused -> Color.White
-                    isPlaying -> TvColors.Primary
+                    isPlaying -> MaterialTheme.colorScheme.primary
                     else -> Color.White.copy(alpha = 0.9f)
                 },
                 maxLines = 1,
@@ -1050,7 +1187,7 @@ private fun EpisodeItem(
                 Icon(
                     imageVector = if (isFocused) Icons.Default.Check else Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = if (isFocused) Color.White else TvColors.Primary,
+                    tint = if (isFocused) Color.White else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -1069,7 +1206,7 @@ private fun PlayerControlButton(
         Box(
             modifier = Modifier
                 .background(
-                    color = if (isFocused) TvColors.Primary else Color.White.copy(alpha = 0.2f),
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.2f),
                     shape = CircleShape
                 )
                 .padding(if (isLarge) 20.dp else 12.dp),

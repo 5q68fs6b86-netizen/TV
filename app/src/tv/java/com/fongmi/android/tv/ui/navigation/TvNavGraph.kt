@@ -14,7 +14,9 @@ import com.fongmi.android.tv.ui.screens.history.HistoryScreen
 import com.fongmi.android.tv.ui.screens.home.HomeScreen
 import com.fongmi.android.tv.ui.screens.live.LiveScreen
 import com.fongmi.android.tv.ui.screens.player.PlayerScreen
+import com.fongmi.android.tv.ui.screens.push.PushScreen
 import com.fongmi.android.tv.ui.screens.search.SearchScreen
+import com.fongmi.android.tv.ui.screens.settings.CustomSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.DanmuSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.PlayerSettingsScreen
 import com.fongmi.android.tv.ui.screens.settings.SettingsScreen
@@ -42,10 +44,12 @@ sealed class TvRoute(val route: String) {
         const val ARG_TYPE_NAME = "typeName"
     }
 
-    data object Detail : TvRoute("detail/{siteKey}/{vodId}") {
-        fun createRoute(siteKey: String, vodId: String) = "detail/${encode(siteKey)}/${encode(vodId)}"
+    data object Detail : TvRoute("detail/{siteKey}/{vodId}?autoPlay={autoPlay}") {
+        fun createRoute(siteKey: String, vodId: String, autoPlay: Boolean = false) =
+            "detail/${encode(siteKey)}/${encode(vodId)}?autoPlay=$autoPlay"
         const val ARG_SITE_KEY = "siteKey"
         const val ARG_VOD_ID = "vodId"
+        const val ARG_AUTO_PLAY = "autoPlay"
     }
 
     data object Player : TvRoute("player?url={url}&name={name}&episode={episode}") {
@@ -72,6 +76,9 @@ sealed class TvRoute(val route: String) {
     data object SettingsPlayer : TvRoute("settings/player")
     data object SettingsDanmu : TvRoute("settings/danmu")
     data object SettingsCustom : TvRoute("settings/custom")
+
+    // Push screen
+    data object Push : TvRoute("push")
 
     companion object {
         fun encode(value: String): String =
@@ -106,6 +113,9 @@ fun TvNavGraph(
                 },
                 onVodClick = { siteKey, vodId ->
                     navController.navigate(TvRoute.Detail.createRoute(siteKey, vodId))
+                },
+                onTmdbVodClick = { siteKey, vodId ->
+                    navController.navigate(TvRoute.Detail.createRoute(siteKey, vodId, autoPlay = true))
                 },
                 onSearchClick = {
                     navController.navigate(TvRoute.Search.route)
@@ -199,10 +209,16 @@ fun TvNavGraph(
             route = TvRoute.Detail.route,
             arguments = listOf(
                 navArgument(TvRoute.Detail.ARG_SITE_KEY) { type = NavType.StringType },
-                navArgument(TvRoute.Detail.ARG_VOD_ID) { type = NavType.StringType }
+                navArgument(TvRoute.Detail.ARG_VOD_ID) { type = NavType.StringType },
+                navArgument(TvRoute.Detail.ARG_AUTO_PLAY) {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
             )
-        ) {
+        ) { backStackEntry ->
+            val autoPlay = backStackEntry.arguments?.getBoolean(TvRoute.Detail.ARG_AUTO_PLAY) ?: false
             DetailScreen(
+                autoPlay = autoPlay,
                 onPlayClick = { url, headers, vodName, episodeName ->
                     navController.navigate(TvRoute.Player.createRoute(url, vodName, episodeName))
                 },
@@ -270,9 +286,19 @@ fun TvNavGraph(
         }
 
         composable(TvRoute.SettingsCustom.route) {
-            PlaceholderScreen(
-                title = "自定义设置",
-                onBack = { navController.popBackStack() }
+            CustomSettingsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ========== Push Screen ==========
+
+        composable(TvRoute.Push.route) {
+            PushScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlayUrl = { url ->
+                    navController.navigate(TvRoute.Player.createRoute(url, "", ""))
+                }
             )
         }
     }

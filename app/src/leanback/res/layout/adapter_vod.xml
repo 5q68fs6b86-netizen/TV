@@ -2,8 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="150dp"
-    android:layout_height="200dp"
+    android:layout_width="@dimen/vod_card_width"
+    android:layout_height="@dimen/vod_card_height"
+    android:layout_margin="@dimen/card_margin_medium"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
@@ -11,8 +12,8 @@
         android:id="@+id/image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black_20"
-        android:scaleType="center"
+        android:background="@color/media_thumbnail_placeholder"
+        android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/Vod.Grid"
         tools:src="@drawable/ic_img_loading" />
 
@@ -27,67 +28,49 @@
         app:shapeAppearanceOverlay="@style/Vod.Grid"
         tools:visibility="visible" />
 
+    <!-- 年份標籤 -->
     <TextView
         android:id="@+id/year"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
+        style="@style/TVTag.Info"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginStart="@dimen/spacing_small"
         android:visibility="gone"
         tools:text="2022"
         tools:visibility="visible" />
 
+    <!-- 站點標籤 -->
     <TextView
         android:id="@+id/site"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
+        style="@style/TVTag.Secondary"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_small"
         android:visibility="gone"
         tools:text="泥巴"
         tools:visibility="visible" />
 
+    <!-- 質量標籤 -->
     <TextView
         android:id="@+id/remark"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/TVTag.Primary"
         android:layout_above="@+id/name"
-        android:background="@drawable/round"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        tools:text="1080p" />
+        android:layout_marginBottom="@dimen/spacing_small"
+        android:layout_marginStart="@dimen/spacing_small"
+        tools:text="1080P" />
 
+    <!-- 標題文本 -->
     <TextView
         android:id="@+id/name"
+        style="@style/TVVodTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
         android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        android:padding="@dimen/spacing_small"
         tools:text="蜘蛛人" />
 
+    <!-- 焦點選擇器 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"

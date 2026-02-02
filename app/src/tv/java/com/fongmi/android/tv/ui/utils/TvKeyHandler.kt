@@ -217,3 +217,86 @@ data class PlayerKeyConfig(
     val seekLong: Long = SeekAmounts.MEDIUM,
     val longPressThreshold: Long = 500L
 )
+
+/**
+ * Global shortcut keys configuration
+ */
+object GlobalShortcuts {
+    // Quick actions
+    val TOGGLE_FAVORITE = KeyEvent.KEYCODE_BOOKMARK  // 收藏
+    val TOGGLE_FULLSCREEN = KeyEvent.KEYCODE_F      // 全屏
+    val TOGGLE_SUBTITLE = KeyEvent.KEYCODE_CAPTIONS // 字幕
+    val TOGGLE_AUDIO = KeyEvent.KEYCODE_A           // 音轨
+    val SHOW_EPG = KeyEvent.KEYCODE_G               // 节目单
+    val SHOW_QUALITY = KeyEvent.KEYCODE_Q           // 画质
+    val SHOW_SPEED = KeyEvent.KEYCODE_S             // 倍速
+
+    // Alternative keys for remotes without specific buttons
+    val ALT_FAVORITE = KeyEvent.KEYCODE_STAR        // * 键收藏
+    val ALT_EPG = KeyEvent.KEYCODE_POUND            // # 键节目单
+}
+
+/**
+ * Key repeat handler for continuous actions
+ */
+class KeyRepeatHandler(
+    private val initialDelay: Long = 500L,
+    private val repeatInterval: Long = 100L
+) {
+    private var lastKeyCode: Int = 0
+    private var lastKeyTime: Long = 0
+    private var repeatCount: Int = 0
+
+    fun onKeyDown(keyCode: Int): KeyRepeatResult {
+        val now = System.currentTimeMillis()
+        return if (keyCode == lastKeyCode && now - lastKeyTime < initialDelay + repeatInterval * (repeatCount + 1)) {
+            repeatCount++
+            lastKeyTime = now
+            KeyRepeatResult(isRepeat = true, repeatCount = repeatCount)
+        } else {
+            lastKeyCode = keyCode
+            lastKeyTime = now
+            repeatCount = 0
+            KeyRepeatResult(isRepeat = false, repeatCount = 0)
+        }
+    }
+
+    fun onKeyUp(keyCode: Int) {
+        if (keyCode == lastKeyCode) {
+            lastKeyCode = 0
+            repeatCount = 0
+        }
+    }
+
+    fun reset() {
+        lastKeyCode = 0
+        lastKeyTime = 0
+        repeatCount = 0
+    }
+}
+
+data class KeyRepeatResult(
+    val isRepeat: Boolean,
+    val repeatCount: Int
+)
+
+/**
+ * Double tap detection
+ */
+class DoubleTapDetector(private val maxInterval: Long = 300L) {
+    private var lastTapTime: Long = 0
+    private var lastKeyCode: Int = 0
+
+    fun onTap(keyCode: Int): Boolean {
+        val now = System.currentTimeMillis()
+        val isDoubleTap = keyCode == lastKeyCode && now - lastTapTime < maxInterval
+        lastKeyCode = keyCode
+        lastTapTime = now
+        return isDoubleTap
+    }
+
+    fun reset() {
+        lastTapTime = 0
+        lastKeyCode = 0
+    }
+}

@@ -3,6 +3,20 @@ package com.fongmi.android.tv.ui.state
 import com.fongmi.android.tv.bean.Class
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
+import com.fongmi.android.tv.data.repository.SiteSearchResult
+import com.fongmi.android.tv.data.repository.TmdbItem
+
+/**
+ * Home screen display mode
+ */
+enum class HomeMode(val value: Int) {
+    TMDB(0),     // TMDB poster wall
+    SITE(1);     // Site source content
+
+    companion object {
+        fun fromValue(value: Int): HomeMode = entries.firstOrNull { it.value == value } ?: TMDB
+    }
+}
 
 /**
  * UI State for Home Screen
@@ -15,7 +29,19 @@ data class HomeUiState(
     val selectedCategory: Class? = null,
     val featuredContent: List<Vod> = emptyList(),
     val categoryContent: Map<String, List<Vod>> = emptyMap(),
-    val error: String? = null
+    val error: String? = null,
+    // Home mode
+    val homeMode: HomeMode = HomeMode.TMDB,
+    // TMDB state
+    val tmdbMovies: List<TmdbItem> = emptyList(),
+    val tmdbTvShows: List<TmdbItem> = emptyList(),
+    val isTmdbLoading: Boolean = false,
+    val tmdbError: String? = null,
+    // Dialog state
+    val showModeDialog: Boolean = false,
+    // Quick search state (for TMDB click -> search -> play)
+    val isQuickSearching: Boolean = false,
+    val quickSearchTitle: String? = null
 )
 
 /**
@@ -36,9 +62,16 @@ data class SearchUiState(
     val isSearching: Boolean = false,
     val results: List<Vod> = emptyList(),
     val searchHistory: List<String> = emptyList(),
+    val hotSearches: List<String> = emptyList(),
+    val suggestions: List<String> = emptyList(),
     val currentPage: Int = 1,
     val totalPages: Int = 1,
-    val error: String? = null
+    val error: String? = null,
+    // Multi-site search
+    val isAggregatedSearch: Boolean = false,
+    val siteResults: List<SiteSearchResult> = emptyList(),
+    val searchableSites: List<Site> = emptyList(),
+    val selectedSites: List<Site> = emptyList()
 )
 
 /**
@@ -60,10 +93,25 @@ data class PlayerUiState(
  * UI State for Settings Screen
  */
 data class SettingsUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
     val sites: List<Site> = emptyList(),
     val currentSite: Site? = null,
     val playerSettings: PlayerSettings = PlayerSettings(),
-    val displaySettings: DisplaySettings = DisplaySettings()
+    val displaySettings: DisplaySettings = DisplaySettings(),
+    // Dialog states
+    val showVodConfigDialog: Boolean = false,
+    val showLiveConfigDialog: Boolean = false,
+    val showWallConfigDialog: Boolean = false,
+    val showSiteDialog: Boolean = false,
+    val showProxyDialog: Boolean = false,
+    val showDohDialog: Boolean = false,
+    val showBackupDialog: Boolean = false,
+    val showVodHistoryDialog: Boolean = false,
+    val showLiveHistoryDialog: Boolean = false,
+    val showLiveDialog: Boolean = false,
+    val showUaDialog: Boolean = false,
+    val dohIndex: Int = 0
 )
 
 data class PlayerSettings(

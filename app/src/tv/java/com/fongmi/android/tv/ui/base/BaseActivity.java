@@ -20,13 +20,23 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected abstract ViewBinding getBinding();
 
+    /**
+     * Override to return true if this Activity uses EventBus.
+     * Default is false to avoid crashes for Activities without @Subscribe methods.
+     */
+    protected boolean useEventBus() {
+        return false;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getBinding() != null) {
             setContentView(getBinding().getRoot());
         }
-        EventBus.getDefault().register(this);
+        if (useEventBus()) {
+            EventBus.getDefault().register(this);
+        }
         Util.hideSystemUI(this);
         setBackCallback();
         initView();

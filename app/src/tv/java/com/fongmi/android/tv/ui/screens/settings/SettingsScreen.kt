@@ -54,6 +54,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fongmi.android.tv.ui.components.FocusableItem
+import com.fongmi.android.tv.ui.dialog.BackupDialog
+import com.fongmi.android.tv.ui.dialog.ConfigDialog
+import com.fongmi.android.tv.ui.dialog.ConfigType
+import com.fongmi.android.tv.ui.dialog.DohDialog
+import com.fongmi.android.tv.ui.dialog.HistoryDialog
+import com.fongmi.android.tv.ui.dialog.LiveDialog
+import com.fongmi.android.tv.ui.dialog.ProxyDialog
+import com.fongmi.android.tv.ui.dialog.SiteDialog
+import com.fongmi.android.tv.ui.dialog.UaDialog
 import com.fongmi.android.tv.ui.viewmodel.SettingsViewModel
 
 /**
@@ -122,9 +131,9 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "点播配置",
                     value = uiState.currentSite?.name ?: "未配置",
-                    onClick = onVodConfigClick,
-                    onHomeClick = { uiState.currentSite?.let { viewModel.setHomeSite(it) } },
-                    onHistoryClick = { /* Show VOD history dialog */ }
+                    onClick = { viewModel.showVodConfigDialog() },
+                    onHomeClick = { viewModel.showSiteDialog() },
+                    onHistoryClick = { viewModel.showVodHistoryDialog() }
                 )
             }
 
@@ -133,9 +142,9 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "直播配置",
                     value = "未配置",
-                    onClick = onLiveConfigClick,
-                    onHomeClick = { /* Set live home */ },
-                    onHistoryClick = { /* Show live history */ }
+                    onClick = { viewModel.showLiveConfigDialog() },
+                    onHomeClick = { viewModel.showLiveDialogAction() },
+                    onHistoryClick = { viewModel.showLiveHistoryDialog() }
                 )
             }
 
@@ -144,7 +153,7 @@ fun SettingsScreen(
                 ConfigRow(
                     title = "壁纸配置",
                     value = "默认",
-                    onClick = onWallConfigClick,
+                    onClick = { viewModel.showWallConfigDialog() },
                     onHomeClick = { /* Set default wall */ },
                     onHistoryClick = null,
                     historyIcon = Icons.Default.Refresh,
@@ -185,7 +194,7 @@ fun SettingsScreen(
                     SettingsValueButton(
                         title = "代理",
                         value = viewModel.getProxyText(),
-                        onClick = { viewModel.showProxyDialog() },
+                        onClick = { viewModel.showProxyDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -205,7 +214,7 @@ fun SettingsScreen(
                     )
                     SettingsButton(
                         title = "恢复",
-                        onClick = { viewModel.restore() },
+                        onClick = { viewModel.showBackupDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -226,7 +235,7 @@ fun SettingsScreen(
                     SettingsValueButton(
                         title = "DOH",
                         value = viewModel.getDohText(),
-                        onClick = { viewModel.showDohDialog() },
+                        onClick = { viewModel.showDohDialogAction() },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -330,6 +339,139 @@ fun SettingsScreen(
             }
         }
     }
+
+    // ========== Dialogs ==========
+
+    // VOD Config Dialog
+    if (uiState.showVodConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.VOD,
+            onDismiss = { viewModel.dismissVodConfigDialog() },
+            onConfirm = { config ->
+                viewModel.loadVodConfig(config)
+                viewModel.dismissVodConfigDialog()
+            }
+        )
+    }
+
+    // Live Config Dialog
+    if (uiState.showLiveConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.LIVE,
+            onDismiss = { viewModel.dismissLiveConfigDialog() },
+            onConfirm = { config ->
+                viewModel.loadLiveConfig(config)
+                viewModel.dismissLiveConfigDialog()
+            }
+        )
+    }
+
+    // Wall Config Dialog
+    if (uiState.showWallConfigDialog) {
+        ConfigDialog(
+            type = ConfigType.WALL,
+            onDismiss = { viewModel.dismissWallConfigDialog() },
+            onConfirm = { config ->
+                viewModel.loadWallConfig(config)
+                viewModel.dismissWallConfigDialog()
+            }
+        )
+    }
+
+    // Site Dialog
+    if (uiState.showSiteDialog) {
+        SiteDialog(
+            onDismiss = { viewModel.dismissSiteDialog() },
+            onSiteSelected = { site ->
+                viewModel.setHomeSite(site)
+                viewModel.dismissSiteDialog()
+            }
+        )
+    }
+
+    // Proxy Dialog
+    if (uiState.showProxyDialog) {
+        ProxyDialog(
+            onDismiss = { viewModel.dismissProxyDialog() },
+            onConfirm = { proxy ->
+                viewModel.setProxy(proxy)
+                viewModel.dismissProxyDialog()
+            }
+        )
+    }
+
+    // DOH Dialog
+    if (uiState.showDohDialog) {
+        DohDialog(
+            selectedIndex = uiState.dohIndex,
+            onDismiss = { viewModel.dismissDohDialog() },
+            onSelect = { doh ->
+                viewModel.setDoh(doh)
+                viewModel.dismissDohDialog()
+            }
+        )
+    }
+
+    // Backup Dialog
+    if (uiState.showBackupDialog) {
+        BackupDialog(
+            onDismiss = { viewModel.dismissBackupDialog() },
+            onRestore = { file ->
+                viewModel.restoreBackup(file)
+                viewModel.dismissBackupDialog()
+            }
+        )
+    }
+
+    // VOD History Dialog
+    if (uiState.showVodHistoryDialog) {
+        HistoryDialog(
+            configs = emptyList(), // TODO: Load from ViewModel
+            onDismiss = { viewModel.dismissVodHistoryDialog() },
+            onSelect = { config ->
+                viewModel.dismissVodHistoryDialog()
+                // Handle config selection
+            },
+            onDelete = { config ->
+                // Handle config deletion
+            }
+        )
+    }
+
+    // Live History Dialog
+    if (uiState.showLiveHistoryDialog) {
+        HistoryDialog(
+            configs = emptyList(), // TODO: Load from ViewModel
+            onDismiss = { viewModel.dismissLiveHistoryDialog() },
+            onSelect = { config ->
+                viewModel.dismissLiveHistoryDialog()
+            },
+            onDelete = { config ->
+                // Handle config deletion
+            }
+        )
+    }
+
+    // Live Dialog
+    if (uiState.showLiveDialog) {
+        LiveDialog(
+            onDismiss = { viewModel.dismissLiveDialog() },
+            onSelect = { live ->
+                viewModel.dismissLiveDialog()
+            }
+        )
+    }
+
+    // UA Dialog
+    if (uiState.showUaDialog) {
+        UaDialog(
+            onDismiss = { viewModel.dismissUaDialog() },
+            onConfirm = { ua ->
+                viewModel.setUa(ua)
+                viewModel.dismissUaDialog()
+            }
+        )
+    }
 }
 
 @Composable
@@ -357,27 +499,30 @@ private fun ConfigRow(
                     .fillMaxWidth()
                     .background(
                         color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                               else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
+                               else MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     .border(
-                        width = if (isFocused) 2.dp else 0.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(8.dp)
+                        width = 1.dp,
+                        color = if (isFocused) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(12.dp)
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                           else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                           else MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false).padding(start = 16.dp)
@@ -416,21 +561,23 @@ private fun SettingsButton(
                 .fillMaxWidth()
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                       else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -452,28 +599,31 @@ private fun SettingsValueButton(
                 .fillMaxWidth()
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primaryContainer
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer
+                       else MaterialTheme.colorScheme.onSurface
             )
             if (value.isNotEmpty()) {
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isFocused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                           else MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -492,16 +642,17 @@ private fun SettingsIconButton(
     ) { isFocused ->
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(44.dp)
                 .background(
                     color = if (isFocused) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                           else MaterialTheme.colorScheme.surface,
+                    shape = CircleShape
                 )
                 .border(
-                    width = if (isFocused) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
+                    width = 1.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outlineVariant,
+                    shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -509,7 +660,8 @@ private fun SettingsIconButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (isFocused) MaterialTheme.colorScheme.onPrimary
-                      else MaterialTheme.colorScheme.onSurfaceVariant
+                      else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -524,17 +676,22 @@ private fun SettingsSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp)
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = RoundedCornerShape(16.dp)
             )
-            .padding(16.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(20.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         content()
     }
 }
@@ -554,12 +711,16 @@ private fun ThemeChip(
                         isSelected -> MaterialTheme.colorScheme.primaryContainer
                         else -> MaterialTheme.colorScheme.surface
                     },
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .border(
-                    width = if (isSelected && !isFocused) 1.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp)
+                    width = 1.dp,
+                    color = when {
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant
+                    },
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {

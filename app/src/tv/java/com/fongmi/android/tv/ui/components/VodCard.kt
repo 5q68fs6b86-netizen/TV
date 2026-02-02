@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.fongmi.android.tv.ui.theme.TvColors
+import com.fongmi.android.tv.ui.theme.CommonColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvShapes
 import com.fongmi.android.tv.ui.theme.TvTypography
@@ -70,7 +71,7 @@ fun VodCard(
                     .fillMaxWidth()
                     .aspectRatio(aspectRatio)
                     .clip(TvShapes.Card)
-                    .background(TvColors.SurfaceContainer)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 // Poster image
                 AsyncImage(
@@ -90,7 +91,7 @@ fun VodCard(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    TvColors.Black70
+                                    CommonColors.Black70
                                 )
                             )
                         )
@@ -103,13 +104,13 @@ fun VodCard(
                             .padding(8.dp)
                             .align(Alignment.TopEnd)
                             .clip(TvShapes.Badge)
-                            .background(TvColors.Primary)
+                            .background(MaterialTheme.colorScheme.primary)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = badge,
                             style = TvTypography.LabelSmall,
-                            color = TvColors.OnPrimary
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -121,13 +122,13 @@ fun VodCard(
                             .fillMaxWidth()
                             .height(3.dp)
                             .align(Alignment.BottomCenter)
-                            .background(TvColors.VideoProgressBackground)
+                            .background(CommonColors.White30)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(progress.coerceIn(0f, 1f))
                                 .height(3.dp)
-                                .background(TvColors.VideoProgressPlayed)
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -143,7 +144,7 @@ fun VodCard(
                 Text(
                     text = title,
                     style = TvTypography.CardTitle,
-                    color = if (isFocused) TvColors.FocusBorder else TvColors.TextPrimary,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Start
@@ -153,7 +154,7 @@ fun VodCard(
                     Text(
                         text = subtitle,
                         style = TvTypography.CardSubtitle,
-                        color = TvColors.TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

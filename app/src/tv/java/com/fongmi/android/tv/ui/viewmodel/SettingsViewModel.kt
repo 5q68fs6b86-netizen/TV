@@ -3,8 +3,13 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.Setting
+import com.fongmi.android.tv.api.config.LiveConfig
 import com.fongmi.android.tv.api.config.VodConfig
+import com.fongmi.android.tv.api.config.WallConfig
+import com.fongmi.android.tv.bean.Config
 import com.fongmi.android.tv.bean.Site
+import com.fongmi.android.tv.event.RefreshEvent
+import com.fongmi.android.tv.impl.Callback
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.DisplaySettings
 import com.fongmi.android.tv.ui.state.PlayerSettings
@@ -205,6 +210,196 @@ class SettingsViewModel @Inject constructor(
 
     fun checkUpdate() {
         // This would check for updates
+    }
+
+    // ========== Dialog control methods ==========
+
+    fun showVodConfigDialog() {
+        _uiState.update { it.copy(showVodConfigDialog = true) }
+    }
+
+    fun dismissVodConfigDialog() {
+        _uiState.update { it.copy(showVodConfigDialog = false) }
+    }
+
+    fun showLiveConfigDialog() {
+        _uiState.update { it.copy(showLiveConfigDialog = true) }
+    }
+
+    fun dismissLiveConfigDialog() {
+        _uiState.update { it.copy(showLiveConfigDialog = false) }
+    }
+
+    fun showWallConfigDialog() {
+        _uiState.update { it.copy(showWallConfigDialog = true) }
+    }
+
+    fun dismissWallConfigDialog() {
+        _uiState.update { it.copy(showWallConfigDialog = false) }
+    }
+
+    fun showSiteDialog() {
+        _uiState.update { it.copy(showSiteDialog = true) }
+    }
+
+    fun dismissSiteDialog() {
+        _uiState.update { it.copy(showSiteDialog = false) }
+    }
+
+    fun showProxyDialogAction() {
+        _uiState.update { it.copy(showProxyDialog = true) }
+    }
+
+    fun dismissProxyDialog() {
+        _uiState.update { it.copy(showProxyDialog = false) }
+    }
+
+    fun showDohDialogAction() {
+        _uiState.update { it.copy(showDohDialog = true) }
+    }
+
+    fun dismissDohDialog() {
+        _uiState.update { it.copy(showDohDialog = false) }
+    }
+
+    fun showBackupDialogAction() {
+        _uiState.update { it.copy(showBackupDialog = true) }
+    }
+
+    fun dismissBackupDialog() {
+        _uiState.update { it.copy(showBackupDialog = false) }
+    }
+
+    fun showVodHistoryDialog() {
+        _uiState.update { it.copy(showVodHistoryDialog = true) }
+    }
+
+    fun dismissVodHistoryDialog() {
+        _uiState.update { it.copy(showVodHistoryDialog = false) }
+    }
+
+    fun showLiveHistoryDialog() {
+        _uiState.update { it.copy(showLiveHistoryDialog = true) }
+    }
+
+    fun dismissLiveHistoryDialog() {
+        _uiState.update { it.copy(showLiveHistoryDialog = false) }
+    }
+
+    fun showLiveDialogAction() {
+        _uiState.update { it.copy(showLiveDialog = true) }
+    }
+
+    fun dismissLiveDialog() {
+        _uiState.update { it.copy(showLiveDialog = false) }
+    }
+
+    fun showUaDialog() {
+        _uiState.update { it.copy(showUaDialog = true) }
+    }
+
+    fun dismissUaDialog() {
+        _uiState.update { it.copy(showUaDialog = false) }
+    }
+
+    fun setUa(ua: String) {
+        Setting.putUa(ua)
+    }
+
+    fun setProxy(proxy: String) {
+        Setting.putProxy(proxy)
+    }
+
+    fun setDoh(doh: com.github.catvod.bean.Doh) {
+        Setting.putDoh(doh.toString())
+    }
+
+    /**
+     * Load VOD config
+     */
+    fun loadVodConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
+        _uiState.update { it.copy(isLoading = true) }
+        VodConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.history()
+                RefreshEvent.config()
+                RefreshEvent.video()
+                // Reload settings to update UI
+                loadSettings()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Load Live config
+     */
+    fun loadLiveConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
+        _uiState.update { it.copy(isLoading = true) }
+        LiveConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.config()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Load Wall config
+     */
+    fun loadWallConfig(config: Config) {
+        // Skip if URL is empty
+        if (config.url.isNullOrEmpty()) {
+            return
+        }
+        _uiState.update { it.copy(isLoading = true) }
+        WallConfig.load(config, object : Callback() {
+            override fun success() {
+                _uiState.update { it.copy(isLoading = false) }
+                RefreshEvent.config()
+            }
+
+            override fun error(msg: String?) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
+            }
+        })
+    }
+
+    /**
+     * Clear error message
+     */
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun restoreBackup(file: java.io.File) {
+        viewModelScope.launch {
+            try {
+                com.fongmi.android.tv.db.AppDatabase.restore(file, object : com.fongmi.android.tv.impl.Callback() {
+                    override fun success() {
+                        // Restore completed
+                    }
+                })
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
     }
 }
 

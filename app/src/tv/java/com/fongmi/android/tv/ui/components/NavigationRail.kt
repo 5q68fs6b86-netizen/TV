@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +65,7 @@ val defaultNavItems = listOf(
 
 /**
  * TV Navigation Rail with glassmorphism effect
- * 
+ *
  * @param items Navigation items to display
  * @param selectedIndex Currently selected index
  * @param onItemSelected Called when an item is selected
@@ -82,19 +81,17 @@ fun TvNavigationRail(
     val focusRequesters = remember { items.map { FocusRequester() } }
     var focusedIndex by remember { mutableIntStateOf(-1) }
 
-    // Glassmorphism background
+    // Glassmorphism background with left padding
     Box(
         modifier = modifier
-            .width(80.dp)
+            .padding(start = 24.dp, top = 16.dp, bottom = 16.dp)
+            .width(72.dp)
             .fillMaxHeight()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-                    )
-                )
-            )
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier = Modifier
@@ -155,8 +152,8 @@ private fun NavRailItem(
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = when {
-            isFocused -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            isFocused -> MaterialTheme.colorScheme.primary
+            isSelected -> MaterialTheme.colorScheme.primaryContainer
             else -> Color.Transparent
         },
         animationSpec = tween(200),
@@ -165,18 +162,12 @@ private fun NavRailItem(
 
     val iconColor by animateColorAsState(
         targetValue = when {
-            isFocused -> MaterialTheme.colorScheme.primary
+            isFocused -> MaterialTheme.colorScheme.onPrimary
             isSelected -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
         animationSpec = tween(200),
         label = "navItemIcon"
-    )
-
-    val indicatorWidth by animateDpAsState(
-        targetValue = if (isSelected) 3.dp else 0.dp,
-        animationSpec = tween(200),
-        label = "navIndicator"
     )
 
     FocusableItem(
@@ -186,48 +177,22 @@ private fun NavRailItem(
             .onFocusChanged { onFocusChanged(it.isFocused) },
         shape = RoundedCornerShape(12.dp),
         focusBorderWidth = 0.dp,
-        focusScale = 1.05f
+        focusScale = 1.0f,
+        focusElevation = 0.dp
     ) { focused ->
         Box(
             modifier = Modifier
-                .width(64.dp)
-                .height(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(backgroundColor),
+                .width(56.dp)
+                .height(48.dp)
+                .background(backgroundColor, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            // Selection indicator
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .width(indicatorWidth)
-                        .height(24.dp)
-                        .clip(RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = iconColor,
-                    modifier = Modifier.size(24.dp)
-                )
-
-                if (isFocused || isSelected) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = iconColor,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }

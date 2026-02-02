@@ -6,12 +6,15 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,9 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvShapes
+
+// Helper color constants for default parameter values
+private val DefaultFocusBorderColor = androidx.compose.ui.graphics.Color(0xFFB388FF) // Same as AuroraColorsDark.FocusBorder
+private val DefaultSurfaceContainer = androidx.compose.ui.graphics.Color(0xFF1A1A22) // Same as AuroraColorsDark.SurfaceContainer
+private val DefaultSurfaceContainerHigh = androidx.compose.ui.graphics.Color(0xFF242430) // Same as AuroraColorsDark.SurfaceContainerHigh
+private val DefaultPrimary = androidx.compose.ui.graphics.Color(0xFF7C4DFF) // Same as AuroraColorsDark.Primary
 
 /**
  * A focusable container with TV-optimized focus effects.
@@ -35,6 +43,7 @@ import com.fongmi.android.tv.ui.theme.TvShapes
  *
  * @param onClick Called when the item is clicked/selected
  * @param modifier Modifier for the container
+ * @param onLongClick Called when the item is long-pressed (optional)
  * @param enabled Whether the item is clickable
  * @param shape Shape of the item
  * @param focusRequester Optional focus requester for programmatic focus
@@ -44,16 +53,18 @@ import com.fongmi.android.tv.ui.theme.TvShapes
  * @param focusElevation Elevation when focused
  * @param content Content of the item
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FocusableItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     shape: Shape = TvShapes.Card,
     focusRequester: FocusRequester? = null,
     focusScale: Float = TvDimens.FocusScaleFactor,
     focusBorderWidth: Dp = TvDimens.FocusBorderWidth,
-    focusBorderColor: Color = TvColors.FocusBorder,
+    focusBorderColor: Color = DefaultFocusBorderColor,
     focusElevation: Dp = TvDimens.FocusElevation,
     content: @Composable BoxScope.(isFocused: Boolean) -> Unit
 ) {
@@ -70,7 +81,7 @@ fun FocusableItem(
     )
 
     val elevation by animateDpAsState(
-        targetValue = if (isFocused) focusElevation else 2.dp,
+        targetValue = if (isFocused) focusElevation else if (focusElevation > 0.dp) 2.dp else 0.dp,
         animationSpec = spring(stiffness = 400f),
         label = "focus_elevation"
     )
@@ -99,11 +110,12 @@ fun FocusableItem(
                 }
             )
             .focusable(interactionSource = interactionSource)
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
-                onClick = onClick
+                onClick = onClick,
+                onLongClick = onLongClick
             )
     ) {
         content(isFocused)
@@ -118,8 +130,8 @@ fun FocusableButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    backgroundColor: Color = TvColors.SurfaceContainer,
-    focusedBackgroundColor: Color = TvColors.Primary,
+    backgroundColor: Color = DefaultSurfaceContainer,
+    focusedBackgroundColor: Color = DefaultPrimary,
     shape: Shape = TvShapes.Button,
     focusRequester: FocusRequester? = null,
     content: @Composable BoxScope.(isFocused: Boolean) -> Unit
@@ -180,9 +192,9 @@ fun FocusableChip(
     )
 
     val backgroundColor = when {
-        isSelected -> TvColors.Primary
-        isFocused -> TvColors.SurfaceContainerHigh
-        else -> TvColors.SurfaceContainer
+        isSelected -> MaterialTheme.colorScheme.primary
+        isFocused -> MaterialTheme.colorScheme.surfaceContainerHigh
+        else -> MaterialTheme.colorScheme.surfaceContainer
     }
 
     Box(
@@ -194,7 +206,7 @@ fun FocusableChip(
                 if (isFocused && !isSelected) {
                     Modifier.border(
                         width = 2.dp,
-                        color = TvColors.FocusBorder,
+                        color = MaterialTheme.colorScheme.primary,
                         shape = shape
                     )
                 } else {

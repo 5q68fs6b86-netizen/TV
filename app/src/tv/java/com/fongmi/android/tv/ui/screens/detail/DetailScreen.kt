@@ -27,12 +27,15 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -50,7 +53,7 @@ import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.ui.components.FocusableButton
 import com.fongmi.android.tv.ui.components.FocusableItem
-import com.fongmi.android.tv.ui.theme.TvColors
+import com.fongmi.android.tv.ui.dialog.DescDialog
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.DetailViewModel
@@ -62,6 +65,7 @@ import com.fongmi.android.tv.ui.viewmodel.PlayUrlState
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
+    autoPlay: Boolean = false,
     onPlayClick: (String, Map<String, String>?, String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -71,6 +75,18 @@ fun DetailScreen(
     val playUrlState by viewModel.playUrlState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     val history by viewModel.history.collectAsState()
+
+    // Dialog state
+    var showDescDialog by remember { mutableStateOf(false) }
+
+    // Auto-play when detail loads (for TMDB poster click flow)
+    var hasAutoPlayed by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.vod, selectedEpisode) {
+        if (autoPlay && !hasAutoPlayed && uiState.vod != null && selectedEpisode != null) {
+            hasAutoPlayed = true
+            viewModel.play()
+        }
+    }
 
     // Handle play URL ready
     LaunchedEffect(playUrlState) {
@@ -104,7 +120,7 @@ fun DetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(TvColors.Background)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
                     .padding(top = TvDimens.ScreenPaddingVertical)
             ) {
@@ -139,7 +155,7 @@ fun DetailScreen(
                             Text(
                                 text = vod.vodName ?: "",
                                 style = TvTypography.HeadlineLarge,
-                                color = TvColors.TextPrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -163,14 +179,21 @@ fun DetailScreen(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Description
-                            Text(
-                                text = vod.vodContent?.replace("<[^>]*>".toRegex(), "") ?: "",
-                                style = TvTypography.BodyMedium,
-                                color = TvColors.TextSecondary,
-                                maxLines = 4,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            // Description (clickable to show full)
+                            val descContent = vod.vodContent?.replace("<[^>]*>".toRegex(), "") ?: ""
+                            if (descContent.isNotEmpty()) {
+                                FocusableItem(
+                                    onClick = { showDescDialog = true }
+                                ) { isFocused ->
+                                    Text(
+                                        text = descContent,
+                                        style = TvTypography.BodyMedium,
+                                        color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 4,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
 
                         // Action buttons
@@ -193,7 +216,7 @@ fun DetailScreen(
                                     Icon(
                                         imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Play",
-                                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                                        tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                     )
                                     Column {
                                         Text(
@@ -203,13 +226,13 @@ fun DetailScreen(
                                                 else -> "立即播放"
                                             },
                                             style = TvTypography.LabelLarge,
-                                            color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                                            color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                         )
                                         if (hasHistory && progressText.isNotEmpty()) {
                                             Text(
                                                 text = progressText,
                                                 style = TvTypography.LabelSmall,
-                                                color = if (isFocused) TvColors.OnPrimary.copy(alpha = 0.7f) else TvColors.TextSecondary
+                                                color = if (isFocused) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -228,12 +251,12 @@ fun DetailScreen(
                                     Icon(
                                         imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
                                         contentDescription = "Favorite",
-                                        tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                                        tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = if (isFavorite) "已收藏" else "收藏",
                                         style = TvTypography.LabelLarge,
-                                        color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                                        color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
@@ -249,7 +272,7 @@ fun DetailScreen(
                     Text(
                         text = "播放源",
                         style = TvTypography.TitleMedium,
-                        color = TvColors.TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -275,7 +298,7 @@ fun DetailScreen(
                     Text(
                         text = "选集",
                         style = TvTypography.TitleMedium,
-                        color = TvColors.TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -301,6 +324,17 @@ fun DetailScreen(
             }
         }
     }
+
+    // DescDialog
+    if (showDescDialog) {
+        val vod = uiState.vod
+        val descContent = vod?.vodContent?.replace("<[^>]*>".toRegex(), "") ?: ""
+        DescDialog(
+            title = vod?.vodName ?: "简介",
+            desc = descContent,
+            onDismiss = { showDescDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -308,7 +342,7 @@ private fun MetaChip(text: String) {
     Box(
         modifier = Modifier
             .background(
-                color = TvColors.Surface,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(4.dp)
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -316,7 +350,7 @@ private fun MetaChip(text: String) {
         Text(
             text = text,
             style = TvTypography.LabelSmall,
-            color = TvColors.TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -334,15 +368,15 @@ private fun FlagChip(
             modifier = Modifier
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.3f)
-                        else -> TvColors.Surface
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        else -> MaterialTheme.colorScheme.surface
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 2.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -351,9 +385,9 @@ private fun FlagChip(
                 text = flag.show ?: flag.flag ?: "",
                 style = TvTypography.LabelMedium,
                 color = when {
-                    isFocused -> TvColors.OnPrimary
-                    isSelected -> TvColors.Primary
-                    else -> TvColors.TextPrimary
+                    isFocused -> MaterialTheme.colorScheme.onPrimary
+                    isSelected -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface
                 }
             )
         }
@@ -375,15 +409,15 @@ private fun EpisodeCard(
                 .aspectRatio(2f)
                 .background(
                     color = when {
-                        isFocused -> TvColors.Primary
-                        isSelected -> TvColors.Primary.copy(alpha = 0.3f)
-                        else -> TvColors.Surface
+                        isFocused -> MaterialTheme.colorScheme.primary
+                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        else -> MaterialTheme.colorScheme.surface
                     },
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected && !isFocused) 2.dp else 0.dp,
-                    color = TvColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -392,9 +426,9 @@ private fun EpisodeCard(
                 text = episode.name ?: "",
                 style = TvTypography.LabelMedium,
                 color = when {
-                    isFocused -> TvColors.OnPrimary
-                    isSelected -> TvColors.Primary
-                    else -> TvColors.TextPrimary
+                    isFocused -> MaterialTheme.colorScheme.onPrimary
+                    isSelected -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface
                 },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -408,18 +442,18 @@ fun DetailLoadingState() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CircularProgressIndicator(color = TvColors.Primary)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             Text(
                 text = "加载中...",
                 style = TvTypography.BodyMedium,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -434,7 +468,7 @@ fun DetailErrorState(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -444,7 +478,7 @@ fun DetailErrorState(
             Text(
                 text = message,
                 style = TvTypography.BodyLarge,
-                color = TvColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -453,7 +487,7 @@ fun DetailErrorState(
                     Text(
                         text = "重试",
                         style = TvTypography.LabelLarge,
-                        color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary,
+                        color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
                     )
                 }
@@ -461,7 +495,7 @@ fun DetailErrorState(
                     Text(
                         text = "返回",
                         style = TvTypography.LabelLarge,
-                        color = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary,
+                        color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
                     )
                 }

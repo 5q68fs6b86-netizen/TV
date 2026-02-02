@@ -7,20 +7,20 @@
     android:layout_gravity="bottom"
     android:background="@drawable/video_control_modern_bg"
     android:orientation="vertical"
-    android:paddingStart="20dp"
-    android:paddingTop="24dp"
-    android:paddingEnd="20dp"
-    android:paddingBottom="16dp">
+    android:paddingStart="@dimen/spacing_large"
+    android:paddingTop="@dimen/spacing_xlarge"
+    android:paddingEnd="@dimen/spacing_large"
+    android:paddingBottom="@dimen/spacing_normal">
 
     <!-- 解析源选择器 (已修改) -->
     <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
         android:id="@+id/parse"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="@dimen/spacing_large"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingStart="4dp"
+        android:paddingStart="@dimen/spacing_tiny"
         android:visibility="gone"
         app:focusOutEnd="true"
         app:focusOutFront="true"

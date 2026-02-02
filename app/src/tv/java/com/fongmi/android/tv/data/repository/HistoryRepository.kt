@@ -106,6 +106,31 @@ class HistoryRepository @Inject constructor() {
     }
 
     /**
+     * Clear history by time range
+     */
+    suspend fun clearHistoryByTime(beforeTimestamp: Long) = withContext(Dispatchers.IO) {
+        try {
+            val items = historyDao.find(getCid()) ?: return@withContext
+            items.filter { it.createTime < beforeTimestamp }.forEach {
+                historyDao.delete(getCid(), it.key)
+            }
+        } catch (e: Exception) {
+            // Log error
+        }
+    }
+
+    /**
+     * Get history count
+     */
+    suspend fun getHistoryCount(): Int = withContext(Dispatchers.IO) {
+        try {
+            historyDao.find(getCid())?.size ?: 0
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    /**
      * Update playback position for a history item
      */
     suspend fun updatePosition(key: String, position: Long, duration: Long) = withContext(Dispatchers.IO) {

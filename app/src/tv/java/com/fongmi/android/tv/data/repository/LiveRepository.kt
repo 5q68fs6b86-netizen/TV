@@ -5,10 +5,14 @@ import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Epg
 import com.fongmi.android.tv.bean.Group
 import com.fongmi.android.tv.bean.Live
+import com.fongmi.android.tv.ui.dialog.EpgProgram
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +24,7 @@ import javax.inject.Singleton
 class LiveRepository @Inject constructor() {
 
     private val liveConfig: LiveConfig get() = LiveConfig.get()
+    private val favoriteChannels = mutableListOf<Channel>()
 
     /**
      * Get all configured live sources
@@ -98,6 +103,33 @@ class LiveRepository @Inject constructor() {
     }.flowOn(Dispatchers.IO)
 
     /**
+     * Get EPG programs for a channel
+     */
+    fun getEpgPrograms(channel: Channel): List<EpgProgram> {
+        val epg = channel.data ?: return emptyList()
+        val programs = mutableListOf<EpgProgram>()
+        val now = System.currentTimeMillis()
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+        epg.list?.forEach { item ->
+            val startTime = item.startTime ?: 0L
+            val endTime = item.endTime ?: 0L
+            val isLive = now in startTime..endTime
+            val isPast = endTime < now
+
+            programs.add(EpgProgram(
+                title = item.title ?: "",
+                startTime = timeFormat.format(Date(startTime)),
+                endTime = timeFormat.format(Date(endTime)),
+                isLive = isLive,
+                isPast = isPast,
+                catchupUrl = if (isPast && channel.catchup?.source != null) channel.catchup.source else null
+            ))
+        }
+        return programs
+    }
+
+    /**
      * Get channel URL for playback
      */
     fun getChannelUrl(channel: Channel): String {
@@ -124,6 +156,56 @@ class LiveRepository @Inject constructor() {
      */
     fun getChannelIndex(channel: Channel): Int {
         return getAllChannels().indexOf(channel)
+    }
+
+    // ========== Favorite Channels ==========
+
+    /**
+     * Get favorite channels
+     */
+    fun getFavoriteChannels(): List<Channel> = favoriteChannels.toList()
+
+    /**
+     * Add channel to favorites
+     */
+    fun addFavorite(channel: Channel) {
+        if (!favoriteChannels.contains(channel)) {
+            favoriteChannels.add(channel)
+        }
+    }
+
+    /**
+     * Remove channel from favorites
+     */
+    fun removeFavorite(channel: Channel) {
+        favoriteChannels.remove(channel)
+    }
+
+    /**
+     * Check if channel is favorite
+     */
+    fun isFavorite(channel: Channel): Boolean {
+        return favoriteChannels.contains(channel)
+    }
+
+    /**
+     * Clear all favorites
+     */
+    fun clearFavorites() {
+        favoriteChannels.clear()
+    }
+
+    /**
+     * Toggle favorite status
+     */
+    fun toggleFavorite(channel: Channel): Boolean {
+        return if (isFavorite(channel)) {
+            removeFavorite(channel)
+            false
+        } else {
+            addFavorite(channel)
+            true
+        }
     }
 }
 

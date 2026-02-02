@@ -11,177 +11,128 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/spacing_xlarge">
 
+        <!-- Danmu Load -->
         <LinearLayout
             android:id="@+id/danmuLoad"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_danmu_load"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_danmu_load" />
 
             <TextView
                 android:id="@+id/danmuLoadText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="開" />
 
         </LinearLayout>
 
+        <!-- Danmu Speed -->
         <LinearLayout
             android:id="@+id/danmuSpeed"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_danmu_speed"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_danmu_speed" />
 
             <TextView
                 android:id="@+id/danmuSpeedText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                style="@style/TVSettingValue"
                 tools:text="慢" />
 
         </LinearLayout>
 
+        <!-- Danmu Size -->
         <LinearLayout
             android:id="@+id/danmuSize"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_danmu_size"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_danmu_size" />
 
             <TextView
                 android:id="@+id/danmuSizeText"
+                style="@style/TVSettingValue"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
                 tools:text="1" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="@string/times"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginStart="@dimen/spacing_tiny"
+                android:text="@string/times" />
 
         </LinearLayout>
 
+        <!-- Danmu Line -->
         <LinearLayout
             android:id="@+id/danmuLine"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_danmu_line"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_danmu_line" />
 
             <TextView
                 android:id="@+id/danmuLineText"
+                style="@style/TVSettingValue"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
                 tools:text="1" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="@string/lines"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginStart="@dimen/spacing_tiny"
+                android:text="@string/lines" />
 
         </LinearLayout>
 
+        <!-- Danmu Alpha -->
         <LinearLayout
             android:id="@+id/danmuAlpha"
+            style="@style/TVSettingItem"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/spacing_normal"
+            android:layout_marginEnd="0dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/player_danmu_alpha"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:text="@string/player_danmu_alpha" />
 
             <TextView
                 android:id="@+id/danmuAlphaText"
+                style="@style/TVSettingValue"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
                 tools:text="80" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="%"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                style="@style/TVSettingLabel"
+                android:layout_marginStart="@dimen/spacing_tiny"
+                android:text="%" />
 
         </LinearLayout>
+
     </LinearLayout>
+
 </androidx.core.widget.NestedScrollView>

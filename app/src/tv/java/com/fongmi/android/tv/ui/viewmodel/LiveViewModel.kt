@@ -27,7 +27,18 @@ data class LiveUiState(
     val selectedGroup: Group? = null,
     val selectedChannel: Channel? = null,
     val playUrl: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val channelNumber: String = "",
+    val showChannelInfo: Boolean = false,
+    val currentLineIndex: Int = 0,
+    val totalLines: Int = 0,
+    // EPG
+    val showEpgDialog: Boolean = false,
+    val epgPrograms: List<com.fongmi.android.tv.ui.dialog.EpgProgram> = emptyList(),
+    // Favorites
+    val showFavoriteDialog: Boolean = false,
+    val favoriteChannels: List<Channel> = emptyList(),
+    val isCurrentChannelFavorite: Boolean = false
 )
 
 /**
@@ -110,7 +121,8 @@ class LiveViewModel @Inject constructor(
      * Select a channel
      */
     fun selectChannel(channel: Channel) {
-        _uiState.update { it.copy(selectedChannel = channel) }
+        val isFavorite = liveRepository.isFavorite(channel)
+        _uiState.update { it.copy(selectedChannel = channel, isCurrentChannelFavorite = isFavorite) }
     }
 
     /**
@@ -170,6 +182,162 @@ class LiveViewModel @Inject constructor(
     fun refresh() {
         LiveConfig.get().clear()
         loadLive()
+    }
+
+    /**
+     * 输入数字选择频道
+     */
+    fun inputNumber(digit: Int) {
+        val newNumber = _uiState.value.channelNumber + digit.toString()
+        _uiState.update { it.copy(channelNumber = newNumber, showChannelInfo = true) }
+    }
+
+    /**
+     * 清除数字输入
+     */
+    fun clearNumber() {
+        _uiState.update { it.copy(channelNumber = "", showChannelInfo = false) }
+    }
+
+    /**
+     * 确认数字输入，跳转到对应频道
+     */
+    fun confirmNumber(): Channel? {
+        val number = _uiState.value.channelNumber.toIntOrNull() ?: return null
+        clearNumber()
+        return getChannelByNumber(number)
+    }
+
+    /**
+     * 切换到上一个频道
+     */
+    fun previousChannel(): Channel? {
+        val state = _uiState.value
+        val channels = state.selectedGroup?.channel ?: return null
+        val currentIndex = channels.indexOf(state.selectedChannel)
+        val newIndex = if (currentIndex <= 0) channels.size - 1 else currentIndex - 1
+        val channel = channels.getOrNull(newIndex) ?: return null
+        selectChannel(channel)
+        return channel
+    }
+
+    /**
+     * 切换到下一个频道
+     */
+    fun nextChannel(): Channel? {
+        val state = _uiState.value
+        val channels = state.selectedGroup?.channel ?: return null
+        val currentIndex = channels.indexOf(state.selectedChannel)
+        val newIndex = if (currentIndex >= channels.size - 1) 0 else currentIndex + 1
+        val channel = channels.getOrNull(newIndex) ?: return null
+        selectChannel(channel)
+        return channel
+    }
+
+    /**
+     * 切换到上一个分组
+     */
+    fun previousGroup(): Group? {
+        val state = _uiState.value
+        val groups = state.groups
+        val currentIndex = groups.indexOf(state.selectedGroup)
+        val newIndex = if (currentIndex <= 0) groups.size - 1 else currentIndex - 1
+        val group = groups.getOrNull(newIndex) ?: return null
+        selectGroup(group)
+        return group
+    }
+
+    /**
+     * 切换到下一个分组
+     */
+    fun nextGroup(): Group? {
+        val state = _uiState.value
+        val groups = state.groups
+        val currentIndex = groups.indexOf(state.selectedGroup)
+        val newIndex = if (currentIndex >= groups.size - 1) 0 else currentIndex + 1
+        val group = groups.getOrNull(newIndex) ?: return null
+        selectGroup(group)
+        return group
+    }
+
+    /**
+     * 切换线路
+     */
+    fun switchLine(): String {
+        val channel = _uiState.value.selectedChannel ?: return ""
+        liveRepository.nextChannelUrl(channel)
+        val url = liveRepository.getChannelUrl(channel)
+        val lineIndex = channel.line
+        val totalLines = channel.urls?.size ?: 1
+        _uiState.update { it.copy(currentLineIndex = lineIndex, totalLines = totalLines) }
+        return url
+    }
+
+    /**
+     * 显示/隐藏频道信息
+     */
+    fun toggleChannelInfo() {
+        _uiState.update { it.copy(showChannelInfo = !it.showChannelInfo) }
+    }
+
+    /**
+     * 隐藏频道信息
+     */
+    fun hideChannelInfo() {
+        _uiState.update { it.copy(showChannelInfo = false) }
+    }
+
+    // ========== EPG Methods ==========
+
+    fun showEpgDialog() {
+        val channel = _uiState.value.selectedChannel ?: return
+        val programs = liveRepository.getEpgPrograms(channel)
+        _uiState.update { it.copy(showEpgDialog = true, epgPrograms = programs) }
+    }
+
+    fun dismissEpgDialog() {
+        _uiState.update { it.copy(showEpgDialog = false) }
+    }
+
+    fun playCatchup(program: com.fongmi.android.tv.ui.dialog.EpgProgram): String? {
+        return program.catchupUrl
+    }
+
+    // ========== Favorite Methods ==========
+
+    fun showFavoriteDialog() {
+        val favorites = liveRepository.getFavoriteChannels()
+        _uiState.update { it.copy(showFavoriteDialog = true, favoriteChannels = favorites) }
+    }
+
+    fun dismissFavoriteDialog() {
+        _uiState.update { it.copy(showFavoriteDialog = false) }
+    }
+
+    fun toggleFavorite() {
+        val channel = _uiState.value.selectedChannel ?: return
+        val isFavorite = liveRepository.toggleFavorite(channel)
+        _uiState.update { it.copy(isCurrentChannelFavorite = isFavorite) }
+    }
+
+    fun removeFavorite(channel: Channel) {
+        liveRepository.removeFavorite(channel)
+        _uiState.update { it.copy(favoriteChannels = liveRepository.getFavoriteChannels()) }
+    }
+
+    fun clearFavorites() {
+        liveRepository.clearFavorites()
+        _uiState.update { it.copy(favoriteChannels = emptyList()) }
+    }
+
+    fun isFavorite(channel: Channel): Boolean {
+        return liveRepository.isFavorite(channel)
+    }
+
+    private fun updateFavoriteStatus() {
+        val channel = _uiState.value.selectedChannel
+        val isFavorite = channel?.let { liveRepository.isFavorite(it) } ?: false
+        _uiState.update { it.copy(isCurrentChannelFavorite = isFavorite) }
     }
 }
 

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +44,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.fongmi.android.tv.bean.History
 import com.fongmi.android.tv.ui.components.FocusableItem
-import com.fongmi.android.tv.ui.theme.TvColors
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvTypography
 import com.fongmi.android.tv.ui.viewmodel.HistoryViewModel
@@ -63,7 +63,7 @@ fun HistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TvColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = TvDimens.ScreenPaddingHorizontal)
             .padding(top = TvDimens.ScreenPaddingVertical)
     ) {
@@ -84,7 +84,7 @@ fun HistoryScreen(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (isFocused) TvColors.Primary else TvColors.Surface,
+                                color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                                 shape = androidx.compose.foundation.shape.CircleShape
                             )
                             .padding(12.dp)
@@ -92,7 +92,7 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = if (isFocused) TvColors.OnPrimary else TvColors.TextPrimary
+                            tint = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -104,12 +104,12 @@ fun HistoryScreen(
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
-                        tint = TvColors.Primary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "观看历史",
                         style = TvTypography.HeadlineLarge,
-                        color = TvColors.TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -120,7 +120,7 @@ fun HistoryScreen(
                     Row(
                         modifier = Modifier
                             .background(
-                                color = if (isFocused) TvColors.Error else TvColors.Surface,
+                                color = if (isFocused) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -130,12 +130,12 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.Default.DeleteSweep,
                             contentDescription = null,
-                            tint = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                            tint = if (isFocused) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "清空",
                             style = TvTypography.LabelMedium,
-                            color = if (isFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                            color = if (isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -150,7 +150,7 @@ fun HistoryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = TvColors.Primary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             uiState.items.isEmpty() -> {
@@ -165,13 +165,13 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = null,
-                            tint = TvColors.TextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(64.dp)
                         )
                         Text(
                             text = "暂无观看记录",
                             style = TvTypography.BodyLarge,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -209,7 +209,7 @@ private fun HistoryItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = if (isFocused) TvColors.Primary.copy(alpha = 0.1f) else TvColors.Surface,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(12.dp),
@@ -241,8 +241,8 @@ private fun HistoryItem(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(3.dp),
-                            color = TvColors.Primary,
-                            trackColor = TvColors.Background.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -252,7 +252,7 @@ private fun HistoryItem(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .background(
-                            color = TvColors.Background.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
                             shape = androidx.compose.foundation.shape.CircleShape
                         )
                         .padding(8.dp)
@@ -260,7 +260,7 @@ private fun HistoryItem(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
-                        tint = TvColors.TextPrimary,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -274,7 +274,7 @@ private fun HistoryItem(
                 Text(
                     text = history.vodName ?: "",
                     style = TvTypography.TitleMedium,
-                    color = if (isFocused) TvColors.Primary else TvColors.TextPrimary,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -286,7 +286,7 @@ private fun HistoryItem(
                         Text(
                             text = history.vodRemarks,
                             style = TvTypography.BodySmall,
-                            color = TvColors.TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -295,7 +295,7 @@ private fun HistoryItem(
                         Text(
                             text = "已观看 $progress%",
                             style = TvTypography.BodySmall,
-                            color = TvColors.Primary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -303,7 +303,7 @@ private fun HistoryItem(
                 Text(
                     text = history.siteName ?: "",
                     style = TvTypography.BodySmall,
-                    color = TvColors.TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -312,7 +312,7 @@ private fun HistoryItem(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = if (deleteIsFocused) TvColors.Error else TvColors.Background,
+                            color = if (deleteIsFocused) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(8.dp)
@@ -320,7 +320,7 @@ private fun HistoryItem(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
-                        tint = if (deleteIsFocused) TvColors.OnPrimary else TvColors.TextSecondary
+                        tint = if (deleteIsFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
