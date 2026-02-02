@@ -1,4 +1,4 @@
-name: Build TV APKs
+name: Build TV Debug APKs
 
 on:
   push:
@@ -29,10 +29,11 @@ jobs:
     - name: Grant gradlew permission
       run: chmod +x ./gradlew
 
-    - name: Build TV APKs
+    - name: Build TV Debug APKs
       run: |
         sed -i '/org.gradle.java.home/d' gradle.properties
         ./gradlew assembleTvJavaArm64_v8aDebug
+        ./gradlew assembleTvJavaArmeabi_v7aDebug
 
     - name: Verify APKs exist
       id: apk-check
@@ -45,14 +46,20 @@ jobs:
           exit 1
         fi
 
-    - name: Create Release
+    - name: Upload Debug APKs
+      if: steps.apk-check.outputs.apk_exists == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: tv-debug-apks
+        path: app/build/outputs/apk/**/*debug/*.apk
+
+    - name: Create Debug Release
       if: steps.apk-check.outputs.apk_exists == 'true'
       uses: softprops/action-gh-release@v1
       with:
-        name: "TV Release ${{ github.run_number }}"
-        tag_name: "tv-v${{ github.run_number }}"
+        name: "TV Debug Release ${{ github.run_number }}"
+        tag_name: "tv-debug-v${{ github.run_number }}"
         files: |
           app/build/outputs/apk/**/*debug/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
