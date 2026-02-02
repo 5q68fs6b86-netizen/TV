@@ -2,6 +2,9 @@ package com.fongmi.android.tv
 
 import android.content.Context
 import cat.ereza.customactivityoncrash.config.CaocConfig
+import com.fongmi.android.tv.api.config.LiveConfig
+import com.fongmi.android.tv.api.config.VodConfig
+import com.fongmi.android.tv.api.config.WallConfig
 import com.fongmi.android.tv.ui.activity.CrashActivity
 import com.fongmi.android.tv.ui.theme.ThemeState
 import com.github.catvod.Init
@@ -22,6 +25,8 @@ class TvApp : App() {
 
     override fun onCreate() {
         super.onCreate()
+        // Initialize configs (must call init() before load())
+        initConfigs()
         // Initialize TV Compose specific components
         ThemeState.initialize()
         // Override crash handler with TV-specific activity
@@ -29,6 +34,14 @@ class TvApp : App() {
             .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT)
             .errorActivity(CrashActivity::class.java)
             .apply()
+    }
+
+    private fun initConfigs() {
+        // Initialize config singletons with empty lists
+        // This prevents NPE when load() calls clear()
+        WallConfig.get().init()
+        LiveConfig.get().init()
+        VodConfig.get().init()
     }
 
     companion object {
