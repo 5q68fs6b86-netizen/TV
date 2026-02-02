@@ -65,6 +65,7 @@ import com.fongmi.android.tv.ui.viewmodel.PlayUrlState
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
+    autoPlay: Boolean = false,
     onPlayClick: (String, Map<String, String>?, String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -77,6 +78,15 @@ fun DetailScreen(
 
     // Dialog state
     var showDescDialog by remember { mutableStateOf(false) }
+
+    // Auto-play when detail loads (for TMDB poster click flow)
+    var hasAutoPlayed by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.vod, selectedEpisode) {
+        if (autoPlay && !hasAutoPlayed && uiState.vod != null && selectedEpisode != null) {
+            hasAutoPlayed = true
+            viewModel.play()
+        }
+    }
 
     // Handle play URL ready
     LaunchedEffect(playUrlState) {

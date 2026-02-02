@@ -486,6 +486,14 @@ public class Setting {
         return Prefers.getInt("home_ui", 1);
     }
 
+    public static int getHomeMode() {
+        return Prefers.getInt("home_mode", 0);
+    }
+
+    public static void putHomeMode(int mode) {
+        Prefers.put("home_mode", mode);
+    }
+
     public static void putHomeButtons(String buttons) {
         Prefers.put("home_buttons", buttons);
     }

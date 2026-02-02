@@ -2,12 +2,18 @@ package com.fongmi.android.tv.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fongmi.android.tv.Setting
 import com.fongmi.android.tv.bean.Class
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.CategoryContentResult
+import com.fongmi.android.tv.data.repository.FirstSearchResult
 import com.fongmi.android.tv.data.repository.HomeContentResult
+import com.fongmi.android.tv.data.repository.TmdbItem
+import com.fongmi.android.tv.data.repository.TmdbRepository
+import com.fongmi.android.tv.data.repository.TmdbResult
 import com.fongmi.android.tv.data.repository.VodRepository
+import com.fongmi.android.tv.ui.state.HomeMode
 import com.fongmi.android.tv.ui.state.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +26,12 @@ import javax.inject.Inject
 /**
  * ViewModel for Home Screen
  * Manages UI state and business logic for the home page
+ * Supports dual mode: TMDB poster wall and site source content
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val vodRepository: VodRepository
+    private val vodRepository: VodRepository,
+    private val tmdbRepository: TmdbRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -38,20 +46,114 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * Load initial home data
+     * Load initial home data based on saved mode preference
      */
     private fun loadInitialData() {
         viewModelScope.launch {
+            // Restore saved home mode
+            val savedMode = HomeMode.fromValue(Setting.getHomeMode())
             val currentSite = vodRepository.getHomeSite()
-            _uiState.update { it.copy(currentSite = currentSite) }
 
-            if (currentSite != null) {
-                loadHomeContent(currentSite)
-            } else {
-                _uiState.update { it.copy(isLoading = false, error = "No site configured") }
+            _uiState.update {
+                it.copy(
+                    homeMode = savedMode,
+                    currentSite = currentSite
+                )
+            }
+
+            // Load content based on mode
+            when (savedMode) {
+                HomeMode.TMDB -> loadTmdbContent()
+                HomeMode.SITE -> {
+                    if (currentSite != null) {
+                        loadHomeContent(currentSite)
+                    } else {
+                        _uiState.update { it.copy(isLoading = false, error = "No site configured") }
+                    }
+                }
             }
         }
     }
+
+    // ========== TMDB Mode ==========
+
+    /**
+     * Load TMDB trending movies and TV shows
+     */
+    fun loadTmdbContent() {
+        viewModelScope.launch {
+            tmdbRepository.loadTrendingAll().collect { result ->
+                when (result) {
+                    is TmdbResult.Loading -> {
+                        _uiState.update { it.copy(isTmdbLoading = true, tmdbError = null) }
+                    }
+                    is TmdbResult.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isTmdbLoading = false,
+                                isLoading = false,
+                                tmdbMovies = result.movies,
+                                tmdbTvShows = result.tvShows,
+                                tmdbError = null
+                            )
+                        }
+                    }
+                    is TmdbResult.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isTmdbLoading = false,
+                                isLoading = false,
+                                tmdbError = result.message
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle TMDB poster click - search and navigate to detail
+     */
+    fun onTmdbItemClick(
+        item: TmdbItem,
+        onNavigateToDetail: (siteKey: String, vodId: String) -> Unit,
+        onNotFound: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isQuickSearching = true, quickSearchTitle = item.title)
+            }
+
+            vodRepository.searchFirstResult(item.title).collect { result ->
+                when (result) {
+                    is FirstSearchResult.Loading -> {
+                        // Already showing loading
+                    }
+                    is FirstSearchResult.Success -> {
+                        _uiState.update {
+                            it.copy(isQuickSearching = false, quickSearchTitle = null)
+                        }
+                        onNavigateToDetail(result.siteKey, result.vodId)
+                    }
+                    is FirstSearchResult.NotFound -> {
+                        _uiState.update {
+                            it.copy(isQuickSearching = false, quickSearchTitle = null)
+                        }
+                        onNotFound(item.title)
+                    }
+                    is FirstSearchResult.Error -> {
+                        _uiState.update {
+                            it.copy(isQuickSearching = false, quickSearchTitle = null)
+                        }
+                        onNotFound(item.title)
+                    }
+                }
+            }
+        }
+    }
+
+    // ========== Site Mode ==========
 
     /**
      * Load home content for a site
@@ -125,8 +227,36 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // ========== Mode Switching ==========
+
     /**
-     * Change the current site
+     * Switch home mode (TMDB / Site)
+     */
+    fun switchHomeMode(mode: HomeMode) {
+        if (_uiState.value.homeMode == mode) return
+
+        // Save preference
+        Setting.putHomeMode(mode.value)
+
+        _uiState.update { it.copy(homeMode = mode, showModeDialog = false) }
+
+        // Load content for new mode
+        when (mode) {
+            HomeMode.TMDB -> {
+                if (_uiState.value.tmdbMovies.isEmpty()) {
+                    loadTmdbContent()
+                }
+            }
+            HomeMode.SITE -> {
+                if (_uiState.value.featuredContent.isEmpty()) {
+                    _uiState.value.currentSite?.let { loadHomeContent(it) }
+                }
+            }
+        }
+    }
+
+    /**
+     * Change the current site (for site mode)
      */
     fun changeSite(site: Site) {
         vodRepository.setHomeSite(site)
@@ -135,12 +265,35 @@ class HomeViewModel @Inject constructor(
                 currentSite = site,
                 categories = emptyList(),
                 featuredContent = emptyList(),
-                categoryContent = emptyMap()
+                categoryContent = emptyMap(),
+                showModeDialog = false
             )
         }
         _categoryContent.update { emptyMap() }
-        loadHomeContent(site)
+
+        // If in site mode, load the new site's content
+        if (_uiState.value.homeMode == HomeMode.SITE) {
+            loadHomeContent(site)
+        }
     }
+
+    // ========== Dialog Management ==========
+
+    /**
+     * Show mode selection dialog
+     */
+    fun showModeDialog() {
+        _uiState.update { it.copy(showModeDialog = true) }
+    }
+
+    /**
+     * Dismiss mode selection dialog
+     */
+    fun dismissModeDialog() {
+        _uiState.update { it.copy(showModeDialog = false) }
+    }
+
+    // ========== Utility ==========
 
     /**
      * Get all available sites
@@ -148,11 +301,16 @@ class HomeViewModel @Inject constructor(
     fun getSites(): List<Site> = vodRepository.getSites()
 
     /**
-     * Refresh current content
+     * Refresh current content based on mode
      */
     fun refresh() {
-        _categoryContent.update { emptyMap() }
-        loadHomeContent()
+        when (_uiState.value.homeMode) {
+            HomeMode.TMDB -> loadTmdbContent()
+            HomeMode.SITE -> {
+                _categoryContent.update { emptyMap() }
+                loadHomeContent()
+            }
+        }
     }
 
     /**

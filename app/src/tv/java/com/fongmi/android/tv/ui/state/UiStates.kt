@@ -4,6 +4,19 @@ import com.fongmi.android.tv.bean.Class
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.SiteSearchResult
+import com.fongmi.android.tv.data.repository.TmdbItem
+
+/**
+ * Home screen display mode
+ */
+enum class HomeMode(val value: Int) {
+    TMDB(0),     // TMDB poster wall
+    SITE(1);     // Site source content
+
+    companion object {
+        fun fromValue(value: Int): HomeMode = entries.firstOrNull { it.value == value } ?: TMDB
+    }
+}
 
 /**
  * UI State for Home Screen
@@ -16,7 +29,19 @@ data class HomeUiState(
     val selectedCategory: Class? = null,
     val featuredContent: List<Vod> = emptyList(),
     val categoryContent: Map<String, List<Vod>> = emptyMap(),
-    val error: String? = null
+    val error: String? = null,
+    // Home mode
+    val homeMode: HomeMode = HomeMode.TMDB,
+    // TMDB state
+    val tmdbMovies: List<TmdbItem> = emptyList(),
+    val tmdbTvShows: List<TmdbItem> = emptyList(),
+    val isTmdbLoading: Boolean = false,
+    val tmdbError: String? = null,
+    // Dialog state
+    val showModeDialog: Boolean = false,
+    // Quick search state (for TMDB click -> search -> play)
+    val isQuickSearching: Boolean = false,
+    val quickSearchTitle: String? = null
 )
 
 /**
