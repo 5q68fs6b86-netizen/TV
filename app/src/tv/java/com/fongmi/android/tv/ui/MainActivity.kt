@@ -17,7 +17,7 @@ import com.fongmi.android.tv.ui.navigation.TvNavGraph
 import com.fongmi.android.tv.ui.theme.ThemeState
 import com.fongmi.android.tv.ui.theme.TvAppTheme
 import com.fongmi.android.tv.utils.Notify
-import com.github.catvod.utils.Callback
+import com.fongmi.android.tv.impl.Callback
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -66,9 +66,9 @@ class MainActivity : AppCompatActivity() {
                 // Config loaded successfully
             }
 
-            override fun error(msg: String?) {
+            override fun error(msg: String) {
                 configLoading = false
-                msg?.let { Notify.show(it) }
+                Notify.show(msg)
             }
         }, true)
     }
