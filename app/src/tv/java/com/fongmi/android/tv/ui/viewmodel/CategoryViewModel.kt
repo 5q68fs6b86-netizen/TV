@@ -208,23 +208,27 @@ class CategoryViewModel @Inject constructor(
     /**
      * Execute action from jar plugin
      * This handles special action buttons that jar plugins may return.
-     * NOTE: Runs on Main thread because some jar plugins create dialogs
-     * directly inside action() using App.post().
+     * NOTE: Runs on IO thread like Leanback does. JAR plugins that need to show
+     * dialogs will use App.post() to post to main thread themselves.
+     * Running on Main thread causes "Window has no registered input channel" crash
+     * when jar plugins trigger system dialogs or start new activities.
      */
     fun executeAction(action: String) {
         val site = VodConfig.get().home ?: return
         if (site.type != 3) return // Only jar plugins (type 3) support actions
 
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isActionLoading = true) }
             _actionResult.update { ActionResult.Loading }
 
             try {
-                // Run on Main thread - jar plugins may create dialogs inside action()
-                // Use site.recent().spider() like Leanback does
-                val spider = site.recent().spider()
-                val json = spider?.action(action)
-                val result = if (json != null) Result.fromJson(json) else null
+                // Run on IO thread - jar plugins will use App.post() for dialogs
+                // This matches Leanback's SiteViewModel.action() behavior
+                val result = withContext(Dispatchers.IO) {
+                    val spider = site.recent().spider()
+                    val json = spider?.action(action)
+                    if (json != null) Result.fromJson(json) else null
+                }
 
                 if (result != null) {
                     _actionResult.update { ActionResult.Success(result) }
