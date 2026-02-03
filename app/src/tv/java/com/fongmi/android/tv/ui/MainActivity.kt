@@ -9,9 +9,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.fongmi.android.tv.api.config.LiveConfig
+import com.fongmi.android.tv.api.config.VodConfig
+import com.fongmi.android.tv.api.config.WallConfig
+import com.fongmi.android.tv.server.Server
 import com.fongmi.android.tv.ui.navigation.TvNavGraph
 import com.fongmi.android.tv.ui.theme.ThemeState
 import com.fongmi.android.tv.ui.theme.TvAppTheme
+import com.fongmi.android.tv.utils.Notify
+import com.github.catvod.utils.Callback
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -25,11 +31,53 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private var configLoading = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Start local server for jar plugins (they need it for dialogs/menus)
+        Server.get().start()
+        // Load configs on startup (like Leanback's HomeActivity.initConfig())
+        initConfig()
 
         setContent {
             TvApp()
+        }
+    }
+
+    /**
+     * Initialize and load configs on startup.
+     * Similar to Leanback's HomeActivity.initConfig()
+     */
+    private fun initConfig() {
+        if (configLoading) return
+        configLoading = true
+
+        // Wall config
+        WallConfig.get().init()
+
+        // Live config - init and load
+        LiveConfig.get().init().load()
+
+        // Vod config - init and load with callback
+        VodConfig.get().init().load(object : Callback() {
+            override fun success() {
+                configLoading = false
+                // Config loaded successfully
+            }
+
+            override fun error(msg: String?) {
+                configLoading = false
+                msg?.let { Notify.show(it) }
+            }
+        }, true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop server when activity is destroyed
+        if (isFinishing) {
+            Server.get().stop()
         }
     }
 }
