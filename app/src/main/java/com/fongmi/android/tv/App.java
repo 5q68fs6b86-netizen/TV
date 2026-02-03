@@ -87,6 +87,15 @@ public class App extends Application {
         this.activity = activity;
     }
 
+    /**
+     * Override in subclass to control whether activity reference should be cleared on pause/stop.
+     * TV variant returns false to keep activity reference for jar plugin dialogs.
+     * @return true to clear activity on pause/stop, false to keep it
+     */
+    protected boolean shouldClearActivityOnPause() {
+        return true;
+    }
+
     private LogAdapter getLogAdapter() {
         return new AndroidLogAdapter(PrettyFormatStrategy.newBuilder().methodCount(0).showThreadInfo(false).tag("").build()) {
             @Override
@@ -129,12 +138,12 @@ public class App extends Application {
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
-                if (activity == activity()) setActivity(null);
+                if (shouldClearActivityOnPause() && activity == activity()) setActivity(null);
             }
 
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
-                if (activity == activity()) setActivity(null);
+                if (shouldClearActivityOnPause() && activity == activity()) setActivity(null);
             }
 
             @Override

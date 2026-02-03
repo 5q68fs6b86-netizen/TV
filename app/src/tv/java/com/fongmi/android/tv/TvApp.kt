@@ -13,6 +13,10 @@ import dagger.hilt.android.HiltAndroidApp
 /**
  * TV Application with Hilt dependency injection.
  * Extends App to ensure all Java code using App.get(), App.execute(), App.gson() etc. works correctly.
+ *
+ * NOTE: Overrides shouldClearActivityOnPause to keep activity reference during pause/stop.
+ * This is needed because TV variant uses single Activity architecture and jar plugins
+ * may create dialogs that require a valid Activity context even when paused.
  */
 @HiltAndroidApp
 class TvApp : App() {
@@ -35,6 +39,14 @@ class TvApp : App() {
             .errorActivity(CrashActivity::class.java)
             .apply()
     }
+
+    /**
+     * Don't clear activity reference on pause/stop.
+     * TV variant uses single Activity architecture, and jar plugins may need
+     * the activity reference to create dialogs even when the activity is paused
+     * (e.g., when a system dialog or external activity is shown).
+     */
+    override fun shouldClearActivityOnPause(): Boolean = false
 
     private fun initConfigs() {
         // Initialize config singletons with empty lists
