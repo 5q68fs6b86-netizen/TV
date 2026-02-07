@@ -47,17 +47,22 @@ public class JarLoader {
     }
 
     private void load(String key, File file) {
+        System.out.println("TV_Proxy_Debug: JarLoader.load() key=" + key + " file=" + file.getAbsolutePath() + " exists=" + file.exists());
         loaders.put(key, new DexClassLoader(file.getAbsolutePath(), Path.jar().getAbsolutePath(), null, App.get().getClassLoader()));
         invokeInit(key);
         putProxy(key);
+        System.out.println("TV_Proxy_Debug: JarLoader.load() completed for key=" + key);
     }
 
     private void invokeInit(String key) {
         try {
+            System.out.println("TV_Proxy_Debug: JarLoader.invokeInit() key=" + key + " thread=" + Thread.currentThread().getName());
             Class<?> clz = loaders.get(key).loadClass("com.github.catvod.spider.Init");
             Method method = clz.getMethod("init", Context.class);
             method.invoke(clz, App.get());
+            System.out.println("TV_Proxy_Debug: JarLoader.invokeInit() completed OK");
         } catch (Throwable e) {
+            System.out.println("TV_Proxy_Debug: JarLoader.invokeInit() FAILED: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -67,7 +72,9 @@ public class JarLoader {
             Class<?> clz = loaders.get(key).loadClass("com.github.catvod.spider.Proxy");
             Method method = clz.getMethod("proxy", Map.class);
             methods.put(key, method);
+            System.out.println("TV_Proxy_Debug: JarLoader.putProxy() key=" + key + " success=true");
         } catch (Throwable e) {
+            System.out.println("TV_Proxy_Debug: JarLoader.putProxy() key=" + key + " FAILED: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -104,13 +111,19 @@ public class JarLoader {
         try {
             String jaKey = Util.md5(jar);
             String spKey = jaKey + key;
-            if (spiders.containsKey(spKey)) return spiders.get(spKey);
+            if (spiders.containsKey(spKey)) {
+                System.out.println("TV_Proxy_Debug: JarLoader.getSpider() cache hit, key=" + key + " api=" + api);
+                return spiders.get(spKey);
+            }
+            System.out.println("TV_Proxy_Debug: JarLoader.getSpider() creating new spider, key=" + key + " api=" + api + " jar=" + jar);
             if (!loaders.containsKey(jaKey)) parseJar(jaKey, jar);
             Spider spider = (Spider) loaders.get(jaKey).loadClass("com.github.catvod.spider." + api.split("csp_")[1]).newInstance();
             spider.init(App.get(), ext);
             spiders.put(spKey, spider);
+            System.out.println("TV_Proxy_Debug: JarLoader.getSpider() created spider class=" + spider.getClass().getName());
             return spider;
         } catch (Throwable e) {
+            System.out.println("TV_Proxy_Debug: JarLoader.getSpider() FAILED: " + e.getMessage());
             e.printStackTrace();
             return new SpiderNull();
         }

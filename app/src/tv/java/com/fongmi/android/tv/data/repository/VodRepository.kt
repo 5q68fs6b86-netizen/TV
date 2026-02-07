@@ -8,6 +8,7 @@ import com.fongmi.android.tv.bean.Sub
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.impl.ParseCallback
 import com.fongmi.android.tv.player.ParseJob
+import com.github.catvod.Proxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -54,10 +56,13 @@ class VodRepository @Inject constructor() {
         emit(HomeContentResult.Loading)
         try {
             val targetSite = site ?: vodConfig.home ?: return@flow
+            dumpProxyDiagnostics("BEFORE homeContent site=${targetSite.key} type=${targetSite.type}")
             val spider = targetSite.recent().spider()
 
             // Get home content from spider
             val result = spider?.homeContent(false)
+            System.out.println("TV_Proxy_Debug: homeContent returned, length=${result?.length ?: -1}")
+            dumpProxyDiagnostics("AFTER homeContent site=${targetSite.key}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
                 emit(HomeContentResult.Success(
@@ -102,15 +107,63 @@ class VodRepository @Inject constructor() {
     }.flowOn(Dispatchers.IO)
 
     /**
+     * Dump diagnostic info about proxy and go proxy state
+     */
+    private fun dumpProxyDiagnostics(label: String) {
+        try {
+            val tag = "TV_Proxy_Debug"
+            System.out.println("$tag: === $label ===")
+            System.out.println("$tag: Proxy.getPort()=${Proxy.getPort()}")
+            System.out.println("$tag: Proxy.getUrl(true)=${Proxy.getUrl(true)}")
+            System.out.println("$tag: Thread=${Thread.currentThread().name}")
+
+            // Check cache directory for go proxy files
+            val cacheDir = com.github.catvod.Init.context()?.cacheDir
+            System.out.println("$tag: cacheDir=${cacheDir?.absolutePath}")
+            if (cacheDir != null) {
+                val files = cacheDir.listFiles()
+                System.out.println("$tag: cacheDir files: ${files?.map { it.name }?.joinToString()}")
+                // Check for any go proxy or port files
+                files?.filter { it.name.contains("go") || it.name.contains("proxy") || it.name.contains("port") }
+                    ?.forEach { f ->
+                        System.out.println("$tag: special file: ${f.name}, size=${f.length()}, canExec=${f.canExecute()}")
+                        if (f.length() < 100 && f.isFile) {
+                            try {
+                                System.out.println("$tag:   content='${f.readText().trim()}'")
+                            } catch (_: Exception) {}
+                        }
+                    }
+            }
+
+            // Check for running go proxy processes
+            try {
+                val proc = Runtime.getRuntime().exec("ps")
+                val output = proc.inputStream.bufferedReader().readText()
+                val goLines = output.lines().filter { it.contains("go_proxy") || it.contains("new_go") || it.contains("wex") }
+                System.out.println("$tag: go proxy processes: ${goLines.size}")
+                goLines.forEach { System.out.println("$tag:   $it") }
+            } catch (e: Exception) {
+                System.out.println("$tag: ps failed: ${e.message}")
+            }
+        } catch (e: Exception) {
+            System.out.println("TV_Proxy_Debug: diagnostics error: ${e.message}")
+        }
+    }
+
+    /**
      * Load video detail
      */
     fun loadDetail(site: Site, vodId: String): Flow<DetailResult> = flow {
         emit(DetailResult.Loading)
         try {
+            dumpProxyDiagnostics("BEFORE detailContent vodId=$vodId")
             val spider = site.recent().spider()
             val ids = listOf(vodId)
 
             val result = spider?.detailContent(ids)
+            System.out.println("TV_Proxy_Debug: detailContent returned, length=${result?.length ?: -1}")
+            dumpProxyDiagnostics("AFTER detailContent vodId=$vodId")
+
             if (result != null) {
                 val parsed = Result.fromJson(result)
                 val vod = parsed.list?.firstOrNull()

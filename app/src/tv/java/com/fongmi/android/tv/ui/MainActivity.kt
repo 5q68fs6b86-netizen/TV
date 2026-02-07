@@ -19,6 +19,7 @@ import com.fongmi.android.tv.ui.theme.TvAppTheme
 import com.fongmi.android.tv.utils.Notify
 import com.fongmi.android.tv.utils.Tbs
 import com.fongmi.android.tv.impl.Callback
+import com.github.catvod.Proxy
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Start local server for jar plugins (they need it for dialogs/menus)
         Server.get().start()
+        System.out.println("TV_Proxy_Debug: Server.start() done, Server.port=${Server.get().port}, Proxy.getPort()=${Proxy.getPort()}")
         // Initialize X5 WebView engine (needed by jar plugins for custom menus/dialogs)
         Tbs.init()
         // Load configs on startup (like Leanback's HomeActivity.initConfig())
