@@ -68,6 +68,7 @@ public class Nano extends NanoHTTPD {
     @Override
     public Response serve(IHTTPSession session) {
         String url = session.getUri().trim();
+        System.out.println("TV_Dialog_Debug: Nano.serve() " + session.getMethod() + " " + url + " params=" + session.getParms() + " thread=" + Thread.currentThread().getName());
         Map<String, String> files = new HashMap<>();
         if (session.getMethod() == Method.POST) parse(session, files);
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'));

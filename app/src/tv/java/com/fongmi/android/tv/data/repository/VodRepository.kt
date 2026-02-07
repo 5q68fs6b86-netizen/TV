@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
+import android.app.Activity
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -107,6 +108,39 @@ class VodRepository @Inject constructor() {
     }.flowOn(Dispatchers.IO)
 
     /**
+     * Simulate JAR plugin's Init.getActivity() reflection to diagnose if it works
+     */
+    private fun testReflectiveGetActivity(label: String) {
+        try {
+            val tag = "TV_Dialog_Debug"
+            val activityThreadClass = Class.forName("android.app.ActivityThread")
+            val currentActivityThread = activityThreadClass.getMethod("currentActivityThread").invoke(null)
+            val activitiesField = activityThreadClass.getDeclaredField("mActivities")
+            activitiesField.isAccessible = true
+            val activities = activitiesField.get(currentActivityThread) as? Map<*, *>
+            System.out.println("$tag: [$label] mActivities count=${activities?.size ?: -1}")
+            if (activities != null) {
+                for ((key, activityRecord) in activities) {
+                    val recordClass = activityRecord!!.javaClass
+                    val pausedField = recordClass.getDeclaredField("paused")
+                    pausedField.isAccessible = true
+                    val paused = pausedField.getBoolean(activityRecord)
+                    val activityField = recordClass.getDeclaredField("activity")
+                    activityField.isAccessible = true
+                    val activity = activityField.get(activityRecord) as? Activity
+                    System.out.println("$tag: [$label] ActivityRecord key=$key paused=$paused activity=${activity?.javaClass?.simpleName ?: "null"}")
+                }
+            }
+            // Also log App.activity() for comparison
+            val appActivity = com.fongmi.android.tv.App.activity()
+            System.out.println("$tag: [$label] App.activity()=${appActivity?.javaClass?.simpleName ?: "null"}")
+        } catch (e: Exception) {
+            System.out.println("TV_Dialog_Debug: [$label] reflective getActivity FAILED: ${e.javaClass.simpleName}: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    /**
      * Dump diagnostic info about proxy and go proxy state
      */
     private fun dumpProxyDiagnostics(label: String) {
@@ -157,11 +191,15 @@ class VodRepository @Inject constructor() {
         emit(DetailResult.Loading)
         try {
             dumpProxyDiagnostics("BEFORE detailContent vodId=$vodId")
+            // Simulate JAR plugin's Init.getActivity() reflection to diagnose
+            testReflectiveGetActivity("BEFORE detailContent")
             val spider = site.recent().spider()
             val ids = listOf(vodId)
 
             val result = spider?.detailContent(ids)
             System.out.println("TV_Proxy_Debug: detailContent returned, length=${result?.length ?: -1}")
+            // Test again after detailContent (dialog should have been posted by now)
+            testReflectiveGetActivity("AFTER detailContent")
             dumpProxyDiagnostics("AFTER detailContent vodId=$vodId")
 
             if (result != null) {

@@ -55,7 +55,11 @@ public class App extends Application {
     }
 
     public static Activity activity() {
-        return get().activity;
+        Activity act = get().activity;
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            System.out.println("TV_Dialog_Debug: App.activity() from BG thread=" + Thread.currentThread().getName() + " activity=" + (act != null ? act.getClass().getSimpleName() : "null"));
+        }
+        return act;
     }
 
     public static void execute(Runnable runnable) {
