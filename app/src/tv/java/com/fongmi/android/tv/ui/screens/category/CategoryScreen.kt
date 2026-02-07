@@ -295,23 +295,19 @@ fun CategoryScreen(
                             // Show folder icon for folder items
                             badge = if (vod.isFolder) "📁" else null,
                             onClick = {
-                                System.out.println("TV_Click_Debug: CategoryScreen onClick - vodName='${vod.vodName}', vodId='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
                                 when {
                                     // Action button from jar plugin
                                     vod.isAction -> {
-                                        System.out.println("TV_Click_Debug: CategoryScreen -> executeAction")
                                         viewModel.executeAction(vod.action ?: "")
                                     }
                                     // Folder navigation
                                     vod.isFolder -> {
-                                        System.out.println("TV_Click_Debug: CategoryScreen -> navigateIntoFolder")
                                         // Get current scroll position before navigating
                                         val currentPosition = gridState.firstVisibleItemIndex
                                         viewModel.navigateIntoFolder(vod, currentPosition)
                                     }
                                     // Normal video click
                                     else -> {
-                                        System.out.println("TV_Click_Debug: CategoryScreen -> onVodClick")
                                         onVodClick(viewModel.getSiteKey(), vod.vodId ?: "")
                                     }
                                 }

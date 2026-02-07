@@ -214,28 +214,15 @@ class CategoryViewModel @Inject constructor(
      * when jar plugins trigger system dialogs or start new activities.
      */
     fun executeAction(action: String) {
-        System.out.println("TV_Click_Debug: CategoryViewModel.executeAction called, action='$action'")
-        val site = VodConfig.get().home ?: run {
-            System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - site is null, returning")
-            return
-        }
-        System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - site.type=${site.type}")
-        if (site.type != 3) {
-            System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - site.type != 3, returning")
-            return
-        }
+        val site = VodConfig.get().home ?: return
+        if (site.type != 3) return
 
         viewModelScope.launch {
             try {
-                System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - calling spider.action() on IO")
                 withContext(Dispatchers.IO) {
-                    val spider = site.recent().spider()
-                    System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - spider=${spider?.javaClass?.name}")
-                    spider?.action(action)
-                    System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - spider.action() completed")
+                    site.recent().spider()?.action(action)
                 }
             } catch (e: Exception) {
-                System.out.println("TV_Click_Debug: CategoryViewModel.executeAction - ERROR: ${e.message}")
                 e.printStackTrace()
             }
         }

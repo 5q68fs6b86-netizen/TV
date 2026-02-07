@@ -54,29 +54,20 @@ class VodRepository @Inject constructor() {
         emit(HomeContentResult.Loading)
         try {
             val targetSite = site ?: vodConfig.home ?: return@flow
-            System.out.println("TV_Load_Debug: loadHomeContent - site.key='${targetSite.key}', site.type=${targetSite.type}")
-            val spider = targetSite.spider()
-            System.out.println("TV_Load_Debug: loadHomeContent - spider=${spider?.javaClass?.name}, calling homeContent()")
+            val spider = targetSite.recent().spider()
 
             // Get home content from spider
             val result = spider?.homeContent(false)
-            System.out.println("TV_Load_Debug: loadHomeContent - homeContent() returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
-                val vods = parsed.list ?: emptyList()
-                // Log action items
-                vods.forEachIndexed { i, vod ->
-                    System.out.println("TV_Load_Debug: vod[$i] name='${vod.vodName}', id='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
-                }
                 emit(HomeContentResult.Success(
                     categories = parsed.types ?: emptyList(),
-                    featured = vods
+                    featured = parsed.list ?: emptyList()
                 ))
             } else {
                 emit(HomeContentResult.Error("Failed to load content"))
             }
         } catch (e: Exception) {
-            System.out.println("TV_Load_Debug: loadHomeContent - ERROR: ${e.message}")
             emit(HomeContentResult.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
@@ -92,19 +83,13 @@ class VodRepository @Inject constructor() {
     ): Flow<CategoryContentResult> = flow {
         emit(CategoryContentResult.Loading)
         try {
-            val spider = site.spider()
-            System.out.println("TV_Load_Debug: loadCategoryContent - categoryId='$categoryId', page=$page, spider=${spider?.javaClass?.name}")
+            val spider = site.recent().spider()
 
             val result = spider?.categoryContent(categoryId, page.toString(), false, extend)
-            System.out.println("TV_Load_Debug: loadCategoryContent - returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
-                val vods = parsed.list ?: emptyList()
-                vods.forEachIndexed { i, vod ->
-                    System.out.println("TV_Load_Debug: cat_vod[$i] name='${vod.vodName}', id='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
-                }
                 emit(CategoryContentResult.Success(
-                    content = vods,
+                    content = parsed.list ?: emptyList(),
                     pageCount = parsed.pageCount ?: 1,
                     currentPage = page
                 ))
@@ -112,7 +97,6 @@ class VodRepository @Inject constructor() {
                 emit(CategoryContentResult.Error("Failed to load category"))
             }
         } catch (e: Exception) {
-            System.out.println("TV_Load_Debug: loadCategoryContent - ERROR: ${e.message}")
             emit(CategoryContentResult.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
@@ -123,12 +107,10 @@ class VodRepository @Inject constructor() {
     fun loadDetail(site: Site, vodId: String): Flow<DetailResult> = flow {
         emit(DetailResult.Loading)
         try {
-            System.out.println("TV_Load_Debug: loadDetail - vodId='$vodId', site.key='${site.key}'")
-            val spider = site.spider()
+            val spider = site.recent().spider()
             val ids = listOf(vodId)
 
             val result = spider?.detailContent(ids)
-            System.out.println("TV_Load_Debug: loadDetail - returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
                 val vod = parsed.list?.firstOrNull()
@@ -155,7 +137,7 @@ class VodRepository @Inject constructor() {
         emit(SearchResult.Loading)
         try {
             val site = vodConfig.home ?: return@flow
-            val spider = site.spider()
+            val spider = site.recent().spider()
 
             val result = spider?.searchContent(keyword, false, page.toString())
             if (result != null) {
@@ -194,7 +176,7 @@ class VodRepository @Inject constructor() {
                 val deferredResults = searchSites.map { site ->
                     async {
                         try {
-                            val spider = site.spider()
+                            val spider = site.recent().spider()
                             val result = spider?.searchContent(keyword, false, "1")
                             if (result != null) {
                                 val parsed = Result.fromJson(result)
@@ -243,7 +225,7 @@ class VodRepository @Inject constructor() {
                 val deferredResults = searchSites.map { site ->
                     async {
                         try {
-                            val spider = site.spider()
+                            val spider = site.recent().spider()
                             val result = spider?.searchContent(keyword, false, "1")
                             if (result != null) {
                                 val parsed = Result.fromJson(result)
@@ -290,7 +272,7 @@ class VodRepository @Inject constructor() {
     fun getPlayUrl(site: Site, flag: String, episodeId: String): Flow<PlayUrlResult> = flow {
         emit(PlayUrlResult.Loading)
         try {
-            val spider = site.spider()
+            val spider = site.recent().spider()
             val result = spider?.playerContent(flag, episodeId, vodConfig.flags)
 
             if (result != null) {

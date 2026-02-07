@@ -32,20 +32,11 @@ fun SiteHomeContent(
 ) {
     val scrollState = rememberScrollState()
 
-    // Debug: log when SiteHomeContent renders
-    System.out.println("TV_Render_Debug: SiteHomeContent rendered, featuredVods=${featuredVods.size}, recommendedVods=${recommendedVods.size}, onActionClick=${onActionClick != null}")
-    featuredVods.forEachIndexed { i, vod ->
-        System.out.println("TV_Render_Debug: featured[$i] name='${vod.vodName}', isAction=${vod.isAction}, action='${vod.action}'")
-    }
-
     // Helper to handle vod click with action check
     val handleVodClick: (Vod) -> Unit = { vod ->
-        System.out.println("TV_Click_Debug: vodName='${vod.vodName}', vodId='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
         if (vod.isAction && onActionClick != null) {
-            System.out.println("TV_Click_Debug: -> routing to onActionClick")
             onActionClick(vod.action ?: "")
         } else {
-            System.out.println("TV_Click_Debug: -> routing to onVodClick")
             onVodClick("", vod.vodId ?: "")
         }
     }
