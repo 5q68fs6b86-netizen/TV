@@ -3,7 +3,9 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fongmi.android.tv.Setting
+import com.fongmi.android.tv.api.config.VodConfig
 import com.fongmi.android.tv.bean.Class
+import com.fongmi.android.tv.bean.Result
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.CategoryContentResult
@@ -16,11 +18,13 @@ import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.HomeMode
 import com.fongmi.android.tv.ui.state.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -318,5 +322,21 @@ class HomeViewModel @Inject constructor(
      */
     fun getContentForCategory(categoryId: String): List<Vod> {
         return _categoryContent.value[categoryId] ?: emptyList()
+    }
+
+    /**
+     * Execute action from jar plugin.
+     * Matches Leanback's SiteViewModel.action() behavior.
+     * JAR plugins show dialogs internally via App.post() + App.activity().
+     */
+    fun executeAction(action: String) {
+        val site = VodConfig.get().home ?: return
+        if (site.type != 3) return
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                site.recent().spider()?.action(action)
+            }
+        }
     }
 }

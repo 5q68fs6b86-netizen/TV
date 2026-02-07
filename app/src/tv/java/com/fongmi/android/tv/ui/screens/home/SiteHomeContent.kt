@@ -27,9 +27,19 @@ fun SiteHomeContent(
     featuredVods: List<Vod>,
     recommendedVods: List<Vod>,
     onCategoryClick: (String) -> Unit,
-    onVodClick: (String, String) -> Unit
+    onVodClick: (String, String) -> Unit,
+    onActionClick: ((String) -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
+
+    // Helper to handle vod click with action check
+    val handleVodClick: (Vod) -> Unit = { vod ->
+        if (vod.isAction && onActionClick != null) {
+            onActionClick(vod.action ?: "")
+        } else {
+            onVodClick("", vod.vodId ?: "")
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -38,8 +48,10 @@ fun SiteHomeContent(
     ) {
         // Hero Banner (featured content)
         if (featuredVods.isNotEmpty()) {
+            // Keep reference to original vods for action check
+            val bannerVods = featuredVods.take(5)
             HeroBanner(
-                items = featuredVods.take(5).map { vod ->
+                items = bannerVods.map { vod ->
                     BannerItem(
                         id = vod.vodId ?: "",
                         title = vod.vodName ?: "",
@@ -50,8 +62,11 @@ fun SiteHomeContent(
                     )
                 },
                 onItemClick = { banner ->
-                    banner.vodId?.let { vodId ->
-                        onVodClick("", vodId)
+                    val vod = bannerVods.find { it.vodId == banner.vodId }
+                    if (vod != null) {
+                        handleVodClick(vod)
+                    } else {
+                        banner.vodId?.let { vodId -> onVodClick("", vodId) }
                     }
                 },
                 height = 380.dp
@@ -85,9 +100,10 @@ fun SiteHomeContent(
 
         // Recommended Content Row
         if (recommendedVods.isNotEmpty()) {
+            val recVods = recommendedVods.take(15)
             ContentRow(
                 title = "推荐",
-                items = recommendedVods.take(15).map { vod ->
+                items = recVods.map { vod ->
                     ContentItem(
                         id = vod.vodId ?: "",
                         title = vod.vodName ?: "",
@@ -98,8 +114,11 @@ fun SiteHomeContent(
                     )
                 },
                 onItemClick = { item ->
-                    item.vodId?.let { vodId ->
-                        onVodClick(item.siteKey ?: "", vodId)
+                    val vod = recVods.find { it.vodId == item.vodId }
+                    if (vod != null) {
+                        handleVodClick(vod)
+                    } else {
+                        item.vodId?.let { vodId -> onVodClick(item.siteKey ?: "", vodId) }
                     }
                 }
             )
@@ -127,8 +146,11 @@ fun SiteHomeContent(
                         )
                     },
                     onItemClick = { item ->
-                        item.vodId?.let { vodId ->
-                            onVodClick(item.siteKey ?: "", vodId)
+                        val vod = categoryVods.find { it.vodId == item.vodId }
+                        if (vod != null) {
+                            handleVodClick(vod)
+                        } else {
+                            item.vodId?.let { vodId -> onVodClick(item.siteKey ?: "", vodId) }
                         }
                     },
                     onSeeAllClick = {

@@ -154,7 +154,10 @@ fun HomeScreen(
                                 featuredVods = uiState.featuredContent.take(5),
                                 recommendedVods = uiState.featuredContent,
                                 onCategoryClick = onCategoryClick,
-                                onVodClick = onVodClick
+                                onVodClick = onVodClick,
+                                onActionClick = { action ->
+                                    viewModel.executeAction(action)
+                                }
                             )
                         }
                     }
