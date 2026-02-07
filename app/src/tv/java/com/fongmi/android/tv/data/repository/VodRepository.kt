@@ -93,12 +93,18 @@ class VodRepository @Inject constructor() {
         emit(CategoryContentResult.Loading)
         try {
             val spider = site.spider()
+            System.out.println("TV_Load_Debug: loadCategoryContent - categoryId='$categoryId', page=$page, spider=${spider?.javaClass?.name}")
 
             val result = spider?.categoryContent(categoryId, page.toString(), false, extend)
+            System.out.println("TV_Load_Debug: loadCategoryContent - returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
+                val vods = parsed.list ?: emptyList()
+                vods.forEachIndexed { i, vod ->
+                    System.out.println("TV_Load_Debug: cat_vod[$i] name='${vod.vodName}', id='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
+                }
                 emit(CategoryContentResult.Success(
-                    content = parsed.list ?: emptyList(),
+                    content = vods,
                     pageCount = parsed.pageCount ?: 1,
                     currentPage = page
                 ))
@@ -106,6 +112,7 @@ class VodRepository @Inject constructor() {
                 emit(CategoryContentResult.Error("Failed to load category"))
             }
         } catch (e: Exception) {
+            System.out.println("TV_Load_Debug: loadCategoryContent - ERROR: ${e.message}")
             emit(CategoryContentResult.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
@@ -116,10 +123,12 @@ class VodRepository @Inject constructor() {
     fun loadDetail(site: Site, vodId: String): Flow<DetailResult> = flow {
         emit(DetailResult.Loading)
         try {
+            System.out.println("TV_Load_Debug: loadDetail - vodId='$vodId', site.key='${site.key}'")
             val spider = site.spider()
             val ids = listOf(vodId)
 
             val result = spider?.detailContent(ids)
+            System.out.println("TV_Load_Debug: loadDetail - returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
                 val vod = parsed.list?.firstOrNull()
