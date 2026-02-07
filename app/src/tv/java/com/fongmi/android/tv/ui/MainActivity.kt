@@ -17,6 +17,7 @@ import com.fongmi.android.tv.ui.navigation.TvNavGraph
 import com.fongmi.android.tv.ui.theme.ThemeState
 import com.fongmi.android.tv.ui.theme.TvAppTheme
 import com.fongmi.android.tv.utils.Notify
+import com.fongmi.android.tv.utils.Tbs
 import com.fongmi.android.tv.impl.Callback
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,6 +38,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Start local server for jar plugins (they need it for dialogs/menus)
         Server.get().start()
+        // Initialize X5 WebView engine (needed by jar plugins for custom menus/dialogs)
+        Tbs.init()
         // Load configs on startup (like Leanback's HomeActivity.initConfig())
         initConfig()
 
