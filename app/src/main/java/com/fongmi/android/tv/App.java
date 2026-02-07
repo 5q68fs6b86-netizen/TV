@@ -63,7 +63,20 @@ public class App extends Application {
     }
 
     public static void post(Runnable runnable) {
-        get().handler.post(runnable);
+        String caller = Thread.currentThread().getName();
+        String runnableClass = runnable.getClass().getName();
+        System.out.println("TV_Dialog_Debug: App.post() from thread=" + caller + " runnable=" + runnableClass);
+        get().handler.post(() -> {
+            try {
+                Activity act = get().activity;
+                System.out.println("TV_Dialog_Debug: App.post() EXEC runnable=" + runnableClass + " activity=" + (act != null ? act.getClass().getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(act)) : "null"));
+                runnable.run();
+                System.out.println("TV_Dialog_Debug: App.post() OK runnable=" + runnableClass);
+            } catch (Throwable t) {
+                System.out.println("TV_Dialog_Debug: App.post() THREW " + t.getClass().getName() + ": " + t.getMessage());
+                t.printStackTrace();
+            }
+        });
     }
 
     public static void post(Runnable runnable, long delayMillis) {
@@ -84,6 +97,7 @@ public class App extends Application {
     }
 
     private void setActivity(Activity activity) {
+        System.out.println("TV_Dialog_Debug: App.setActivity() " + (activity != null ? activity.getClass().getSimpleName() : "null") + " (was: " + (this.activity != null ? this.activity.getClass().getSimpleName() : "null") + ")");
         this.activity = activity;
     }
 
