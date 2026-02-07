@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import android.app.Activity
 import java.io.File
+import java.lang.reflect.Field
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -113,7 +114,7 @@ class VodRepository @Inject constructor() {
     private fun testReflectiveGetActivity(label: String) {
         try {
             val tag = "TV_Dialog_Debug"
-            val activityThreadClass = Class.forName("android.app.ActivityThread")
+            val activityThreadClass = java.lang.Class.forName("android.app.ActivityThread")
             val currentActivityThread = activityThreadClass.getMethod("currentActivityThread").invoke(null)
             val activitiesField = activityThreadClass.getDeclaredField("mActivities")
             activitiesField.isAccessible = true
