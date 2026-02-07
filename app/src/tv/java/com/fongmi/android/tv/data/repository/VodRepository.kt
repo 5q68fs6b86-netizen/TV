@@ -54,20 +54,29 @@ class VodRepository @Inject constructor() {
         emit(HomeContentResult.Loading)
         try {
             val targetSite = site ?: vodConfig.home ?: return@flow
+            System.out.println("TV_Load_Debug: loadHomeContent - site.key='${targetSite.key}', site.type=${targetSite.type}")
             val spider = targetSite.spider()
+            System.out.println("TV_Load_Debug: loadHomeContent - spider=${spider?.javaClass?.name}, calling homeContent()")
 
             // Get home content from spider
             val result = spider?.homeContent(false)
+            System.out.println("TV_Load_Debug: loadHomeContent - homeContent() returned, result length=${result?.length ?: -1}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
+                val vods = parsed.list ?: emptyList()
+                // Log action items
+                vods.forEachIndexed { i, vod ->
+                    System.out.println("TV_Load_Debug: vod[$i] name='${vod.vodName}', id='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
+                }
                 emit(HomeContentResult.Success(
                     categories = parsed.types ?: emptyList(),
-                    featured = parsed.list ?: emptyList()
+                    featured = vods
                 ))
             } else {
                 emit(HomeContentResult.Error("Failed to load content"))
             }
         } catch (e: Exception) {
+            System.out.println("TV_Load_Debug: loadHomeContent - ERROR: ${e.message}")
             emit(HomeContentResult.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
