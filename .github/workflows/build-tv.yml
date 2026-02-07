@@ -18,13 +18,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
-    - name: Cache Gradle
-      uses: actions/cache@v4
-      with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: ${{ runner.os }}-gradle-
+        cache: gradle
 
     - name: Grant gradlew permission
       run: chmod +x ./gradlew
@@ -32,8 +26,14 @@ jobs:
     - name: Build TV APKs
       run: |
         sed -i '/org.gradle.java.home/d' gradle.properties
-        ./gradlew assembleTvJavaArm64_v8aRelease
-        ./gradlew assembleTvJavaArmeabi_v7aRelease
+        ./gradlew assembleTvJavaArm64_v8aRelease assembleTvJavaArmeabi_v7aRelease --parallel --build-cache --no-daemon
+      env:
+        GRADLE_OPTS: >-
+          -Dorg.gradle.workers.max=4
+          -Xmx12g
+          -XX:MaxMetaspaceSize=1g
+          -XX:+UseParallelGC
+          -XX:ParallelGCThreads=4
 
     - name: Verify APKs exist
       id: apk-check
