@@ -3,11 +3,15 @@ package com.fongmi.android.tv.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fongmi.android.tv.App
 import com.fongmi.android.tv.api.config.VodConfig
 import com.fongmi.android.tv.bean.Result
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.CategoryContentResult
 import com.fongmi.android.tv.data.repository.VodRepository
+import com.fongmi.android.tv.server.Server
+import com.github.catvod.Proxy
+import com.github.catvod.crawler.SpiderDebug
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -222,11 +226,16 @@ class CategoryViewModel @Inject constructor(
             _actionResult.update { ActionResult.Loading }
 
             try {
-                // Run on IO thread - jar plugins will use App.post() for dialogs
-                // This matches Leanback's SiteViewModel.action() behavior
                 val result = withContext(Dispatchers.IO) {
+                    // Debug: log environment state before calling spider.action()
+                    SpiderDebug.log("TV_Action_Debug: activity=" + (App.activity() != null) +
+                        ", server_port=" + Server.get().port +
+                        ", proxy_port=" + Proxy.getPort() +
+                        ", action=" + action)
                     val spider = site.recent().spider()
+                    SpiderDebug.log("TV_Action_Debug: spider=" + (spider != null) + ", class=" + spider?.javaClass?.name)
                     val json = spider?.action(action)
+                    SpiderDebug.log("TV_Action_Debug: result=" + json)
                     if (json != null) Result.fromJson(json) else null
                 }
 
@@ -249,6 +258,8 @@ class CategoryViewModel @Inject constructor(
                     _uiState.update { it.copy(isActionLoading = false) }
                 }
             } catch (e: Exception) {
+                SpiderDebug.log("TV_Action_Error: " + e.message)
+                SpiderDebug.log(e)
                 _actionResult.update { ActionResult.Error(e.message ?: "Action failed") }
                 _uiState.update { it.copy(isActionLoading = false) }
             }
