@@ -330,12 +330,29 @@ class HomeViewModel @Inject constructor(
      * JAR plugins show dialogs internally via App.post() + App.activity().
      */
     fun executeAction(action: String) {
-        val site = VodConfig.get().home ?: return
-        if (site.type != 3) return
+        System.out.println("TV_Click_Debug: HomeViewModel.executeAction called, action='$action'")
+        val site = VodConfig.get().home ?: run {
+            System.out.println("TV_Click_Debug: HomeViewModel.executeAction - site is null, returning")
+            return
+        }
+        System.out.println("TV_Click_Debug: HomeViewModel.executeAction - site.type=${site.type}, site.key='${site.key}'")
+        if (site.type != 3) {
+            System.out.println("TV_Click_Debug: HomeViewModel.executeAction - site.type != 3, returning")
+            return
+        }
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                site.recent().spider()?.action(action)
+            try {
+                System.out.println("TV_Click_Debug: HomeViewModel.executeAction - calling spider.action() on IO")
+                withContext(Dispatchers.IO) {
+                    val spider = site.recent().spider()
+                    System.out.println("TV_Click_Debug: HomeViewModel.executeAction - spider=${spider?.javaClass?.name}, calling action")
+                    spider?.action(action)
+                    System.out.println("TV_Click_Debug: HomeViewModel.executeAction - spider.action() completed")
+                }
+            } catch (e: Exception) {
+                System.out.println("TV_Click_Debug: HomeViewModel.executeAction - ERROR: ${e.message}")
+                e.printStackTrace()
             }
         }
     }

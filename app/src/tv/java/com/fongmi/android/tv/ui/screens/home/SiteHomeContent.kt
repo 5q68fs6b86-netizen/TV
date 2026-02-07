@@ -34,9 +34,12 @@ fun SiteHomeContent(
 
     // Helper to handle vod click with action check
     val handleVodClick: (Vod) -> Unit = { vod ->
+        System.out.println("TV_Click_Debug: vodName='${vod.vodName}', vodId='${vod.vodId}', isAction=${vod.isAction}, action='${vod.action}', isFolder=${vod.isFolder}")
         if (vod.isAction && onActionClick != null) {
+            System.out.println("TV_Click_Debug: -> routing to onActionClick")
             onActionClick(vod.action ?: "")
         } else {
+            System.out.println("TV_Click_Debug: -> routing to onVodClick")
             onVodClick("", vod.vodId ?: "")
         }
     }
