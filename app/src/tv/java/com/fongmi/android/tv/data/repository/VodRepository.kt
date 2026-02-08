@@ -67,9 +67,14 @@ class VodRepository @Inject constructor() {
             dumpProxyDiagnostics("AFTER homeContent site=${targetSite.key}")
             if (result != null) {
                 val parsed = Result.fromJson(result)
+                val featured = parsed.list ?: emptyList()
+                // Log action fields for diagnosis
+                featured.forEachIndexed { i, vod ->
+                    if (i < 10) System.out.println("TV_Dialog_Debug: homeContent vod[$i] name='${vod.vodName}' id='${vod.vodId}' action='${vod.action}' isAction=${vod.isAction} isFolder=${vod.isFolder} tag='${vod.vodTag}'")
+                }
                 emit(HomeContentResult.Success(
                     categories = parsed.types ?: emptyList(),
-                    featured = parsed.list ?: emptyList()
+                    featured = featured
                 ))
             } else {
                 emit(HomeContentResult.Error("Failed to load content"))
@@ -95,8 +100,13 @@ class VodRepository @Inject constructor() {
             val result = spider?.categoryContent(categoryId, page.toString(), false, extend)
             if (result != null) {
                 val parsed = Result.fromJson(result)
+                val items = parsed.list ?: emptyList()
+                // Log action fields for diagnosis
+                items.forEachIndexed { i, vod ->
+                    if (i < 10) System.out.println("TV_Dialog_Debug: categoryContent vod[$i] name='${vod.vodName}' id='${vod.vodId}' action='${vod.action}' isAction=${vod.isAction} isFolder=${vod.isFolder} tag='${vod.vodTag}'")
+                }
                 emit(CategoryContentResult.Success(
-                    content = parsed.list ?: emptyList(),
+                    content = items,
                     pageCount = parsed.pageCount ?: 1,
                     currentPage = page
                 ))
