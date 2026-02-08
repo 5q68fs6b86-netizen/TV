@@ -34,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private var configLoading = false
+    private var userFinish = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +49,43 @@ class MainActivity : AppCompatActivity() {
         setContent {
             TvApp()
         }
+    }
+
+    /**
+     * Guard against JAR plugins calling Activity.finish().
+     *
+     * JAR plugins (loaded via DexClassLoader) may call Init.getActivity().finish()
+     * during detailContent() to close the current Activity before showing a dialog.
+     * In Leanback's multi-Activity architecture, this closes VideoActivity and the
+     * dialog shows on HomeActivity. In our single-Activity Compose architecture,
+     * this would destroy the ONLY Activity, killing the app.
+     *
+     * We block external finish() calls and only allow finish when the user
+     * explicitly navigates away (back press / task removal).
+     */
+    override fun finish() {
+        if (userFinish) {
+            super.finish()
+        } else {
+            System.out.println("TV_Dialog_Debug: MainActivity.finish() BLOCKED (called by JAR plugin)")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onBackPressed() {
+        userFinish = true
+        super.onBackPressed()
+        userFinish = false
+    }
+
+    override fun finishAffinity() {
+        userFinish = true
+        super.finishAffinity()
+    }
+
+    override fun finishAndRemoveTask() {
+        userFinish = true
+        super.finishAndRemoveTask()
     }
 
     /**
