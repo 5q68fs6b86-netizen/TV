@@ -381,7 +381,10 @@ private fun SiteFilterRow(
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(sites) { site ->
             val isSelected = selectedSites.contains(site) || selectedSites.isEmpty()
-            FocusableItem(onClick = { onSiteToggle(site) }) { isFocused ->
+            FocusableItem(
+                onClick = { onSiteToggle(site) },
+                shape = RoundedCornerShape(8.dp)
+            ) { isFocused ->
                 Box(
                     modifier = Modifier
                         .background(
@@ -583,7 +586,10 @@ private fun HistoryChip(
     onClick: () -> Unit,
     onRemove: () -> Unit
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp)
+    ) { isFocused ->
         Row(
             modifier = Modifier
                 .background(

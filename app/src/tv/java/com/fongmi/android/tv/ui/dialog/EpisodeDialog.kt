@@ -184,7 +184,10 @@ private fun GroupChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp)
+    ) { isFocused ->
         Box(
             modifier = Modifier
                 .background(

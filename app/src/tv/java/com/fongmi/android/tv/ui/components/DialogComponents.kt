@@ -24,7 +24,8 @@ fun DialogButton(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier
@@ -73,7 +74,8 @@ fun TabChip(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier

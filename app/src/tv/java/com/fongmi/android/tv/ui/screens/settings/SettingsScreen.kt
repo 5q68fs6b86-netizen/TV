@@ -638,7 +638,8 @@ private fun SettingsIconButton(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = CircleShape
     ) { isFocused ->
         Box(
             modifier = Modifier
@@ -702,7 +703,10 @@ private fun ThemeChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp)
+    ) { isFocused ->
         Box(
             modifier = Modifier
                 .background(

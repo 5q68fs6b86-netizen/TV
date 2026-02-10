@@ -316,7 +316,8 @@ private fun CustomValueButton(
         onClick = {
             onClick()
         },
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Row(
             modifier = Modifier
@@ -358,7 +359,8 @@ private fun CustomButton(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier
@@ -402,7 +404,8 @@ private fun CustomIconButton(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier

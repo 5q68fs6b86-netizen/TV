@@ -165,7 +165,10 @@ private fun DanmuChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp)
+    ) { isFocused ->
         Box(
             modifier = Modifier
                 .background(
@@ -204,7 +207,8 @@ private fun DanmuIconButton(
 ) {
     FocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier

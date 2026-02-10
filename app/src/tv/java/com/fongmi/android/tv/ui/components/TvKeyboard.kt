@@ -108,6 +108,7 @@ private fun KeyButton(
         onLongClick = if (key is KeyItem.Icon && key.type == KeyType.DELETE) {
             { onDeleteLongClick() }
         } else null,
+        shape = RoundedCornerShape(8.dp),
         focusScale = 1.15f,
         focusBorderWidth = 1.5.dp,
         focusElevation = 4.dp

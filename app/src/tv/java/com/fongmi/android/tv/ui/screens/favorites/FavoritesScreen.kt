@@ -260,7 +260,8 @@ private fun FavoriteCard(
                     onClick = onDelete,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
+                        .padding(8.dp),
+                    shape = androidx.compose.foundation.shape.CircleShape
                 ) { deleteIsFocused ->
                     Box(
                         modifier = Modifier

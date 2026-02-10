@@ -31,11 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.fongmi.android.tv.ui.theme.TvDimens
 import com.fongmi.android.tv.ui.theme.TvShapes
 
-// Helper color constants for default parameter values
-private val DefaultFocusBorderColor = androidx.compose.ui.graphics.Color(0xFFB388FF) // Same as AuroraColorsDark.FocusBorder
-private val DefaultSurfaceContainer = androidx.compose.ui.graphics.Color(0xFF1A1A22) // Same as AuroraColorsDark.SurfaceContainer
-private val DefaultSurfaceContainerHigh = androidx.compose.ui.graphics.Color(0xFF242430) // Same as AuroraColorsDark.SurfaceContainerHigh
-private val DefaultPrimary = androidx.compose.ui.graphics.Color(0xFF7C4DFF) // Same as AuroraColorsDark.Primary
+// Sentinel value indicating "use theme color at runtime"
+private val UseThemeColor = Color.Unspecified
 
 /**
  * A focusable container with TV-optimized focus effects.
@@ -60,14 +57,19 @@ fun FocusableItem(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true,
-    shape: Shape = TvShapes.Card,
+    shape: Shape = TvShapes.Small,
     focusRequester: FocusRequester? = null,
     focusScale: Float = TvDimens.FocusScaleFactor,
     focusBorderWidth: Dp = TvDimens.FocusBorderWidth,
-    focusBorderColor: Color = DefaultFocusBorderColor,
+    focusBorderColor: Color = UseThemeColor,
     focusElevation: Dp = TvDimens.FocusElevation,
     content: @Composable BoxScope.(isFocused: Boolean) -> Unit
 ) {
+    val resolvedBorderColor = if (focusBorderColor == UseThemeColor) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        focusBorderColor
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
@@ -120,7 +122,7 @@ fun FocusableItem(
             .clip(shape)
             .border(
                 width = borderWidth,
-                color = if (isFocused) focusBorderColor else Color.Transparent,
+                color = if (isFocused) resolvedBorderColor else Color.Transparent,
                 shape = shape
             )
     ) {
@@ -137,12 +139,22 @@ fun FocusableButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    backgroundColor: Color = DefaultSurfaceContainer,
-    focusedBackgroundColor: Color = DefaultPrimary,
+    backgroundColor: Color = UseThemeColor,
+    focusedBackgroundColor: Color = UseThemeColor,
     shape: Shape = TvShapes.Button,
     focusRequester: FocusRequester? = null,
     content: @Composable BoxScope.(isFocused: Boolean) -> Unit
 ) {
+    val resolvedBg = if (backgroundColor == UseThemeColor) {
+        MaterialTheme.colorScheme.surfaceContainer
+    } else {
+        backgroundColor
+    }
+    val resolvedFocusedBg = if (focusedBackgroundColor == UseThemeColor) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        focusedBackgroundColor
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
@@ -181,7 +193,7 @@ fun FocusableButton(
                 clip = false
             )
             .clip(shape)
-            .background(if (isFocused) focusedBackgroundColor else backgroundColor)
+            .background(if (isFocused) resolvedFocusedBg else resolvedBg)
     ) {
         content(isFocused)
     }

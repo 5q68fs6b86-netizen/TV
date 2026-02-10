@@ -1202,7 +1202,10 @@ private fun PlayerControlButton(
     onClick: () -> Unit,
     isLarge: Boolean = false
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = CircleShape
+    ) { isFocused ->
         Box(
             modifier = Modifier
                 .background(

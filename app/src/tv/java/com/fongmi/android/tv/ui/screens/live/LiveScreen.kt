@@ -98,7 +98,8 @@ fun LiveScreen(
             ) {
                 FocusableItem(
                     onClick = onBackClick,
-                    modifier = Modifier.focusRequester(focusRequester)
+                    modifier = Modifier.focusRequester(focusRequester),
+                    shape = CircleShape
                 ) { isFocused ->
                     Box(
                         modifier = Modifier

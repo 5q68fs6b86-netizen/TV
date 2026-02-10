@@ -228,7 +228,8 @@ private fun SiteItem(
     onToggle: () -> Unit
 ) {
     FocusableItem(
-        onClick = if (currentMode == SiteMode.NORMAL) onClick else onToggle
+        onClick = if (currentMode == SiteMode.NORMAL) onClick else onToggle,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Row(
             modifier = Modifier

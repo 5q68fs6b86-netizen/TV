@@ -366,7 +366,8 @@ private fun FlagChip(
     onClick: () -> Unit
 ) {
     FocusableItem(
-        onClick = onClick
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier
@@ -405,7 +406,8 @@ private fun EpisodeCard(
     onClick: () -> Unit
 ) {
     FocusableItem(
-        onClick = onClick
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp)
     ) { isFocused ->
         Box(
             modifier = Modifier

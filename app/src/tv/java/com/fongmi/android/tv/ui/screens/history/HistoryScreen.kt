@@ -204,7 +204,10 @@ private fun HistoryItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    FocusableItem(onClick = onClick) { isFocused ->
+    FocusableItem(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp)
+    ) { isFocused ->
         Row(
             modifier = Modifier
                 .fillMaxWidth()
