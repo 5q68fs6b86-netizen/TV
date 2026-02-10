@@ -55,11 +55,7 @@ public class App extends Application {
     }
 
     public static Activity activity() {
-        Activity act = get().activity;
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            System.out.println("TV_Dialog_Debug: App.activity() from BG thread=" + Thread.currentThread().getName() + " activity=" + (act != null ? act.getClass().getSimpleName() : "null"));
-        }
-        return act;
+        return get().activity;
     }
 
     public static void execute(Runnable runnable) {
@@ -67,20 +63,7 @@ public class App extends Application {
     }
 
     public static void post(Runnable runnable) {
-        String caller = Thread.currentThread().getName();
-        String runnableClass = runnable.getClass().getName();
-        System.out.println("TV_Dialog_Debug: App.post() from thread=" + caller + " runnable=" + runnableClass);
-        get().handler.post(() -> {
-            try {
-                Activity act = get().activity;
-                System.out.println("TV_Dialog_Debug: App.post() EXEC runnable=" + runnableClass + " activity=" + (act != null ? act.getClass().getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(act)) : "null"));
-                runnable.run();
-                System.out.println("TV_Dialog_Debug: App.post() OK runnable=" + runnableClass);
-            } catch (Throwable t) {
-                System.out.println("TV_Dialog_Debug: App.post() THREW " + t.getClass().getName() + ": " + t.getMessage());
-                t.printStackTrace();
-            }
-        });
+        get().handler.post(runnable);
     }
 
     public static void post(Runnable runnable, long delayMillis) {
@@ -101,7 +84,6 @@ public class App extends Application {
     }
 
     private void setActivity(Activity activity) {
-        System.out.println("TV_Dialog_Debug: App.setActivity() " + (activity != null ? activity.getClass().getSimpleName() : "null") + " (was: " + (this.activity != null ? this.activity.getClass().getSimpleName() : "null") + ")");
         this.activity = activity;
     }
 
