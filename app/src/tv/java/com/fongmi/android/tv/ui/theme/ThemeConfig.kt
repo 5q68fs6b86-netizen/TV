@@ -28,7 +28,7 @@ enum class ThemeMode(val displayName: String) {
  * Theme Configuration
  */
 data class ThemeConfig(
-    val theme: AppTheme = AppTheme.AURORA,
+    val theme: AppTheme = AppTheme.SAKURA,
     val mode: ThemeMode = ThemeMode.DARK
 ) {
     companion object {
@@ -39,10 +39,10 @@ data class ThemeConfig(
          * Load theme config from preferences
          */
         fun load(): ThemeConfig {
-            val themeOrdinal = Prefers.getInt(KEY_THEME, AppTheme.AURORA.ordinal)
+            val themeOrdinal = Prefers.getInt(KEY_THEME, AppTheme.SAKURA.ordinal)
             val modeOrdinal = Prefers.getInt(KEY_MODE, ThemeMode.DARK.ordinal)
             return ThemeConfig(
-                theme = AppTheme.entries.getOrElse(themeOrdinal) { AppTheme.AURORA },
+                theme = AppTheme.entries.getOrElse(themeOrdinal) { AppTheme.SAKURA },
                 mode = ThemeMode.entries.getOrElse(modeOrdinal) { ThemeMode.DARK }
             )
         }
