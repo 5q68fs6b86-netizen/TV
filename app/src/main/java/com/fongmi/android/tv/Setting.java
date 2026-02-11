@@ -471,11 +471,27 @@ public class Setting {
     }
 
     public static boolean isAggregatedSearch() {
-        return Prefers.getBoolean("aggregated_search", false);
+        return Prefers.getBoolean("aggregated_search", true);
     }
 
     public static void putAggregatedSearch(boolean search) {
         Prefers.put("aggregated_search", search);
+    }
+
+    public static int getSearchResultLimit() {
+        return Prefers.getInt("search_result_limit", 0);
+    }
+
+    public static void putSearchResultLimit(int limit) {
+        Prefers.put("search_result_limit", limit);
+    }
+
+    public static String getSearchHistory() {
+        return Prefers.getString("search_history", "");
+    }
+
+    public static void putSearchHistory(String history) {
+        Prefers.put("search_history", history);
     }
 
     public static void putHomeUI(int key) {

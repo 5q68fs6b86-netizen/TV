@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Suggest
 import com.fongmi.android.tv.bean.SuggestTwo
 import com.fongmi.android.tv.data.repository.AggregatedSearchResult
 import com.fongmi.android.tv.data.repository.SearchResult
+import com.fongmi.android.tv.data.repository.SiteSearchResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.state.SearchUiState
 import com.github.catvod.net.OkHttp
@@ -37,7 +38,7 @@ class SearchViewModel @Inject constructor(
     private val vodRepository: VodRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SearchUiState())
+    private val _uiState = MutableStateFlow(SearchUiState(isAggregatedSearch = Setting.isAggregatedSearch()))
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
@@ -111,19 +112,31 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Perform multi-site aggregated search
+     * Perform multi-site aggregated search with streaming results
      */
     fun searchMultiSite(keyword: String = _uiState.value.keyword) {
         if (keyword.isBlank()) return
 
         _uiState.update { it.copy(keyword = keyword) }
 
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
             val selectedSites = _uiState.value.selectedSites.ifEmpty { null }
             vodRepository.searchMultiSite(keyword, selectedSites).collect { result ->
                 when (result) {
                     is AggregatedSearchResult.Loading -> {
-                        _uiState.update { it.copy(isSearching = true, error = null) }
+                        _uiState.update { it.copy(isSearching = true, error = null, results = emptyList(), siteResults = emptyList(), focusedSite = null) }
+                    }
+                    is AggregatedSearchResult.Partial -> {
+                        val allResults = result.siteResults.flatMap { it.results }
+                        _uiState.update {
+                            it.copy(
+                                isSearching = result.stillSearching,
+                                results = allResults,
+                                siteResults = result.siteResults,
+                                error = null
+                            )
+                        }
                     }
                     is AggregatedSearchResult.Success -> {
                         val allResults = result.siteResults.flatMap { it.results }
@@ -143,6 +156,13 @@ class SearchViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Set focused site to filter displayed results
+     */
+    fun focusSite(site: Site?) {
+        _uiState.update { it.copy(focusedSite = site) }
     }
 
     /**
@@ -259,7 +279,7 @@ class SearchViewModel @Inject constructor(
      */
     fun clearHistory() {
         _uiState.update { it.copy(searchHistory = emptyList()) }
-        // In-memory only for now
+        Setting.putSearchHistory("")
     }
 
     /**
@@ -267,12 +287,18 @@ class SearchViewModel @Inject constructor(
      */
     fun removeFromHistory(keyword: String) {
         _uiState.update {
-            it.copy(searchHistory = it.searchHistory.filter { h -> h != keyword })
+            val newHistory = it.searchHistory.filter { h -> h != keyword }
+            Setting.putSearchHistory(newHistory.joinToString(","))
+            it.copy(searchHistory = newHistory)
         }
     }
 
     private fun loadSearchHistory() {
-        // In-memory only - history starts empty
+        val saved = Setting.getSearchHistory()
+        if (saved.isNotBlank()) {
+            val history = saved.split(",").filter { it.isNotBlank() }
+            _uiState.update { it.copy(searchHistory = history) }
+        }
     }
 
     private fun loadSearchableSites() {
@@ -312,6 +338,7 @@ class SearchViewModel @Inject constructor(
 
         _uiState.update { state ->
             val newHistory = (listOf(keyword) + state.searchHistory.filter { it != keyword }).take(20)
+            Setting.putSearchHistory(newHistory.joinToString(","))
             state.copy(searchHistory = newHistory)
         }
     }

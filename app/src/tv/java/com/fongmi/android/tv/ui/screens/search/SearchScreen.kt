@@ -43,9 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fongmi.android.tv.Setting
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.SiteSearchResult
@@ -141,26 +143,29 @@ fun SearchScreen(
                 )
             }
 
-            // Site filter (when aggregated search is enabled)
-            if (uiState.isAggregatedSearch && uiState.searchableSites.isNotEmpty()) {
+            // Site filter (when aggregated search is enabled and has results)
+            if (uiState.isAggregatedSearch && uiState.siteResults.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 SiteFilterRow(
-                    sites = uiState.searchableSites,
+                    sites = uiState.siteResults.map { it.site },
                     selectedSites = uiState.selectedSites,
-                    onSiteToggle = { viewModel.toggleSiteSelection(it) }
+                    onSiteToggle = { viewModel.toggleSiteSelection(it) },
+                    onSiteFocused = { viewModel.focusSite(it) }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             when {
-                uiState.isSearching && uiState.results.isEmpty() -> {
+                uiState.isSearching && uiState.results.isEmpty() && uiState.siteResults.isEmpty() -> {
                     SearchLoadingState()
                 }
-                uiState.results.isNotEmpty() -> {
+                uiState.results.isNotEmpty() || uiState.siteResults.isNotEmpty() -> {
                     if (uiState.isAggregatedSearch && uiState.siteResults.isNotEmpty()) {
                         AggregatedSearchResults(
                             siteResults = uiState.siteResults,
+                            focusedSite = uiState.focusedSite,
+                            isSearching = uiState.isSearching,
                             onVodClick = { vod ->
                                 val siteKey = vod.site?.key ?: ""
                                 onVodClick(siteKey, vod.vodId ?: "")
@@ -376,17 +381,22 @@ private fun AggregatedSearchToggle(
 private fun SiteFilterRow(
     sites: List<Site>,
     selectedSites: List<Site>,
-    onSiteToggle: (Site) -> Unit
+    onSiteToggle: (Site) -> Unit,
+    onSiteFocused: (Site?) -> Unit
 ) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(sites) { site ->
             val isSelected = selectedSites.contains(site) || selectedSites.isEmpty()
             FocusableItem(
                 onClick = { onSiteToggle(site) },
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.onFocusChanged { focusState ->
+                    if (focusState.isFocused) onSiteFocused(site)
+                }
             ) { isFocused ->
                 Box(
                     modifier = Modifier
+                        .height(32.dp)
                         .background(
                             color = when {
                                 isFocused -> MaterialTheme.colorScheme.primary
@@ -400,11 +410,13 @@ private fun SiteFilterRow(
                             color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = site.name ?: "未知",
                         style = TvTypography.LabelSmall,
+                        maxLines = 1,
                         color = when {
                             isFocused -> MaterialTheme.colorScheme.onPrimary
                             isSelected -> MaterialTheme.colorScheme.primary
@@ -440,24 +452,55 @@ private fun NoResultsState() {
 @Composable
 private fun AggregatedSearchResults(
     siteResults: List<SiteSearchResult>,
+    focusedSite: Site?,
+    isSearching: Boolean,
     onVodClick: (Vod) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 150.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = 32.dp)
-    ) {
-        siteResults.filter { it.results.isNotEmpty() }.forEach { siteResult ->
-            // Results from this site - show site name on each card
-            items(siteResult.results) { vod ->
-                VodCard(
-                    title = vod.vodName ?: "",
-                    imageUrl = vod.vodPic,
-                    subtitle = vod.vodRemarks,
-                    siteName = siteResult.site.name,  // Show site source on each poster
-                    onClick = { onVodClick(vod) }
+    // Filter results based on focused site
+    val displayResults = if (focusedSite != null) {
+        siteResults.filter { it.site.key == focusedSite.key }
+    } else {
+        siteResults
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (isSearching) {
+            Row(
+                modifier = Modifier.padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
                 )
+                Text(
+                    text = "搜索中... (${siteResults.size}个站源已返回)",
+                    style = TvTypography.LabelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 150.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 32.dp)
+        ) {
+            val limit = Setting.getSearchResultLimit()
+            displayResults.filter { it.results.isNotEmpty() }.forEach { siteResult ->
+                val limitedResults = if (limit > 0) siteResult.results.take(limit) else siteResult.results
+                items(limitedResults) { vod ->
+                    VodCard(
+                        title = vod.vodName ?: "",
+                        imageUrl = vod.vodPic,
+                        subtitle = vod.vodRemarks,
+                        siteName = siteResult.site.name,
+                        onClick = { onVodClick(vod) }
+                    )
+                }
             }
         }
     }

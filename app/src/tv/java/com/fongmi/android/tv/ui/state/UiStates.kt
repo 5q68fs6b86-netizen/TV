@@ -68,10 +68,11 @@ data class SearchUiState(
     val totalPages: Int = 1,
     val error: String? = null,
     // Multi-site search
-    val isAggregatedSearch: Boolean = false,
+    val isAggregatedSearch: Boolean = true,
     val siteResults: List<SiteSearchResult> = emptyList(),
     val searchableSites: List<Site> = emptyList(),
-    val selectedSites: List<Site> = emptyList()
+    val selectedSites: List<Site> = emptyList(),
+    val focusedSite: Site? = null
 )
 
 /**

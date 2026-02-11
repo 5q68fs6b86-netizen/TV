@@ -231,6 +231,20 @@ fun CustomSettingsScreen(
                         modifier = Modifier.weight(1f)
                     )
                     CustomValueButton(
+                        title = "站源结果数",
+                        value = uiState.searchResultLimitText,
+                        onClick = { viewModel.toggleSearchResultLimit() },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CustomValueButton(
                         title = "无痕模式",
                         value = uiState.incognitoText,
                         onClick = { viewModel.toggleIncognito() },

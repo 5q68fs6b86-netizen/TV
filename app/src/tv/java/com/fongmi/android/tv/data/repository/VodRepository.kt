@@ -15,6 +15,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -159,7 +160,7 @@ class VodRepository @Inject constructor() {
     }.flowOn(Dispatchers.IO)
 
     /**
-     * Multi-site aggregated search
+     * Multi-site aggregated search - streams results as each site completes
      */
     fun searchMultiSite(keyword: String, sites: List<Site>? = null): Flow<AggregatedSearchResult> = flow {
         emit(AggregatedSearchResult.Loading)
@@ -173,12 +174,14 @@ class VodRepository @Inject constructor() {
                 return@flow
             }
 
-            val allResults = mutableListOf<SiteSearchResult>()
+            val collectedResults = java.util.concurrent.CopyOnWriteArrayList<SiteSearchResult>()
+            val resultChannel = kotlinx.coroutines.channels.Channel<SiteSearchResult>(kotlinx.coroutines.channels.Channel.UNLIMITED)
 
             coroutineScope {
-                val deferredResults = searchSites.map { site ->
-                    async {
-                        try {
+                // Launch all site searches concurrently
+                val jobs = searchSites.map { site ->
+                    launch {
+                        val siteResult = try {
                             val spider = site.recent().spider()
                             val result = spider?.searchContent(keyword, false, "1")
                             if (result != null) {
@@ -192,12 +195,29 @@ class VodRepository @Inject constructor() {
                         } catch (e: Exception) {
                             SiteSearchResult(site, emptyList(), e.message)
                         }
+                        resultChannel.send(siteResult)
                     }
                 }
-                allResults.addAll(deferredResults.awaitAll())
+
+                // Collect results as they arrive
+                launch {
+                    var received = 0
+                    for (siteResult in resultChannel) {
+                        collectedResults.add(siteResult)
+                        received++
+                        // Emit partial results (still searching)
+                        emit(AggregatedSearchResult.Partial(collectedResults.toList(), received < searchSites.size))
+                        if (received >= searchSites.size) {
+                            resultChannel.close()
+                        }
+                    }
+                }
+
+                // Wait for all to finish
+                jobs.forEach { it.join() }
             }
 
-            emit(AggregatedSearchResult.Success(allResults))
+            emit(AggregatedSearchResult.Success(collectedResults.toList()))
         } catch (e: Exception) {
             emit(AggregatedSearchResult.Error(e.message ?: "Unknown error"))
         }
@@ -428,6 +448,7 @@ data class SiteSearchResult(
 
 sealed class AggregatedSearchResult {
     data object Loading : AggregatedSearchResult()
+    data class Partial(val siteResults: List<SiteSearchResult>, val stillSearching: Boolean) : AggregatedSearchResult()
     data class Success(val siteResults: List<SiteSearchResult>) : AggregatedSearchResult()
     data class Error(val message: String) : AggregatedSearchResult()
 }

@@ -25,6 +25,7 @@ data class CustomSettingsUiState(
     val homeSiteLockText: String = "",
     val homeHistoryText: String = "",
     val aggregatedSearchText: String = "",
+    val searchResultLimitText: String = "",
     val incognitoText: String = "",
     val removeAdText: String = "",
     val parseWebViewText: String = "",
@@ -74,6 +75,10 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    private fun getSearchResultLimitText(limit: Int): String {
+        return if (limit <= 0) "不限" else "$limit"
+    }
+
     private fun loadSettings() {
         try {
             _uiState.update {
@@ -89,6 +94,7 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
                     homeSiteLockText = getSwitch(Setting.isHomeSiteLock()),
                     homeHistoryText = getSwitch(Setting.isHomeHistory()),
                     aggregatedSearchText = getSwitch(Setting.isAggregatedSearch()),
+                    searchResultLimitText = getSearchResultLimitText(Setting.getSearchResultLimit()),
                     incognitoText = getSwitch(Setting.isIncognito()),
                     removeAdText = getSwitch(Setting.isRemoveAd()),
                     parseWebViewText = parseWebView.getOrElse(Setting.getParseWebView()) { parseWebView.firstOrNull() ?: "默认" },
@@ -182,6 +188,16 @@ class CustomSettingsViewModel @Inject constructor() : ViewModel() {
     fun toggleAggregatedSearch() {
         Setting.putAggregatedSearch(!Setting.isAggregatedSearch())
         _uiState.update { it.copy(aggregatedSearchText = getSwitch(Setting.isAggregatedSearch())) }
+    }
+
+    fun toggleSearchResultLimit() {
+        val limits = intArrayOf(0, 5, 10, 20, 30)
+        val current = Setting.getSearchResultLimit()
+        val currentIndex = limits.indexOf(current)
+        val nextIndex = if (currentIndex < 0) 1 else (currentIndex + 1) % limits.size
+        val nextLimit = limits[nextIndex]
+        Setting.putSearchResultLimit(nextLimit)
+        _uiState.update { it.copy(searchResultLimitText = getSearchResultLimitText(nextLimit)) }
     }
 
     fun toggleIncognito() {
