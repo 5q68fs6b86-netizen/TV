@@ -7,6 +7,11 @@ import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.bean.Group
+import com.fongmi.android.tv.data.repository.DanmuEpisodesState
+import com.fongmi.android.tv.data.repository.DanmuRepository
+import com.fongmi.android.tv.data.repository.DanmuSearchAnime
+import com.fongmi.android.tv.data.repository.DanmuSearchEpisode
+import com.fongmi.android.tv.data.repository.DanmuSearchState
 import com.fongmi.android.tv.data.repository.PlayUrlResult
 import com.fongmi.android.tv.data.repository.VodRepository
 import com.fongmi.android.tv.ui.dialog.CastDevice
@@ -60,7 +65,15 @@ data class PlayerUiState(
     val castDevices: List<CastDevice> = emptyList(),
     val isCastScanning: Boolean = false,
     // PiP
-    val isInPipMode: Boolean = false
+    val isInPipMode: Boolean = false,
+    // Danmu search dialog
+    val showDanmuSearchDialog: Boolean = false,
+    val danmuSearchResults: List<DanmuSearchAnime> = emptyList(),
+    val danmuEpisodeResults: List<DanmuSearchEpisode> = emptyList(),
+    val isDanmuSearching: Boolean = false,
+    val isDanmuLoadingEpisodes: Boolean = false,
+    val selectedDanmuAnime: DanmuSearchAnime? = null,
+    val isDanmuMatching: Boolean = false
 ) {
     val hasEpisodes: Boolean
         get() = flags.isNotEmpty() && flags.any { (it.episodes?.size ?: 0) > 0 }
@@ -104,7 +117,8 @@ data class PlayerUiState(
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val playerStateHolder: PlayerStateHolder,
-    private val vodRepository: VodRepository
+    private val vodRepository: VodRepository,
+    private val danmuRepository: DanmuRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
@@ -112,6 +126,7 @@ class PlayerViewModel @Inject constructor(
 
     init {
         loadFromStateHolder()
+        observeDanmuUrlUpdates()
     }
 
     /**
@@ -136,6 +151,19 @@ class PlayerViewModel @Inject constructor(
                 currentGroupIndex = data.currentGroupIndex,
                 currentChannelIndex = data.currentChannelIndex
             )
+        }
+    }
+
+    /**
+     * Observe danmu URL updates from PlayerStateHolder (set by DetailViewModel async match)
+     */
+    private fun observeDanmuUrlUpdates() {
+        viewModelScope.launch {
+            playerStateHolder.danmuUrlFlow.collect { danmuUrl ->
+                if (danmuUrl.isNotEmpty() && danmuUrl != _uiState.value.danmuUrl) {
+                    _uiState.update { it.copy(danmuUrl = danmuUrl) }
+                }
+            }
         }
     }
 
@@ -233,6 +261,15 @@ class PlayerViewModel @Inject constructor(
                                 episodeName = episode.name ?: "",
                                 isLoadingEpisode = false,
                                 error = null
+                            )
+                        }
+                        // Auto-match danmu for new episode
+                        if (com.fongmi.android.tv.Setting.isDanmuLoad()) {
+                            matchDanmuForEpisode(
+                                _uiState.value.vodName,
+                                episode.name ?: "",
+                                result.url,
+                                result.headers
                             )
                         }
                     }
@@ -439,6 +476,151 @@ class PlayerViewModel @Inject constructor(
 
     fun exitPipMode() {
         _uiState.update { it.copy(isInPipMode = false) }
+    }
+
+    // ========== Danmu Methods ==========
+
+    /**
+     * Auto-match danmu for current episode
+     */
+    private fun matchDanmuForEpisode(
+        vodName: String,
+        episodeName: String,
+        currentUrl: String,
+        currentHeaders: Map<String, String>?
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDanmuMatching = true) }
+            val result = danmuRepository.matchDanmu(vodName, episodeName)
+            if (result.success && result.danmuUrl.isNotEmpty()) {
+                playerStateHolder.updateUrl(currentUrl, currentHeaders, result.danmuUrl)
+                _uiState.update {
+                    it.copy(
+                        danmuUrl = result.danmuUrl,
+                        isDanmuMatching = false
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isDanmuMatching = false) }
+            }
+        }
+    }
+
+    /**
+     * Show danmu search dialog
+     */
+    fun showDanmuSearchDialog() {
+        _uiState.update {
+            it.copy(
+                showDanmuSearchDialog = true,
+                danmuSearchResults = emptyList(),
+                danmuEpisodeResults = emptyList(),
+                selectedDanmuAnime = null
+            )
+        }
+    }
+
+    /**
+     * Dismiss danmu search dialog
+     */
+    fun dismissDanmuSearchDialog() {
+        _uiState.update { it.copy(showDanmuSearchDialog = false) }
+    }
+
+    /**
+     * Search danmu by keyword
+     */
+    fun searchDanmu(keyword: String) {
+        viewModelScope.launch {
+            danmuRepository.searchDanmu(keyword).collect { state ->
+                when (state) {
+                    is DanmuSearchState.Loading -> {
+                        _uiState.update { it.copy(isDanmuSearching = true) }
+                    }
+                    is DanmuSearchState.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isDanmuSearching = false,
+                                danmuSearchResults = state.animeList
+                            )
+                        }
+                    }
+                    is DanmuSearchState.Error -> {
+                        _uiState.update { it.copy(isDanmuSearching = false) }
+                    }
+                    is DanmuSearchState.Idle -> {}
+                }
+            }
+        }
+    }
+
+    /**
+     * Select a danmu anime to load its episodes
+     */
+    fun selectDanmuAnime(anime: DanmuSearchAnime) {
+        _uiState.update {
+            it.copy(
+                selectedDanmuAnime = anime,
+                danmuEpisodeResults = emptyList()
+            )
+        }
+        viewModelScope.launch {
+            danmuRepository.getEpisodes(anime.animeId).collect { state ->
+                when (state) {
+                    is DanmuEpisodesState.Loading -> {
+                        _uiState.update { it.copy(isDanmuLoadingEpisodes = true) }
+                    }
+                    is DanmuEpisodesState.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isDanmuLoadingEpisodes = false,
+                                danmuEpisodeResults = state.episodes
+                            )
+                        }
+                    }
+                    is DanmuEpisodesState.Error -> {
+                        _uiState.update { it.copy(isDanmuLoadingEpisodes = false) }
+                    }
+                    is DanmuEpisodesState.Idle -> {}
+                }
+            }
+        }
+    }
+
+    /**
+     * Select a specific danmu episode
+     */
+    fun selectDanmuEpisode(episode: DanmuSearchEpisode) {
+        val danmuUrl = danmuRepository.buildDanmuUrl(episode.episodeId)
+        val state = _uiState.value
+        playerStateHolder.updateUrl(state.url, state.headers, danmuUrl)
+        _uiState.update {
+            it.copy(
+                danmuUrl = danmuUrl,
+                showDanmuSearchDialog = false
+            )
+        }
+    }
+
+    /**
+     * Clear current danmu
+     */
+    fun clearDanmu() {
+        val state = _uiState.value
+        playerStateHolder.updateUrl(state.url, state.headers, "")
+        _uiState.update { it.copy(danmuUrl = "") }
+    }
+
+    /**
+     * Go back to anime list in danmu search
+     */
+    fun backToDanmuAnimeList() {
+        _uiState.update {
+            it.copy(
+                selectedDanmuAnime = null,
+                danmuEpisodeResults = emptyList()
+            )
+        }
     }
 
     override fun onCleared() {

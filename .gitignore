@@ -7,3 +7,4 @@ lib-*.aar
 /Release
 /local.properties
 /AnyRouter-Transparent-Proxy
+node_modules

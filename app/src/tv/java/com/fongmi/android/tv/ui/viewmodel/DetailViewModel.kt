@@ -10,6 +10,7 @@ import com.fongmi.android.tv.bean.History
 import com.fongmi.android.tv.bean.Keep
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.db.AppDatabase
+import com.fongmi.android.tv.data.repository.DanmuRepository
 import com.fongmi.android.tv.data.repository.DetailResult
 import com.fongmi.android.tv.data.repository.ParseUrlResult
 import com.fongmi.android.tv.data.repository.PlayUrlResult
@@ -31,6 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     private val vodRepository: VodRepository,
+    private val danmuRepository: DanmuRepository,
     private val playerStateHolder: PlayerStateHolder,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -265,6 +267,19 @@ class DetailViewModel @Inject constructor(
                 vodName = vod.vodName ?: "",
                 episodeName = episode.name ?: ""
             )
+        }
+
+        // Async match danmu - fire and forget, don't block playback
+        if (com.fongmi.android.tv.Setting.isDanmuLoad()) {
+            viewModelScope.launch {
+                val result = danmuRepository.matchDanmu(
+                    title = vod.vodName ?: "",
+                    episode = episode.name ?: ""
+                )
+                if (result.success && result.danmuUrl.isNotEmpty()) {
+                    playerStateHolder.updateUrl(url, headers, result.danmuUrl)
+                }
+            }
         }
     }
 

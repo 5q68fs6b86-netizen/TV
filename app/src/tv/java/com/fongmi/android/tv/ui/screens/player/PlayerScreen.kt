@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -83,6 +84,7 @@ import com.fongmi.android.tv.ui.components.DanmakuOverlay
 import com.fongmi.android.tv.ui.components.FocusableItem
 import com.fongmi.android.tv.ui.components.rememberDanmakuState
 import com.fongmi.android.tv.ui.dialog.CastDialog
+import com.fongmi.android.tv.ui.dialog.DanmuSearchDialog
 import com.fongmi.android.tv.ui.dialog.DecodeDialog
 import com.fongmi.android.tv.ui.dialog.DisplayDialog
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog
@@ -444,16 +446,14 @@ fun PlayerScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Danmaku overlay
-        if (uiState.hasDanmu) {
-            DanmakuOverlay(
-                state = danmakuState,
-                modifier = Modifier.fillMaxSize(),
-                danmuUrl = uiState.danmuUrl,
-                isPlaying = isPlaying,
-                currentPosition = currentPosition
-            )
-        }
+        // Danmaku overlay (always mount, URL drives loading)
+        DanmakuOverlay(
+            state = danmakuState,
+            modifier = Modifier.fillMaxSize(),
+            danmuUrl = uiState.danmuUrl,
+            isPlaying = isPlaying,
+            currentPosition = currentPosition
+        )
 
         // Loading indicator (initial or episode change)
         if (isLoading || uiState.isLoadingEpisode) {
@@ -545,6 +545,9 @@ fun PlayerScreen(
                 },
                 onToggleDanmu = {
                     danmakuState.toggle()
+                },
+                onSearchDanmu = {
+                    viewModel.showDanmuSearchDialog()
                 },
                 isSubtitleEnabled = isSubtitleEnabled,
                 onToggleSubtitle = {
@@ -731,6 +734,23 @@ fun PlayerScreen(
             onDisconnect = { viewModel.disconnectCast() }
         )
     }
+
+    // Danmu Search Dialog
+    if (uiState.showDanmuSearchDialog) {
+        DanmuSearchDialog(
+            initialKeyword = uiState.vodName,
+            searchResults = uiState.danmuSearchResults,
+            episodeResults = uiState.danmuEpisodeResults,
+            isSearching = uiState.isDanmuSearching,
+            isLoadingEpisodes = uiState.isDanmuLoadingEpisodes,
+            selectedAnime = uiState.selectedDanmuAnime,
+            onSearch = { keyword -> viewModel.searchDanmu(keyword) },
+            onSelectAnime = { anime -> viewModel.selectDanmuAnime(anime) },
+            onSelectEpisode = { episode -> viewModel.selectDanmuEpisode(episode) },
+            onBack = { viewModel.backToDanmuAnimeList() },
+            onDismiss = { viewModel.dismissDanmuSearchDialog() }
+        )
+    }
 }
 
 @Composable
@@ -757,6 +777,7 @@ private fun PlayerControlsOverlay(
     onNext: () -> Unit,
     onShowEpisodes: () -> Unit,
     onToggleDanmu: () -> Unit = {},
+    onSearchDanmu: () -> Unit = {},
     isSubtitleEnabled: Boolean = true,
     onToggleSubtitle: () -> Unit = {},
     onBackClick: () -> Unit
@@ -842,6 +863,13 @@ private fun PlayerControlsOverlay(
                         label = if (isDanmuEnabled) "弹幕开" else "弹幕关",
                         isActive = isDanmuEnabled,
                         onClick = onToggleDanmu
+                    )
+                }
+                if (!isLive) {
+                    TopActionButton(
+                        icon = Icons.Default.Search,
+                        label = "搜索弹幕",
+                        onClick = onSearchDanmu
                     )
                 }
                 if (hasEpisodes) {

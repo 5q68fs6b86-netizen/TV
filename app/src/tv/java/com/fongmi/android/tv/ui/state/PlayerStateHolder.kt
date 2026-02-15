@@ -4,6 +4,9 @@ import com.fongmi.android.tv.bean.Channel
 import com.fongmi.android.tv.bean.Episode
 import com.fongmi.android.tv.bean.Flag
 import com.fongmi.android.tv.bean.Group
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -75,6 +78,12 @@ class PlayerStateHolder @Inject constructor() {
         get() = _playbackData
 
     /**
+     * Observable danmu URL flow for cross-ViewModel communication
+     */
+    private val _danmuUrlFlow = MutableStateFlow("")
+    val danmuUrlFlow: StateFlow<String> = _danmuUrlFlow.asStateFlow()
+
+    /**
      * Set playback data when starting playback from DetailScreen
      */
     fun setPlaybackData(
@@ -122,6 +131,9 @@ class PlayerStateHolder @Inject constructor() {
             headers = headers,
             danmuUrl = danmuUrl
         )
+        if (danmuUrl.isNotEmpty()) {
+            _danmuUrlFlow.value = danmuUrl
+        }
     }
 
     /**
@@ -129,6 +141,7 @@ class PlayerStateHolder @Inject constructor() {
      */
     fun clear() {
         _playbackData = null
+        _danmuUrlFlow.value = ""
     }
 
     /**
