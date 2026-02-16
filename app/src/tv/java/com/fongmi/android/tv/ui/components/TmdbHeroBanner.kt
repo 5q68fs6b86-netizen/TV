@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -79,7 +81,7 @@ fun TmdbHeroBanner(
         focusElevation = 0.dp
     ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // Backdrop image with crossfade
+            // Blurred backdrop image with crossfade
             AnimatedContent(
                 targetState = currentIndex,
                 transitionSpec = {
@@ -92,7 +94,9 @@ fun TmdbHeroBanner(
                     model = item.backdropUrlLarge ?: item.backdropUrl,
                     contentDescription = item.title,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(16.dp)
                 )
             }
 
@@ -135,14 +139,25 @@ fun TmdbHeroBanner(
                     .align(Alignment.BottomStart)
                     .padding(start = 48.dp, bottom = 80.dp, end = 400.dp)
             ) {
-                // Title
-                Text(
-                    text = currentItem.title,
-                    style = TvTypography.DisplaySmall.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Logo or Title
+                if (currentItem.logoUrl != null) {
+                    AsyncImage(
+                        model = currentItem.logoUrl,
+                        contentDescription = currentItem.title,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .heightIn(max = 80.dp)
+                            .fillMaxWidth(0.5f)
+                    )
+                } else {
+                    Text(
+                        text = currentItem.title,
+                        style = TvTypography.DisplaySmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 

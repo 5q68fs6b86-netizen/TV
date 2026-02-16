@@ -25,7 +25,8 @@ data class TmdbItem(
     val releaseDate: String?,
     val voteAverage: Double,
     val mediaType: String, // "movie" or "tv"
-    val genreIds: List<Int> = emptyList()
+    val genreIds: List<Int> = emptyList(),
+    val logoPath: String? = null
 ) {
     val posterUrl: String?
         get() = posterPath?.let { "${Constant.TMDB_IMG_BASE_URL}w500$it" }
@@ -36,6 +37,10 @@ data class TmdbItem(
     /** Large backdrop for hero banner */
     val backdropUrlLarge: String?
         get() = backdropPath?.let { "${Constant.TMDB_IMG_BASE_URL}w1280$it" }
+
+    /** Official title logo image URL */
+    val logoUrl: String?
+        get() = logoPath?.let { "${Constant.TMDB_IMG_BASE_URL}w500$it" }
 
     val year: String?
         get() = releaseDate?.takeIf { it.length >= 4 }?.substring(0, 4)
@@ -162,6 +167,19 @@ class TmdbRepository @Inject constructor() {
                 val genreTv = genreTvDef.await()
                 val genres = (genreMovie + genreTv).toMap()
 
+                // Phase 1.5: Fetch logos for hero banner items (top 10 trending today)
+                val heroItems = trendingToday.take(10)
+                val logoDefs = heroItems.map { item ->
+                    item.id to async { fetchLogo(item.id, item.mediaType) }
+                }
+                val logoMap = mutableMapOf<Int, String>()
+                logoDefs.forEach { (id, def) ->
+                    def.await()?.let { logoMap[id] = it }
+                }
+                val trendingTodayWithLogos = trendingToday.mapIndexed { index, item ->
+                    if (index < 10) item.copy(logoPath = logoMap[item.id]) else item
+                }
+
                 // Phase 2: Provider & Company content (parallel)
                 val providerContentMap = mutableMapOf<Int, List<TmdbItem>>()
                 val companyContentMap = mutableMapOf<Int, List<TmdbItem>>()
@@ -221,7 +239,7 @@ class TmdbRepository @Inject constructor() {
                 }
 
                 emit(TmdbResult.Success(
-                    trendingToday = trendingToday,
+                    trendingToday = trendingTodayWithLogos,
                     trendingWeek = trendingWeek,
                     popularMovies = popularMovies,
                     popularTv = popularTv,
@@ -259,6 +277,40 @@ class TmdbRepository @Inject constructor() {
         val response = OkHttp.newCall(url).execute()
         if (!response.isSuccessful || response.body == null) return emptyList()
         return parseTmdbResults(response.body!!.string(), defaultType)
+    }
+
+    /**
+     * Fetch logo image path for a movie/tv item.
+     * Prefers zh-CN logo, falls back to en, then null-language logos.
+     */
+    private fun fetchLogo(itemId: Int, mediaType: String): String? {
+        val type = if (mediaType == "movie") "movie" else "tv"
+        val url = buildTmdbUrl("$type/$itemId/images", mapOf(
+            "include_image_language" to "zh,en,null"
+        )) ?: return null
+        return try {
+            val response = OkHttp.newCall(url).execute()
+            if (!response.isSuccessful || response.body == null) return null
+            val root = JSONObject(response.body!!.string())
+            val logos = root.optJSONArray("logos") ?: return null
+            // Prefer zh logo, then en, then any
+            var zhLogo: String? = null
+            var enLogo: String? = null
+            var anyLogo: String? = null
+            for (i in 0 until logos.length()) {
+                val obj = logos.optJSONObject(i) ?: continue
+                val path = obj.optString("file_path", null)?.takeUnless { it == "null" } ?: continue
+                val lang = obj.optString("iso_639_1", "")
+                when (lang) {
+                    "zh" -> if (zhLogo == null) zhLogo = path
+                    "en" -> if (enLogo == null) enLogo = path
+                    else -> if (anyLogo == null) anyLogo = path
+                }
+            }
+            zhLogo ?: enLogo ?: anyLogo
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /**
