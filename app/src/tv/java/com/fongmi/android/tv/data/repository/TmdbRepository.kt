@@ -45,8 +45,6 @@ data class TmdbItem(
         genreIds.mapNotNull { genres[it] }
 }
 
-data class TmdbGenre(val id: Int, val name: String)
-
 data class TmdbProvider(
     val id: Int,
     val name: String,
