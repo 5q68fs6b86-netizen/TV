@@ -144,7 +144,22 @@ fun HomeScreen(
                                         }
                                     )
                                 },
-                                onRetry = { viewModel.loadTmdbContent() }
+                                onRetry = { viewModel.loadTmdbContent() },
+                                // New data fields
+                                trendingToday = uiState.tmdbTrendingToday,
+                                trendingWeek = uiState.tmdbTrendingWeek,
+                                popularMovies = uiState.tmdbPopularMovies,
+                                popularTv = uiState.tmdbPopularTv,
+                                nowPlaying = uiState.tmdbNowPlaying,
+                                trendingAnime = uiState.tmdbTrendingAnime,
+                                topRatedMovies = uiState.tmdbTopRatedMovies,
+                                topRatedTv = uiState.tmdbTopRatedTv,
+                                genres = uiState.tmdbGenres,
+                                providers = uiState.tmdbProviders,
+                                companies = uiState.tmdbCompanies,
+                                providerContent = uiState.tmdbProviderContent,
+                                companyContent = uiState.tmdbCompanyContent,
+                                genreContent = uiState.tmdbGenreContent
                             )
                         }
                         HomeMode.SITE -> {

@@ -4,7 +4,9 @@ import com.fongmi.android.tv.bean.Class
 import com.fongmi.android.tv.bean.Site
 import com.fongmi.android.tv.bean.Vod
 import com.fongmi.android.tv.data.repository.SiteSearchResult
+import com.fongmi.android.tv.data.repository.TmdbCompany
 import com.fongmi.android.tv.data.repository.TmdbItem
+import com.fongmi.android.tv.data.repository.TmdbProvider
 
 /**
  * Home screen display mode
@@ -35,6 +37,20 @@ data class HomeUiState(
     // TMDB state
     val tmdbMovies: List<TmdbItem> = emptyList(),
     val tmdbTvShows: List<TmdbItem> = emptyList(),
+    val tmdbTrendingToday: List<TmdbItem> = emptyList(),
+    val tmdbTrendingWeek: List<TmdbItem> = emptyList(),
+    val tmdbPopularMovies: List<TmdbItem> = emptyList(),
+    val tmdbPopularTv: List<TmdbItem> = emptyList(),
+    val tmdbNowPlaying: List<TmdbItem> = emptyList(),
+    val tmdbTrendingAnime: List<TmdbItem> = emptyList(),
+    val tmdbTopRatedMovies: List<TmdbItem> = emptyList(),
+    val tmdbTopRatedTv: List<TmdbItem> = emptyList(),
+    val tmdbGenres: Map<Int, String> = emptyMap(),
+    val tmdbProviders: List<TmdbProvider> = emptyList(),
+    val tmdbCompanies: List<TmdbCompany> = emptyList(),
+    val tmdbProviderContent: Map<Int, List<TmdbItem>> = emptyMap(),
+    val tmdbCompanyContent: Map<Int, List<TmdbItem>> = emptyMap(),
+    val tmdbGenreContent: Map<Int, List<TmdbItem>> = emptyMap(),
     val isTmdbLoading: Boolean = false,
     val tmdbError: String? = null,
     // Dialog state

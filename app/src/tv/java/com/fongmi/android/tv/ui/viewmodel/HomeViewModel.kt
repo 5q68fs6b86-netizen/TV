@@ -86,7 +86,7 @@ class HomeViewModel @Inject constructor(
      */
     fun loadTmdbContent() {
         viewModelScope.launch {
-            tmdbRepository.loadTrendingAll().collect { result ->
+            tmdbRepository.loadAllContent().collect { result ->
                 when (result) {
                     is TmdbResult.Loading -> {
                         _uiState.update { it.copy(isTmdbLoading = true, tmdbError = null) }
@@ -96,8 +96,22 @@ class HomeViewModel @Inject constructor(
                             it.copy(
                                 isTmdbLoading = false,
                                 isLoading = false,
-                                tmdbMovies = result.movies,
-                                tmdbTvShows = result.tvShows,
+                                tmdbMovies = result.popularMovies,
+                                tmdbTvShows = result.popularTv,
+                                tmdbTrendingToday = result.trendingToday,
+                                tmdbTrendingWeek = result.trendingWeek,
+                                tmdbPopularMovies = result.popularMovies,
+                                tmdbPopularTv = result.popularTv,
+                                tmdbNowPlaying = result.nowPlaying,
+                                tmdbTrendingAnime = result.trendingAnime,
+                                tmdbTopRatedMovies = result.topRatedMovies,
+                                tmdbTopRatedTv = result.topRatedTv,
+                                tmdbGenres = result.genres,
+                                tmdbProviders = result.providers,
+                                tmdbCompanies = result.companies,
+                                tmdbProviderContent = result.providerContent,
+                                tmdbCompanyContent = result.companyContent,
+                                tmdbGenreContent = result.genreContent,
                                 tmdbError = null
                             )
                         }
@@ -247,7 +261,7 @@ class HomeViewModel @Inject constructor(
         // Load content for new mode
         when (mode) {
             HomeMode.TMDB -> {
-                if (_uiState.value.tmdbMovies.isEmpty()) {
+                if (_uiState.value.tmdbTrendingToday.isEmpty()) {
                     loadTmdbContent()
                 }
             }
