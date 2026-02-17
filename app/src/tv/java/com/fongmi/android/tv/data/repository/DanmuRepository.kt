@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import okhttp3.Headers
-import okhttp3.MediaType
+import okhttp3.Headers.Companion.headersOf
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import org.json.JSONObject
 import javax.inject.Inject
@@ -83,17 +83,17 @@ class DanmuRepository @Inject constructor() {
             }
 
             val requestBody = RequestBody.create(
-                MediaType.get("application/json; charset=utf-8"),
+                "application/json; charset=utf-8".toMediaType(),
                 jsonBody.toString()
             )
-            val headers = Headers.of("Content-Type", "application/json")
+            val headers = headersOf("Content-Type", "application/json")
             val response = OkHttp.newCall(
                 WORKER_BASE + "/api/danmu/match",
                 headers,
                 requestBody
             ).execute()
 
-            val json = JSONObject(response.body()?.string() ?: "{}")
+            val json = JSONObject(response.body?.string() ?: "{}")
 
             if (json.optBoolean("success")) {
                 DanmuMatchResult(
