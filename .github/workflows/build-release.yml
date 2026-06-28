@@ -23,6 +23,14 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Checkout FongMi Media3 fork
+        uses: actions/checkout@v4
+        with:
+          repository: FongMi/media
+          ref: release-1.10.1-fongmi
+          path: .media3
+          fetch-depth: 1
+
       - name: Prepare signing config
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.SIGNING_KEYSTORE_BASE64 }}
@@ -50,7 +58,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build release APKs
-        run: ./gradlew assembleLeanbackArm64_v8aRelease assembleLeanbackArmeabi_v7aRelease --no-daemon --parallel --build-cache
+        env:
+          MEDIA3_SOURCE_DIR: ${{ github.workspace }}/.media3
+        run: ./gradlew assembleLeanbackArm64_v8aRelease assembleLeanbackArmeabi_v7aRelease --no-daemon --build-cache --max-workers=2
 
       - name: Verify APKs exist
         id: apk-check

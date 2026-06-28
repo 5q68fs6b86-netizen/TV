@@ -198,11 +198,6 @@
   void stop();
 }
 
--dontnote androidx.media3.mpvplayer.MpvPlayer
--keepclassmembers class androidx.media3.mpvplayer.MpvPlayer {
-  boolean toggleGeneralStats();
-}
-
 -keepnames class androidx.media3.transformer.CompositionPlayer {}
 -keepclassmembers class androidx.media3.transformer.CompositionPlayer {
   void setScrubbingModeEnabled(boolean);

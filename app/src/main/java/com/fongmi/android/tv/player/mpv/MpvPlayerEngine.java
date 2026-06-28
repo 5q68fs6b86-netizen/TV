@@ -2,27 +2,19 @@ package com.fongmi.android.tv.player.mpv;
 
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.mpvplayer.MpvPlayer;
 
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.player.engine.PlayerEngine;
-import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
-
-import java.util.concurrent.TimeUnit;
 
 public class MpvPlayerEngine implements PlayerEngine {
 
-    private final MpvErrorMsgProvider provider;
-    private final MpvPlayer player;
-
     public MpvPlayerEngine(int decode, Player.Listener listener) {
-        this.player = MpvUtil.buildPlayer(decode, listener);
-        this.provider = new MpvErrorMsgProvider();
+        throw unavailable();
     }
 
     public static boolean isAvailable() {
-        return MpvUtil.isAvailable();
+        return false;
     }
 
     @Override
@@ -32,65 +24,54 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public Player getPlayer() {
-        return player;
+        throw unavailable();
     }
 
     @Override
     public void release() {
-        player.release();
     }
 
     @Override
     public Player rebuild() {
-        return player;
-    }
-
-    @Override
-    public void setSubtitleStyle() {
-        MpvUtil.setSubtitleStyle(player);
+        throw unavailable();
     }
 
     @Override
     public boolean addSubtitle(Sub sub) {
-        if (sub == null || player.getCurrentMediaItem() == null) return false;
-        if (player.getPlaybackState() == Player.STATE_IDLE || player.getPlaybackState() == Player.STATE_ENDED) return false;
-        player.addSubtitle(MediaItemFactory.buildSubConfig(sub));
-        return true;
+        return false;
     }
 
     @Override
     public boolean setDecode(int decode) {
-        player.setDecode(decode);
         return false;
     }
 
     @Override
     public void start(PlaySpec spec, long startPositionMs) {
-        player.setMediaItem(MediaItemFactory.from(spec), startPositionMs);
-        player.prepare();
-        player.play();
+        throw unavailable();
     }
 
     @Override
     public boolean isLive() {
-        return player.getDuration() < TimeUnit.MINUTES.toMillis(1);
+        return false;
     }
 
     @Override
     public boolean isVod() {
-        return player.getDuration() > TimeUnit.MINUTES.toMillis(1);
+        return false;
     }
 
     @Override
     public String getErrorMessage(PlaybackException e) {
-        return provider.get(e);
+        return new MpvErrorMsgProvider().get(e);
     }
 
     @Override
     public ErrorAction handleError(PlaybackException e) {
-        return switch (e.errorCode) {
-            case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED, PlaybackException.ERROR_CODE_DECODING_FAILED -> ErrorAction.DECODE;
-            default -> ErrorAction.FATAL;
-        };
+        return ErrorAction.FATAL;
+    }
+
+    private static UnsupportedOperationException unavailable() {
+        return new UnsupportedOperationException("MPV Media3 player is not bundled.");
     }
 }
