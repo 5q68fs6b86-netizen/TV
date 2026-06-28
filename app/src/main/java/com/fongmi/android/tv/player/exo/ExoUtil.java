@@ -84,7 +84,8 @@ public class ExoUtil {
                 return ExoUtil.buildAudioSink(context, enableFloatOutput, enableAudioOutputPlaybackParams);
             }
         };
-        return factory.setFfmpegAudioPrefer(audioPrefer).setFfmpegVideoPrefer(videoPrefer).setEnableDecoderFallback(true).setExtensionRendererMode(renderMode);
+        int extensionMode = audioPrefer || videoPrefer ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : renderMode;
+        return factory.setEnableDecoderFallback(true).setExtensionRendererMode(extensionMode);
     }
 
     private static AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioOutputPlaybackParams) {

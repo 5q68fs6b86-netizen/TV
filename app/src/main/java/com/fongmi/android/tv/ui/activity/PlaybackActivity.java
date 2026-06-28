@@ -60,6 +60,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     private boolean audioOnly;
     private boolean scrubbing;
     private boolean redirect;
+    private boolean debugViewVisible;
     private boolean bound;
     private boolean stop;
     private boolean lock;
@@ -132,15 +133,15 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     public boolean isDebugViewVisible() {
-        return getPlayerView().isDebugViewVisible();
+        return debugViewVisible;
     }
 
     public void toggleDebugView() {
-        getPlayerView().toggleDebugView();
+        debugViewVisible = !debugViewVisible;
     }
 
     public void hideDebugView() {
-        getPlayerView().hideDebugView();
+        debugViewVisible = false;
     }
 
     public void chooseOtherPlayer(CharSequence title) {
