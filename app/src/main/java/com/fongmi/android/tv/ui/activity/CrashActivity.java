@@ -9,6 +9,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ActivityCrashBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Prefers;
 
 import java.util.Objects;
@@ -38,6 +39,7 @@ public class CrashActivity extends BaseActivity {
     @Override
     protected void initEvent() {
         mBinding.details.setOnClickListener(v -> showError());
+        mBinding.copy.setOnClickListener(v -> copyError());
         mBinding.restart.setOnClickListener(v -> CustomActivityOnCrash.restartApplication(this, Objects.requireNonNull(CustomActivityOnCrash.getConfigFromIntent(getIntent()))));
     }
 
@@ -60,5 +62,9 @@ public class CrashActivity extends BaseActivity {
                 .setMessage(CustomActivityOnCrash.getAllErrorDetailsFromIntent(this, getIntent()))
                 .setPositiveButton(R.string.crash_details_close, null)
                 .show();
+    }
+
+    private void copyError() {
+        Util.copy(CustomActivityOnCrash.getAllErrorDetailsFromIntent(this, getIntent()));
     }
 }
