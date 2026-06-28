@@ -32,14 +32,7 @@ jobs:
           fetch-depth: 1
 
       - name: Limit Media3 composite modules
-        run: |
-          cat > .media3/settings.gradle <<'EOF'
-          gradle.ext.androidxMediaModulePrefix = ''
-          rootProject.name = 'androidx.media3'
-          gradle.ext.rootProjectIsAndroidXMedia3 = true
-          gradle.ext.androidxMediaEnableMidiModule = true
-          apply from: 'core_settings.gradle'
-          EOF
+        run: cp .github/media3-composite-settings.gradle .media3/settings.gradle
 
       - name: Align Media3 build plugins
         run: sed -i "s/com.android.tools.build:gradle:8.12.3/com.android.tools.build:gradle:9.2.1/" .media3/build.gradle
