@@ -54,3 +54,11 @@ project(modulePrefix + 'lib-ui').projectDir = new File(media3RootDir, 'libraries
 
 include modulePrefix + 'lib-ui-danmaku'
 project(modulePrefix + 'lib-ui-danmaku').projectDir = new File(media3RootDir, 'libraries/ui_danmaku')
+
+def media3StubDir = new File(media3RootDir.getParentFile(), '.github/media3-stubs')
+
+include modulePrefix + 'test-utils'
+project(modulePrefix + 'test-utils').projectDir = new File(media3StubDir, 'test-utils')
+
+include modulePrefix + 'test-utils-robolectric'
+project(modulePrefix + 'test-utils-robolectric').projectDir = new File(media3StubDir, 'test-utils-robolectric')
