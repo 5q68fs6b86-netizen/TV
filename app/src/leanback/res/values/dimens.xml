@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="progress_indicator_size">40dp</dimen>
+    <dimen name="progress_indicator_track_thickness">4dp</dimen>
+    <dimen name="progress_indicator_corner_radius">2dp</dimen>
+</resources>

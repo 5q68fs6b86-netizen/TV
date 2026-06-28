@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.accessibility.CaptioningManager;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -41,6 +42,7 @@ import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -54,6 +56,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     private ListenableFuture<MediaController> mControllerFuture;
     private MediaController mController;
     private PlaybackService mService;
+    private TextView seekPreview;
     private boolean audioOnly;
     private boolean scrubbing;
     private boolean redirect;
@@ -267,14 +270,17 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     private void addSeekListener() {
+        seekPreview = findViewById(R.id.seek_preview);
         getSeekView().getTimeBar().addListener(new TimeBar.OnScrubListener() {
             @Override
             public void onScrubStart(@NonNull TimeBar timeBar, long position) {
+                PlaybackActivity.this.showSeekPreview(position);
                 PlaybackActivity.this.setScrubbing(true);
             }
 
             @Override
             public void onScrubMove(@NonNull TimeBar timeBar, long position) {
+                PlaybackActivity.this.showSeekPreview(position);
                 PlaybackActivity.this.setScrubbing(true);
             }
 
@@ -292,11 +298,13 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     protected void onScrubStop(boolean canceled) {
         if (!canceled && mController != null && mController.isCommandAvailable(Player.COMMAND_PLAY_PAUSE)) mController.play();
         setScrubbing(false);
+        hideSeekPreview();
     }
 
     private void setScrubbing(boolean scrubbing) {
         if (this.scrubbing == scrubbing) return;
         this.scrubbing = scrubbing;
+        if (!scrubbing) hideSeekPreview();
         onScrubbingChanged(scrubbing);
     }
 
@@ -308,6 +316,33 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         long incrementMs = getKeyTimeIncrementMs(durationMs);
         TimeBar timeBar = getSeekView().getTimeBar();
         timeBar.setKeyTimeIncrement(incrementMs);
+        timeBar.setEnabled(canSeek(durationMs));
+    }
+
+    private boolean canSeek(long durationMs) {
+        return mController != null && durationMs > 0 && mController.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM);
+    }
+
+    private void showSeekPreview(long positionMs) {
+        if (seekPreview == null) return;
+        long durationMs = mController == null ? C.TIME_UNSET : mController.getDuration();
+        long boundedPositionMs = getBoundedSeekPosition(positionMs, durationMs);
+        seekPreview.setText(getSeekPreviewText(boundedPositionMs, durationMs));
+        seekPreview.setVisibility(View.VISIBLE);
+    }
+
+    private long getBoundedSeekPosition(long positionMs, long durationMs) {
+        long boundedPositionMs = Math.max(0, positionMs);
+        return durationMs > 0 ? Math.min(boundedPositionMs, durationMs) : boundedPositionMs;
+    }
+
+    private String getSeekPreviewText(long positionMs, long durationMs) {
+        String position = Util.formatForHours(positionMs);
+        return durationMs > 0 ? position + " / " + Util.formatForHours(durationMs) : position;
+    }
+
+    private void hideSeekPreview() {
+        if (seekPreview != null) seekPreview.setVisibility(View.GONE);
     }
 
     private long getKeyTimeIncrementMs(long durationMs) {

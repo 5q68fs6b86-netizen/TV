@@ -29,8 +29,14 @@ import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.DanmakuApi;
@@ -86,6 +92,7 @@ import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
+import com.fongmi.android.tv.utils.TmdbLogoHelper;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
@@ -125,6 +132,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private Clock mClock;
     private View mFocus1;
     private View mFocus2;
+    private String mTmdbLogoRequest;
 
     public static void push(FragmentActivity activity, String text) {
         Uri uri = UrlUtil.uri(text);
@@ -513,10 +521,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public void renderDetail(Vod item, History history) {
         mHistory = history;
         mBinding.progressLayout.showContent();
-        mBinding.name.setText(item.getName());
+        showTitleText(item.getName());
         mBinding.video.requestFocus();
         App.removeCallbacks(mR4);
         setArtwork(item.getPic());
+        fetchTmdbLogo(item);
         checkKeepImg();
         setText(item);
         updateKeep();
@@ -529,7 +538,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void renderFallbackName(String name) {
-        mBinding.name.setText(name);
+        showTitleText(name);
     }
 
     @Override
@@ -1046,6 +1055,73 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         App.post(mR2, 500);
     }
 
+    private void showTitleText(String name) {
+        mTmdbLogoRequest = null;
+        mBinding.name.setText(name);
+        mBinding.name.setVisibility(View.VISIBLE);
+        mBinding.tmdbLogo.setVisibility(View.GONE);
+        try {
+            Glide.with(mBinding.tmdbLogo).clear(mBinding.tmdbLogo);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void fetchTmdbLogo(Vod item) {
+        String apiKey = BuildConfig.TMDB_API_KEY;
+        String title = item.getName();
+        if (TextUtils.isEmpty(apiKey) || TextUtils.isEmpty(title)) return;
+        String request = title + "\n" + item.getYear() + "\n" + item.getTypeName();
+        mTmdbLogoRequest = request;
+        TmdbLogoHelper.findLogo(apiKey, title, item.getYear(), item.getTypeName(), BuildConfig.TMDB_LOGO_SIZE, new TmdbLogoHelper.LogoCallback() {
+            @Override
+            public void onFound(@NonNull String logoUrl) {
+                loadTmdbLogo(request, title, logoUrl);
+            }
+
+            @Override
+            public void onNotFound() {
+                if (isTmdbLogoRequestActive(request)) showTitleText(title);
+            }
+
+            @Override
+            public void onError(@NonNull Exception error) {
+                if (isTmdbLogoRequestActive(request)) showTitleText(title);
+            }
+        });
+    }
+
+    private void loadTmdbLogo(String request, String title, String logoUrl) {
+        if (!isTmdbLogoRequestActive(request)) return;
+        try {
+            Glide.with(this)
+                    .load(logoUrl)
+                    .fitCenter()
+                    .override(ResUtil.dp2px(360), ResUtil.dp2px(32))
+                    .listener(new RequestListener<>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                            if (isTmdbLogoRequestActive(request)) showTitleText(title);
+                            return true;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                            if (!isTmdbLogoRequestActive(request)) return true;
+                            mBinding.name.setVisibility(View.INVISIBLE);
+                            mBinding.tmdbLogo.setVisibility(View.VISIBLE);
+                            return false;
+                        }
+                    })
+                    .into(mBinding.tmdbLogo);
+        } catch (Throwable ignored) {
+            if (isTmdbLogoRequestActive(request)) showTitleText(title);
+        }
+    }
+
+    private boolean isTmdbLogoRequestActive(String request) {
+        return !isHostFinishing() && TextUtils.equals(request, mTmdbLogoRequest);
+    }
+
     private void setArtwork(String url) {
         mHistory.setVodPic(url);
         setArtwork();
@@ -1113,10 +1189,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (id) getIntent().putExtra("id", item.getId());
         if (id) mHistory.replace(getHistoryKey());
         if (name) mHistory.setVodName(item.getName());
-        if (name) mBinding.name.setText(item.getName());
+        if (name) showTitleText(item.getName());
         if (name) mBinding.widget.title.setText(item.getName());
         mVod.mergeFlags(item.getFlags());
         if (pic) setArtwork(item.getPic());
+        if (name) fetchTmdbLogo(item);
         if (pic || name) setMetadata();
         if (pic || name) syncHistory();
         if (pic || name) updateKeep();

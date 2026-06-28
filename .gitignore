@@ -2,6 +2,9 @@
 .vscode
 .gradle
 .github
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
 .settings
 *build
 *.jks

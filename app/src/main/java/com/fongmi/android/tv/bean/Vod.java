@@ -27,10 +27,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 @Root(strict = false)
 public class Vod implements Parcelable, Diffable<Vod> {
+
+    private static final String OLD_PIC_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1720514148900/26838917450215.png";
+    private static final String NEW_PIC_URL_1 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743708586188/7476E62F-3D13-451B-B386-B7152694B002.png";
+    private static final String OLD_PIC_URL_2 = "https://uchat.cn-bj.ufileos.com/rw_1ce85ffd-1540-4eb2-b724-6d29e4a0bc99_123.png";
+    private static final String NEW_PIC_URL_2 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741743563/86043B79-CAE8-4408-BE6D-78DC9C7312B2.png";
+    private static final String OLD_PIC_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1740327617800/tyyun.png";
+    private static final String OLD_PIC_URL_4 = "https://uchat.cn-bj.ufileos.com/rw_9dbccfb0-1174-4cfc-9bed-d16f1ebda76b_189.png";
+    private static final String NEW_PIC_URL_3 = "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1743741742200/E0177078-7B17-4964-B409-36BA804A8DD6.png";
+    private static final Pattern LEIJING_AVATAR_PATTERN = Pattern.compile("^https://(www\\.leijing1\\.com|www\\.leijing\\.xyz)/file/avatar/[^/]+/(null|[^/]+\\.(png|jpg|jpeg))$");
 
     @Element(name = "id", required = false)
     @SerializedName("vod_id")
@@ -144,7 +154,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
     }
 
     public String getPic() {
-        return TextUtils.isEmpty(vodPic) ? "" : vodPic.trim();
+        return normalizePic(TextUtils.isEmpty(vodPic) ? "" : vodPic.trim());
     }
 
     public void setPic(String vodPic) {
@@ -277,6 +287,15 @@ public class Vod implements Parcelable, Diffable<Vod> {
 
     public void checkPic(String pic) {
         if (getPic().isEmpty()) setPic(pic);
+    }
+
+    private String normalizePic(String pic) {
+        if (TextUtils.isEmpty(pic)) return "";
+        String result = pic.replace(OLD_PIC_URL_1, NEW_PIC_URL_1)
+                .replace(OLD_PIC_URL_2, NEW_PIC_URL_2)
+                .replace(OLD_PIC_URL_3, NEW_PIC_URL_3)
+                .replace(OLD_PIC_URL_4, NEW_PIC_URL_3);
+        return LEIJING_AVATAR_PATTERN.matcher(result).matches() ? NEW_PIC_URL_3 : result;
     }
 
     public void checkName(String name) {

@@ -10,7 +10,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:indeterminate="true"
-        app:indicatorColor="@color/white" />
+        app:indicatorColor="@color/white"
+        app:indicatorSize="@dimen/progress_indicator_size"
+        app:trackCornerRadius="@dimen/progress_indicator_corner_radius"
+        app:trackThickness="@dimen/progress_indicator_track_thickness" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/traffic"

@@ -3,8 +3,19 @@ plugins {
 }
 
 def localProps = new Properties()
-rootProject.file('local.properties').withInputStream {
-    localProps.load(it)
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream {
+        localProps.load(it)
+    }
+}
+
+def localOrEnv = { propName, envName ->
+    return localProps[propName] ?: System.getenv(envName) ?: ''
+}
+
+def buildConfigString = { value ->
+    return "\"${(value ?: '').toString().replace("\\", "\\\\").replace("\"", "\\\"")}\""
 }
 
 android {
@@ -18,6 +29,8 @@ android {
         targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode 555
         versionName "5.5.5"
+        buildConfigField "String", "TMDB_API_KEY", buildConfigString(localOrEnv('tmdbApiKey', 'TMDB_API_KEY'))
+        buildConfigField "String", "TMDB_LOGO_SIZE", buildConfigString(localOrEnv('tmdbLogoSize', 'TMDB_LOGO_SIZE') ?: 'w500')
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -51,7 +64,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(localProps['storeFile'])
+            storeFile localProps['storeFile'] ? file(localProps['storeFile']) : null
             keyAlias localProps['keyAlias']
             keyPassword localProps['storePassword']
             storePassword localProps['storePassword']

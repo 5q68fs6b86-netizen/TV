@@ -1,0 +1,73 @@
+name: Build and Upload APKs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: gradle
+
+      - name: Prepare signing config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          TMDB_LOGO_SIZE: ${{ vars.TMDB_LOGO_SIZE }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          test -n "$KEY_ALIAS"
+          test -n "$STORE_PASSWORD"
+          echo "$KEYSTORE_BASE64" | base64 --decode > release.jks
+          {
+            echo "storeFile=../release.jks"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "storePassword=$STORE_PASSWORD"
+          } > local.properties
+          if [ -n "$TMDB_API_KEY" ]; then echo "tmdbApiKey=$TMDB_API_KEY" >> local.properties; fi
+          if [ -n "$TMDB_LOGO_SIZE" ]; then echo "tmdbLogoSize=$TMDB_LOGO_SIZE" >> local.properties; fi
+
+      - name: Grant gradlew permission
+        run: chmod +x ./gradlew
+
+      - name: Build release APKs
+        run: ./gradlew assembleLeanbackArm64_v8aRelease assembleLeanbackArmeabi_v7aRelease --no-daemon --parallel --build-cache
+
+      - name: Verify APKs exist
+        id: apk-check
+        run: |
+          find app/build/outputs/apk -name "*.apk" -type f
+          if find app/build/outputs/apk -path "*/release/*.apk" -type f | grep -q .; then
+            echo "apk_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "APK not found!" >&2
+            exit 1
+          fi
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apks
+          path: app/build/outputs/apk/**/release/*.apk
+          retention-days: 14
+
+      - name: Create Release
+        if: steps.apk-check.outputs.apk_exists == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Release ${{ github.run_number }}"
+          tag_name: "v${{ github.run_number }}"
+          files: app/build/outputs/apk/**/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
