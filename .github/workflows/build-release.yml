@@ -20,19 +20,22 @@ jobs:
 
       - name: Prepare signing config
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.SIGNING_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.SIGNING_KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || secrets.SIGNING_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.SIGNING_KEY_PASSWORD || secrets.STORE_PASSWORD || secrets.SIGNING_KEYSTORE_PASSWORD }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           TMDB_LOGO_SIZE: ${{ vars.TMDB_LOGO_SIZE }}
         run: |
           test -n "$KEYSTORE_BASE64"
           test -n "$KEY_ALIAS"
           test -n "$STORE_PASSWORD"
+          test -n "$KEY_PASSWORD"
           echo "$KEYSTORE_BASE64" | base64 --decode > release.jks
           {
             echo "storeFile=../release.jks"
             echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
             echo "storePassword=$STORE_PASSWORD"
           } > local.properties
           if [ -n "$TMDB_API_KEY" ]; then echo "tmdbApiKey=$TMDB_API_KEY" >> local.properties; fi
