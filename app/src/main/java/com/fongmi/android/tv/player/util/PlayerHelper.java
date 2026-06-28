@@ -98,12 +98,24 @@ public class PlayerHelper {
     public static void onExternalResult(Intent data, Runnable onNext, LongConsumer seekTo) {
         try {
             if (data == null || data.getExtras() == null) return;
-            long position = data.getExtras().getInt("position", 0);
+            long position = getPosition(data.getExtras());
             String endBy = data.getExtras().getString("end_by", "");
             if ("playback_completion".equals(endBy)) App.post(onNext);
             if ("user".equals(endBy)) seekTo.accept(position);
         } catch (Exception ignored) {
         }
+    }
+
+    private static long getPosition(Bundle extras) {
+        Object value = extras.get("position");
+        if (value instanceof Number number) return number.longValue();
+        if (value instanceof String string) {
+            try {
+                return Long.parseLong(string);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
     }
 
     private static Intent getChooser(Intent intent) {
