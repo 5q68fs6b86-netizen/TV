@@ -31,6 +31,9 @@ jobs:
           path: .media3
           fetch-depth: 1
 
+      - name: Align Media3 build plugins
+        run: sed -i "s/com.android.tools.build:gradle:8.12.3/com.android.tools.build:gradle:9.2.1/" .media3/build.gradle
+
       - name: Prepare signing config
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.SIGNING_KEYSTORE_BASE64 }}
