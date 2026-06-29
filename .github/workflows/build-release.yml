@@ -1,6 +1,9 @@
 name: Build and Upload APKs
 
 on:
+  push:
+    branches:
+      - sync/fongmi-20260628
   workflow_dispatch:
 
 jobs:
