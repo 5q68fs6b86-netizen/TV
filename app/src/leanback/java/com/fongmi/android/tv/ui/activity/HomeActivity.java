@@ -30,6 +30,7 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Func;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Result;
@@ -54,9 +55,11 @@ import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
 import com.fongmi.android.tv.ui.presenter.FuncPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
+import com.fongmi.android.tv.ui.presenter.HomeNavPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Clock;
@@ -82,12 +85,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
-    private ArrayObjectAdapter mFuncAdapter;
+    private ArrayObjectAdapter mNavAdapter;
     private ArrayObjectAdapter mAdapter;
     private HistoryPresenter mPresenter;
     private SiteViewModel mViewModel;
     private Result mResult;
     private Clock mClock;
+    private boolean mToolbarVisible = true;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -123,8 +127,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         DLNARendererService.start(this);
         Updater.create().start(this);
         setRecyclerView();
+        setNavigationView();
         setViewModel();
         setAdapter();
+        setFunc();
         initConfig();
         setTitle();
         setLogo();
@@ -136,7 +142,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                setToolbarVisible(position <= 0);
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
@@ -166,12 +172,19 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
+        selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this));
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+    }
+
+    @SuppressLint("RestrictedApi")
+    private void setNavigationView() {
+        mBinding.nav.setAdapter(new ItemBridgeAdapter(mNavAdapter = new ArrayObjectAdapter(new HomeNavPresenter(this))));
+        mBinding.nav.setHorizontalSpacing(ResUtil.dp2px(8));
+        mBinding.nav.setFocusScrollStrategy(HorizontalGridView.FOCUS_SCROLL_ALIGNED);
     }
 
     private void setViewModel() {
@@ -185,7 +198,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setAdapter() {
         mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
-        mAdapter.add(new ListRow(mFuncAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
         mAdapter.add(R.string.home_history);
         mAdapter.add(R.string.home_recommend);
     }
@@ -233,13 +245,30 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFocus() {
+        setToolbarVisible(true);
         mBinding.title.setSelected(true);
         App.post(() -> mBinding.title.setFocusable(true), 500);
         if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
     }
 
+    private void setToolbarVisible(boolean visible) {
+        if (mToolbarVisible == visible && mBinding.toolbar.getVisibility() == View.VISIBLE) return;
+        mToolbarVisible = visible;
+        mBinding.toolbar.animate().cancel();
+        if (visible) mBinding.toolbar.setVisibility(View.VISIBLE);
+        mBinding.toolbar.animate()
+                .alpha(visible ? 1f : 0f)
+                .translationY(visible ? 0 : -ResUtil.dp2px(16))
+                .setDuration(180)
+                .withEndAction(() -> {
+                    if (!mToolbarVisible) mBinding.toolbar.setVisibility(View.GONE);
+                })
+                .start();
+    }
+
     private void getVideo() {
         mResult = Result.empty();
+        removeFeatured();
         int index = getRecommendIndex();
         boolean gone = mAdapter.indexOf("progress") == -1;
         boolean hasItem = gone && mAdapter.size() > index;
@@ -249,9 +278,40 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void addVideo(Result result) {
+        setFeatured(result.getList());
         Style style = result.getStyle(getHome().getStyle());
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
+    }
+
+    private void setFeatured(List<Vod> items) {
+        List<Vod> featured = getFeatured(items, true);
+        if (featured.isEmpty()) featured = getFeatured(items, false);
+        if (!featured.isEmpty()) mAdapter.add(getFeaturedIndex(), FeaturedVodRow.create(featured));
+    }
+
+    private List<Vod> getFeatured(List<Vod> items, boolean requirePic) {
+        List<Vod> featured = new ArrayList<>();
+        for (Vod item : items) {
+            if (featured.size() >= 5) break;
+            if (item.isAction()) continue;
+            if (requirePic && TextUtils.isEmpty(item.getPic())) continue;
+            featured.add(item);
+        }
+        return featured;
+    }
+
+    private void removeFeatured() {
+        for (int i = 0; i < mAdapter.size(); i++) {
+            if (!(mAdapter.get(i) instanceof FeaturedVodRow)) continue;
+            mAdapter.removeItems(i, 1);
+            return;
+        }
+    }
+
+    private int getFeaturedIndex() {
+        int index = mAdapter.indexOf(R.string.home_history);
+        return index == -1 ? 0 : index;
     }
 
     private void addGrid(List<Vod> items, Style style) {
@@ -273,7 +333,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         items.add(Func.create(R.string.home_keep));
         items.add(Func.create(R.string.home_push));
         items.add(Func.create(R.string.home_setting));
-        mFuncAdapter.setItems(items, new BaseDiffCallback<Func>());
+        mNavAdapter.setItems(items, new BaseDiffCallback<Func>());
     }
 
     private void getHistory() {
