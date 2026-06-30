@@ -31,7 +31,6 @@ import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
-import com.fongmi.android.tv.bean.Func;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
@@ -54,12 +53,11 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
+import com.fongmi.android.tv.ui.custom.JetStreamHomeNavView;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
-import com.fongmi.android.tv.ui.presenter.FuncPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
-import com.fongmi.android.tv.ui.presenter.HomeNavPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Clock;
@@ -81,11 +79,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, JetStreamHomeNavView.Listener, HistoryPresenter.OnClickListener {
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
-    private ArrayObjectAdapter mNavAdapter;
     private ArrayObjectAdapter mAdapter;
     private HistoryPresenter mPresenter;
     private SiteViewModel mViewModel;
@@ -182,9 +179,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @SuppressLint("RestrictedApi")
     private void setNavigationView() {
-        mBinding.nav.setAdapter(new ItemBridgeAdapter(mNavAdapter = new ArrayObjectAdapter(new HomeNavPresenter(this))));
-        mBinding.nav.setHorizontalSpacing(ResUtil.dp2px(8));
-        mBinding.nav.setFocusScrollStrategy(HorizontalGridView.FOCUS_SCROLL_ALIGNED);
+        mBinding.nav.setListener(this);
     }
 
     private void setViewModel() {
@@ -326,14 +321,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFunc() {
-        List<Func> items = new ArrayList<>();
-        items.add(Func.create(R.string.home_vod));
-        if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
-        items.add(Func.create(R.string.home_search));
-        items.add(Func.create(R.string.home_keep));
-        items.add(Func.create(R.string.home_push));
-        items.add(Func.create(R.string.home_setting));
-        mNavAdapter.setItems(items, new BaseDiffCallback<Func>());
+        List<JetStreamHomeNavView.NavItem> items = new ArrayList<>();
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_vod), getString(R.string.home_vod), R.drawable.ic_home_vod));
+        if (LiveConfig.hasUrl()) items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_live), getString(R.string.home_live), R.drawable.ic_home_live));
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_search), getString(R.string.home_search), R.drawable.ic_home_search));
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_keep), getString(R.string.home_keep), R.drawable.ic_home_keep));
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_push), getString(R.string.home_push), R.drawable.ic_home_push));
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_setting), getString(R.string.home_setting), R.drawable.ic_home_setting));
+        mBinding.nav.setItems(items);
     }
 
     private void getHistory() {
@@ -445,13 +440,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
-    public void onItemClick(Func item) {
-        if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
-        else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
-        else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
-        else if (item.getResId() == R.string.home_push) PushActivity.start(this);
-        else if (item.getResId() == R.string.home_search) SearchActivity.start(this);
-        else if (item.getResId() == R.string.home_setting) SettingActivity.start(this);
+    public void onNavClick(String key) {
+        int resId = Integer.parseInt(key);
+        if (resId == R.string.home_vod) VodActivity.start(this, mResult);
+        else if (resId == R.string.home_live) LiveActivity.start(this);
+        else if (resId == R.string.home_keep) KeepActivity.start(this);
+        else if (resId == R.string.home_push) PushActivity.start(this);
+        else if (resId == R.string.home_search) SearchActivity.start(this);
+        else if (resId == R.string.home_setting) SettingActivity.start(this);
+    }
+
+    @Override
+    public void onNavLongClick(String key) {
     }
 
     @Override

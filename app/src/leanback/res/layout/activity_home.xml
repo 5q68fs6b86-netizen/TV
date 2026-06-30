@@ -53,16 +53,12 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <androidx.leanback.widget.HorizontalGridView
+        <com.fongmi.android.tv.ui.custom.JetStreamHomeNavView
             android:id="@+id/nav"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="12dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:nextFocusDown="@id/recycler"
-            app:focusOutEnd="true"
-            app:focusOutFront="true" />
+            android:nextFocusDown="@id/recycler" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

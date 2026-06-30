@@ -15,6 +15,13 @@
         android:background="@color/black_20"
         app:shapeAppearanceOverlay="@style/Vod.Grid" />
 
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_alignBottom="@+id/image"
+        android:background="@drawable/shape_vod_scrim" />
+
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/year"
         android:layout_width="wrap_content"

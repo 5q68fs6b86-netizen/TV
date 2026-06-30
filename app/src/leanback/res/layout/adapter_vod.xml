@@ -15,6 +15,13 @@
         android:background="@color/black_20"
         app:shapeAppearanceOverlay="@style/Vod.Grid" />
 
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_alignBottom="@+id/image"
+        android:background="@drawable/shape_vod_scrim" />
+
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/delete"
         android:layout_width="wrap_content"
