@@ -100,6 +100,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PiP;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
+import com.fongmi.android.tv.utils.TextFilter;
 import com.fongmi.android.tv.utils.Timer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -725,7 +726,9 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void setText(TextView view, int resId, String text) {
-        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(view.getText())) return;
+        boolean sourceEmpty = TextUtils.isEmpty(text);
+        text = TextFilter.detail(text);
+        if (sourceEmpty && !TextUtils.isEmpty(view.getText())) return;
         view.setText(Sniffer.buildClickable(resId > 0 ? getString(resId, text) : text, this::clickableSpan), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
         if (view == mBinding.content) setContentVisible();
@@ -750,9 +753,12 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     private void setOther(TextView view, Vod item) {
         StringBuilder sb = new StringBuilder();
-        if (!item.getYear().isEmpty()) sb.append(getString(R.string.detail_year, item.getYear())).append("  ");
-        if (!item.getArea().isEmpty()) sb.append(getString(R.string.detail_area, item.getArea())).append("  ");
-        if (!item.getTypeName().isEmpty()) sb.append(getString(R.string.detail_type, item.getTypeName())).append("  ");
+        String year = TextFilter.detail(item.getYear());
+        String area = TextFilter.detail(item.getArea());
+        String type = TextFilter.detail(item.getTypeName());
+        if (!year.isEmpty()) sb.append(getString(R.string.detail_year, year)).append("  ");
+        if (!area.isEmpty()) sb.append(getString(R.string.detail_area, area)).append("  ");
+        if (!type.isEmpty()) sb.append(getString(R.string.detail_type, type)).append("  ");
         view.setVisibility(sb.length() == 0 ? View.GONE : View.VISIBLE);
         view.setText(Util.substring(sb.toString(), 2));
     }

@@ -3,6 +3,9 @@ package com.fongmi.android.tv.ui.fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,6 +52,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener, ThemeDialog.Listener {
 
@@ -63,6 +67,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         int color = Setting.getThemeColor();
         if (color == -1) return getString(R.string.setting_off);
         return getString(color == 0 ? R.string.setting_auto : R.string.setting_custom);
+    }
+
+    private String getFilterStatus(String value) {
+        return getString(TextUtils.isEmpty(value) ? R.string.none : R.string.yes);
     }
 
     private int getDohIndex() {
@@ -98,6 +106,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setOtherText() {
         mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
+        mBinding.flagFilterText.setText(getFilterStatus(Setting.getFlagFilter()));
+        mBinding.detailFilterText.setText(getFilterStatus(Setting.getDetailFilter()));
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
@@ -124,6 +134,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
+        mBinding.flagFilter.setOnClickListener(this::setFlagFilter);
+        mBinding.detailFilter.setOnClickListener(this::setDetailFilter);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
@@ -252,6 +264,32 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private void onThemeColor(View view) {
         ThemeDialog.show(this);
+    }
+
+    private void setDetailFilter(View view) {
+        setTextFilter(R.string.setting_detail_filter, Setting.getDetailFilter(), value -> {
+            Setting.putDetailFilter(value);
+            mBinding.detailFilterText.setText(getFilterStatus(value));
+        });
+    }
+
+    private void setFlagFilter(View view) {
+        setTextFilter(R.string.setting_flag_filter, Setting.getFlagFilter(), value -> {
+            Setting.putFlagFilter(value);
+            mBinding.flagFilterText.setText(getFilterStatus(value));
+        });
+    }
+
+    private void setTextFilter(int title, String value, Consumer<String> callback) {
+        EditText input = new EditText(requireActivity());
+        int padding = ResUtil.dp2px(24);
+        input.setHint(R.string.setting_text_filter_hint);
+        input.setMinLines(5);
+        input.setText(value);
+        input.setPadding(padding, 0, padding, 0);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
     private void onVersion(View view) {

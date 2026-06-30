@@ -51,6 +51,22 @@ public class Setting {
         Prefers.put("hot", hot);
     }
 
+    public static String getDetailFilter() {
+        return Prefers.getString("detail_filter");
+    }
+
+    public static void putDetailFilter(String filter) {
+        Prefers.put("detail_filter", filter);
+    }
+
+    public static String getFlagFilter() {
+        return Prefers.getString("flag_filter");
+    }
+
+    public static void putFlagFilter(String filter) {
+        Prefers.put("flag_filter", filter);
+    }
+
     public static int getWall() {
         return Math.clamp(Prefers.getInt("wall", 1), MIN_WALL, MAX_WALL);
     }

@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.InputType;
 import android.text.TextUtils;
+import android.widget.EditText;
 
 import androidx.viewbinding.ViewBinding;
 
@@ -51,6 +53,7 @@ import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -58,6 +61,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SettingActivity extends BaseActivity implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener, UaListener, SpeedListener, DanmakuListener, PreloadDialog.Listener, JetStreamSettingView.Listener {
 
@@ -178,6 +182,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         initArrays();
         String[] doh = getDohList();
         setRowValue(JetStreamSettingView.KEY_INCOGNITO, Setting.getSwitch(Setting.isIncognito()));
+        setRowValue(JetStreamSettingView.KEY_DETAIL_FILTER, getStatus(Setting.getDetailFilter()));
+        setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
         setRowValue(JetStreamSettingView.KEY_VERSION, BuildConfig.VERSION_NAME);
@@ -245,6 +251,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_DANMAKU_AUTO -> setDanmakuAuto();
             case JetStreamSettingView.KEY_DANMAKU_SPIDER -> setDanmakuSpider();
             case JetStreamSettingView.KEY_INCOGNITO -> setIncognito();
+            case JetStreamSettingView.KEY_DETAIL_FILTER -> setDetailFilter();
+            case JetStreamSettingView.KEY_FLAG_FILTER -> setFlagFilter();
             case JetStreamSettingView.KEY_DOH -> setDoh();
             case JetStreamSettingView.KEY_SIZE -> setSize();
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
@@ -541,6 +549,32 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setIncognito() {
         Setting.putIncognito(!Setting.isIncognito());
         setRowValue(JetStreamSettingView.KEY_INCOGNITO, Setting.getSwitch(Setting.isIncognito()));
+    }
+
+    private void setDetailFilter() {
+        setTextFilter(R.string.setting_detail_filter, Setting.getDetailFilter(), value -> {
+            Setting.putDetailFilter(value);
+            setRowValue(JetStreamSettingView.KEY_DETAIL_FILTER, getStatus(value));
+        });
+    }
+
+    private void setFlagFilter() {
+        setTextFilter(R.string.setting_flag_filter, Setting.getFlagFilter(), value -> {
+            Setting.putFlagFilter(value);
+            setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(value));
+        });
+    }
+
+    private void setTextFilter(int title, String value, Consumer<String> callback) {
+        EditText input = new EditText(this);
+        int padding = ResUtil.dp2px(24);
+        input.setHint(R.string.setting_text_filter_hint);
+        input.setMinLines(5);
+        input.setText(value);
+        input.setPadding(padding, 0, padding, 0);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
+        new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
     private void setSize() {

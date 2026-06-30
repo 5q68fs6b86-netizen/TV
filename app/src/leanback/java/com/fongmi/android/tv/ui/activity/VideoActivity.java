@@ -88,6 +88,7 @@ import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
+import com.fongmi.android.tv.utils.TextFilter;
 import com.fongmi.android.tv.utils.TmdbLogoHelper;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
@@ -625,6 +626,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public void renderDetail(Vod item, History history) {
         mHistory = history;
         mBinding.progressLayout.showContent();
+        updateFullscreenViews();
         showTitleText(item.getName());
         mBinding.video.requestFocus();
         App.removeCallbacks(mR4);
@@ -789,7 +791,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setText(Vod item) {
-        mDetailContent = item.getContent();
+        mDetailContent = TextFilter.detail(item.getContent());
         mDetailYear = buildDetailText(mDetailYear, R.string.detail_year, item.getYear());
         mDetailArea = buildDetailText(mDetailArea, R.string.detail_area, item.getArea());
         mDetailType = buildDetailText(mDetailType, R.string.detail_type, item.getTypeName());
@@ -801,7 +803,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private CharSequence buildDetailText(CharSequence current, int resId, String text) {
-        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(current)) return current;
+        boolean sourceEmpty = TextUtils.isEmpty(text);
+        text = TextFilter.detail(text);
+        if (sourceEmpty && !TextUtils.isEmpty(current)) return current;
         if (TextUtils.isEmpty(text)) return "";
         return Sniffer.buildClickable(resId > 0 ? getString(resId, text) : text, this::clickableSpan);
     }
@@ -899,21 +903,33 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mFocus1 = getCurrentFocus();
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
+        mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
+        mBinding.video.setClipToOutline(false);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
         mKeyDown.setFull(true);
         setFullscreen(true);
+        updateFullscreenViews();
         mFocus2 = null;
     }
 
     private void exitFullscreen() {
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
+        mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setLayoutParams(mFrameParams);
-        getFocus1().requestFocus();
+        mBinding.video.setClipToOutline(true);
         mKeyDown.setFull(false);
         setFullscreen(false);
+        updateFullscreenViews();
+        getFocus1().requestFocus();
         mFocus2 = null;
         hideInfo();
+    }
+
+    private void updateFullscreenViews() {
+        int visibility = isFullscreen() ? View.GONE : View.VISIBLE;
+        mBinding.detail.setVisibility(visibility);
+        mBinding.scroll.setVisibility(visibility);
     }
 
     private void onContent() {

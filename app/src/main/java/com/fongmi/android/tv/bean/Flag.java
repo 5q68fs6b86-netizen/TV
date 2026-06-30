@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.impl.Diffable;
+import com.fongmi.android.tv.utils.TextFilter;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
@@ -69,7 +70,7 @@ public class Flag implements Parcelable, Diffable<Flag> {
     }
 
     public String getShow() {
-        return TextUtils.isEmpty(show) ? getFlag() : show;
+        return TextFilter.flag(TextUtils.isEmpty(show) ? getFlag() : show);
     }
 
     public String getFlag() {

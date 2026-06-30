@@ -8,8 +8,8 @@
 
     <FrameLayout
         android:id="@+id/video"
-        android:layout_width="400dp"
-        android:layout_height="225dp"
+        android:layout_width="441dp"
+        android:layout_height="248dp"
         android:layout_margin="24dp"
         android:background="@drawable/shape_video_window"
         android:clipToOutline="true"

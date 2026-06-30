@@ -221,7 +221,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 Spacer(Modifier.height(8.dp))
                 PeopleBlock()
                 Spacer(Modifier.weight(1f))
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(10.dp))
                 ActionRow()
             }
         }
@@ -324,7 +324,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             ClickableInfoText(director, 1)
-            ClickableInfoText(actor, 2)
+            ClickableInfoText(actor, 1)
         }
     }
 
