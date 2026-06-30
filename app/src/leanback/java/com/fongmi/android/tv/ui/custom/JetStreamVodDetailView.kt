@@ -1,0 +1,474 @@
+package com.fongmi.android.tv.ui.custom
+
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.util.AttributeSet
+import android.view.KeyEvent
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.fongmi.android.tv.R
+import com.github.bassaer.library.MDColor
+
+class JetStreamVodDetailView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AbstractComposeView(context, attrs, defStyleAttr) {
+
+    interface Listener {
+        fun onSummary()
+        fun onKeep()
+        fun onChange()
+        fun onFocusVideo()
+        fun onFocusList()
+    }
+
+    private data class ActionSpec(
+        val action: DetailAction,
+        val label: String,
+        val icon: ImageVector,
+        val enabled: Boolean,
+        val selected: Boolean = false
+    )
+
+    private enum class DetailAction {
+        SUMMARY,
+        KEEP,
+        CHANGE
+    }
+
+    private var listener: Listener? = null
+    private var title by mutableStateOf("")
+    private var logoUrl by mutableStateOf("")
+    private var remark by mutableStateOf<CharSequence>("")
+    private var site by mutableStateOf<CharSequence>("")
+    private var year by mutableStateOf<CharSequence>("")
+    private var area by mutableStateOf<CharSequence>("")
+    private var type by mutableStateOf<CharSequence>("")
+    private var director by mutableStateOf<CharSequence>("")
+    private var actor by mutableStateOf<CharSequence>("")
+    private var summaryEnabled by mutableStateOf(false)
+    private var keepSelected by mutableStateOf(false)
+    private var selectedAction by mutableStateOf(0)
+    private var detailFocused by mutableStateOf(false)
+    private var logoLoadFailed by mutableStateOf(false)
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+
+    @Composable
+    override fun Content() {
+        MaterialTheme(
+            colorScheme = darkColorScheme(
+                primary = Color.White,
+                onSurface = Color.White,
+                surface = Color.Transparent
+            )
+        ) {
+            DetailSurface()
+        }
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: android.graphics.Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        detailFocused = gainFocus
+        if (gainFocus) normalizeSelectedAction()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
+        return when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (!moveSelection(-1)) listener?.onFocusVideo()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                moveSelection(1)
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                listener?.onFocusList()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> true
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                performSelectedAction()
+                true
+            }
+            else -> super.dispatchKeyEvent(event)
+        }
+    }
+
+    fun setListener(listener: Listener?) {
+        this.listener = listener
+    }
+
+    fun setTitle(title: CharSequence?) {
+        this.title = title?.toString().orEmpty()
+    }
+
+    fun setLogoUrl(url: CharSequence?) {
+        val next = url?.toString().orEmpty()
+        if (logoUrl != next) logoLoadFailed = false
+        logoUrl = next
+    }
+
+    fun setMetadata(
+        site: CharSequence?,
+        year: CharSequence?,
+        area: CharSequence?,
+        type: CharSequence?,
+        director: CharSequence?,
+        actor: CharSequence?,
+        remark: CharSequence?
+    ) {
+        this.site = site ?: ""
+        this.year = year ?: ""
+        this.area = area ?: ""
+        this.type = type ?: ""
+        this.director = director ?: ""
+        this.actor = actor ?: ""
+        this.remark = remark ?: ""
+    }
+
+    fun setActions(summaryEnabled: Boolean, keepSelected: Boolean) {
+        this.summaryEnabled = summaryEnabled
+        this.keepSelected = keepSelected
+        normalizeSelectedAction()
+    }
+
+    @Composable
+    private fun DetailSurface() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.16f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.03f)
+                        )
+                    )
+                )
+                .padding(horizontal = 28.dp, vertical = 20.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                TitleBlock()
+                Spacer(Modifier.height(8.dp))
+                MetadataRow()
+                Spacer(Modifier.height(8.dp))
+                PeopleBlock()
+                Spacer(Modifier.weight(1f))
+                ActionRow()
+            }
+        }
+    }
+
+    @Composable
+    private fun TitleBlock() {
+        if (logoUrl.isNotEmpty() && !logoLoadFailed) {
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp),
+                factory = { context ->
+                    AppCompatImageView(context).apply {
+                        scaleType = ImageView.ScaleType.FIT_START
+                    }
+                },
+                update = { image ->
+                    val requestedLogo = logoUrl
+                    if (image.tag == requestedLogo) return@AndroidView
+                    image.tag = requestedLogo
+                    Glide.with(image)
+                        .load(requestedLogo)
+                        .fitCenter()
+                        .listener(object : RequestListener<Drawable> {
+                            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                                if (image.tag == requestedLogo) logoLoadFailed = true
+                                return false
+                            }
+
+                            override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                                if (image.tag == requestedLogo) logoLoadFailed = false
+                                return false
+                            }
+                        })
+                        .into(image)
+                }
+            )
+        } else {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        if (remark.isNotBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = remark.toString(),
+                color = Color.White.copy(alpha = 0.72f),
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+
+    @Composable
+    private fun MetadataRow() {
+        val items = listOf(site, year, area, type).filter { it.isNotBlank() }
+        if (items.isEmpty()) return
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { MetadataChip(it.toString()) }
+        }
+    }
+
+    @Composable
+    private fun MetadataChip(text: String) {
+        Box(
+            modifier = Modifier
+                .height(30.dp)
+                .clip(RoundedCornerShape(15.dp))
+                .background(Color.White.copy(alpha = 0.14f))
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = Color.White.copy(alpha = 0.86f),
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+
+    @Composable
+    private fun PeopleBlock() {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ClickableInfoText(director, 1)
+            ClickableInfoText(actor, 2)
+        }
+    }
+
+    @Composable
+    private fun ClickableInfoText(text: CharSequence, maxLines: Int) {
+        if (text.isBlank()) return
+        AndroidView(
+            modifier = Modifier.fillMaxWidth(),
+            factory = { context ->
+                TextView(context).apply {
+                    setTextColor(android.graphics.Color.WHITE)
+                    setLinkTextColor(MDColor.YELLOW_500)
+                    textSize = 15f
+                    includeFontPadding = false
+                    highlightColor = android.graphics.Color.TRANSPARENT
+                    movementMethod = LinkMovementMethod.getInstance()
+                }
+            },
+            update = { view ->
+                view.maxLines = maxLines
+                view.ellipsize = android.text.TextUtils.TruncateAt.END
+                view.text = text
+                view.movementMethod = if (text is Spanned) LinkMovementMethod.getInstance() else null
+            }
+        )
+    }
+
+    @Composable
+    private fun ActionRow() {
+        val specs = actions()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            specs.forEachIndexed { index, spec ->
+                ActionButton(
+                    spec = spec,
+                    active = detailFocused && selectedAction == index,
+                    onClick = {
+                        selectedAction = index
+                        performAction(spec)
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ActionButton(spec: ActionSpec, active: Boolean, onClick: () -> Unit) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val scale by animateFloatAsState(if (active) 1.05f else 1.0f, label = "detailActionScale")
+        val background by animateColorAsState(
+            targetValue = when {
+                active -> Color.White.copy(alpha = 0.26f)
+                spec.selected -> Color.White.copy(alpha = 0.22f)
+                else -> Color.White.copy(alpha = 0.14f)
+            },
+            label = "detailActionBackground"
+        )
+        Row(
+            modifier = Modifier
+                .height(42.dp)
+                .graphicsLayer(scaleX = scale, scaleY = scale)
+                .clip(RoundedCornerShape(21.dp))
+                .background(background)
+                .clickable(
+                    enabled = spec.enabled,
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+                .padding(start = 10.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = if (active) 0.22f else 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = spec.icon,
+                    contentDescription = spec.label,
+                    modifier = Modifier.size(19.dp),
+                    tint = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = spec.label,
+                color = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f),
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+
+    private fun performSelectedAction() {
+        actions().getOrNull(selectedAction)?.let { performAction(it) }
+    }
+
+    private fun moveSelection(step: Int): Boolean {
+        val specs = actions()
+        var index = selectedAction + step
+        while (index in specs.indices) {
+            if (specs[index].enabled) {
+                selectedAction = index
+                return true
+            }
+            index += step
+        }
+        return false
+    }
+
+    private fun normalizeSelectedAction() {
+        val specs = actions()
+        selectedAction = selectedAction.coerceIn(0, specs.lastIndex)
+        if (specs[selectedAction].enabled) return
+        selectedAction = specs.indexOfFirst { it.enabled }.takeIf { it >= 0 } ?: 0
+    }
+
+    private fun performAction(spec: ActionSpec) {
+        if (!spec.enabled) return
+        when (spec.action) {
+            DetailAction.SUMMARY -> listener?.onSummary()
+            DetailAction.KEEP -> listener?.onKeep()
+            DetailAction.CHANGE -> listener?.onChange()
+        }
+    }
+
+    private fun actions(): List<ActionSpec> {
+        return listOf(
+            ActionSpec(DetailAction.SUMMARY, context.getString(R.string.detail_desc), Icons.Default.Info, summaryEnabled),
+            ActionSpec(
+                action = DetailAction.KEEP,
+                label = context.getString(R.string.keep),
+                icon = if (keepSelected) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                enabled = true,
+                selected = keepSelected
+            ),
+            ActionSpec(DetailAction.CHANGE, context.getString(R.string.play_change), Icons.Default.SwapHoriz, true)
+        )
+    }
+}

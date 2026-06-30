@@ -16,7 +16,7 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.PreloadDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 
-public class SettingPreloadActivity extends BaseActivity {
+public class SettingPreloadActivity extends BaseActivity implements PreloadDialog.Listener {
 
     private ActivitySettingPreloadBinding mBinding;
 
@@ -64,6 +64,7 @@ public class SettingPreloadActivity extends BaseActivity {
         setVisible();
     }
 
+    @Override
     public void setPreload(int type, int value) {
         if (type == PreloadDialog.THREADS) {
             PreloadSetting.putPreloadThreads(value);

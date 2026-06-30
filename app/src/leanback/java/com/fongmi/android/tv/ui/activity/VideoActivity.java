@@ -29,11 +29,6 @@ import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
@@ -68,8 +63,8 @@ import com.fongmi.android.tv.ui.adapter.PartAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
-import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
+import com.fongmi.android.tv.ui.custom.JetStreamVodDetailView;
 import com.fongmi.android.tv.ui.dialog.ChapterDialog;
 import com.fongmi.android.tv.ui.dialog.ContentDialog;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
@@ -96,7 +91,6 @@ import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.TmdbLogoHelper;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
-import com.github.bassaer.library.MDColor;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -133,6 +127,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private Clock mClock;
     private View mFocus1;
     private View mFocus2;
+    private CharSequence mDetailTitle;
+    private CharSequence mDetailSite;
+    private CharSequence mDetailYear;
+    private CharSequence mDetailArea;
+    private CharSequence mDetailType;
+    private CharSequence mDetailDirector;
+    private CharSequence mDetailActor;
+    private CharSequence mDetailRemark;
+    private String mDetailContent;
+    private String mTmdbLogoUrl;
     private String mTmdbLogoRequest;
 
     public static void push(FragmentActivity activity, String text) {
@@ -279,6 +283,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mFrameParams = mBinding.video.getLayoutParams();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
+        clearDetailState();
         mObserveDetail = this::onDetailObserved;
         mObservePlayer = this::onPlayerObserved;
         mObserveSearch = this::onSearchObserved;
@@ -295,10 +300,33 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
-        mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.video.setOnClickListener(view -> onVideo());
-        mBinding.change1.setOnClickListener(view -> onChange());
-        mBinding.content.setOnClickListener(view -> onContent());
+        mBinding.detail.setListener(new JetStreamVodDetailView.Listener() {
+            @Override
+            public void onSummary() {
+                onContent();
+            }
+
+            @Override
+            public void onKeep() {
+                VideoActivity.this.onKeep();
+            }
+
+            @Override
+            public void onChange() {
+                VideoActivity.this.onChange();
+            }
+
+            @Override
+            public void onFocusVideo() {
+                mBinding.video.requestFocus();
+            }
+
+            @Override
+            public void onFocusList() {
+                focusFirstMediaList();
+            }
+        });
         mBinding.control.action.text.setOnClickListener(this::onTrack);
         mBinding.control.action.audio.setOnClickListener(this::onTrack);
         mBinding.control.action.video.setOnClickListener(this::onTrack);
@@ -368,6 +396,39 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.quick.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.quick.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.quick.setAdapter(mQuickAdapter = new QuickAdapter(this));
+    }
+
+    private void clearDetailState() {
+        mDetailTitle = getName();
+        mDetailSite = "";
+        mDetailYear = "";
+        mDetailArea = "";
+        mDetailType = "";
+        mDetailDirector = "";
+        mDetailActor = "";
+        mDetailRemark = "";
+        mDetailContent = "";
+        mTmdbLogoUrl = "";
+        updateDetailView();
+    }
+
+    private void updateDetailView() {
+        if (mBinding == null) return;
+        mBinding.detail.setTitle(getVodName());
+        mBinding.detail.setLogoUrl(mTmdbLogoUrl);
+        mBinding.detail.setMetadata(mDetailSite, mDetailYear, mDetailArea, mDetailType, mDetailDirector, mDetailActor, mDetailRemark);
+        mBinding.detail.setActions(!TextUtils.isEmpty(mDetailContent), Keep.find(getHistoryKey()) != null);
+    }
+
+    private void focusFirstMediaList() {
+        for (int id : Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick)) {
+            View view = findViewById(id);
+            if (view != null && view.getVisibility() == View.VISIBLE) {
+                view.requestFocus();
+                return;
+            }
+        }
+        mBinding.video.requestFocus();
     }
 
     private void setVideoView() {
@@ -457,7 +518,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public String getVodName() {
-        String name = mBinding.name.getText().toString();
+        String name = Objects.toString(mDetailTitle, "");
         return name.isEmpty() ? getName() : name;
     }
 
@@ -508,7 +569,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void requestPlayer(VodPlayRequest request) {
-        mBinding.widget.title.setText(getString(R.string.detail_title, mBinding.name.getText(), request.getTitle()));
+        mBinding.widget.title.setText(getString(R.string.detail_title, getVodName(), request.getTitle()));
         mViewModel.playerContent(request.getKey(), request.getFlag(), request.getId());
         mBinding.widget.title.setSelected(true);
         showProgress();
@@ -655,7 +716,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void renderDescription(String desc) {
-        mBinding.content.setTag(desc);
+        mDetailContent = desc;
+        updateDetailView();
     }
 
     @Override
@@ -727,22 +789,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setText(Vod item) {
-        mBinding.content.setTag(item.getContent());
-        setText(mBinding.year, R.string.detail_year, item.getYear());
-        setText(mBinding.area, R.string.detail_area, item.getArea());
-        setText(mBinding.type, R.string.detail_type, item.getTypeName());
-        setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.director, R.string.detail_director, item.getDirector());
-        setText(mBinding.actor, R.string.detail_actor, item.getActor());
-        setText(mBinding.remark, 0, item.getRemarks());
+        mDetailContent = item.getContent();
+        mDetailYear = buildDetailText(mDetailYear, R.string.detail_year, item.getYear());
+        mDetailArea = buildDetailText(mDetailArea, R.string.detail_area, item.getArea());
+        mDetailType = buildDetailText(mDetailType, R.string.detail_type, item.getTypeName());
+        mDetailSite = buildDetailText(mDetailSite, R.string.detail_site, getSite().getName());
+        mDetailDirector = buildDetailText(mDetailDirector, R.string.detail_director, item.getDirector());
+        mDetailActor = buildDetailText(mDetailActor, R.string.detail_actor, item.getActor());
+        mDetailRemark = buildDetailText(mDetailRemark, 0, item.getRemarks());
+        updateDetailView();
     }
 
-    private void setText(TextView view, int resId, String text) {
-        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(view.getText())) return;
-        view.setText(Sniffer.buildClickable(resId > 0 ? getString(resId, text) : text, this::clickableSpan), TextView.BufferType.SPANNABLE);
-        view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(MDColor.YELLOW_500);
-        CustomMovement.bind(view);
+    private CharSequence buildDetailText(CharSequence current, int resId, String text) {
+        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(current)) return current;
+        if (TextUtils.isEmpty(text)) return "";
+        return Sniffer.buildClickable(resId > 0 ? getString(resId, text) : text, this::clickableSpan);
     }
 
     private ClickableSpan clickableSpan(Result result) {
@@ -856,8 +917,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void onContent() {
-        if (mBinding.content.getTag() == null) return;
-        ContentDialog.create().content(mBinding.content.getTag().toString()).show(this);
+        if (TextUtils.isEmpty(mDetailContent)) return;
+        ContentDialog.create().content(mDetailContent).show(this);
     }
 
     private void onKeep() {
@@ -1031,7 +1092,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void onToggle() {
-        if (isVisible(mBinding.control.getRoot())) hideControl();
+        if (isJetStreamControlVisible()) hideControl();
         else showControl(getFocus2());
     }
 
@@ -1060,19 +1121,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showInfo() {
-        mBinding.widget.top.setVisibility(View.VISIBLE);
-        mBinding.widget.center.setVisibility(View.VISIBLE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(0));
+        if (service() == null || isJetStreamControlVisible()) return;
+        showJetStreamInfo(true, true, JetStreamVodControlView.ACTION_PLAY, player().getPositionTime(0), player().getDurationTime());
     }
 
     private void hideInfo() {
         mBinding.widget.top.setVisibility(View.GONE);
         mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(false, false, "", "", JetStreamVodControlView.ACTION_PLAY, "", "");
+        updateJetStreamVisibility();
     }
 
     private void showControl(View view) {
+        hideInfo();
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        mBinding.control.jetstream.setControlsVisible(true);
         syncJetStreamControl();
         View focus = getJetStreamFocus(view);
         focus.requestFocus();
@@ -1080,9 +1143,35 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void hideControl() {
-        mBinding.control.getRoot().setVisibility(View.GONE);
+        mBinding.control.jetstream.setControlsVisible(false);
         mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
+        if (isFullscreen() && service() != null && !player().isPlaying() && isPaused()) showInfo();
+        else updateJetStreamVisibility();
+    }
+
+    private void showJetStreamInfo(boolean top, boolean center, String action, CharSequence position, CharSequence duration) {
+        syncJetStreamControl();
+        mBinding.widget.top.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(top, center, mBinding.widget.size.getText(), mBinding.widget.clock.getText(), action, position, duration);
+        updateJetStreamVisibility();
+    }
+
+    private void updateJetStreamVisibility() {
+        mBinding.control.getRoot().setVisibility(isJetStreamControlVisible() || isJetStreamInfoVisible() ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean isJetStreamControlVisible() {
+        return mBinding.control.jetstream.isControlsVisible();
+    }
+
+    private boolean isJetStreamInfoVisible() {
+        return mBinding.control.jetstream.isInfoVisible();
+    }
+
+    private boolean isJetStreamCenterVisible() {
+        return mBinding.control.jetstream.isCenterInfoVisible();
     }
 
     private View getJetStreamFocus(View view) {
@@ -1171,23 +1260,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private CharSequence getJetStreamTitle() {
         CharSequence widgetTitle = mBinding.widget.title.getText();
-        return TextUtils.isEmpty(widgetTitle) ? mBinding.name.getText() : widgetTitle;
+        return TextUtils.isEmpty(widgetTitle) ? getVodName() : widgetTitle;
     }
 
     private CharSequence getJetStreamSecondaryText() {
-        CharSequence remark = visibleText(mBinding.remark);
-        if (!TextUtils.isEmpty(remark)) return remark;
-        CharSequence year = visibleText(mBinding.year);
-        return TextUtils.isEmpty(year) ? visibleText(mBinding.site) : year;
+        if (!TextUtils.isEmpty(mDetailRemark)) return mDetailRemark;
+        return TextUtils.isEmpty(mDetailYear) ? mDetailSite : mDetailYear;
     }
 
     private CharSequence getJetStreamTertiaryText() {
-        CharSequence director = visibleText(mBinding.director);
-        return TextUtils.isEmpty(director) ? visibleText(mBinding.site) : director;
-    }
-
-    private CharSequence visibleText(TextView view) {
-        return isVisible(view) ? view.getText() : "";
+        return TextUtils.isEmpty(mDetailDirector) ? mDetailSite : mDetailDirector;
     }
 
     private void hideCenter() {
@@ -1200,6 +1282,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         App.post(mR3, 1000);
     }
 
+    private void updatePausedJetStreamInfo() {
+        if (isFullscreen() && service() != null && !player().isPlaying() && isPaused() && !isJetStreamControlVisible() && isJetStreamInfoVisible()) showInfo();
+    }
+
     private void setR1Callback() {
         if (isScrubbing()) return;
         App.post(mR1, Constant.INTERVAL_HIDE);
@@ -1208,7 +1294,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onScrubbingChanged(boolean scrubbing) {
         if (scrubbing) App.removeCallbacks(mR1);
-        else if (isVisible(mBinding.control.getRoot())) setR1Callback();
+        else if (isJetStreamControlVisible()) setR1Callback();
     }
 
     private void setR2Callback() {
@@ -1217,13 +1303,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showTitleText(String name) {
         mTmdbLogoRequest = null;
-        mBinding.name.setText(name);
-        mBinding.name.setVisibility(View.VISIBLE);
-        mBinding.tmdbLogo.setVisibility(View.GONE);
-        try {
-            Glide.with(mBinding.tmdbLogo).clear(mBinding.tmdbLogo);
-        } catch (Throwable ignored) {
-        }
+        mTmdbLogoUrl = "";
+        mDetailTitle = name;
+        updateDetailView();
     }
 
     private void fetchTmdbLogo(Vod item) {
@@ -1252,30 +1334,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void loadTmdbLogo(String request, String title, String logoUrl) {
         if (!isTmdbLogoRequestActive(request)) return;
-        try {
-            Glide.with(this)
-                    .load(logoUrl)
-                    .fitCenter()
-                    .override(ResUtil.dp2px(360), ResUtil.dp2px(32))
-                    .listener(new RequestListener<>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                            if (isTmdbLogoRequestActive(request)) showTitleText(title);
-                            return true;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                            if (!isTmdbLogoRequestActive(request)) return true;
-                            mBinding.name.setVisibility(View.INVISIBLE);
-                            mBinding.tmdbLogo.setVisibility(View.VISIBLE);
-                            return false;
-                        }
-                    })
-                    .into(mBinding.tmdbLogo);
-        } catch (Throwable ignored) {
-            if (isTmdbLogoRequestActive(request)) showTitleText(title);
-        }
+        mDetailTitle = title;
+        mTmdbLogoUrl = logoUrl;
+        updateDetailView();
     }
 
     private boolean isTmdbLogoRequestActive(String request) {
@@ -1319,7 +1380,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void checkKeepImg() {
-        mBinding.keep.setCompoundDrawablesWithIntrinsicBounds(Keep.find(getHistoryKey()) == null ? R.drawable.ic_detail_keep_off : R.drawable.ic_detail_keep_on, 0, 0, 0);
+        updateDetailView();
     }
 
     private void createKeep() {
@@ -1445,7 +1506,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (isPlaying) {
             hideCenter();
         } else if (isPaused()) {
-            if (isFullscreen()) showInfo();
+            if (isFullscreen() && !isJetStreamControlVisible()) showInfo();
             else hideInfo();
         }
         syncJetStreamControl();
@@ -1454,6 +1515,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onSizeChanged(VideoSize size) {
         mBinding.widget.size.setText(player().getSizeText());
+        updatePausedJetStreamInfo();
     }
 
     @Override
@@ -1464,6 +1526,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onTimeChanged(long time) {
+        updatePausedJetStreamInfo();
         if (!isOwner() || !player().isVod()) return;
         long position = player().getPosition();
         long duration = player().getDuration();
@@ -1561,9 +1624,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
-        if (isVisible(mBinding.control.getRoot())) setR1Callback();
-        if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
-        if (isFullscreen() && isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
+        if (isJetStreamControlVisible()) setR1Callback();
+        if (isJetStreamControlVisible()) mFocus2 = getCurrentFocus();
+        if (isFullscreen() && !isJetStreamControlVisible() && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
@@ -1571,10 +1634,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onSeeking(long time) {
-        mBinding.widget.center.setVisibility(View.VISIBLE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(time));
-        mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        showJetStreamInfo(isFullscreen(), true, time > 0 ? JetStreamVodControlView.ACTION_FORWARD : JetStreamVodControlView.ACTION_REWIND, player().getPositionTime(time), player().getDurationTime());
         hideProgress();
     }
 
@@ -1659,9 +1719,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onBackInvoked() {
-        if (isVisible(mBinding.control.getRoot())) {
+        if (isJetStreamControlVisible()) {
             hideControl();
-        } else if (isVisible(mBinding.widget.center)) {
+        } else if (isJetStreamCenterVisible()) {
             hideCenter();
         } else if (isFullscreen()) {
             exitFullscreen();

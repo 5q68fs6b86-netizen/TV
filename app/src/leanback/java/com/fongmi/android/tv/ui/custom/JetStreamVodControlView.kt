@@ -14,6 +14,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesomeMotion
 import androidx.compose.material.icons.filled.ClosedCaption
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -106,6 +109,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var playlistEnabled by mutableStateOf(true)
     private var captionsEnabled by mutableStateOf(true)
     private var settingsEnabled by mutableStateOf(true)
+    private var controlPanelVisible by mutableStateOf(false)
+    private var topInfoVisible by mutableStateOf(false)
+    private var centerInfoVisible by mutableStateOf(false)
+    private var infoSize by mutableStateOf("")
+    private var infoClock by mutableStateOf("")
+    private var infoAction by mutableStateOf(ACTION_PLAY)
+    private var infoPosition by mutableStateOf("")
+    private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
     private val commands = mutableStateMapOf<String, CommandState>()
 
@@ -145,6 +156,40 @@ class JetStreamVodControlView @JvmOverloads constructor(
         settingsEnabled = settings
     }
 
+    fun setControlsVisible(visible: Boolean) {
+        controlPanelVisible = visible
+    }
+
+    fun isControlsVisible(): Boolean {
+        return controlPanelVisible
+    }
+
+    fun setInfoState(
+        topVisible: Boolean,
+        centerVisible: Boolean,
+        size: CharSequence?,
+        clock: CharSequence?,
+        action: String,
+        position: CharSequence?,
+        duration: CharSequence?
+    ) {
+        topInfoVisible = topVisible
+        centerInfoVisible = centerVisible
+        infoSize = size?.toString().orEmpty()
+        infoClock = clock?.toString().orEmpty()
+        infoAction = action
+        infoPosition = position?.toString().orEmpty()
+        infoDuration = duration?.toString().orEmpty()
+    }
+
+    fun isInfoVisible(): Boolean {
+        return topInfoVisible || centerInfoVisible
+    }
+
+    fun isCenterInfoVisible(): Boolean {
+        return centerInfoVisible
+    }
+
     fun setCommand(key: String, label: CharSequence?, visible: Boolean, selected: Boolean) {
         commands[key] = CommandState(label?.toString().orEmpty(), visible, selected)
     }
@@ -176,35 +221,165 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 surface = Color.Transparent
             )
         ) {
+            if (!controlPanelVisible && !isInfoVisible()) return@MaterialTheme
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color.Black.copy(alpha = 0.10f),
-                                Color.Black.copy(alpha = 0.80f)
-                            )
-                        )
+                        if (controlPanelVisible) controlScrim() else infoScrim()
                     )
             ) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(horizontal = 56.dp)
-                        .padding(top = 8.dp, bottom = 32.dp)
-                ) {
-                    HeaderRow(polledPlaying)
-                    Spacer(Modifier.height(16.dp))
-                    SeekerRow(
-                        isPlaying = polledPlaying,
-                        positionMs = positionMs,
-                        durationMs = durationMs
+                InfoOverlay()
+                if (controlPanelVisible) ControlPanel(polledPlaying, positionMs, durationMs)
+            }
+        }
+    }
+
+    private fun controlScrim(): Brush {
+        return Brush.verticalGradient(
+            listOf(
+                Color.Black.copy(alpha = 0.10f),
+                Color.Black.copy(alpha = 0.80f)
+            )
+        )
+    }
+
+    private fun infoScrim(): Brush {
+        return Brush.verticalGradient(
+            listOf(
+                Color.Black.copy(alpha = 0.50f),
+                Color.Black.copy(alpha = 0.10f),
+                Color.Black.copy(alpha = 0.42f)
+            )
+        )
+    }
+
+    @Composable
+    private fun BoxScope.ControlPanel(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 56.dp)
+                .padding(top = 8.dp, bottom = 32.dp)
+        ) {
+            HeaderRow(isPlaying)
+            Spacer(Modifier.height(16.dp))
+            SeekerRow(
+                isPlaying = isPlaying,
+                positionMs = positionMs,
+                durationMs = durationMs
+            )
+            MorePanel()
+        }
+    }
+
+    @Composable
+    private fun BoxScope.InfoOverlay() {
+        if (topInfoVisible) TopInfo()
+        if (centerInfoVisible) CenterInfo()
+    }
+
+    @Composable
+    private fun BoxScope.TopInfo() {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp, vertical = 28.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 32.dp)
+            ) {
+                Text(
+                    text = mediaTitle,
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (infoSize.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = infoSize,
+                        color = Color.White.copy(alpha = 0.72f),
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    MorePanel()
                 }
             }
+            if (infoClock.isNotEmpty()) {
+                Text(
+                    text = infoClock,
+                    color = Color.White.copy(alpha = 0.86f),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun BoxScope.CenterInfo() {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clip(RoundedCornerShape(28.dp))
+                .background(Color.Black.copy(alpha = 0.48f))
+                .padding(horizontal = 32.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.20f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = centerInfoIcon(),
+                    contentDescription = null,
+                    modifier = Modifier.size(42.dp),
+                    tint = Color.White
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = infoPosition,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+                Text(
+                    text = " / ",
+                    color = Color.White.copy(alpha = 0.62f),
+                    fontSize = 18.sp,
+                    maxLines = 1
+                )
+                Text(
+                    text = infoDuration,
+                    color = Color.White.copy(alpha = 0.80f),
+                    fontSize = 18.sp,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+
+    private fun centerInfoIcon(): ImageVector {
+        return when (infoAction) {
+            ACTION_FORWARD -> Icons.Default.FastForward
+            ACTION_REWIND -> Icons.Default.FastRewind
+            else -> Icons.Default.PlayArrow
         }
     }
 
@@ -553,6 +728,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
         const val GROUP_PLAYLIST = "playlist"
         const val GROUP_CAPTIONS = "captions"
         const val GROUP_SETTINGS = "settings"
+        const val ACTION_PLAY = "play"
+        const val ACTION_FORWARD = "forward"
+        const val ACTION_REWIND = "rewind"
 
         private val PLAYLIST_COMMANDS = listOf("prev", "next", "change", "parse", "replay", "reset")
         private val CAPTION_COMMANDS = listOf("subtitle", "text", "audio", "video", "danmaku")

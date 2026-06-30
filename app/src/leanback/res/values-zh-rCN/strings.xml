@@ -10,6 +10,19 @@
     <string name="home_history">最近观看</string>
     <string name="home_recommend">更新推荐</string>
 
+    <!-- Setting -->
+    <string name="setting_section_source">来源</string>
+    <string name="setting_section_playback">播放</string>
+    <string name="setting_section_decode">解码</string>
+    <string name="setting_section_preload">预载</string>
+    <string name="setting_section_danmaku">弹幕</string>
+    <string name="setting_section_app">应用</string>
+    <string name="setting_home">首页</string>
+    <string name="setting_history">历史</string>
+    <string name="setting_default">默认</string>
+    <string name="setting_refresh">刷新</string>
+    <string name="setting_clear">清理</string>
+
     <!-- Collect -->
     <string name="collect_result">“<xliff:g name="name">%s</xliff:g>”的搜索结果</string>
 

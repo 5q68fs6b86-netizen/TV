@@ -8,7 +8,6 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogSpeedBinding;
 import com.fongmi.android.tv.setting.PreloadSetting;
-import com.fongmi.android.tv.ui.activity.SettingPreloadActivity;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -18,6 +17,10 @@ public class PreloadDialog extends BaseAlertDialog {
     public static final int THREADS = 0;
     public static final int SIZE = 1;
     public static final int TIME = 2;
+
+    public interface Listener {
+        void setPreload(int type, int value);
+    }
 
     private DialogSpeedBinding binding;
     private int type;
@@ -53,7 +56,7 @@ public class PreloadDialog extends BaseAlertDialog {
     @Override
     protected void initEvent() {
         binding.slider.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) ((SettingPreloadActivity) requireActivity()).setPreload(type, Math.round(value));
+            if (fromUser && requireActivity() instanceof Listener listener) listener.setPreload(type, Math.round(value));
         });
         binding.slider.setOnKeyListener((view, keyCode, event) -> {
             boolean enter = KeyUtil.isEnterKey(event);

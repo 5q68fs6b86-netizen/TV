@@ -3,7 +3,8 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.provider.Settings;
+import android.text.TextUtils;
 
 import androidx.viewbinding.ViewBinding;
 
@@ -22,17 +23,28 @@ import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
+import com.fongmi.android.tv.impl.DanmakuListener;
 import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
+import com.fongmi.android.tv.impl.SpeedListener;
+import com.fongmi.android.tv.impl.UaListener;
+import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.PreloadSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.custom.JetStreamSettingView;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.DanmakuApiDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
+import com.fongmi.android.tv.ui.dialog.MpvConfDialog;
+import com.fongmi.android.tv.ui.dialog.PreloadDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.dialog.SpeedDialog;
+import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
@@ -43,12 +55,18 @@ import com.github.catvod.net.OkHttp;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingActivity extends BaseActivity implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener {
+public class SettingActivity extends BaseActivity implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener, UaListener, SpeedListener, DanmakuListener, PreloadDialog.Listener, JetStreamSettingView.Listener {
 
     private ActivitySettingBinding mBinding;
+    private DecimalFormat format;
+    private String[] caption;
+    private String[] render;
+    private String[] scale;
+    private String[] engine;
     private String[] size;
 
     public static void start(Activity activity) {
@@ -72,54 +90,179 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mBinding.vod.requestFocus();
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        setCacheText();
-        setOtherText();
+        format = new DecimalFormat("0.#");
+        initArrays();
+        mBinding.settingView.setListener(this);
+        refreshAll();
+        mBinding.settingView.requestInitialFocus();
     }
 
-    private void setOtherText() {
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
+    private void initArrays() {
+        size = ResUtil.getStringArray(R.array.select_size);
+        scale = ResUtil.getStringArray(R.array.select_scale);
+        engine = ResUtil.getStringArray(R.array.select_engine);
+        render = ResUtil.getStringArray(R.array.select_render);
+        caption = ResUtil.getStringArray(R.array.select_caption);
+    }
+
+    private void refreshAll() {
+        refreshSourceRows();
+        refreshPlaybackRows();
+        refreshDecodeRows();
+        refreshPreloadRows();
+        refreshDanmakuRows();
+        refreshAppRows();
+        setCacheText();
+    }
+
+    private void refreshSourceRows() {
+        setRowValue(JetStreamSettingView.KEY_VOD, VodConfig.getDesc());
+        setRowValue(JetStreamSettingView.KEY_LIVE, LiveConfig.getDesc());
+        setRowValue(JetStreamSettingView.KEY_WALL, WallConfig.getDesc());
+    }
+
+    private void refreshPlaybackRows() {
+        if (PlayerSetting.isBackgroundPiP()) PlayerSetting.putBackground(1);
+        boolean exo = !PlayerSetting.isMpv();
+        setRowValue(JetStreamSettingView.KEY_ENGINE, engine[PlayerSetting.getEngine()]);
+        setRowValue(JetStreamSettingView.KEY_RENDER, render[PlayerSetting.getRender()]);
+        setRowValue(JetStreamSettingView.KEY_SCALE, scale[PlayerSetting.getScale()]);
+        setRowValue(JetStreamSettingView.KEY_SPEED, format.format(PlayerSetting.getSpeed()) + " " + getString(R.string.times));
+        setRowValue(JetStreamSettingView.KEY_CAPTION, caption[PlayerSetting.isCaption() ? 1 : 0]);
+        setRowValue(JetStreamSettingView.KEY_BACKGROUND, Setting.getSwitch(PlayerSetting.isBackgroundOn()));
+        setRowValue(JetStreamSettingView.KEY_UA, getStatus(Setting.getUa()));
+        setRowValue(JetStreamSettingView.KEY_MPV_GPU_NEXT, Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
+        setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
+        setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
+        setRowVisible(JetStreamSettingView.KEY_MPV_CONF, !exo);
+        setRowVisible(JetStreamSettingView.KEY_MPV_GPU_NEXT, !exo);
+        setRowVisible(JetStreamSettingView.KEY_MPV_VULKAN, !exo);
+        setRowVisible(JetStreamSettingView.KEY_ADBLOCK, exo);
+        setRowVisible(JetStreamSettingView.KEY_CAPTION, PlayerSetting.hasCaption());
+    }
+
+    private void refreshDecodeRows() {
+        boolean visible = !PlayerSetting.isMpv();
+        setRowValue(JetStreamSettingView.KEY_TUNNEL, Setting.getSwitch(PlayerSetting.isTunnel()));
+        setRowValue(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, Setting.getSwitch(PlayerSetting.isAudioPassThrough()));
+        setRowValue(JetStreamSettingView.KEY_AUDIO_PREFER, Setting.getSwitch(PlayerSetting.isAudioPrefer()));
+        setRowValue(JetStreamSettingView.KEY_VIDEO_PREFER, Setting.getSwitch(PlayerSetting.isVideoPrefer()));
+        setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
+        setRowVisible(JetStreamSettingView.KEY_TUNNEL, visible);
+        setRowVisible(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, visible);
+        setRowVisible(JetStreamSettingView.KEY_AUDIO_PREFER, visible);
+        setRowVisible(JetStreamSettingView.KEY_VIDEO_PREFER, visible);
+        setRowVisible(JetStreamSettingView.KEY_AAC, visible);
+    }
+
+    private void refreshPreloadRows() {
+        boolean preload = PreloadSetting.isPreload();
+        setRowValue(JetStreamSettingView.KEY_PRELOAD, Setting.getSwitch(preload));
+        setPreloadThreadsText();
+        setPreloadSizeText();
+        setPreloadTimeText();
+        setRowVisible(JetStreamSettingView.KEY_PRELOAD_SIZE, preload);
+        setRowVisible(JetStreamSettingView.KEY_PRELOAD_TIME, preload);
+        setRowVisible(JetStreamSettingView.KEY_PRELOAD_THREADS, preload && !PlayerSetting.isMpv());
+    }
+
+    private void refreshDanmakuRows() {
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_LOAD, Setting.getSwitch(DanmakuSetting.isLoad()));
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_API, getApiStatus());
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_AUTO, Setting.getSwitch(DanmakuSetting.isAuto()));
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_SPIDER, Setting.getSwitch(DanmakuSetting.isSpiderFirst()));
+        updateDanmakuVisibility();
+    }
+
+    private void refreshAppRows() {
+        initArrays();
+        String[] doh = getDohList();
+        setRowValue(JetStreamSettingView.KEY_INCOGNITO, Setting.getSwitch(Setting.isIncognito()));
+        setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
+        setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
+        setRowValue(JetStreamSettingView.KEY_VERSION, BuildConfig.VERSION_NAME);
+    }
+
+    private void setRowValue(String key, CharSequence value) {
+        mBinding.settingView.setRowValue(key, value);
+    }
+
+    private void setRowVisible(String key, boolean visible) {
+        mBinding.settingView.setRowVisible(key, visible);
+    }
+
+    private String getStatus(String value) {
+        return getString(TextUtils.isEmpty(value) ? R.string.none : R.string.yes);
+    }
+
+    private String getApiStatus() {
+        return getStatus(DanmakuSetting.getEffectiveApiUrl());
     }
 
     private void setCacheText() {
         FileUtil.getCacheSize(new Callback() {
             @Override
             public void success(String result) {
-                mBinding.cacheText.setText(result);
+                setRowValue(JetStreamSettingView.KEY_CACHE, result);
             }
         });
     }
 
     @Override
-    protected void initEvent() {
-        mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.size.setOnClickListener(this::setSize);
-        mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.player.setOnClickListener(this::onPlayer);
-        mBinding.danmaku.setOnClickListener(this::onDanmaku);
-        mBinding.restore.setOnClickListener(this::onRestore);
-        mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.incognito.setOnClickListener(this::setIncognito);
-        mBinding.vodHistory.setOnClickListener(this::onVodHistory);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
-        mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
+    public void onSettingAction(String key) {
+        switch (key) {
+            case JetStreamSettingView.KEY_VOD -> onVod();
+            case JetStreamSettingView.KEY_LIVE -> onLive();
+            case JetStreamSettingView.KEY_WALL -> onWall();
+            case JetStreamSettingView.KEY_VOD_HOME -> onVodHome();
+            case JetStreamSettingView.KEY_VOD_HISTORY -> onVodHistory();
+            case JetStreamSettingView.KEY_LIVE_HOME -> onLiveHome();
+            case JetStreamSettingView.KEY_LIVE_HISTORY -> onLiveHistory();
+            case JetStreamSettingView.KEY_WALL_DEFAULT -> setWallDefault();
+            case JetStreamSettingView.KEY_WALL_REFRESH -> setWallRefresh();
+            case JetStreamSettingView.KEY_ENGINE -> setEngine();
+            case JetStreamSettingView.KEY_RENDER -> setRender();
+            case JetStreamSettingView.KEY_SCALE -> setScale();
+            case JetStreamSettingView.KEY_SPEED -> onSpeed();
+            case JetStreamSettingView.KEY_CAPTION -> setCaption();
+            case JetStreamSettingView.KEY_BACKGROUND -> onBackground();
+            case JetStreamSettingView.KEY_UA -> onUa();
+            case JetStreamSettingView.KEY_MPV_CONF -> onMpvConf();
+            case JetStreamSettingView.KEY_MPV_GPU_NEXT -> setMpvGpuNext();
+            case JetStreamSettingView.KEY_MPV_VULKAN -> setMpvVulkan();
+            case JetStreamSettingView.KEY_ADBLOCK -> setAdblock();
+            case JetStreamSettingView.KEY_TUNNEL -> setTunnel();
+            case JetStreamSettingView.KEY_AUDIO_PASS_THROUGH -> setAudioPassThrough();
+            case JetStreamSettingView.KEY_AUDIO_PREFER -> setAudioPrefer();
+            case JetStreamSettingView.KEY_VIDEO_PREFER -> setVideoPrefer();
+            case JetStreamSettingView.KEY_AAC -> setAAC();
+            case JetStreamSettingView.KEY_PRELOAD -> setPreload();
+            case JetStreamSettingView.KEY_PRELOAD_THREADS -> PreloadDialog.show(this, PreloadDialog.THREADS);
+            case JetStreamSettingView.KEY_PRELOAD_SIZE -> PreloadDialog.show(this, PreloadDialog.SIZE);
+            case JetStreamSettingView.KEY_PRELOAD_TIME -> PreloadDialog.show(this, PreloadDialog.TIME);
+            case JetStreamSettingView.KEY_DANMAKU_LOAD -> setDanmakuLoad();
+            case JetStreamSettingView.KEY_DANMAKU_API -> onDanmakuApi();
+            case JetStreamSettingView.KEY_DANMAKU_AUTO -> setDanmakuAuto();
+            case JetStreamSettingView.KEY_DANMAKU_SPIDER -> setDanmakuSpider();
+            case JetStreamSettingView.KEY_INCOGNITO -> setIncognito();
+            case JetStreamSettingView.KEY_DOH -> setDoh();
+            case JetStreamSettingView.KEY_SIZE -> setSize();
+            case JetStreamSettingView.KEY_BACKUP -> onBackup();
+            case JetStreamSettingView.KEY_RESTORE -> onRestore();
+            case JetStreamSettingView.KEY_CACHE -> onCache();
+            case JetStreamSettingView.KEY_VERSION -> onVersion();
+        }
+    }
+
+    @Override
+    public void onSettingLongAction(String key) {
+        switch (key) {
+            case JetStreamSettingView.KEY_VOD -> onVodEdit();
+            case JetStreamSettingView.KEY_LIVE -> onLiveEdit();
+            case JetStreamSettingView.KEY_WALL -> onWallEdit();
+            case JetStreamSettingView.KEY_WALL_REFRESH -> onWallHistory();
+            case JetStreamSettingView.KEY_CAPTION -> onCaption();
+        }
     }
 
     @Override
@@ -133,16 +276,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void load(Config config) {
         switch (config.getType()) {
-            case 0:
-                VodConfig.load(config, getCallback());
-                break;
-            case 1:
-                LiveConfig.load(config, getCallback());
-                break;
-            case 2:
+            case 0 -> VodConfig.load(config, getCallback());
+            case 1 -> LiveConfig.load(config, getCallback());
+            case 2 -> {
                 Setting.putWall(0);
                 WallConfig.load(config, getCallback());
-                break;
+            }
         }
     }
 
@@ -156,6 +295,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             @Override
             public void success() {
                 Notify.dismiss();
+                refreshSourceRows();
+                refreshDanmakuRows();
                 setCacheText();
             }
 
@@ -177,90 +318,239 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         LiveConfig.get().setHome(item);
     }
 
-    private void onVod(View view) {
+    private void onVod() {
         ConfigDialog.create().vod().show(this);
     }
 
-    private void onLive(View view) {
+    private void onLive() {
         ConfigDialog.create().live().show(this);
     }
 
-    private void onWall(View view) {
+    private void onWall() {
         ConfigDialog.create().wall().show(this);
     }
 
-    private boolean onVodEdit(View view) {
+    private void onVodEdit() {
         ConfigDialog.create().vod().edit().show(this);
-        return true;
     }
 
-    private boolean onLiveEdit(View view) {
+    private void onLiveEdit() {
         ConfigDialog.create().live().edit().show(this);
-        return true;
     }
 
-    private boolean onWallEdit(View view) {
+    private void onWallEdit() {
         ConfigDialog.create().wall().edit().show(this);
-        return true;
     }
 
-    private void onVodHome(View view) {
+    private void onVodHome() {
         SiteDialog.create().action().show(this);
     }
 
-    private void onLiveHome(View view) {
+    private void onLiveHome() {
         LiveDialog.create().action().show(this);
     }
 
-    private void onVodHistory(View view) {
+    private void onVodHistory() {
         HistoryDialog.create().vod().show(this);
     }
 
-    private void onLiveHistory(View view) {
+    private void onLiveHistory() {
         HistoryDialog.create().live().show(this);
     }
 
-    private void onPlayer(View view) {
-        SettingPlayerActivity.start(this);
+    private void onWallHistory() {
+        HistoryDialog.create().wall().show(this);
     }
 
-    private void onDanmaku(View view) {
-        SettingDanmakuActivity.start(this);
-    }
-
-    private void onVersion(View view) {
-        Updater.create().force().start(this);
-    }
-
-    private void setWallDefault(View view) {
+    private void setWallDefault() {
         Setting.putWall(Setting.getWall() == 4 ? 1 : Setting.getWall() + 1);
         Setting.putWallType(0);
         ConfigEvent.wall();
     }
 
-    private void setWallRefresh(View view) {
+    private void setWallRefresh() {
         Setting.putWall(0);
         WallConfig.get().load(getCallback());
     }
 
-    private boolean onWallHistory(View view) {
-        HistoryDialog.create().wall().show(this);
-        return true;
+    private void setEngine() {
+        int index = (PlayerSetting.getEngine() + 1) % engine.length;
+        PlayerSetting.putEngine(index);
+        refreshPlaybackRows();
+        refreshDecodeRows();
+        refreshPreloadRows();
     }
 
-    private void setIncognito(View view) {
+    private void setRender() {
+        int index = (PlayerSetting.getRender() + 1) % render.length;
+        PlayerSetting.putRender(index);
+        refreshPlaybackRows();
+        refreshDecodeRows();
+    }
+
+    private void setScale() {
+        int index = (PlayerSetting.getScale() + 1) % scale.length;
+        PlayerSetting.putScale(index);
+        setRowValue(JetStreamSettingView.KEY_SCALE, scale[index]);
+    }
+
+    private void setCaption() {
+        PlayerSetting.putCaption(!PlayerSetting.isCaption());
+        setRowValue(JetStreamSettingView.KEY_CAPTION, caption[PlayerSetting.isCaption() ? 1 : 0]);
+    }
+
+    private void onCaption() {
+        if (PlayerSetting.isCaption()) startActivity(new Intent(Settings.ACTION_CAPTIONING_SETTINGS));
+    }
+
+    private void onSpeed() {
+        SpeedDialog.show(this);
+    }
+
+    @Override
+    public void setSpeed(float speed) {
+        PlayerSetting.putSpeed(speed);
+        setRowValue(JetStreamSettingView.KEY_SPEED, format.format(speed) + " " + getString(R.string.times));
+    }
+
+    private void onBackground() {
+        PlayerSetting.putBackground(PlayerSetting.isBackgroundOn() ? 0 : 1);
+        setRowValue(JetStreamSettingView.KEY_BACKGROUND, Setting.getSwitch(PlayerSetting.isBackgroundOn()));
+    }
+
+    private void onUa() {
+        UaDialog.show(this);
+    }
+
+    @Override
+    public void setUa(String ua) {
+        Setting.putUa(ua);
+        setRowValue(JetStreamSettingView.KEY_UA, getStatus(ua));
+    }
+
+    private void onMpvConf() {
+        MpvConfDialog.show(this);
+    }
+
+    private void setMpvGpuNext() {
+        PlayerSetting.putMpvGpuNext(!PlayerSetting.isMpvGpuNext());
+        setRowValue(JetStreamSettingView.KEY_MPV_GPU_NEXT, Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
+    }
+
+    private void setMpvVulkan() {
+        PlayerSetting.putMpvVulkan(!PlayerSetting.isMpvVulkan());
+        setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
+    }
+
+    private void setAdblock() {
+        Setting.putAdblock(!Setting.isAdblock());
+        setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
+    }
+
+    private void setTunnel() {
+        if (PlayerSetting.isMpv()) return;
+        PlayerSetting.putTunnel(!PlayerSetting.isTunnel());
+        refreshPlaybackRows();
+        refreshDecodeRows();
+    }
+
+    private void setAudioPassThrough() {
+        PlayerSetting.putAudioPassThrough(!PlayerSetting.isAudioPassThrough());
+        setRowValue(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, Setting.getSwitch(PlayerSetting.isAudioPassThrough()));
+    }
+
+    private void setAudioPrefer() {
+        PlayerSetting.putAudioPrefer(!PlayerSetting.isAudioPrefer());
+        setRowValue(JetStreamSettingView.KEY_AUDIO_PREFER, Setting.getSwitch(PlayerSetting.isAudioPrefer()));
+    }
+
+    private void setVideoPrefer() {
+        PlayerSetting.putVideoPrefer(!PlayerSetting.isVideoPrefer());
+        setRowValue(JetStreamSettingView.KEY_VIDEO_PREFER, Setting.getSwitch(PlayerSetting.isVideoPrefer()));
+    }
+
+    private void setAAC() {
+        PlayerSetting.putPreferAAC(!PlayerSetting.isPreferAAC());
+        setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
+    }
+
+    private void setPreload() {
+        PreloadSetting.putPreload(!PreloadSetting.isPreload());
+        refreshPreloadRows();
+    }
+
+    @Override
+    public void setPreload(int type, int value) {
+        if (type == PreloadDialog.THREADS) {
+            PreloadSetting.putPreloadThreads(value);
+            setPreloadThreadsText();
+        } else if (type == PreloadDialog.SIZE) {
+            PreloadSetting.putPreloadSizeMb(value);
+            setPreloadSizeText();
+        } else if (type == PreloadDialog.TIME) {
+            PreloadSetting.putPreloadTimeSeconds(value);
+            setPreloadTimeText();
+        }
+    }
+
+    private void setPreloadSizeText() {
+        setRowValue(JetStreamSettingView.KEY_PRELOAD_SIZE, FileUtil.byteCountToDisplaySize(PreloadSetting.getPreloadSizeBytes()));
+    }
+
+    private void setPreloadTimeText() {
+        setRowValue(JetStreamSettingView.KEY_PRELOAD_TIME, getString(R.string.player_preload_time_value, PreloadSetting.getPreloadTimeSeconds()));
+    }
+
+    private void setPreloadThreadsText() {
+        setRowValue(JetStreamSettingView.KEY_PRELOAD_THREADS, getString(R.string.player_preload_threads_value, PreloadSetting.getPreloadThreads()));
+    }
+
+    private void setDanmakuLoad() {
+        DanmakuSetting.putLoad(!DanmakuSetting.isLoad());
+        refreshDanmakuRows();
+    }
+
+    private void onDanmakuApi() {
+        DanmakuApiDialog.show(this);
+    }
+
+    @Override
+    public void setDanmakuApi(String url) {
+        DanmakuSetting.putApiUrl(url);
+        refreshDanmakuRows();
+    }
+
+    private void setDanmakuAuto() {
+        DanmakuSetting.putAuto(!DanmakuSetting.isAuto());
+        refreshDanmakuRows();
+    }
+
+    private void setDanmakuSpider() {
+        DanmakuSetting.putSpiderFirst(!DanmakuSetting.isSpiderFirst());
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_SPIDER, Setting.getSwitch(DanmakuSetting.isSpiderFirst()));
+    }
+
+    private void updateDanmakuVisibility() {
+        boolean load = DanmakuSetting.isLoad();
+        boolean api = !TextUtils.isEmpty(DanmakuSetting.getEffectiveApiUrl());
+        setRowVisible(JetStreamSettingView.KEY_DANMAKU_API, load);
+        setRowVisible(JetStreamSettingView.KEY_DANMAKU_AUTO, load && api);
+        setRowVisible(JetStreamSettingView.KEY_DANMAKU_SPIDER, load && api && DanmakuSetting.isAuto());
+    }
+
+    private void setIncognito() {
         Setting.putIncognito(!Setting.isIncognito());
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        setRowValue(JetStreamSettingView.KEY_INCOGNITO, Setting.getSwitch(Setting.isIncognito()));
     }
 
-    private void setSize(View view) {
+    private void setSize() {
         int index = (PlayerSetting.getSize() + 1) % size.length;
-        mBinding.sizeText.setText(size[index]);
         PlayerSetting.putSize(index);
+        setRowValue(JetStreamSettingView.KEY_SIZE, size[index]);
         RefreshEvent.size();
     }
 
-    private void setDoh(View view) {
+    private void setDoh() {
         DohDialog.create().index(getDohIndex()).show(this);
     }
 
@@ -268,10 +558,10 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     public void setDoh(Doh doh) {
         OkHttp.dns().setDoh(doh);
         Setting.putDoh(doh.toString());
-        mBinding.dohText.setText(doh.getName());
+        setRowValue(JetStreamSettingView.KEY_DOH, doh.getName());
     }
 
-    private void onCache(View view) {
+    private void onCache() {
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
@@ -280,7 +570,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         });
     }
 
-    private void onBackup(View view) {
+    private void onBackup() {
         PermissionUtil.requestFile(this, allGranted -> AppDatabase.backup(new Callback() {
             @Override
             public void success() {
@@ -294,12 +584,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         }));
     }
 
-    private void onRestore(View view) {
+    private void onRestore() {
         PermissionUtil.requestFile(this, allGranted -> RestoreDialog.create().callback(new Callback() {
             @Override
             public void success() {
                 Notify.show(R.string.restore_success);
-                setOtherText();
+                refreshAll();
                 initConfig();
             }
 
@@ -310,6 +600,10 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         }).show(this));
     }
 
+    private void onVersion() {
+        Updater.create().force().start(this);
+    }
+
     private void initConfig() {
         VodConfig.get().init().load(getCallback());
         LiveConfig.get().init().load();
@@ -318,10 +612,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConfigEvent(ConfigEvent event) {
-        if (event.type() != ConfigEvent.Type.COMMON) return;
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
+        refreshSourceRows();
+        refreshDanmakuRows();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mBinding == null) return;
+        refreshPlaybackRows();
+        refreshDecodeRows();
+        refreshPreloadRows();
+        refreshDanmakuRows();
+        refreshAppRows();
+    }
 }

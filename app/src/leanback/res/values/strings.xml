@@ -10,6 +10,19 @@
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
 
+    <!-- Setting -->
+    <string name="setting_section_source">Source</string>
+    <string name="setting_section_playback">Playback</string>
+    <string name="setting_section_decode">Decode</string>
+    <string name="setting_section_preload">Preload</string>
+    <string name="setting_section_danmaku">Danmaku</string>
+    <string name="setting_section_app">Application</string>
+    <string name="setting_home">Home</string>
+    <string name="setting_history">History</string>
+    <string name="setting_default">Default</string>
+    <string name="setting_refresh">Refresh</string>
+    <string name="setting_clear">Clear</string>
+
     <!-- Collect -->
     <string name="collect_result">Search results for <xliff:g name="name">%s</xliff:g></string>
 
