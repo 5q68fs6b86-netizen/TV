@@ -402,7 +402,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
             @Override
             public void onRepeat() {
-                onRepeat();
+                VideoActivity.this.onRepeat();
             }
 
             @Override
