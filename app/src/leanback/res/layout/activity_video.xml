@@ -67,6 +67,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/detail"
+        android:layout_marginTop="12dp"
         android:overScrollMode="never">
 
         <androidx.appcompat.widget.LinearLayoutCompat
