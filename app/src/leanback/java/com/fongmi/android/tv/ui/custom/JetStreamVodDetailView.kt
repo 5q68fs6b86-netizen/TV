@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -222,6 +221,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 Spacer(Modifier.height(8.dp))
                 PeopleBlock()
                 Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(14.dp))
                 ActionRow()
             }
         }
@@ -321,7 +321,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     private fun PeopleBlock() {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             ClickableInfoText(director, 1)
             ClickableInfoText(actor, 2)
@@ -341,6 +341,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                     includeFontPadding = false
                     highlightColor = android.graphics.Color.TRANSPARENT
                     movementMethod = LinkMovementMethod.getInstance()
+                    setLineSpacing(2f, 1.0f)
                 }
             },
             update = { view ->
@@ -357,7 +358,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         val specs = actions()
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             specs.forEachIndexed { index, spec ->
@@ -387,9 +388,9 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         )
         Row(
             modifier = Modifier
-                .height(42.dp)
+                .height(48.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(21.dp))
+                .clip(RoundedCornerShape(24.dp))
                 .background(background)
                 .clickable(
                     enabled = spec.enabled,
@@ -397,28 +398,21 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                     indication = null,
                     onClick = onClick
                 )
-                .padding(start = 10.dp, end = 16.dp),
+                .padding(start = 18.dp, end = 22.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = if (active) 0.22f else 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = spec.icon,
-                    contentDescription = spec.label,
-                    modifier = Modifier.size(19.dp),
-                    tint = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f)
-                )
-            }
-            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = spec.icon,
+                contentDescription = spec.label,
+                modifier = Modifier.size(20.dp),
+                tint = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f)
+            )
+            Spacer(Modifier.width(10.dp))
             Text(
                 text = spec.label,
                 color = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f),
-                fontSize = 14.sp,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
