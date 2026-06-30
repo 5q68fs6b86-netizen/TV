@@ -1,0 +1,561 @@
+package com.fongmi.android.tv.ui.custom
+
+import android.content.Context
+import android.util.AttributeSet
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesomeMotion
+import androidx.compose.material.icons.filled.ClosedCaption
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.media3.common.C
+import androidx.media3.common.Player
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlin.math.roundToLong
+
+class JetStreamVodControlView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AbstractComposeView(context, attrs, defStyleAttr) {
+
+    interface Listener {
+        fun onPlayPause()
+        fun onPrevious()
+        fun onNext()
+        fun onRepeat()
+        fun onCommand(key: String)
+        fun onSeekTo(positionMs: Long)
+        fun onShowControls()
+    }
+
+    private data class CommandState(
+        val label: String,
+        val visible: Boolean,
+        val selected: Boolean
+    )
+
+    private var listener: Listener? = null
+    private var mediaPlayer by mutableStateOf<Player?>(null)
+    private var mediaTitle by mutableStateOf("")
+    private var secondaryText by mutableStateOf("")
+    private var tertiaryText by mutableStateOf("")
+    private var playing by mutableStateOf(false)
+    private var repeating by mutableStateOf(false)
+    private var playlistEnabled by mutableStateOf(true)
+    private var captionsEnabled by mutableStateOf(true)
+    private var settingsEnabled by mutableStateOf(true)
+    private var activeGroup by mutableStateOf<String?>(null)
+    private val commands = mutableStateMapOf<String, CommandState>()
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+
+    @Composable
+    override fun Content() {
+        JetStreamControls()
+    }
+
+    fun setListener(listener: Listener?) {
+        this.listener = listener
+    }
+
+    fun setPlayer(player: Player?) {
+        mediaPlayer = player
+    }
+
+    fun setMediaTitle(title: CharSequence?, secondary: CharSequence?, tertiary: CharSequence?) {
+        mediaTitle = title?.toString().orEmpty()
+        secondaryText = secondary?.toString().orEmpty()
+        tertiaryText = tertiary?.toString().orEmpty()
+    }
+
+    fun setPlaybackState(isPlaying: Boolean, isRepeating: Boolean) {
+        playing = isPlaying
+        repeating = isRepeating
+    }
+
+    fun setTopActions(playlist: Boolean, captions: Boolean, settings: Boolean) {
+        playlistEnabled = playlist
+        captionsEnabled = captions
+        settingsEnabled = settings
+    }
+
+    fun setCommand(key: String, label: CharSequence?, visible: Boolean, selected: Boolean) {
+        commands[key] = CommandState(label?.toString().orEmpty(), visible, selected)
+    }
+
+    fun showGroup(group: String?) {
+        activeGroup = group
+    }
+
+    @Composable
+    private fun JetStreamControls() {
+        val player = mediaPlayer
+        var positionMs by remember(player) { mutableLongStateOf(normalize(player?.currentPosition)) }
+        var durationMs by remember(player) { mutableLongStateOf(normalize(player?.duration)) }
+        var polledPlaying by remember(player, playing) { mutableStateOf(playing) }
+
+        LaunchedEffect(player) {
+            while (isActive) {
+                positionMs = normalize(player?.currentPosition)
+                durationMs = normalize(player?.duration)
+                polledPlaying = player?.isPlaying ?: playing
+                delay(300)
+            }
+        }
+
+        MaterialTheme(
+            colorScheme = darkColorScheme(
+                primary = Color.White,
+                onSurface = Color.White,
+                surface = Color.Transparent
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Black.copy(alpha = 0.10f),
+                                Color.Black.copy(alpha = 0.80f)
+                            )
+                        )
+                    )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 56.dp)
+                        .padding(top = 8.dp, bottom = 32.dp)
+                ) {
+                    HeaderRow(polledPlaying)
+                    Spacer(Modifier.height(16.dp))
+                    SeekerRow(
+                        isPlaying = polledPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs
+                    )
+                    MorePanel()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun HeaderRow(isPlaying: Boolean) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            MediaTitle(Modifier.weight(1f))
+            Row(
+                modifier = Modifier.padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ControlIcon(Icons.Default.SkipPrevious, isPlaying, true, false, "Previous") {
+                    listener?.onPrevious()
+                }
+                ControlIcon(Icons.Default.SkipNext, isPlaying, true, false, "Next") {
+                    listener?.onNext()
+                }
+                ControlIcon(
+                    icon = if (repeating) Icons.Default.RepeatOne else Icons.Default.Repeat,
+                    isPlaying = isPlaying,
+                    enabled = true,
+                    selected = repeating,
+                    contentDescription = "Repeat"
+                ) {
+                    listener?.onRepeat()
+                }
+                ControlIcon(Icons.Default.AutoAwesomeMotion, isPlaying, playlistEnabled, activeGroup == GROUP_PLAYLIST, "Playlist") {
+                    toggleGroup(GROUP_PLAYLIST)
+                }
+                ControlIcon(Icons.Default.ClosedCaption, isPlaying, captionsEnabled, activeGroup == GROUP_CAPTIONS, "Captions") {
+                    toggleGroup(GROUP_CAPTIONS)
+                }
+                ControlIcon(Icons.Default.Settings, isPlaying, settingsEnabled, activeGroup == GROUP_SETTINGS, "Settings") {
+                    toggleGroup(GROUP_SETTINGS)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun MediaTitle(modifier: Modifier) {
+        val subtitle = buildString {
+            append(secondaryText)
+            if (secondaryText.isNotEmpty() && tertiaryText.isNotEmpty()) append(" • ")
+            append(tertiaryText)
+        }
+        Column(modifier = modifier.padding(end = 24.dp)) {
+            Text(
+                text = mediaTitle,
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (subtitle.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    color = Color.White.copy(alpha = 0.72f),
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun SeekerRow(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ControlIcon(
+                icon = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                isPlaying = isPlaying,
+                enabled = true,
+                selected = false,
+                contentDescription = "Play/Pause"
+            ) {
+                listener?.onPlayPause()
+            }
+            Spacer(Modifier.width(12.dp))
+            ControllerText(formatTime(positionMs))
+            ControllerIndicator(
+                progress = progress(positionMs, durationMs),
+                durationMs = durationMs,
+                modifier = Modifier.weight(1f)
+            )
+            ControllerText(formatTime(durationMs))
+        }
+    }
+
+    @Composable
+    private fun MorePanel() {
+        val group = activeGroup ?: return
+        val keys = when (group) {
+            GROUP_PLAYLIST -> PLAYLIST_COMMANDS
+            GROUP_CAPTIONS -> CAPTION_COMMANDS
+            GROUP_SETTINGS -> SETTINGS_COMMANDS
+            else -> emptyList()
+        }
+        val visibleCommands = keys.mapNotNull { key ->
+            commands[key]?.takeIf { it.visible && it.label.isNotEmpty() }?.let { key to it }
+        }
+        if (visibleCommands.isEmpty()) return
+
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            visibleCommands.forEach { (key, state) ->
+                CommandChip(state) {
+                    listener?.onCommand(key)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CommandChip(state: CommandState, onClick: () -> Unit) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val focused by interactionSource.collectIsFocusedAsState()
+        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "chipScale")
+        val background by animateColorAsState(
+            targetValue = when {
+                state.selected -> Color.White.copy(alpha = 0.30f)
+                focused -> Color.White.copy(alpha = 0.24f)
+                else -> Color.White.copy(alpha = 0.14f)
+            },
+            label = "chipBackground"
+        )
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .graphicsLayer(scaleX = scale, scaleY = scale)
+                .clip(RoundedCornerShape(18.dp))
+                .background(background)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = {
+                        listener?.onShowControls()
+                        onClick()
+                    }
+                )
+                .padding(horizontal = 18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = state.label,
+                color = Color.White,
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        LaunchedEffect(focused) {
+            if (focused) listener?.onShowControls()
+        }
+    }
+
+    @Composable
+    private fun ControlIcon(
+        icon: ImageVector,
+        isPlaying: Boolean,
+        enabled: Boolean,
+        selected: Boolean,
+        contentDescription: String,
+        onClick: () -> Unit
+    ) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val focused by interactionSource.collectIsFocusedAsState()
+        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "iconScale")
+        val background by animateColorAsState(
+            targetValue = when {
+                selected -> Color.White.copy(alpha = 0.30f)
+                focused -> Color.White.copy(alpha = 0.24f)
+                enabled -> Color.White.copy(alpha = 0.20f)
+                else -> Color.White.copy(alpha = 0.08f)
+            },
+            label = "iconBackground"
+        )
+
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .graphicsLayer(scaleX = scale, scaleY = scale)
+                .clip(CircleShape)
+                .background(background)
+                .clickable(
+                    enabled = enabled,
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = {
+                        listener?.onShowControls()
+                        onClick()
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(24.dp),
+                tint = Color.White.copy(alpha = if (enabled) 1f else 0.38f)
+            )
+            if (selected) {
+                Canvas(Modifier.fillMaxSize()) {
+                    drawCircle(
+                        color = Color.White,
+                        radius = 2.dp.toPx(),
+                        center = Offset(size.width / 2f, size.height - 6.dp.toPx())
+                    )
+                }
+            }
+        }
+        LaunchedEffect(focused, isPlaying) {
+            if (focused && isPlaying) listener?.onShowControls()
+        }
+    }
+
+    @Composable
+    private fun ControllerText(text: String) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = Color.White.copy(alpha = 0.86f),
+            fontSize = 14.sp,
+            maxLines = 1
+        )
+    }
+
+    @Composable
+    private fun ControllerIndicator(progress: Float, durationMs: Long, modifier: Modifier) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val focused by interactionSource.collectIsFocusedAsState()
+        var selected by remember { mutableStateOf(false) }
+        var seekProgress by remember { mutableStateOf(progress) }
+        val height by animateDpAsState(if (focused) 10.dp else 4.dp, label = "indicatorHeight")
+        val color = if (selected) Color.White else Color.White.copy(alpha = 0.92f)
+        val displayProgress = if (selected) seekProgress else progress
+
+        LaunchedEffect(progress, selected) {
+            if (!selected) seekProgress = progress
+        }
+        LaunchedEffect(selected) {
+            if (selected) listener?.onShowControls()
+        }
+
+        Canvas(
+            modifier = modifier
+                .height(height)
+                .padding(horizontal = 4.dp)
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown || durationMs <= 0) return@onPreviewKeyEvent false
+                    when (event.key) {
+                        Key.DirectionCenter, Key.Enter -> {
+                            if (selected) listener?.onSeekTo((durationMs * seekProgress).roundToLong())
+                            else seekProgress = progress
+                            selected = !selected
+                            listener?.onShowControls()
+                            true
+                        }
+
+                        Key.DirectionLeft -> {
+                            selected = true
+                            seekProgress = (seekProgress - 0.10f).coerceAtLeast(0f)
+                            listener?.onShowControls()
+                            true
+                        }
+
+                        Key.DirectionRight -> {
+                            selected = true
+                            seekProgress = (seekProgress + 0.10f).coerceAtMost(1f)
+                            listener?.onShowControls()
+                            true
+                        }
+
+                        Key.Back -> {
+                            selected = false
+                            false
+                        }
+
+                        else -> false
+                    }
+                }
+                .focusable(interactionSource = interactionSource)
+        ) {
+            val y = size.height / 2f
+            drawLine(
+                color = Color.White.copy(alpha = 0.24f),
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = size.height,
+                cap = StrokeCap.Round
+            )
+            drawLine(
+                color = color,
+                start = Offset(0f, y),
+                end = Offset(size.width * displayProgress.coerceIn(0f, 1f), y),
+                strokeWidth = size.height,
+                cap = StrokeCap.Round
+            )
+        }
+    }
+
+    private fun toggleGroup(group: String) {
+        activeGroup = if (activeGroup == group) null else group
+        listener?.onShowControls()
+    }
+
+    private fun normalize(value: Long?): Long {
+        val time = value ?: 0L
+        return if (time == C.TIME_UNSET || time < 0L) 0L else time
+    }
+
+    private fun progress(positionMs: Long, durationMs: Long): Float {
+        if (durationMs <= 0L) return 0f
+        return (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+    }
+
+    private fun formatTime(timeMs: Long): String {
+        val totalSeconds = timeMs / 1000L
+        val hours = totalSeconds / 3600L
+        val minutes = (totalSeconds % 3600L) / 60L
+        val seconds = totalSeconds % 60L
+        return if (hours > 0) {
+            "%d:%02d:%02d".format(hours, minutes, seconds)
+        } else {
+            "%02d:%02d".format(minutes, seconds)
+        }
+    }
+
+    companion object {
+        const val GROUP_PLAYLIST = "playlist"
+        const val GROUP_CAPTIONS = "captions"
+        const val GROUP_SETTINGS = "settings"
+
+        private val PLAYLIST_COMMANDS = listOf("prev", "next", "change", "parse", "replay", "reset")
+        private val CAPTION_COMMANDS = listOf("subtitle", "text", "audio", "video", "danmaku")
+        private val SETTINGS_COMMANDS = listOf("speed", "scale", "player", "decode", "opening", "ending", "edition", "chapter")
+    }
+}

@@ -1,5 +1,7 @@
 plugins {
     alias libs.plugins.android.application
+    alias libs.plugins.kotlin.android
+    alias libs.plugins.kotlin.compose
 }
 
 def localProps = new Properties()
@@ -59,6 +61,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
         viewBinding = true
     }
 
@@ -84,6 +87,7 @@ android {
         exclude group: 'stax', module: 'stax-api'
         exclude group: 'xpp3', module: 'xpp3'
         exclude group: 'com.android.support'
+        exclude group: 'androidx.lifecycle', module: 'lifecycle-runtime-compose'
         resolutionStrategy {
             force libs.okhttp
         }
@@ -142,6 +146,11 @@ dependencies {
     implementation libs.textdrawable
     leanbackImplementation libs.leanback
     leanbackImplementation libs.androidautosize
+    leanbackImplementation platform(libs.compose.bom)
+    leanbackImplementation libs.compose.foundation
+    leanbackImplementation libs.compose.material3
+    leanbackImplementation libs.compose.material.icons.extended
+    leanbackImplementation libs.compose.ui
     mobileImplementation libs.biometric
     mobileImplementation libs.zxing.android.embedded
     annotationProcessor libs.room.compiler

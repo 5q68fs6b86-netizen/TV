@@ -69,6 +69,7 @@ import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
+import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
 import com.fongmi.android.tv.ui.dialog.ChapterDialog;
 import com.fongmi.android.tv.ui.dialog.ContentDialog;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
@@ -227,6 +228,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVod.setScale(scale);
         mBinding.player.setResizeMode(scale);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
+        syncJetStreamControl();
     }
 
     @Override
@@ -369,14 +371,55 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setVideoView() {
-        setSeekNextFocusDown(R.id.next);
+        setSeekNextFocusDown(R.id.jetstream);
         setActionFocusBoundary(mBinding.control.action.getRoot());
         PlayerEngineDialog.setText(mBinding.control.action.player);
         mBinding.control.action.danmaku.setVisibility(DanmakuSetting.isLoad() ? View.VISIBLE : View.GONE);
+        setJetStreamControl();
     }
 
     private void setPlaybackMode() {
         PlaybackAction.setPlaybackMode(player(), mBinding.control.action.player, mBinding.control.action.decode);
+        syncJetStreamControl();
+    }
+
+    private void setJetStreamControl() {
+        mBinding.control.jetstream.setListener(new JetStreamVodControlView.Listener() {
+            @Override
+            public void onPlayPause() {
+                onJetStreamPlayPause();
+            }
+
+            @Override
+            public void onPrevious() {
+                checkPrev();
+            }
+
+            @Override
+            public void onNext() {
+                checkNext();
+            }
+
+            @Override
+            public void onRepeat() {
+                onRepeat();
+            }
+
+            @Override
+            public void onCommand(@NonNull String key) {
+                onJetStreamCommand(key);
+            }
+
+            @Override
+            public void onSeekTo(long positionMs) {
+                if (controller() != null) controller().seekTo(positionMs);
+            }
+
+            @Override
+            public void onShowControls() {
+                setR1Callback();
+            }
+        });
     }
 
     private void setViewModel() {
@@ -595,12 +638,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         PlaybackAction.setSpeed(player(), mBinding.control.action.speed, history.getSpeed());
         setScale(getScale());
         setPartAdapter();
+        syncJetStreamControl();
     }
 
     @Override
     public void renderUseParse(boolean useParse) {
         setUseParse(useParse);
         mBinding.control.action.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
+        syncJetStreamControl();
     }
 
     @Override
@@ -834,11 +879,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void onRepeat() {
         player().setRepeatOne(!player().isRepeatOne());
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
+        syncJetStreamControl();
     }
 
     @Override
     public void onRepeatModeChanged(int repeatMode) {
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
+        syncJetStreamControl();
     }
 
     private void checkNext() {
@@ -873,14 +920,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onSpeed() {
         mVod.setSpeed(PlaybackAction.addSpeed(player(), mBinding.control.action.speed));
+        syncJetStreamControl();
     }
 
     private void onSpeedAdd() {
         mVod.setSpeed(PlaybackAction.addSpeed(player(), mBinding.control.action.speed, 0.25f));
+        syncJetStreamControl();
     }
 
     private void onSpeedSub() {
         mVod.setSpeed(PlaybackAction.subSpeed(player(), mBinding.control.action.speed, 0.25f));
+        syncJetStreamControl();
     }
 
     private void onReset() {
@@ -922,6 +972,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setOpening(long opening) {
         mVod.setOpening(opening);
         mBinding.control.action.opening.setText(opening <= 0 ? getString(R.string.play_op) : Util.timeMs(mHistory.getOpening()));
+        syncJetStreamControl();
     }
 
     private void onEnding() {
@@ -946,6 +997,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setEnding(long ending) {
         mVod.setEnding(ending);
         mBinding.control.action.ending.setText(ending <= 0 ? getString(R.string.play_ed) : Util.timeMs(mHistory.getEnding()));
+        syncJetStreamControl();
     }
 
     private void onChoose() {
@@ -1021,13 +1073,121 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        view.requestFocus();
+        syncJetStreamControl();
+        View focus = getJetStreamFocus(view);
+        focus.requestFocus();
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
+        mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
+    }
+
+    private View getJetStreamFocus(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE || isLegacyControlAction(view)) return mBinding.control.jetstream;
+        return view;
+    }
+
+    private boolean isLegacyControlAction(View view) {
+        return view == mBinding.control.action.opening || view == mBinding.control.action.ending || view == mBinding.control.action.next || view == mBinding.control.action.prev;
+    }
+
+    private void onJetStreamPlayPause() {
+        if (service() == null || controller() == null) return;
+        if (player().isPlaying()) onPaused();
+        else if (player().isEmpty()) onRefresh();
+        else onPlay();
+        syncJetStreamControl();
+    }
+
+    private void onJetStreamCommand(String key) {
+        switch (key) {
+            case "prev" -> checkPrev();
+            case "next" -> checkNext();
+            case "change" -> onChange();
+            case "parse" -> onParse();
+            case "replay" -> onReplay();
+            case "reset" -> onReset();
+            case "subtitle" -> onSubtitleClick();
+            case "text" -> onTrack(mBinding.control.action.text);
+            case "audio" -> onTrack(mBinding.control.action.audio);
+            case "video" -> onTrack(mBinding.control.action.video);
+            case "danmaku" -> onDanmaku();
+            case "speed" -> onSpeed();
+            case "scale" -> onScale();
+            case "player" -> onChoose();
+            case "decode" -> onDecode();
+            case "opening" -> onOpening();
+            case "ending" -> onEnding();
+            case "edition" -> onEdition();
+            case "chapter" -> onChapter();
+        }
+        syncJetStreamControl();
+    }
+
+    private void syncJetStreamControl() {
+        if (mBinding == null) return;
+        boolean owner = service() != null && isOwner();
+        boolean playing = owner && player().isPlaying();
+        boolean repeating = owner && player().isRepeatOne();
+        mBinding.control.jetstream.setPlayer(controller());
+        mBinding.control.jetstream.setMediaTitle(getJetStreamTitle(), getJetStreamSecondaryText(), getJetStreamTertiaryText());
+        mBinding.control.jetstream.setPlaybackState(playing, repeating);
+        mBinding.control.jetstream.setTopActions(true, true, true);
+        syncJetStreamCommands();
+    }
+
+    private void syncJetStreamCommands() {
+        setJetStreamCommand("prev", mBinding.control.action.prev, true);
+        setJetStreamCommand("next", mBinding.control.action.next, true);
+        setJetStreamCommand("change", mBinding.control.action.change2, true);
+        setJetStreamCommand("parse", mBinding.control.action.parse, isVisible(mBinding.control.action.parse));
+        setJetStreamCommand("replay", mBinding.control.action.replay, true);
+        setJetStreamCommand("reset", mBinding.control.action.reset, true);
+        setJetStreamCommand("subtitle", getString(R.string.play_subtitle), true, false);
+        setJetStreamCommand("text", mBinding.control.action.text, isVisible(mBinding.control.action.text));
+        setJetStreamCommand("audio", mBinding.control.action.audio, isVisible(mBinding.control.action.audio));
+        setJetStreamCommand("video", mBinding.control.action.video, isVisible(mBinding.control.action.video));
+        setJetStreamCommand("danmaku", mBinding.control.action.danmaku, isVisible(mBinding.control.action.danmaku));
+        setJetStreamCommand("speed", mBinding.control.action.speed, true);
+        setJetStreamCommand("scale", mBinding.control.action.scale, true);
+        setJetStreamCommand("player", mBinding.control.action.player, true);
+        setJetStreamCommand("decode", mBinding.control.action.decode, isVisible(mBinding.control.action.decode));
+        setJetStreamCommand("opening", mBinding.control.action.opening, true);
+        setJetStreamCommand("ending", mBinding.control.action.ending, true);
+        setJetStreamCommand("edition", mBinding.control.action.edition, isVisible(mBinding.control.action.edition));
+        setJetStreamCommand("chapter", mBinding.control.action.chapter, isVisible(mBinding.control.action.chapter));
+    }
+
+    private void setJetStreamCommand(String key, TextView view, boolean visible) {
+        setJetStreamCommand(key, view.getText(), visible, view.isSelected());
+    }
+
+    private void setJetStreamCommand(String key, CharSequence label, boolean visible, boolean selected) {
+        mBinding.control.jetstream.setCommand(key, label, visible, selected);
+    }
+
+    private CharSequence getJetStreamTitle() {
+        CharSequence widgetTitle = mBinding.widget.title.getText();
+        return TextUtils.isEmpty(widgetTitle) ? mBinding.name.getText() : widgetTitle;
+    }
+
+    private CharSequence getJetStreamSecondaryText() {
+        CharSequence remark = visibleText(mBinding.remark);
+        if (!TextUtils.isEmpty(remark)) return remark;
+        CharSequence year = visibleText(mBinding.year);
+        return TextUtils.isEmpty(year) ? visibleText(mBinding.site) : year;
+    }
+
+    private CharSequence getJetStreamTertiaryText() {
+        CharSequence director = visibleText(mBinding.director);
+        return TextUtils.isEmpty(director) ? visibleText(mBinding.site) : director;
+    }
+
+    private CharSequence visibleText(TextView view) {
+        return isVisible(view) ? view.getText() : "";
     }
 
     private void hideCenter() {
@@ -1277,6 +1437,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 mClock.setCallback(null);
                 break;
         }
+        syncJetStreamControl();
     }
 
     @Override
@@ -1287,6 +1448,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             if (isFullscreen()) showInfo();
             else hideInfo();
         }
+        syncJetStreamControl();
     }
 
     @Override
@@ -1326,10 +1488,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
+        syncJetStreamControl();
     }
 
     private void setMediaOptionVisible() {
         PlaybackAction.setMediaOptions(player(), mBinding.control.action.edition, mBinding.control.action.chapter);
+        syncJetStreamControl();
     }
 
     private MediaMetadata buildMetadata() {
@@ -1391,7 +1555,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE || mFocus2 == mBinding.control.action.opening || mFocus2 == mBinding.control.action.ending ? mBinding.control.action.next : mFocus2;
+        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE || isLegacyControlAction(mFocus2) ? mBinding.control.jetstream : mFocus2;
     }
 
     @Override
@@ -1426,6 +1590,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.widget.speed.setVisibility(View.VISIBLE);
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         PlaybackAction.setSpeed(player(), mBinding.control.action.speed, PlayerSetting.getSpeed());
+        syncJetStreamControl();
     }
 
     @Override
@@ -1433,6 +1598,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.widget.speed.clearAnimation();
         mBinding.widget.speed.setVisibility(View.GONE);
         PlaybackAction.setSpeed(player(), mBinding.control.action.speed, mHistory.getSpeed());
+        syncJetStreamControl();
     }
 
     @Override
@@ -1440,9 +1606,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         long position = player().getPosition();
         long duration = player().getDuration();
         if (player().canSetOpening(position, duration)) {
-            showControl(mBinding.control.action.opening);
+            mBinding.control.jetstream.showGroup(JetStreamVodControlView.GROUP_SETTINGS);
+            showControl(mBinding.control.jetstream);
         } else if (player().canSetEnding(position, duration)) {
-            showControl(mBinding.control.action.ending);
+            mBinding.control.jetstream.showGroup(JetStreamVodControlView.GROUP_SETTINGS);
+            showControl(mBinding.control.jetstream);
         } else {
             showControl(getFocus2());
         }

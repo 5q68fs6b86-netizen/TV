@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/selector_item"
+    android:background="@drawable/selector_media_item"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:nextFocusUp="@id/part"
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:singleLine="true"
-        android:textColor="@color/green_a_400"
+        android:textColor="@color/white_60"
         android:textSize="14sp"
         tools:text="泥巴"
         tools:visibility="visible" />
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:singleLine="true"
-        android:textColor="@color/yellow_500"
+        android:textColor="@color/white_80"
         android:textSize="14sp"
         tools:text="1080p" />
 

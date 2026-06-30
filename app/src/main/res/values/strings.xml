@@ -46,6 +46,7 @@
     <string name="play_edition">Title</string>
     <string name="play_chapter">Chapter</string>
     <string name="play_scale">Default</string>
+    <string name="play_subtitle">Subtitle</string>
     <string name="play_config">Config</string>
     <string name="play_change">Change</string>
     <string name="play_invert">Invert</string>
