@@ -40,9 +40,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.AbstractComposeView
@@ -62,10 +60,15 @@ class JetStreamChipRow @JvmOverloads constructor(
         fun onChipClick(position: Int)
     }
 
+    interface OnChipLongClickListener {
+        fun onChipLongClick(position: Int)
+    }
+
     private val items = mutableStateListOf<String>()
-    private var selectedPosition by mutableIntStateOf(-1)
-    private var focusedPosition by mutableIntStateOf(-1)
+    private var selectedIndex by mutableIntStateOf(-1)
+    private var focusedIndex by mutableIntStateOf(-1)
     private var clickListener: ((Int) -> Unit)? = null
+    private var longClickListener: ((Int) -> Unit)? = null
 
     init {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
@@ -76,15 +79,32 @@ class JetStreamChipRow @JvmOverloads constructor(
     fun setItems(texts: List<String>, selected: Int) {
         items.clear()
         items.addAll(texts)
-        selectedPosition = selected
-        focusedPosition = if (selected >= 0) selected else 0
+        selectedIndex = selected
+        focusedIndex = if (selected >= 0) selected else 0
     }
 
     fun setItems(texts: List<String>) {
         setItems(texts, -1)
     }
 
-    fun getSelectedPosition(): Int = selectedPosition
+    fun getSelectedPosition(): Int = selectedIndex
+
+    fun setSelectedPosition(position: Int) {
+        selectedIndex = position
+        setFocusedPosition(position)
+    }
+
+    fun setFocusedPosition(position: Int) {
+        if (position in 0 until items.size) focusedIndex = position
+    }
+
+    fun setNextFocusUp(id: Int) {
+        nextFocusUpId = id
+    }
+
+    fun setNextFocusDown(id: Int) {
+        nextFocusDownId = id
+    }
 
     fun setOnChipClickListener(listener: (Int) -> Unit) {
         clickListener = listener
@@ -94,30 +114,46 @@ class JetStreamChipRow @JvmOverloads constructor(
         clickListener = { pos -> listener.onChipClick(pos) }
     }
 
+    fun setOnChipLongClickListener(listener: (Int) -> Unit) {
+        longClickListener = listener
+    }
+
+    fun setOnChipLongClickListener(listener: OnChipLongClickListener) {
+        longClickListener = { pos -> listener.onChipLongClick(pos) }
+    }
+
     override fun onKeyPreIme(keyCode: Int, event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN) {
-            when (keyCode) {
-                KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    if (focusedPosition > 0) {
-                        focusedPosition--
-                        return true
-                    }
-                }
-                KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    if (focusedPosition < items.size - 1) {
-                        focusedPosition++
-                        return true
-                    }
-                }
-                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                    if (focusedPosition in 0 until items.size) {
-                        clickListener?.invoke(focusedPosition)
-                        return true
-                    }
+        return event.action == KeyEvent.ACTION_DOWN && handleKeyDown(keyCode) || super.onKeyPreIme(keyCode, event)
+    }
+
+    private fun handleKeyDown(keyCode: Int): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (focusedIndex > 0) {
+                    focusedIndex--
+                    true
+                } else {
+                    false
                 }
             }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (focusedIndex < items.size - 1) {
+                    focusedIndex++
+                    true
+                } else {
+                    false
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                if (focusedIndex in 0 until items.size) {
+                    clickListener?.invoke(focusedIndex)
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> false
         }
-        return super.onKeyPreIme(keyCode, event)
     }
 
     @Composable
@@ -126,9 +162,9 @@ class JetStreamChipRow @JvmOverloads constructor(
             val listState = rememberLazyListState()
             val focusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
 
-            LaunchedEffect(focusedPosition) {
-                if (focusedPosition in 0 until items.size) {
-                    listState.animateScrollToItem(focusedPosition)
+            LaunchedEffect(focusedIndex) {
+                if (focusedIndex in 0 until items.size) {
+                    listState.animateScrollToItem(focusedIndex)
                 }
             }
 
@@ -137,29 +173,7 @@ class JetStreamChipRow @JvmOverloads constructor(
                 modifier = Modifier
                     .fillMaxHeight()
                     .onPreviewKeyEvent { event ->
-                        if (event.type == KeyEventType.KeyDown) {
-                            when (event.key) {
-                                Key.DpadLeft -> {
-                                    if (focusedPosition > 0) {
-                                        focusedPosition--
-                                        true
-                                    } else false
-                                }
-                                Key.DpadRight -> {
-                                    if (focusedPosition < items.size - 1) {
-                                        focusedPosition++
-                                        true
-                                    } else false
-                                }
-                                Key.DpadCenter, Key.Enter -> {
-                                    if (focusedPosition in 0 until items.size) {
-                                        clickListener?.invoke(focusedPosition)
-                                        true
-                                    } else false
-                                }
-                                else -> false
-                            }
-                        } else false
+                        event.type == KeyEventType.KeyDown && handleKeyDown(event.nativeKeyEvent.keyCode)
                     },
                 contentPadding = PaddingValues(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -169,14 +183,15 @@ class JetStreamChipRow @JvmOverloads constructor(
                     val requester = focusRequesters.getOrPut(index) { FocusRequester() }
                     Chip(
                         text = text,
-                        focused = index == focusedPosition,
-                        selected = index == selectedPosition,
+                        focused = index == focusedIndex,
+                        selected = index == selectedIndex,
                         focusRequester = requester,
-                        onClick = { clickListener?.invoke(index) }
+                        onClick = { clickListener?.invoke(index) },
+                        onLongClick = longClickListener?.let { listener -> { listener(index) } }
                     )
 
-                    LaunchedEffect(focusedPosition) {
-                        if (index == focusedPosition) {
+                    LaunchedEffect(focusedIndex) {
+                        if (index == focusedIndex) {
                             requester.requestFocus()
                         }
                     }
@@ -192,7 +207,8 @@ class JetStreamChipRow @JvmOverloads constructor(
         focused: Boolean,
         selected: Boolean,
         focusRequester: FocusRequester,
-        onClick: () -> Unit
+        onClick: () -> Unit,
+        onLongClick: (() -> Unit)?
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "chipScale")
@@ -220,7 +236,8 @@ class JetStreamChipRow @JvmOverloads constructor(
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = onClick
+                    onClick = onClick,
+                    onLongClick = onLongClick
                 )
                 .padding(horizontal = 14.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center

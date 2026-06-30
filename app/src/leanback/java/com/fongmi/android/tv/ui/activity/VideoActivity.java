@@ -388,7 +388,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 setArrayAdapter(mEpisodeItems.size());
             } else if (mEpisodeItems.size() > 20) {
                 int target = (pos - 2) * 20;
-                if (target < mEpisodeItems.size()) mBinding.episode.setSelectedPosition(target);
+                if (target < mEpisodeItems.size()) mBinding.episode.setFocusedPosition(target);
             }
         });
         mBinding.part.setOnChipClickListener(pos -> {
@@ -888,7 +888,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         return -1;
     }
 
-    @Override
     public void onRevSort() {
         mVod.setRevSort(!mHistory.isRevSort());
         mVod.reverseEpisode(false);
@@ -908,7 +907,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setClipToOutline(false);
         mBinding.player.setRender(PlayerSetting.getRender());
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-        mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
+        mBinding.flag.setSelectedPosition(mFlagSelectedPos);
         mKeyDown.setFull(true);
         setFullscreen(true);
         updateFullscreenViews();
@@ -992,15 +991,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void onNext(boolean notify) {
-        Episode item = mEpisodeAdapter.getNext();
-        if (!item.isSelected()) onItemClick(item);
-        else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_prev : R.string.error_play_next);
+        mVod.nextEpisode(notify);
     }
 
     private void onPrev(boolean notify) {
-        Episode item = mEpisodeAdapter.getPrev();
-        if (!item.isSelected()) onItemClick(item);
-        else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_next : R.string.error_play_prev);
+        mVod.prevEpisode(notify);
     }
 
     private void onScale() {
@@ -1331,6 +1326,26 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         App.post(mR2, 500);
     }
 
+    private void updateFocus() {
+        List<View> rows = new ArrayList<>();
+        for (int id : Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick)) {
+            View row = findViewById(id);
+            if (row != null && row.getVisibility() == View.VISIBLE) rows.add(row);
+        }
+        int first = rows.isEmpty() ? R.id.video : rows.get(0).getId();
+        mBinding.video.setNextFocusDownId(first);
+        mBinding.detail.setNextFocusDownId(first);
+        for (int i = 0; i < rows.size(); i++) {
+            View row = rows.get(i);
+            int up = i == 0 ? R.id.video : rows.get(i - 1).getId();
+            int down = i == rows.size() - 1 ? row.getId() : rows.get(i + 1).getId();
+            row.setNextFocusLeftId(row.getId());
+            row.setNextFocusRightId(row.getId());
+            row.setNextFocusUpId(up);
+            row.setNextFocusDownId(down);
+        }
+    }
+
     private void showTitleText(String name) {
         mTmdbLogoRequest = null;
         mTmdbLogoUrl = "";
@@ -1393,8 +1408,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setPartAdapter() {
-        mPartAdapter.addAll(PartUtil.split(mHistory.getVodName()));
-        mBinding.part.setVisibility(View.VISIBLE);
+        mPartItems = PartUtil.split(mHistory.getVodName());
+        mBinding.part.setItems(mPartItems, -1);
+        mBinding.part.setVisibility(mPartItems.isEmpty() ? View.GONE : View.VISIBLE);
         setR2Callback();
     }
 
@@ -1600,7 +1616,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         player().setMetadata(buildMetadata());
     }
 
-    @Override
     public void onItemClick(Vod item) {
         mVod.selectSource(item);
     }

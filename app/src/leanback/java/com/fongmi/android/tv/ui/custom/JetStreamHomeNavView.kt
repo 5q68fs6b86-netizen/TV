@@ -64,7 +64,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
 
     var listener: Listener? = null
     private val items = mutableStateListOf<NavItem>()
-    private var selectedKey by mutableStateOf("")
+    private var currentSelectedKey by mutableStateOf("")
 
     init {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
@@ -76,7 +76,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
     }
 
     fun setSelectedKey(key: String) {
-        selectedKey = key
+        currentSelectedKey = key
     }
 
     @Composable
@@ -92,7 +92,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 items.forEach { item ->
                     NavButton(
                         item = item,
-                        selected = item.key == selectedKey,
+                        selected = item.key == currentSelectedKey,
                         onClick = { listener?.onNavClick(item.key) },
                         onLongClick = { listener?.onNavLongClick(item.key) }
                     )
