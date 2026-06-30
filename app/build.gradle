@@ -87,7 +87,6 @@ android {
         exclude group: 'stax', module: 'stax-api'
         exclude group: 'xpp3', module: 'xpp3'
         exclude group: 'com.android.support'
-        exclude group: 'androidx.lifecycle', module: 'lifecycle-runtime-compose'
         resolutionStrategy {
             force libs.okhttp
         }
