@@ -29,9 +29,13 @@ public class VodPresenter extends Presenter {
     }
 
     public VodPresenter(OnClickListener listener, Style style) {
+        this(listener, style, Product.getSpec(style));
+    }
+
+    public VodPresenter(OnClickListener listener, Style style, int[] size) {
         this.listener = listener;
         this.style = style;
-        this.size = Product.getSpec(style);
+        this.size = size;
     }
 
     public interface OnClickListener {

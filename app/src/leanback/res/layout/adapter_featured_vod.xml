@@ -12,19 +12,19 @@
         android:id="@+id/imageA"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black_20"
+        android:background="@color/white_05"
         android:scaleType="centerCrop"
-        app:shapeAppearanceOverlay="@style/Vod.Grid.Large"
+        app:shapeAppearanceOverlay="@style/JetStream.Hero"
         tools:src="@drawable/wallpaper_1" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageB"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black_20"
+        android:background="@color/white_05"
         android:scaleType="centerCrop"
         android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid.Large" />
+        app:shapeAppearanceOverlay="@style/JetStream.Hero" />
 
     <View
         android:layout_width="match_parent"
@@ -53,8 +53,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/white"
-            android:textSize="34sp"
-            android:textStyle="bold"
+            android:textSize="36sp"
             tools:text="蜘蛛人" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -65,26 +64,26 @@
             android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/white_70"
-            android:textSize="18sp"
+            android:textColor="@color/white_60"
+            android:textSize="16sp"
             tools:text="2024  |  泥巴  |  1080p" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/action"
             android:layout_width="wrap_content"
-            android:layout_height="42dp"
+            android:layout_height="36dp"
             android:layout_marginTop="12dp"
             android:background="@drawable/shape_featured_button"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="18dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
             android:visibility="gone"
             tools:visibility="visible">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_featured_play" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -93,11 +92,24 @@
                 android:layout_marginStart="6dp"
                 android:text="@string/play"
                 android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/shape_featured_indicator"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        tools:visibility="visible" />
 
 </FrameLayout>

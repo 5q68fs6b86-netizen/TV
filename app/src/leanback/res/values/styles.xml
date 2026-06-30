@@ -46,4 +46,18 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="JetStream">
+        <item name="cornerFamily">rounded</item>
+    </style>
+
+    <style name="JetStream.Card">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="JetStream.Hero">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
 </resources>

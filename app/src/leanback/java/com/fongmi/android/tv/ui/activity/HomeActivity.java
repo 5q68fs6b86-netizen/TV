@@ -81,6 +81,9 @@ import java.util.Optional;
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, JetStreamHomeNavView.Listener, HistoryPresenter.OnClickListener {
 
+    private static final int HOME_HORIZONTAL_PADDING = 66;
+    private static final int HOME_HORIZONTAL_SPACING = 20;
+
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mAdapter;
@@ -171,8 +174,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(String.class, new ProgressPresenter());
         selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this));
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(HOME_HORIZONTAL_SPACING, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(HOME_HORIZONTAL_SPACING, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
@@ -192,7 +195,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setAdapter() {
-        mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+        mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this, getHomeSpec(Style.rect())));
         mAdapter.add(R.string.home_history);
         mAdapter.add(R.string.home_recommend);
     }
@@ -311,13 +314,20 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void addGrid(List<Vod> items, Style style) {
         List<ListRow> rows = new ArrayList<>();
-        VodPresenter presenter = new VodPresenter(this, style);
+        VodPresenter presenter = new VodPresenter(this, style, getHomeSpec(style));
         for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
             adapter.addAll(0, part);
             rows.add(new ListRow(adapter));
         }
         mAdapter.addAll(mAdapter.size(), rows);
+    }
+
+    private int[] getHomeSpec(Style style) {
+        int column = Product.getColumn(style);
+        int space = ResUtil.dp2px(HOME_HORIZONTAL_PADDING * 2) + ResUtil.dp2px(HOME_HORIZONTAL_SPACING * (column - 1));
+        if (style.isOval()) space += ResUtil.dp2px(column * 16);
+        return Product.getSpec(space, column, style);
     }
 
     private void setFunc() {
@@ -340,7 +350,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         int historyIndex = getHistoryIndex();
         int recommendIndex = getRecommendIndex();
         boolean exist = recommendIndex - historyIndex == 2;
-        if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+        if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this, getHomeSpec(Style.rect())));
         if ((items.isEmpty() && exist) || (renew && exist)) mAdapter.removeItems(historyIndex, 1);
         if ((!items.isEmpty() && !exist) || (renew && exist)) mAdapter.add(historyIndex, new ListRow(mHistoryAdapter));
         mHistoryAdapter.setItems(items, new BaseDiffCallback<History>());

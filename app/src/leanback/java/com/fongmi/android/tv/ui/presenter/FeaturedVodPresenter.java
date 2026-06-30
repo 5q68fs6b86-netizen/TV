@@ -7,6 +7,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
@@ -100,6 +101,7 @@ public class FeaturedVodPresenter extends Presenter {
             binding.imageA.setVisibility(View.VISIBLE);
             binding.imageB.setAlpha(0f);
             binding.imageB.setVisibility(View.GONE);
+            bindIndicator(row.size());
             setActionVisible(binding.getRoot().hasFocus(), false);
             show(0, false);
             binding.getRoot().setOnClickListener(view -> {
@@ -114,6 +116,7 @@ public class FeaturedVodPresenter extends Presenter {
             index = Math.floorMod(position, row.size());
             Vod item = row.get(index);
             bindText(item);
+            updateIndicator();
             ShapeableImageView next = front == binding.imageA ? binding.imageB : binding.imageA;
             if (!animate) {
                 ImgUtil.load(item.getName(), item.getPic(), front);
@@ -144,6 +147,28 @@ public class FeaturedVodPresenter extends Presenter {
             add(values, item.getSiteName());
             add(values, item.getRemarks());
             return TextUtils.join("  |  ", values);
+        }
+
+        private void bindIndicator(int count) {
+            binding.indicator.removeAllViews();
+            binding.indicator.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
+            for (int i = 0; i < count; i++) {
+                View dot = new View(binding.indicator.getContext());
+                int size = ResUtil.dp2px(7);
+                int margin = ResUtil.dp2px(3);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+                params.setMarginStart(margin);
+                params.setMarginEnd(margin);
+                dot.setBackgroundResource(com.fongmi.android.tv.R.drawable.selector_featured_dot);
+                binding.indicator.addView(dot, params);
+            }
+            updateIndicator();
+        }
+
+        private void updateIndicator() {
+            for (int i = 0; i < binding.indicator.getChildCount(); i++) {
+                binding.indicator.getChildAt(i).setSelected(i == index);
+            }
         }
 
         private void add(List<String> values, String value) {

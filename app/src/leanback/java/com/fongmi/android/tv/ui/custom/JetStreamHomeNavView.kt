@@ -85,9 +85,9 @@ class JetStreamHomeNavView @JvmOverloads constructor(
             Row(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items.forEach { item ->
                     NavButton(
@@ -109,32 +109,28 @@ class JetStreamHomeNavView @JvmOverloads constructor(
         val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "navScale")
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = 0.22f)
-                selected -> Color.White.copy(alpha = 0.16f)
-                else -> Color.White.copy(alpha = 0.08f)
+                focused -> Color.White.copy(alpha = 0.16f)
+                selected -> Color.White.copy(alpha = 0.12f)
+                else -> Color.Transparent
             },
             label = "navBackground"
         )
-        val borderAlpha by animateFloatAsState(if (focused) 0.25f else 0f, label = "navBorder")
 
         Row(
             modifier = Modifier
-                .height(44.dp)
-                .widthIn(min = 92.dp)
+                .height(32.dp)
+                .widthIn(min = 48.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .background(background)
-                .then(
-                    if (focused) Modifier.border(1.5.dp, Color.White.copy(alpha = borderAlpha), RoundedCornerShape(12.dp))
-                    else Modifier
-                )
+                .then(if (focused) Modifier.border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(8.dp)) else Modifier)
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
                     onClick = onClick,
                     onLongClick = onLongClick
                 )
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val painter = rememberDrawablePainter(item.drawableRes)
@@ -142,15 +138,15 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 Icon(
                     painter = painter,
                     contentDescription = item.text,
-                    modifier = Modifier.size(21.dp),
-                    tint = Color.White.copy(alpha = if (focused || selected) 1f else 0.78f)
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White.copy(alpha = if (focused || selected) 1f else 0.62f)
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(6.dp))
             }
             Text(
                 text = item.text,
-                color = Color.White.copy(alpha = if (focused || selected) 1f else 0.78f),
-                fontSize = 16.sp,
+                color = Color.White.copy(alpha = if (focused || selected) 1f else 0.62f),
+                fontSize = 12.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

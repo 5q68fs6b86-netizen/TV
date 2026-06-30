@@ -25,6 +25,12 @@ public class HistoryPresenter extends Presenter {
         setLayoutSize();
     }
 
+    public HistoryPresenter(OnClickListener listener, int[] size) {
+        this.listener = listener;
+        this.width = size[0];
+        this.height = size[1];
+    }
+
     public interface OnClickListener {
 
         void onItemClick(History item);
@@ -62,6 +68,7 @@ public class HistoryPresenter extends Presenter {
     public Presenter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
+        holder.binding.poster.getLayoutParams().height = height;
         holder.binding.image.getLayoutParams().height = height;
         return holder;
     }

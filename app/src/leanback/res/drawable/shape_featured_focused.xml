@@ -4,5 +4,5 @@
     <solid android:color="@android:color/transparent" />
     <stroke
         android:width="3dp"
-        android:color="@color/white" />
+        android:color="@color/jetstream_on_surface" />
 </shape>

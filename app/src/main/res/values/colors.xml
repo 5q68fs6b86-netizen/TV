@@ -25,5 +25,9 @@
     <color name="white_70">#B3FFFFFF</color>
     <color name="white_80">#CCFFFFFF</color>
     <color name="white_90">#E6FFFFFF</color>
+    <color name="jetstream_surface">#1A1C1E</color>
+    <color name="jetstream_on_surface">#E3E2E6</color>
+    <color name="jetstream_on_surface_variant">#C4C6CF</color>
+    <color name="jetstream_border">#8E9099</color>
 
 </resources>
