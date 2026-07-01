@@ -542,6 +542,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_BACKUP, context.getString(R.string.setting_backup)),
                     RowSpec(KEY_RESTORE, context.getString(R.string.setting_restore)),
                     RowSpec(KEY_CACHE, context.getString(R.string.setting_cache), actions = listOf(ActionSpec(KEY_CACHE, context.getString(R.string.setting_clear), Icons.Default.Storage))),
+                    RowSpec(KEY_MPV_LOG, "MPV播放日志", actions = listOf(ActionSpec(KEY_MPV_LOG, "导出日志", Icons.Default.Storage))),
                     RowSpec(KEY_VERSION, context.getString(R.string.setting_version))
                 )
             )
@@ -602,6 +603,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_BACKUP = "backup"
         const val KEY_RESTORE = "restore"
         const val KEY_CACHE = "cache"
+        const val KEY_MPV_LOG = "mpv_log"
         const val KEY_VERSION = "version"
     }
 }

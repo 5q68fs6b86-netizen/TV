@@ -186,6 +186,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
+        setRowValue(JetStreamSettingView.KEY_MPV_LOG, com.fongmi.android.tv.utils.MpvLogCollector.getLogCount() + " 条");
         setRowValue(JetStreamSettingView.KEY_VERSION, BuildConfig.VERSION_NAME);
     }
 
@@ -258,6 +259,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
             case JetStreamSettingView.KEY_RESTORE -> onRestore();
             case JetStreamSettingView.KEY_CACHE -> onCache();
+            case JetStreamSettingView.KEY_MPV_LOG -> onMpvLog();
             case JetStreamSettingView.KEY_VERSION -> onVersion();
         }
     }
@@ -600,6 +602,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             @Override
             public void success() {
                 setCacheText();
+            }
+        });
+    }
+
+    private void onMpvLog() {
+        PermissionUtil.requestFile(this, allGranted -> {
+            String path = com.fongmi.android.tv.utils.MpvLogCollector.exportToFile(this);
+            if (path != null) {
+                Notify.show("日志已导出到: " + path);
+                setRowValue(JetStreamSettingView.KEY_MPV_LOG, com.fongmi.android.tv.utils.MpvLogCollector.getLogCount() + " 条");
+            } else {
+                Notify.show("导出日志失败，请检查存储权限");
             }
         });
     }

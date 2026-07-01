@@ -33,6 +33,7 @@ import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.github.catvod.utils.Path;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HttpHeaders;
@@ -448,6 +449,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.loading = true;
         this.playerError = null;
         this.playbackState = Player.STATE_BUFFERING;
+
+        // Log playback start
+        MpvLogCollector.log("MpvPlayer", "=== 开始播放 ===");
+        MpvLogCollector.log("MpvPlayer", "URL: " + spec.getUrl());
+        MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
+        MpvLogCollector.log("MpvPlayer", "解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解"));
+
         applyDecode(decode);
         applyHeaders(spec.getHeaders());
         loadUrl(spec.getUrl(), this.positionMs);
@@ -518,11 +526,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
             case MpvEvent.MPV_EVENT_FILE_LOADED -> {
                 loading = false;
                 playbackState = Player.STATE_READY;
+                MpvLogCollector.log("MpvPlayer", "文件加载成功");
                 readRuntimeState();
                 addInitialSubtitles();
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_VIDEO_RECONFIG -> {
+                MpvLogCollector.log("MpvPlayer", "视频重新配置");
                 readVideoSize();
                 invalidateState();
             }
@@ -543,6 +553,25 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
             // Extract detailed error information from mpv
             String errorMsg = getString(data, "error");
             int fileError = getInt(data, "file_error", 0);
+
+            // Log detailed error information for debugging
+            MpvLogCollector.logError("MpvPlayer", "=== MPV播放错误详情 ===");
+            MpvLogCollector.logError("MpvPlayer", "错误原因: " + reason);
+            MpvLogCollector.logError("MpvPlayer", "错误消息: " + errorMsg);
+            MpvLogCollector.logError("MpvPlayer", "文件错误码: " + fileError);
+            MpvLogCollector.logError("MpvPlayer", "URL: " + (mediaItem != null && mediaItem.localConfiguration != null ? mediaItem.localConfiguration.uri.toString() : "null"));
+            MpvLogCollector.logError("MpvPlayer", "Surface已附加: " + (attachedSurface != null));
+            MpvLogCollector.logError("MpvPlayer", "Surface有效: " + (attachedSurface != null && attachedSurface.isValid()));
+
+            // Check hwdec status
+            String hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
+            String hwdecCurrent = MPVLib.INSTANCE.getPropertyString("hwdec-current");
+            MpvLogCollector.logError("MpvPlayer", "硬解配置: " + hwdec);
+            MpvLogCollector.logError("MpvPlayer", "当前硬解: " + hwdecCurrent);
+
+            // Check video codec
+            String videoCodec = MPVLib.INSTANCE.getPropertyString("video-codec");
+            MpvLogCollector.logError("MpvPlayer", "视频编码: " + videoCodec);
 
             // Build detailed error message
             StringBuilder msgBuilder = new StringBuilder("MPV播放失败");
@@ -601,7 +630,12 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private void readVideoSize() {
         int width = getInt("dwidth", getInt("width", getInt("video-params/w", 0)));
         int height = getInt("dheight", getInt("height", getInt("video-params/h", 0)));
-        if (width > 0 && height > 0) videoSize = new VideoSize(width, height);
+        if (width > 0 && height > 0) {
+            videoSize = new VideoSize(width, height);
+            MpvLogCollector.log("MpvPlayer", "视频尺寸: " + width + "x" + height);
+        } else {
+            MpvLogCollector.log("MpvPlayer", "无视频尺寸信息 (可能是纯音频)");
+        }
     }
 
     private void readTracks() {
@@ -845,6 +879,11 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         detachSurface(true);
         attachedSurface = surface;
         this.ownsSurface = ownsSurface;
+
+        MpvLogCollector.log("MpvPlayer", "=== 附加 Surface ===");
+        MpvLogCollector.log("MpvPlayer", "Surface有效: " + surface.isValid());
+        MpvLogCollector.log("MpvPlayer", "尺寸: " + width + "x" + height);
+
         MPVLib.INSTANCE.attachSurface(surface);
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         MPVLib.INSTANCE.setPropertyString("vo", getVo());
