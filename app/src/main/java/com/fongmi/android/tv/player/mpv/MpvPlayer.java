@@ -1,0 +1,1012 @@
+package com.fongmi.android.tv.player.mpv;
+
+import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.os.Looper;
+import android.text.TextUtils;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
+
+import androidx.annotation.Nullable;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.SimpleBasePlayer;
+import androidx.media3.common.TrackGroup;
+import androidx.media3.common.TrackSelectionOverride;
+import androidx.media3.common.TrackSelectionParameters;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.VideoSize;
+import androidx.media3.common.util.Size;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.Util;
+
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.bean.Sub;
+import com.fongmi.android.tv.player.engine.PlayerEngine;
+import com.fongmi.android.tv.player.media.MediaItemFactory;
+import com.fongmi.android.tv.player.media.PlaySpec;
+import com.fongmi.android.tv.setting.PlayerSetting;
+import com.github.catvod.utils.Path;
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HttpHeaders;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import is.xyz.mpv.MPVLib;
+import is.xyz.mpv.MPVLib.MpvEvent;
+import is.xyz.mpv.MPVLib.MpvFormat;
+import is.xyz.mpv.MPVNode;
+
+@UnstableApi
+final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
+
+    private static final long LIVE_DURATION_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(1);
+    private static final String HWDEC = "mediacodec,mediacodec-copy";
+    private static final int[] SELECTABLE_TRACK_TYPES = {C.TRACK_TYPE_VIDEO, C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_TEXT};
+
+    private final Context context;
+    private final Player.Commands commands;
+    private final Map<String, Integer> trackIdsByGroupId;
+
+    private PlaybackParameters playbackParameters;
+    private TrackSelectionParameters trackSelectionParameters;
+    private @Player.State int playbackState;
+    private @Player.RepeatMode int repeatMode;
+    private @Nullable PlaybackException playerError;
+    private @Nullable MediaItem mediaItem;
+    private @Nullable PlaySpec spec;
+    private @Nullable Object videoOutput;
+    private @Nullable SurfaceHolder surfaceHolder;
+    private @Nullable SurfaceHolder.Callback surfaceCallback;
+    private @Nullable TextureView textureView;
+    private @Nullable TextureView.SurfaceTextureListener textureListener;
+    private @Nullable Surface attachedSurface;
+    private @Nullable String pendingUrl;
+    private VideoSize videoSize;
+    private Size surfaceSize;
+    private Tracks tracks;
+    private boolean ownsSurface;
+    private boolean playWhenReady;
+    private boolean loading;
+    private boolean closed;
+    private long positionMs;
+    private long durationMs;
+    private long bufferedPositionMs;
+    private long pendingStartPositionMs;
+    private long audioOffsetMs;
+    private long textOffsetMs;
+    private float volume;
+    private int decode;
+
+    MpvPlayer(Context context, int decode) {
+        super(Looper.getMainLooper());
+        this.context = context.getApplicationContext();
+        this.decode = decode;
+        this.commands = buildCommands();
+        this.trackIdsByGroupId = new HashMap<>();
+        this.playbackParameters = PlaybackParameters.DEFAULT;
+        this.trackSelectionParameters = TrackSelectionParameters.DEFAULT;
+        this.playbackState = Player.STATE_IDLE;
+        this.repeatMode = Player.REPEAT_MODE_OFF;
+        this.videoSize = VideoSize.UNKNOWN;
+        this.surfaceSize = Size.UNKNOWN;
+        this.tracks = Tracks.EMPTY;
+        this.positionMs = 0;
+        this.durationMs = C.TIME_UNSET;
+        this.bufferedPositionMs = C.TIME_UNSET;
+        this.pendingStartPositionMs = C.TIME_UNSET;
+        this.volume = 1f;
+        initialize();
+    }
+
+    void start(PlaySpec spec, long startPositionMs, int decode) {
+        runOnApplicationThread(() -> startInternal(spec, startPositionMs, decode));
+    }
+
+    boolean addSubtitle(Sub sub) {
+        if (sub == null || sub.isEmpty()) return false;
+        return command("sub-add", sub.getUrl(), "select", sub.getName(), sub.getLang());
+    }
+
+    void setSubtitleStyle() {
+    }
+
+    boolean setDecode(int decode) {
+        this.decode = decode;
+        runOnApplicationThread(() -> applyDecode(decode));
+        return true;
+    }
+
+    boolean isLive() {
+        return mediaItem != null && (durationMs == C.TIME_UNSET || durationMs < LIVE_DURATION_THRESHOLD_MS);
+    }
+
+    boolean isVod() {
+        return mediaItem != null && durationMs >= LIVE_DURATION_THRESHOLD_MS;
+    }
+
+    @Override
+    protected State getState() {
+        State.Builder builder = new State.Builder()
+                .setAvailableCommands(commands)
+                .setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                .setPlaybackState(mediaItem == null && playbackState != Player.STATE_ENDED ? Player.STATE_IDLE : playbackState)
+                .setPlayerError(playerError)
+                .setRepeatMode(repeatMode)
+                .setIsLoading(loading && playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED)
+                .setPlaybackParameters(playbackParameters)
+                .setTrackSelectionParameters(trackSelectionParameters)
+                .setVideoSize(videoSize)
+                .setSurfaceSize(surfaceSize)
+                .setVolume(volume)
+                .setAudioOffsetMs(audioOffsetMs)
+                .setTextOffsetMs(textOffsetMs);
+        if (mediaItem == null) return builder.build();
+        builder.setPlaylist(ImmutableList.of(buildMediaItemData()))
+                .setCurrentMediaItemIndex(0)
+                .setContentPositionMs(Math.max(0, positionMs))
+                .setContentBufferedPositionMs(PositionSupplier.getConstant(getBufferedPositionMs()));
+        return builder.build();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetPlayWhenReady(boolean playWhenReady) {
+        this.playWhenReady = playWhenReady;
+        if (playWhenReady && attachedSurface != null && !TextUtils.isEmpty(pendingUrl)) loadPendingUrl();
+        else command("set", "pause", playWhenReady ? "no" : "yes");
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handlePrepare() {
+        if (spec != null && playbackState == Player.STATE_IDLE) startInternal(spec, positionMs, decode);
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleStop() {
+        command("stop");
+        pendingUrl = null;
+        pendingStartPositionMs = C.TIME_UNSET;
+        loading = false;
+        playbackState = Player.STATE_IDLE;
+        playerError = null;
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleRelease() {
+        if (closed) return Futures.immediateVoidFuture();
+        closed = true;
+        MPVLib.removeObserver(this);
+        clearVideoOutputInternal(null);
+        try {
+            MPVLib.INSTANCE.destroy();
+        } catch (RuntimeException ignored) {
+        }
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetRepeatMode(int repeatMode) {
+        this.repeatMode = repeatMode;
+        command("set", "loop-file", repeatMode == Player.REPEAT_MODE_ONE ? "inf" : "no");
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetPlaybackParameters(PlaybackParameters playbackParameters) {
+        this.playbackParameters = playbackParameters;
+        command("set", "speed", Float.toString(playbackParameters.speed));
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetTrackSelectionParameters(TrackSelectionParameters trackSelectionParameters) {
+        this.trackSelectionParameters = trackSelectionParameters;
+        applyTrackSelectionParameters();
+        readTracks();
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetAudioOffsetMs(long audioOffsetMs) {
+        this.audioOffsetMs = audioOffsetMs;
+        command("set", "audio-delay", seconds(audioOffsetMs));
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetTextOffsetMs(long textOffsetMs) {
+        this.textOffsetMs = textOffsetMs;
+        command("set", "sub-delay", seconds(textOffsetMs));
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetVolume(float volume, int volumeOperationType) {
+        this.volume = volume;
+        command("set", "volume", Float.toString(volume * 100f));
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetVideoOutput(Object videoOutput) {
+        setVideoOutputInternal(videoOutput);
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleClearVideoOutput(@Nullable Object videoOutput) {
+        clearVideoOutputInternal(videoOutput);
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSetMediaItems(List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
+        if (mediaItems.isEmpty()) clearPlaylist();
+        else startMediaItem(mediaItems.get(resolveStartIndex(mediaItems, startIndex)), startPositionMs);
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleAddMediaItems(int index, List<MediaItem> mediaItems) {
+        if (mediaItem == null && !mediaItems.isEmpty()) startMediaItem(mediaItems.get(0), C.TIME_UNSET);
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleRemoveMediaItems(int fromIndex, int toIndex) {
+        if (fromIndex == 0) clearPlaylist();
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleReplaceMediaItems(int fromIndex, int toIndex, List<MediaItem> mediaItems) {
+        if (fromIndex == 0 && !mediaItems.isEmpty()) {
+            mediaItem = mediaItems.get(0);
+        } else if (fromIndex == 0) {
+            clearPlaylist();
+        }
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    protected ListenableFuture<?> handleSeek(int mediaItemIndex, long positionMs, int seekCommand) {
+        long targetMs = positionMs == C.TIME_UNSET ? 0 : Math.max(0, positionMs);
+        if (durationMs > 0) targetMs = Math.min(targetMs, durationMs);
+        this.positionMs = targetMs;
+        command("set", "time-pos", seconds(targetMs));
+        if (playbackState == Player.STATE_ENDED) playbackState = Player.STATE_READY;
+        return Futures.immediateVoidFuture();
+    }
+
+    @Override
+    public void eventProperty(String property) {
+        if ("track-list".equals(property)) refreshTracksOnApplicationThread();
+    }
+
+    @Override
+    public void eventProperty(String property, long value) {
+        runOnApplicationThread(() -> {
+            if ("time-pos".equals(property)) positionMs = Math.max(0, value * 1000L);
+            invalidateState();
+        });
+    }
+
+    @Override
+    public void eventProperty(String property, boolean value) {
+        runOnApplicationThread(() -> {
+            switch (property) {
+                case "pause" -> playWhenReady = !value;
+                case "paused-for-cache" -> {
+                    loading = value;
+                    if (value) playbackState = Player.STATE_BUFFERING;
+                    else if (mediaItem != null && playbackState == Player.STATE_BUFFERING) playbackState = Player.STATE_READY;
+                }
+            }
+            invalidateState();
+        });
+    }
+
+    @Override
+    public void eventProperty(String property, String value) {
+        runOnApplicationThread(() -> {
+            if ("speed".equals(property)) playbackParameters = new PlaybackParameters(parseFloat(value, playbackParameters.speed));
+            invalidateState();
+        });
+    }
+
+    @Override
+    public void eventProperty(String property, double value) {
+        runOnApplicationThread(() -> {
+            switch (property) {
+                case "time-pos/full" -> positionMs = secondsToMs(value, positionMs);
+                case "duration/full", "duration" -> durationMs = secondsToMs(value, C.TIME_UNSET);
+                case "speed" -> playbackParameters = new PlaybackParameters((float) value);
+                case "audio-delay" -> audioOffsetMs = secondsToMs(value, 0);
+                case "sub-delay" -> textOffsetMs = secondsToMs(value, 0);
+            }
+            invalidateState();
+        });
+    }
+
+    @Override
+    public void eventProperty(String property, MPVNode value) {
+        if ("track-list".equals(property)) {
+            runOnApplicationThread(() -> {
+                readTracks(value);
+                invalidateState();
+            });
+        }
+    }
+
+    @Override
+    public void event(int eventId, MPVNode data) {
+        runOnApplicationThread(() -> handleEvent(eventId, data));
+    }
+
+    private void initialize() {
+        File configDir = Path.mpv();
+        File cacheDir = Path.mpvCache();
+        MpvAssets.ensure(context, configDir);
+        MPVLib.INSTANCE.create(context);
+        MPVLib.INSTANCE.setOptionString("config", "yes");
+        MPVLib.INSTANCE.setOptionString("config-dir", configDir.getAbsolutePath());
+        MPVLib.INSTANCE.setOptionString("gpu-shader-cache-dir", cacheDir.getAbsolutePath());
+        MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
+        MPVLib.INSTANCE.setOptionString("profile", "fast");
+        MPVLib.INSTANCE.setOptionString("vo", getVo());
+        MPVLib.INSTANCE.setOptionString("gpu-context", "android");
+        MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
+        if (PlayerSetting.isMpvVulkan()) MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
+        applyDecode(decode);
+        MPVLib.INSTANCE.setOptionString("hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1");
+        MPVLib.INSTANCE.setOptionString("ao", "audiotrack,opensles");
+        MPVLib.INSTANCE.setOptionString("audio-set-media-role", "yes");
+        MPVLib.INSTANCE.setOptionString("tls-verify", "yes");
+        MPVLib.INSTANCE.setOptionString("tls-ca-file", new File(context.getFilesDir(), "cacert.pem").getAbsolutePath());
+        MPVLib.INSTANCE.setOptionString("input-default-bindings", "yes");
+        MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
+        MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
+        MPVLib.INSTANCE.init();
+        MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
+        MPVLib.INSTANCE.setOptionString("force-window", "no");
+        MPVLib.INSTANCE.setOptionString("idle", "once");
+        MPVLib.addObserver(this);
+        observeProperties();
+    }
+
+    private static Player.Commands buildCommands() {
+        return new Player.Commands.Builder()
+                .add(Player.COMMAND_PLAY_PAUSE)
+                .add(Player.COMMAND_PREPARE)
+                .add(Player.COMMAND_STOP)
+                .add(Player.COMMAND_RELEASE)
+                .add(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+                .add(Player.COMMAND_SEEK_BACK)
+                .add(Player.COMMAND_SEEK_FORWARD)
+                .add(Player.COMMAND_SET_SPEED_AND_PITCH)
+                .add(Player.COMMAND_SET_REPEAT_MODE)
+                .add(Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
+                .add(Player.COMMAND_GET_TIMELINE)
+                .add(Player.COMMAND_GET_METADATA)
+                .add(Player.COMMAND_SET_MEDIA_ITEM)
+                .add(Player.COMMAND_CHANGE_MEDIA_ITEMS)
+                .add(Player.COMMAND_GET_TRACKS)
+                .add(Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS)
+                .add(Player.COMMAND_GET_VOLUME)
+                .add(Player.COMMAND_SET_VOLUME)
+                .add(Player.COMMAND_SET_VIDEO_SURFACE)
+                .add(Player.COMMAND_GET_AUDIO_OFFSET)
+                .add(Player.COMMAND_SET_AUDIO_OFFSET)
+                .add(Player.COMMAND_GET_TEXT_OFFSET)
+                .add(Player.COMMAND_SET_TEXT_OFFSET)
+                .build();
+    }
+
+    private SimpleBasePlayer.MediaItemData buildMediaItemData() {
+        long durationUs = durationMs == C.TIME_UNSET ? C.TIME_UNSET : Util.msToUs(durationMs);
+        return new SimpleBasePlayer.MediaItemData.Builder("mpv")
+                .setMediaItem(mediaItem)
+                .setMediaMetadata(mediaItem.mediaMetadata)
+                .setTracks(tracks)
+                .setIsSeekable(durationMs > 0)
+                .setIsDynamic(isLive())
+                .setDurationUs(durationUs)
+                .build();
+    }
+
+    private void startInternal(PlaySpec spec, long startPositionMs, int decode) {
+        this.spec = spec;
+        this.decode = decode;
+        this.mediaItem = MediaItemFactory.from(spec);
+        this.positionMs = startPositionMs == C.TIME_UNSET ? 0 : Math.max(0, startPositionMs);
+        this.durationMs = C.TIME_UNSET;
+        this.bufferedPositionMs = C.TIME_UNSET;
+        this.videoSize = VideoSize.UNKNOWN;
+        this.tracks = Tracks.EMPTY;
+        this.trackIdsByGroupId.clear();
+        this.pendingUrl = null;
+        this.pendingStartPositionMs = C.TIME_UNSET;
+        this.playWhenReady = true;
+        this.loading = true;
+        this.playerError = null;
+        this.playbackState = Player.STATE_BUFFERING;
+        applyDecode(decode);
+        applyHeaders(spec.getHeaders());
+        loadUrl(spec.getUrl(), this.positionMs);
+        invalidateState();
+    }
+
+    private void startMediaItem(MediaItem item, long startPositionMs) {
+        if (item.localConfiguration == null) return;
+        this.spec = null;
+        this.mediaItem = item;
+        this.positionMs = startPositionMs == C.TIME_UNSET ? 0 : Math.max(0, startPositionMs);
+        this.durationMs = C.TIME_UNSET;
+        this.bufferedPositionMs = C.TIME_UNSET;
+        this.tracks = Tracks.EMPTY;
+        this.trackIdsByGroupId.clear();
+        this.pendingUrl = null;
+        this.pendingStartPositionMs = C.TIME_UNSET;
+        this.playWhenReady = true;
+        this.loading = true;
+        this.playerError = null;
+        this.playbackState = Player.STATE_BUFFERING;
+        loadUrl(item.localConfiguration.uri.toString(), this.positionMs);
+        invalidateState();
+    }
+
+    private void clearPlaylist() {
+        command("stop");
+        mediaItem = null;
+        spec = null;
+        positionMs = 0;
+        durationMs = C.TIME_UNSET;
+        bufferedPositionMs = C.TIME_UNSET;
+        tracks = Tracks.EMPTY;
+        trackIdsByGroupId.clear();
+        pendingUrl = null;
+        pendingStartPositionMs = C.TIME_UNSET;
+        loading = false;
+        playerError = null;
+        playbackState = Player.STATE_IDLE;
+    }
+
+    private void loadUrl(String url, long startPositionMs) {
+        if (TextUtils.isEmpty(url)) return;
+        pendingUrl = url;
+        pendingStartPositionMs = startPositionMs;
+        if (attachedSurface != null) loadPendingUrl();
+    }
+
+    private void loadPendingUrl() {
+        if (TextUtils.isEmpty(pendingUrl)) return;
+        String url = pendingUrl;
+        long startPositionMs = pendingStartPositionMs;
+        pendingUrl = null;
+        pendingStartPositionMs = C.TIME_UNSET;
+        if (startPositionMs > 0) command("loadfile", url, "replace", "start=" + seconds(startPositionMs));
+        else command("loadfile", url, "replace");
+        command("set", "pause", playWhenReady ? "no" : "yes");
+    }
+
+    private void handleEvent(int eventId, MPVNode data) {
+        switch (eventId) {
+            case MpvEvent.MPV_EVENT_START_FILE -> {
+                loading = true;
+                playbackState = Player.STATE_BUFFERING;
+                playerError = null;
+                invalidateState();
+            }
+            case MpvEvent.MPV_EVENT_FILE_LOADED -> {
+                loading = false;
+                playbackState = Player.STATE_READY;
+                readRuntimeState();
+                addInitialSubtitles();
+                invalidateState();
+            }
+            case MpvEvent.MPV_EVENT_VIDEO_RECONFIG -> {
+                readVideoSize();
+                invalidateState();
+            }
+            case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
+                loading = false;
+                if (mediaItem != null) playbackState = Player.STATE_READY;
+                readRuntimeState();
+                invalidateState();
+            }
+            case MpvEvent.MPV_EVENT_END_FILE -> handleEndFile(data);
+        }
+    }
+
+    private void handleEndFile(MPVNode data) {
+        loading = false;
+        String reason = getString(data, "reason");
+        if ("error".equals(reason)) {
+            fail(new PlaybackException("mpv end-file error", null, PlaybackException.ERROR_CODE_IO_UNSPECIFIED));
+            return;
+        }
+        if ("eof".equals(reason)) playbackState = Player.STATE_ENDED;
+        else if ("stop".equals(reason) && mediaItem == null) playbackState = Player.STATE_IDLE;
+        invalidateState();
+    }
+
+    private void readRuntimeState() {
+        readPosition();
+        readDuration();
+        readVideoSize();
+        readTracks();
+        Double speed = MPVLib.INSTANCE.getPropertyDouble("speed");
+        if (speed != null) playbackParameters = new PlaybackParameters(speed.floatValue());
+        Double audioDelay = MPVLib.INSTANCE.getPropertyDouble("audio-delay");
+        if (audioDelay != null) audioOffsetMs = secondsToMs(audioDelay, 0);
+        Double subDelay = MPVLib.INSTANCE.getPropertyDouble("sub-delay");
+        if (subDelay != null) textOffsetMs = secondsToMs(subDelay, 0);
+    }
+
+    private void readPosition() {
+        Double value = MPVLib.INSTANCE.getPropertyDouble("time-pos/full");
+        if (value == null) value = MPVLib.INSTANCE.getPropertyDouble("time-pos");
+        if (value != null) positionMs = secondsToMs(value, positionMs);
+    }
+
+    private void readDuration() {
+        Double value = MPVLib.INSTANCE.getPropertyDouble("duration/full");
+        if (value == null) value = MPVLib.INSTANCE.getPropertyDouble("duration");
+        durationMs = value == null ? C.TIME_UNSET : secondsToMs(value, C.TIME_UNSET);
+        bufferedPositionMs = durationMs;
+    }
+
+    private void readVideoSize() {
+        int width = getInt("dwidth", getInt("width", getInt("video-params/w", 0)));
+        int height = getInt("dheight", getInt("height", getInt("video-params/h", 0)));
+        if (width > 0 && height > 0) videoSize = new VideoSize(width, height);
+    }
+
+    private void readTracks() {
+        try {
+            readTracks(MPVLib.INSTANCE.getPropertyNode("track-list"));
+        } catch (RuntimeException e) {
+            tracks = Tracks.EMPTY;
+            trackIdsByGroupId.clear();
+        }
+    }
+
+    private void readTracks(@Nullable MPVNode node) {
+        MPVNode[] items = node == null ? null : node.asArray();
+        if (items == null || items.length == 0) {
+            tracks = Tracks.EMPTY;
+            trackIdsByGroupId.clear();
+            return;
+        }
+        List<Tracks.Group> groups = new ArrayList<>();
+        Map<String, Integer> idsByGroupId = new HashMap<>();
+        for (MPVNode item : items) {
+            int type = toTrackType(getString(item, "type"));
+            int id = getInt(item, "id", C.INDEX_UNSET);
+            if (type == C.TRACK_TYPE_UNKNOWN || id == C.INDEX_UNSET) continue;
+            String groupId = trackGroupId(type, id);
+            TrackGroup group = new TrackGroup(groupId, buildTrackFormat(item, type, id));
+            groups.add(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{getBoolean(item, "selected")}));
+            idsByGroupId.put(groupId, id);
+        }
+        tracks = groups.isEmpty() ? Tracks.EMPTY : new Tracks(groups);
+        trackIdsByGroupId.clear();
+        trackIdsByGroupId.putAll(idsByGroupId);
+    }
+
+    private Format buildTrackFormat(MPVNode item, int type, int id) {
+        String codec = emptyToNull(getString(item, "codec"));
+        Format.Builder builder = new Format.Builder()
+                .setId(Integer.toString(id))
+                .setLabel(buildTrackLabel(item, type, id))
+                .setLanguage(emptyToNull(getString(item, "lang")))
+                .setCodecs(codec)
+                .setSampleMimeType(getSampleMimeType(type, codec))
+                .setSelectionFlags(getSelectionFlags(item));
+        int bitrate = getInt(item, "demux-bitrate", C.LENGTH_UNSET);
+        if (bitrate > 0) builder.setAverageBitrate(bitrate);
+        if (type == C.TRACK_TYPE_VIDEO) {
+            int width = getInt(item, "demux-w", C.LENGTH_UNSET);
+            int height = getInt(item, "demux-h", C.LENGTH_UNSET);
+            double frameRate = getDouble(item, "demux-fps", 0);
+            if (width > 0) builder.setWidth(width);
+            if (height > 0) builder.setHeight(height);
+            if (frameRate > 0) builder.setFrameRate((float) frameRate);
+        } else if (type == C.TRACK_TYPE_AUDIO) {
+            int channelCount = getInt(item, "demux-channel-count", C.LENGTH_UNSET);
+            int sampleRate = getInt(item, "demux-samplerate", C.RATE_UNSET_INT);
+            if (channelCount > 0) builder.setChannelCount(channelCount);
+            if (sampleRate > 0) builder.setSampleRate(sampleRate);
+        }
+        return builder.build();
+    }
+
+    private String buildTrackLabel(MPVNode item, int type, int id) {
+        String title = getString(item, "title");
+        if (!TextUtils.isEmpty(title)) return title;
+        String lang = getString(item, "lang");
+        String codec = getString(item, "codec");
+        String prefix = switch (type) {
+            case C.TRACK_TYPE_VIDEO -> "Video";
+            case C.TRACK_TYPE_AUDIO -> "Audio";
+            case C.TRACK_TYPE_TEXT -> "Subtitle";
+            default -> "Track";
+        };
+        List<String> parts = new ArrayList<>();
+        parts.add(prefix + " " + id);
+        if (!TextUtils.isEmpty(lang)) parts.add(lang);
+        if (!TextUtils.isEmpty(codec)) parts.add(codec);
+        return String.join(" - ", parts);
+    }
+
+    private void applyTrackSelectionParameters() {
+        for (int type : SELECTABLE_TRACK_TYPES) {
+            if (trackSelectionParameters.disabledTrackTypes.contains(type)) {
+                setMpvTrack(type, "no");
+                continue;
+            }
+            TrackSelectionOverride override = findOverride(type);
+            if (override == null) {
+                setMpvTrack(type, "auto");
+                continue;
+            }
+            if (override.trackIndices.isEmpty()) {
+                setMpvTrack(type, "no");
+                continue;
+            }
+            Integer trackId = trackIdsByGroupId.get(override.mediaTrackGroup.id);
+            if (trackId != null) setMpvTrack(type, Integer.toString(trackId));
+        }
+    }
+
+    private @Nullable TrackSelectionOverride findOverride(int type) {
+        for (TrackSelectionOverride override : trackSelectionParameters.overrides.values()) {
+            if (override.getType() == type) return override;
+        }
+        return null;
+    }
+
+    private void setMpvTrack(int type, String value) {
+        String property = switch (type) {
+            case C.TRACK_TYPE_VIDEO -> "vid";
+            case C.TRACK_TYPE_AUDIO -> "aid";
+            case C.TRACK_TYPE_TEXT -> "sid";
+            default -> "";
+        };
+        if (!TextUtils.isEmpty(property)) command("set", property, value);
+    }
+
+    private void addInitialSubtitles() {
+        if (spec == null || spec.getSubs() == null) return;
+        for (int i = 0; i < spec.getSubs().size(); i++) {
+            Sub sub = spec.getSubs().get(i);
+            if (sub == null || sub.isEmpty()) continue;
+            command("sub-add", sub.getUrl(), i == 0 ? "select" : "auto", sub.getName(), sub.getLang());
+        }
+    }
+
+    private void observeProperties() {
+        MPVLib.INSTANCE.observeProperty("time-pos", MpvFormat.MPV_FORMAT_INT64);
+        MPVLib.INSTANCE.observeProperty("time-pos/full", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("duration/full", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("duration", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("pause", MpvFormat.MPV_FORMAT_FLAG);
+        MPVLib.INSTANCE.observeProperty("paused-for-cache", MpvFormat.MPV_FORMAT_FLAG);
+        MPVLib.INSTANCE.observeProperty("speed", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("audio-delay", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("sub-delay", MpvFormat.MPV_FORMAT_DOUBLE);
+        MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NODE);
+    }
+
+    private void applyHeaders(@Nullable Map<String, String> headers) {
+        String userAgent = "";
+        String referrer = "";
+        List<String> fields = new ArrayList<>();
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (TextUtils.isEmpty(key) || value == null) continue;
+                if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) userAgent = value;
+                else if (HttpHeaders.REFERER.equalsIgnoreCase(key)) referrer = value;
+                fields.add(key + ": " + value);
+            }
+        }
+        MPVLib.INSTANCE.setOptionString("user-agent", userAgent);
+        MPVLib.INSTANCE.setOptionString("referrer", referrer);
+        MPVLib.INSTANCE.setOptionString("http-header-fields", String.join(",", fields));
+    }
+
+    private void applyDecode(int decode) {
+        MPVLib.INSTANCE.setOptionString("hwdec", decode == PlayerEngine.HARD ? HWDEC : "no");
+    }
+
+    private void setVideoOutputInternal(Object output) {
+        clearVideoOutputInternal(null);
+        videoOutput = output;
+        if (output instanceof SurfaceView view) {
+            attachHolder(view.getHolder());
+        } else if (output instanceof SurfaceHolder holder) {
+            attachHolder(holder);
+        } else if (output instanceof TextureView view) {
+            attachTexture(view);
+        } else if (output instanceof Surface surface) {
+            attachSurface(surface, C.LENGTH_UNSET, C.LENGTH_UNSET, false);
+        }
+    }
+
+    private void clearVideoOutputInternal(@Nullable Object output) {
+        if (output != null && output != videoOutput) return;
+        if (surfaceHolder != null && surfaceCallback != null) surfaceHolder.removeCallback(surfaceCallback);
+        if (textureView != null && textureView.getSurfaceTextureListener() == textureListener) textureView.setSurfaceTextureListener(null);
+        surfaceHolder = null;
+        surfaceCallback = null;
+        textureView = null;
+        textureListener = null;
+        videoOutput = null;
+        detachSurface(true);
+        surfaceSize = Size.UNKNOWN;
+    }
+
+    private void attachHolder(SurfaceHolder holder) {
+        surfaceHolder = holder;
+        surfaceCallback = new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                attachSurface(holder.getSurface(), C.LENGTH_UNSET, C.LENGTH_UNSET, false);
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                updateSurfaceSize(width, height);
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                detachSurface(false);
+            }
+        };
+        holder.addCallback(surfaceCallback);
+        Surface surface = holder.getSurface();
+        if (surface != null && surface.isValid()) attachSurface(surface, C.LENGTH_UNSET, C.LENGTH_UNSET, false);
+    }
+
+    private void attachTexture(TextureView view) {
+        textureView = view;
+        textureListener = new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+                attachSurface(new Surface(surfaceTexture), width, height, true);
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+                updateSurfaceSize(width, height);
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+                detachSurface(true);
+                return true;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+            }
+        };
+        view.setSurfaceTextureListener(textureListener);
+        if (view.isAvailable()) attachSurface(new Surface(view.getSurfaceTexture()), view.getWidth(), view.getHeight(), true);
+    }
+
+    private void attachSurface(Surface surface, int width, int height, boolean ownsSurface) {
+        if (surface == null || !surface.isValid()) return;
+        detachSurface(true);
+        attachedSurface = surface;
+        this.ownsSurface = ownsSurface;
+        MPVLib.INSTANCE.attachSurface(surface);
+        MPVLib.INSTANCE.setOptionString("force-window", "yes");
+        MPVLib.INSTANCE.setPropertyString("vo", getVo());
+        updateSurfaceSize(width, height);
+        loadPendingUrl();
+    }
+
+    private void detachSurface(boolean releaseOwned) {
+        if (attachedSurface == null) return;
+        try {
+            MPVLib.INSTANCE.setPropertyString("vo", "null");
+            MPVLib.INSTANCE.setPropertyString("force-window", "no");
+            MPVLib.INSTANCE.detachSurface();
+        } catch (RuntimeException ignored) {
+        }
+        if (releaseOwned && ownsSurface) attachedSurface.release();
+        attachedSurface = null;
+        ownsSurface = false;
+    }
+
+    private void updateSurfaceSize(int width, int height) {
+        if (width > 0 && height > 0) {
+            surfaceSize = new Size(width, height);
+            MPVLib.INSTANCE.setPropertyString("android-surface-size", width + "x" + height);
+        }
+        invalidateOnApplicationThread();
+    }
+
+    private void fail(PlaybackException exception) {
+        loading = false;
+        playerError = exception;
+        playbackState = Player.STATE_IDLE;
+        invalidateState();
+    }
+
+    private boolean command(String... args) {
+        try {
+            MPVLib.INSTANCE.command(args);
+            return true;
+        } catch (RuntimeException e) {
+            runOnApplicationThread(() -> fail(new PlaybackException(e.getMessage(), e, PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK)));
+            return false;
+        }
+    }
+
+    private int resolveStartIndex(List<MediaItem> mediaItems, int startIndex) {
+        return startIndex >= 0 && startIndex < mediaItems.size() ? startIndex : 0;
+    }
+
+    private long getBufferedPositionMs() {
+        if (bufferedPositionMs != C.TIME_UNSET) return bufferedPositionMs;
+        if (durationMs != C.TIME_UNSET) return durationMs;
+        return Math.max(0, positionMs);
+    }
+
+    private int getInt(String property, int fallback) {
+        Integer value = MPVLib.INSTANCE.getPropertyInt(property);
+        return value == null ? fallback : value;
+    }
+
+    private static int toTrackType(String type) {
+        return switch (type) {
+            case "video" -> C.TRACK_TYPE_VIDEO;
+            case "audio" -> C.TRACK_TYPE_AUDIO;
+            case "sub" -> C.TRACK_TYPE_TEXT;
+            default -> C.TRACK_TYPE_UNKNOWN;
+        };
+    }
+
+    private static String trackGroupId(int type, int id) {
+        return "mpv:" + type + ":" + id;
+    }
+
+    private static String getSampleMimeType(int type, @Nullable String codec) {
+        String normalized = codec == null ? "" : codec.toLowerCase(Locale.US);
+        return switch (type) {
+            case C.TRACK_TYPE_VIDEO -> switch (normalized) {
+                case "h264", "avc1" -> MimeTypes.VIDEO_H264;
+                case "h265", "hevc", "hev1" -> MimeTypes.VIDEO_H265;
+                case "av1" -> MimeTypes.VIDEO_AV1;
+                case "vp8" -> MimeTypes.VIDEO_VP8;
+                case "vp9" -> MimeTypes.VIDEO_VP9;
+                case "mpeg2video" -> MimeTypes.VIDEO_MPEG2;
+                case "mpeg4" -> MimeTypes.VIDEO_MP4V;
+                default -> MimeTypes.VIDEO_UNKNOWN;
+            };
+            case C.TRACK_TYPE_AUDIO -> switch (normalized) {
+                case "aac" -> MimeTypes.AUDIO_AAC;
+                case "ac3" -> MimeTypes.AUDIO_AC3;
+                case "eac3" -> MimeTypes.AUDIO_E_AC3;
+                case "dts" -> MimeTypes.AUDIO_DTS;
+                case "flac" -> MimeTypes.AUDIO_FLAC;
+                case "mp3" -> MimeTypes.AUDIO_MPEG;
+                case "opus" -> MimeTypes.AUDIO_OPUS;
+                case "vorbis" -> MimeTypes.AUDIO_VORBIS;
+                default -> MimeTypes.AUDIO_UNKNOWN;
+            };
+            case C.TRACK_TYPE_TEXT -> switch (normalized) {
+                case "ass", "ssa" -> MimeTypes.TEXT_SSA;
+                case "srt", "subrip" -> MimeTypes.APPLICATION_SUBRIP;
+                case "webvtt", "vtt" -> MimeTypes.TEXT_VTT;
+                case "mov_text", "tx3g" -> MimeTypes.APPLICATION_TX3G;
+                case "hdmv_pgs_subtitle" -> MimeTypes.APPLICATION_PGS;
+                case "dvb_subtitle" -> MimeTypes.APPLICATION_DVBSUBS;
+                default -> MimeTypes.TEXT_UNKNOWN;
+            };
+            default -> MimeTypes.APPLICATION_OCTET_STREAM;
+        };
+    }
+
+    private static int getSelectionFlags(MPVNode item) {
+        int flags = 0;
+        if (getBoolean(item, "default")) flags |= C.SELECTION_FLAG_DEFAULT;
+        if (getBoolean(item, "forced")) flags |= C.SELECTION_FLAG_FORCED;
+        return flags;
+    }
+
+    private static int getInt(MPVNode node, String key, int fallback) {
+        MPVNode child = node == null ? null : node.get(key);
+        Long value = child == null ? null : child.asInt();
+        if (value != null) return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
+        Double doubleValue = child == null ? null : child.asDouble();
+        return doubleValue == null ? fallback : (int) Math.round(doubleValue);
+    }
+
+    private static double getDouble(MPVNode node, String key, double fallback) {
+        MPVNode child = node == null ? null : node.get(key);
+        Double value = child == null ? null : child.asDouble();
+        if (value != null) return value;
+        Long intValue = child == null ? null : child.asInt();
+        return intValue == null ? fallback : intValue.doubleValue();
+    }
+
+    private static boolean getBoolean(MPVNode node, String key) {
+        MPVNode child = node == null ? null : node.get(key);
+        Boolean value = child == null ? null : child.asBoolean();
+        return value != null && value;
+    }
+
+    private static @Nullable String emptyToNull(String value) {
+        return TextUtils.isEmpty(value) ? null : value;
+    }
+
+    private String getVo() {
+        return PlayerSetting.isMpvGpuNext() || PlayerSetting.isMpvVulkan() ? "gpu-next" : "gpu";
+    }
+
+    private static String getString(MPVNode node, String key) {
+        MPVNode child = node == null ? null : node.get(key);
+        String value = child == null ? null : child.asString();
+        return value == null ? "" : value;
+    }
+
+    private static long secondsToMs(double seconds, long fallback) {
+        if (Double.isNaN(seconds) || Double.isInfinite(seconds) || seconds < 0) return fallback;
+        return (long) Math.ceil(seconds * 1000.0);
+    }
+
+    private static String seconds(long milliseconds) {
+        return String.format(Locale.US, "%.3f", milliseconds / 1000.0);
+    }
+
+    private static float parseFloat(String value, float fallback) {
+        try {
+            return Float.parseFloat(value);
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    private void runOnApplicationThread(Runnable runnable) {
+        if (Looper.myLooper() == getApplicationLooper()) runnable.run();
+        else App.post(runnable);
+    }
+
+    private void invalidateOnApplicationThread() {
+        runOnApplicationThread(() -> {
+            if (!closed) invalidateState();
+        });
+    }
+
+    private void refreshTracksOnApplicationThread() {
+        runOnApplicationThread(() -> {
+            if (closed) return;
+            readTracks();
+            invalidateState();
+        });
+    }
+}
