@@ -540,7 +540,31 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         loading = false;
         String reason = getString(data, "reason");
         if ("error".equals(reason)) {
-            fail(new PlaybackException("mpv end-file error", null, PlaybackException.ERROR_CODE_IO_UNSPECIFIED));
+            // Extract detailed error information from mpv
+            String errorMsg = getString(data, "error");
+            int fileError = getInt(data, "file_error", 0);
+
+            // Build detailed error message
+            StringBuilder msgBuilder = new StringBuilder("MPV播放失败");
+            if (!errorMsg.isEmpty()) {
+                msgBuilder.append(": ").append(errorMsg);
+            }
+            if (fileError != 0) {
+                msgBuilder.append(" (错误码: ").append(fileError).append(")");
+            }
+
+            // Determine specific error code based on error content
+            int errorCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED;
+            String errorLower = errorMsg.toLowerCase(Locale.US);
+            if (errorLower.contains("decode") || errorLower.contains("codec")) {
+                errorCode = PlaybackException.ERROR_CODE_DECODING_FAILED;
+            } else if (errorLower.contains("format") || errorLower.contains("demux")) {
+                errorCode = PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED;
+            } else if (errorLower.contains("network") || errorLower.contains("connection") || errorLower.contains("http")) {
+                errorCode = PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED;
+            }
+
+            fail(new PlaybackException(msgBuilder.toString(), null, errorCode));
             return;
         }
         if ("eof".equals(reason)) playbackState = Player.STATE_ENDED;
