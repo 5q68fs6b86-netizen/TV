@@ -13,12 +13,21 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_weight="1"
-        android:background="@null"
+        android:background="@drawable/selector_dialog_input"
+        android:gravity="center_vertical"
         android:hint="@string/live_pass"
         android:imeOptions="actionDone"
         android:inputType="textPassword"
         android:maxLength="20"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="10dp"
         android:singleLine="true"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white_60"
+        android:textCursorDrawable="@drawable/shape_cursor"
         android:textSize="16sp" />
 
     <com.google.android.material.textview.MaterialTextView
