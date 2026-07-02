@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,6 +60,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
@@ -193,20 +193,11 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun DetailSurface() {
-        val colorScheme = MaterialTheme.colorScheme
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(JetStreamShapes.Card)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(
-                            colorScheme.surface.copy(alpha = 0.88f),
-                            colorScheme.primaryContainer.copy(alpha = 0.24f),
-                            colorScheme.tertiaryContainer.copy(alpha = 0.12f)
-                        )
-                    )
-                )
+                .background(jetStreamHorizontalScrimBrush())
                 .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 20.dp)
         ) {
             Column(

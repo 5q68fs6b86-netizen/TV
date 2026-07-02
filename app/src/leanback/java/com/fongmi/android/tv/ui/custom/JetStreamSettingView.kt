@@ -53,7 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
@@ -63,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.components.JetStreamPageScrim
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
@@ -158,14 +158,11 @@ class JetStreamSettingView @JvmOverloads constructor(
             if (initialFocusRequest > 0 && selectedRows.isNotEmpty()) firstRowFocusRequester.requestFocus()
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(pageScrim())
-                .padding(horizontal = 48.dp, vertical = 32.dp)
-        ) {
+        JetStreamPageScrim(modifier = Modifier.fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 48.dp, vertical = 32.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 NavigationPanel(
@@ -471,17 +468,6 @@ class JetStreamSettingView @JvmOverloads constructor(
                 overflow = TextOverflow.Ellipsis
             )
         }
-    }
-
-    @Composable
-    private fun pageScrim(): Brush {
-        return Brush.verticalGradient(
-            listOf(
-                MaterialTheme.colorScheme.background.copy(alpha = 0.92f),
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.74f),
-                MaterialTheme.colorScheme.background.copy(alpha = 0.96f)
-            )
-        )
     }
 
     private fun isRowVisible(key: String): Boolean {

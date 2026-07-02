@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -32,6 +31,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.components.JetStreamRadialScrim
+import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
@@ -81,7 +82,13 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(JetStreamShapes.Card)
-                    .background(headerGradient())
+                    .background(
+                        jetStreamHorizontalScrimBrush(
+                            startColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
+                            middleColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f),
+                            endColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.20f)
+                        )
+                    )
                     .border(
                         JetStreamBorders.Thin,
                         MaterialTheme.colorScheme.outlineVariant,
@@ -89,19 +96,12 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                     )
                     .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = JetStreamSpacing.ExtraLarge)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
-                                    Color.Transparent
-                                ),
-                                center = Offset(920f, 20f),
-                                radius = 760f
-                            )
-                        )
+                JetStreamRadialScrim(
+                    modifier = Modifier.fillMaxSize(),
+                    centerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+                    edgeColor = Color.Transparent,
+                    center = Offset(920f, 20f),
+                    radius = 760f
                 )
                 Column(
                     modifier = Modifier
@@ -165,16 +165,5 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
 
     private fun eyebrowText(): String {
         return eyebrow.ifBlank { title }.ifBlank { context.getString(R.string.home_setting) }
-    }
-
-    @Composable
-    private fun headerGradient(): Brush {
-        return Brush.horizontalGradient(
-            listOf(
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f),
-                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.20f)
-            )
-        )
     }
 }

@@ -54,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -71,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import com.fongmi.android.tv.ui.components.JetStreamControlScrim
+import com.fongmi.android.tv.ui.components.JetStreamInfoScrim
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
@@ -217,40 +218,17 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
         JetStreamTheme {
             if (!controlPanelVisible && !isInfoVisible()) return@JetStreamTheme
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        if (controlPanelVisible) controlScrim() else infoScrim()
-                    )
-            ) {
-                InfoOverlay()
-                if (controlPanelVisible) ControlPanel(polledPlaying, positionMs, durationMs)
+            if (controlPanelVisible) {
+                JetStreamControlScrim(modifier = Modifier.fillMaxSize()) {
+                    InfoOverlay()
+                    ControlPanel(polledPlaying, positionMs, durationMs)
+                }
+            } else {
+                JetStreamInfoScrim(modifier = Modifier.fillMaxSize()) {
+                    InfoOverlay()
+                }
             }
         }
-    }
-
-    @Composable
-    private fun controlScrim(): Brush {
-        val colorScheme = MaterialTheme.colorScheme
-        return Brush.verticalGradient(
-            listOf(
-                colorScheme.background.copy(alpha = 0.20f),
-                colorScheme.surface.copy(alpha = 0.92f)
-            )
-        )
-    }
-
-    @Composable
-    private fun infoScrim(): Brush {
-        val colorScheme = MaterialTheme.colorScheme
-        return Brush.verticalGradient(
-            listOf(
-                colorScheme.background.copy(alpha = 0.66f),
-                colorScheme.surface.copy(alpha = 0.14f),
-                colorScheme.background.copy(alpha = 0.54f)
-            )
-        )
     }
 
     @Composable

@@ -123,14 +123,7 @@ fun JetStreamSurfaceCard(
     gradient: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val resolvedGradient = gradient ?: Brush.horizontalGradient(
-        listOf(
-            colorScheme.surface.copy(alpha = 0.88f),
-            colorScheme.primaryContainer.copy(alpha = 0.24f),
-            colorScheme.tertiaryContainer.copy(alpha = 0.12f)
-        )
-    )
+    val resolvedGradient = gradient ?: jetStreamHorizontalScrimBrush()
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
