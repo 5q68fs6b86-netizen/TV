@@ -6,6 +6,6 @@
 
     <stroke
         android:width="3dp"
-        android:color="@color/jetstream_on_surface" />
+        android:color="@color/jetstream_primary" />
 
 </shape>
