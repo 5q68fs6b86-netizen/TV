@@ -30,6 +30,7 @@ import com.fongmi.android.tv.player.parse.ParseJob;
 import com.fongmi.android.tv.player.track.TrackUtil;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
@@ -227,6 +228,7 @@ public class PlayerManager implements ParseCallback {
     public void setEngine(int targetEngine) {
         int oldEngine = getEngine();
         PlayerSetting.putEngine(targetEngine);
+        MpvLogCollector.log("PlayerManager", "切换播放器内核: " + engineName(oldEngine) + " -> " + engineName(targetEngine) + ", isEmpty=" + isEmpty());
         if (oldEngine == targetEngine || isEmpty()) return;
         startCurrent();
     }
@@ -376,6 +378,7 @@ public class PlayerManager implements ParseCallback {
     public void toggleDecode() {
         decode = isHard() ? PlayerEngine.SOFT : PlayerEngine.HARD;
         boolean rebuild = engine.setDecode(decode);
+        MpvLogCollector.log("PlayerManager", "切换解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解") + ", rebuild=" + rebuild);
         callback.onDecodeChanged();
         if (!rebuild) return;
         setPlayer(engine.rebuild());
@@ -403,6 +406,7 @@ public class PlayerManager implements ParseCallback {
     private void ensureEngine(PlaySpec spec) {
         if (PlayerEngineFactory.matches(engine, spec)) return;
         PlayerEngine old = engine;
+        MpvLogCollector.log("PlayerManager", "重建播放器实例: " + engineName(old.getType()) + " -> " + engineName(PlayerSetting.getEngine()));
         player.removeListener(listener);
         engine = PlayerEngineFactory.create(decode, spec, listener);
         setPlayer(engine.getPlayer());
@@ -411,7 +415,16 @@ public class PlayerManager implements ParseCallback {
 
     private void setPlayer(Player player) {
         this.player = player;
+        MpvLogCollector.log("PlayerManager", "回调播放器重绑: " + player.getClass().getSimpleName());
         callback.onPlayerRebuild(player);
+    }
+
+    private String engineName(int engine) {
+        return engine == PlayerSetting.ENGINE_MPV ? "MPV" : "EXO";
+    }
+
+    private String engineName(PlayerEngine.Type type) {
+        return type == PlayerEngine.Type.MPV ? "MPV" : "EXO";
     }
 
     public void browse(PlaySpec spec, long startPositionMs) {

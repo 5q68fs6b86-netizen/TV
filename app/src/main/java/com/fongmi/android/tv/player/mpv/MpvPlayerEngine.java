@@ -8,14 +8,19 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.player.media.PlaySpec;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 
 @UnstableApi
 public class MpvPlayerEngine implements PlayerEngine {
 
+    private static final int MAX_RECOVER_ATTEMPTS = 1;
+
     private final MpvErrorMsgProvider provider;
     private final Player.Listener listener;
     private MpvPlayer player;
+    private PlaySpec spec;
     private int decode;
+    private int recoverAttempts;
 
     public MpvPlayerEngine(int decode, Player.Listener listener) {
         this.provider = new MpvErrorMsgProvider();
@@ -46,6 +51,8 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public void release() {
+        spec = null;
+        recoverAttempts = 0;
         player.removeListener(listener);
         player.release();
     }
@@ -67,7 +74,7 @@ public class MpvPlayerEngine implements PlayerEngine {
     public boolean setDecode(int decode) {
         this.decode = decode;
         player.setDecode(decode);
-        return false;
+        return true;
     }
 
     @Override
@@ -77,6 +84,8 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public void start(PlaySpec spec, long startPositionMs) {
+        this.spec = spec;
+        this.recoverAttempts = 0;
         player.start(spec, startPositionMs, decode);
     }
 
@@ -97,6 +106,28 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public ErrorAction handleError(PlaybackException e) {
-        return ErrorAction.FATAL;
+        return switch (e.errorCode) {
+            case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+                    PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
+                    PlaybackException.ERROR_CODE_DECODING_FAILED,
+                    PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED,
+                    PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES -> ErrorAction.DECODE;
+            case PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK,
+                    PlaybackException.ERROR_CODE_IO_UNSPECIFIED,
+                    PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+                    PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED,
+                    PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+                    PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED -> retryCurrent();
+            default -> ErrorAction.FATAL;
+        };
+    }
+
+    private ErrorAction retryCurrent() {
+        if (spec == null || recoverAttempts >= MAX_RECOVER_ATTEMPTS) return ErrorAction.FATAL;
+        long positionMs = Math.max(0, player.getCurrentPosition());
+        recoverAttempts++;
+        MpvLogCollector.logError("MpvPlayerEngine", "触发MPV恢复重试: position=" + positionMs + "ms");
+        player.start(spec, positionMs, decode);
+        return ErrorAction.RECOVERED;
     }
 }

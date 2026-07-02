@@ -41,6 +41,7 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
@@ -239,10 +240,10 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         } else if (result.getRealUrl().isEmpty()) {
             onError(ResUtil.getString(R.string.error_play_url));
         } else if (result.needParse() || useParse) {
-            attachSurface();
+            attachSurface("startPlayer:parse");
             player().parse(key, result, useParse, metadata, startPositionMs);
         } else {
-            attachSurface();
+            attachSurface("startPlayer:play");
             player().start(PlaySpec.from(result, key, metadata), timeout, startPositionMs);
         }
     }
@@ -377,19 +378,22 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         finish();
     }
 
-    private void attachSurface() {
+    private void attachSurface(String reason) {
+        MpvLogCollector.log("PlaybackActivity", "attachSurface: reason=" + reason + ", hasService=" + (mService != null) + ", viewHasPlayer=" + (getPlayerView().getPlayer() != null));
         if (mService != null && getPlayerView().getPlayer() == null) getPlayerView().setPlayer(player().getPlayer());
         applyDanmaku();
     }
 
-    private void detachSurface() {
+    private void detachSurface(String reason) {
+        MpvLogCollector.log("PlaybackActivity", "detachSurface: reason=" + reason + ", viewHasPlayer=" + (getPlayerView().getPlayer() != null));
         getPlayerView().setPlayer(null);
     }
 
-    private void setRender() {
+    private void setRender(String reason) {
+        MpvLogCollector.log("PlaybackActivity", "setRender: reason=" + reason + ", render=" + PlayerSetting.getRender());
         getPlayerView().setRender(PlayerSetting.getRender());
-        detachSurface();
-        attachSurface();
+        detachSurface("setRender");
+        attachSurface("setRender");
     }
 
     private void configurePlayerView() {
@@ -487,7 +491,8 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
         @Override
         public void onPlayerRebuild(Player player) {
-            if (isOwner()) setRender();
+            MpvLogCollector.log("PlaybackActivity", "onPlayerRebuild: isOwner=" + isOwner() + ", player=" + player.getClass().getSimpleName());
+            if (isOwner()) setRender("onPlayerRebuild");
         }
 
         @Override
@@ -562,11 +567,12 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     protected void onResume() {
         super.onResume();
         setRedirect(false);
+        MpvLogCollector.log("PlaybackActivity", "onResume: shouldReclaim=" + shouldReclaim() + ", isOwner=" + isOwner());
         if (shouldReclaim()) {
-            detachSurface();
+            detachSurface("onResume:reclaim");
             onReclaim();
         } else {
-            attachSurface();
+            attachSurface("onResume");
         }
     }
 
