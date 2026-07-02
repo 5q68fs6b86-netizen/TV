@@ -13,7 +13,8 @@
     android:maxWidth="260dp"
     android:minWidth="56dp"
     android:minHeight="40dp"
+    android:includeFontPadding="false"
     android:singleLine="true"
-    android:textColor="@color/text"
+    android:textColor="@color/jetstream_on_surface"
     android:textSize="16sp"
     tools:text="歷史" />

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,43 +9,60 @@
         android:layout_height="match_parent" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="420dp"
+        android:layout_width="720dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_search_panel"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:gravity="center"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/code"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:background="@color/white"
-            android:padding="1dp"
-            android:scaleType="fitXY" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/info"
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
             android:layout_width="match_parent"
+            android:layout_height="132dp"
+            app:jetStreamSubtitle="@string/setting_page_push_desc"
+            app:jetStreamTitle="@string/home_push" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="420dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:gravity="center"
-            android:lineSpacingExtra="8dp"
-            android:textColor="@color/white_90"
-            android:textSize="18sp" />
+            android:background="@drawable/shape_search_panel"
+            android:orientation="vertical"
+            android:padding="32dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/clip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/selector_chip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:text="@string/push_clip"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/code"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:scaleType="fitXY" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:lineSpacingExtra="8dp"
+                android:textColor="@color/white_90"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/clip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/selector_chip"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:text="@string/push_clip"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

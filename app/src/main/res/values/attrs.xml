@@ -6,4 +6,9 @@
         <attr name="maxWidth" format="dimension" />
         <attr name="maxHeight" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="JetStreamPageHeaderView">
+        <attr name="jetStreamTitle" format="string" />
+        <attr name="jetStreamSubtitle" format="string" />
+    </declare-styleable>
 </resources>

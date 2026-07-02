@@ -27,9 +27,16 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
+                android:layout_width="match_parent"
+                android:layout_height="132dp"
+                app:jetStreamSubtitle="@string/setting_page_search_input_desc"
+                app:jetStreamTitle="@string/home_search" />
+
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
+                android:layout_marginTop="18dp"
                 android:background="@drawable/shape_search_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -108,10 +115,17 @@
                 android:clipToPadding="false"
                 android:orientation="vertical">
 
+                <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
+                    android:layout_width="match_parent"
+                    android:layout_height="132dp"
+                    app:jetStreamSubtitle="@string/setting_page_search_discovery_desc"
+                    app:jetStreamTitle="@string/setting_page_search_discovery_title" />
+
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:id="@+id/recordLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
                     android:layout_marginBottom="18dp"
                     android:clipChildren="false"
                     android:clipToPadding="false"
@@ -143,6 +157,7 @@
                     android:id="@+id/word"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
                     android:layout_marginBottom="12dp"
                     android:text="@string/search_hot"
                     android:textColor="@color/white_90"

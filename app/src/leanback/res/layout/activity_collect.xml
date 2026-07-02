@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -12,37 +11,36 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingTop="36dp"
+        android:paddingEnd="48dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
             android:id="@+id/result"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="36dp"
-            android:layout_marginEnd="48dp"
-            android:layout_marginBottom="18dp"
-            android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            tools:text="@string/collect_result" />
+            android:layout_width="match_parent"
+            android:layout_height="132dp"
+            app:jetStreamSubtitle="@string/setting_page_collect_desc"
+            app:jetStreamTitle="@string/home_search" />
 
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:paddingStart="48dp"
-            android:paddingEnd="48dp"
             app:focusOutEnd="false"
             app:focusOutFront="false" />
 
         <com.fongmi.android.tv.ui.custom.CustomViewPager
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

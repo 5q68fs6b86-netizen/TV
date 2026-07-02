@@ -15,6 +15,15 @@
         android:clipToPadding="false"
         android:orientation="vertical">
 
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
+            android:layout_width="match_parent"
+            android:layout_height="132dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="48dp"
+            app:jetStreamSubtitle="@string/setting_page_vod_desc"
+            app:jetStreamTitle="@string/home_vod" />
+
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
@@ -22,7 +31,7 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:paddingStart="48dp"
-            android:paddingTop="32dp"
+            android:paddingTop="20dp"
             android:paddingEnd="48dp"
             app:focusOutEnd="false"
             app:focusOutFront="false" />
@@ -30,7 +39,9 @@
         <com.fongmi.android.tv.ui.custom.CustomViewPager
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_weight="1" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

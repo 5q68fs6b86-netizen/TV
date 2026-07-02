@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -7,20 +8,40 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.fongmi.android.tv.ui.custom.ProgressLayout
-        android:id="@+id/progressLayout"
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingTop="36dp"
+        android:paddingEnd="48dp"
+        android:paddingBottom="40dp">
 
-        <androidx.leanback.widget.VerticalGridView
-            android:id="@+id/recycler"
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:padding="48dp" />
+            android:layout_height="132dp"
+            app:jetStreamSubtitle="@string/setting_page_file_desc"
+            app:jetStreamTitle="@string/setting_page_file_title" />
 
-    </com.fongmi.android.tv.ui.custom.ProgressLayout>
+        <com.fongmi.android.tv.ui.custom.ProgressLayout
+            android:id="@+id/progressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="24dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <androidx.leanback.widget.VerticalGridView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingBottom="24dp" />
+
+        </com.fongmi.android.tv.ui.custom.ProgressLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

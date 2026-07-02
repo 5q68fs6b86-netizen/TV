@@ -1,0 +1,171 @@
+package com.fongmi.android.tv.ui.custom
+
+import android.content.Context
+import android.util.AttributeSet
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+
+class JetStreamPageHeaderView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AbstractComposeView(context, attrs, defStyleAttr) {
+
+    private var title by mutableStateOf("")
+    private var subtitle by mutableStateOf("")
+
+    init {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.JetStreamPageHeaderView, defStyleAttr, 0)
+        title = typedArray.getString(R.styleable.JetStreamPageHeaderView_jetStreamTitle).orEmpty()
+        subtitle = typedArray.getString(R.styleable.JetStreamPageHeaderView_jetStreamSubtitle).orEmpty()
+        typedArray.recycle()
+        isFocusable = false
+        isFocusableInTouchMode = false
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+
+    fun setText(text: CharSequence?) {
+        title = text?.toString().orEmpty()
+    }
+
+    fun setTitle(text: CharSequence?) {
+        title = text?.toString().orEmpty()
+    }
+
+    fun setSubtitle(text: CharSequence?) {
+        subtitle = text?.toString().orEmpty()
+    }
+
+    @Composable
+    override fun Content() {
+        JetStreamTheme {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(JetStreamShapes.Card)
+                    .background(headerGradient())
+                    .border(
+                        JetStreamBorders.Thin,
+                        Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium),
+                        JetStreamShapes.Card
+                    )
+                    .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = JetStreamSpacing.ExtraLarge)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+                                    Color.Transparent
+                                ),
+                                center = Offset(920f, 20f),
+                                radius = 760f
+                            )
+                        )
+                )
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .fillMaxWidth(0.72f)
+                ) {
+                    Text(
+                        text = context.getString(R.string.home_setting).uppercase(),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = JetStreamAlpha.High),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = title.ifBlank { context.getString(R.string.home_setting) },
+                        color = Color.White,
+                        fontSize = 34.sp,
+                        lineHeight = 40.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (subtitle.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = subtitle,
+                            color = Color.White.copy(alpha = JetStreamAlpha.MediumLow),
+                            fontSize = 15.sp,
+                            lineHeight = 21.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = JetStreamAlpha.BackgroundLight))
+                        .border(
+                            JetStreamBorders.Thin,
+                            Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "TV",
+                        color = Color.White.copy(alpha = JetStreamAlpha.High),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun headerGradient(): Brush {
+        return Brush.horizontalGradient(
+            listOf(
+                Color.Black.copy(alpha = 0.56f),
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f),
+                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.20f)
+            )
+        )
+    }
+}

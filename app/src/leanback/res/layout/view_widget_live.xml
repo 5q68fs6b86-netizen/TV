@@ -8,7 +8,11 @@
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:background="@drawable/shape_player_top_info"
+        android:paddingStart="48dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="48dp"
+        android:paddingBottom="18dp"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -146,13 +150,16 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/bottom"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@drawable/shape_live_info"
         android:gravity="center"
+        android:minHeight="72dp"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="48dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="48dp"
+        android:paddingBottom="14dp"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -161,7 +168,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:textColor="@color/white"
+            android:textColor="@color/white_80"
             android:textSize="18sp"
             tools:text="005" />
 
@@ -180,7 +187,7 @@
             android:maxEms="48"
             android:singleLine="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="17sp"
             tools:text="民視" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -190,16 +197,16 @@
             android:layout_marginEnd="12dp"
             android:layout_weight="1"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textColor="@color/white_80"
+            android:textSize="16sp"
             tools:text="正在播放：食神" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/line"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textColor="@color/white_80"
+            android:textSize="16sp"
             tools:text="來源 1" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

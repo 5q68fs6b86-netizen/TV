@@ -7,6 +7,8 @@
     android:background="@drawable/selector_item_round"
     android:focusable="true"
     android:focusableInTouchMode="true"
+    android:includeFontPadding="false"
+    android:minHeight="40dp"
     android:textColor="@color/text"
     android:textSize="16sp"
     tools:text="電影" />

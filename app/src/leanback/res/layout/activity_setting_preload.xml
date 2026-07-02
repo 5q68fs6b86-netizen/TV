@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -20,6 +21,21 @@
         android:animateLayoutChanges="true"
         android:orientation="vertical"
         android:padding="48dp">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
+            android:layout_width="match_parent"
+            android:layout_height="148dp"
+            app:jetStreamSubtitle="@string/setting_page_preload_desc"
+            app:jetStreamTitle="@string/setting_section_preload" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/shape_setting_panel"
+            android:clipToOutline="true"
+            android:orientation="vertical"
+            android:padding="20dp">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/preload"
@@ -139,6 +155,7 @@
                 tools:text="60 s" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>
 </FrameLayout>
