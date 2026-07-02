@@ -8,6 +8,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -17,8 +18,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_text_bold"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -43,15 +46,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_text_size"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textSizeValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -80,15 +86,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_transparency"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/alphaValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -169,15 +178,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_shadow_transparency"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/shadowAlphaValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -209,15 +221,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_stroke_width"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/strokeWidthValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -249,15 +264,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_projection_offset_x"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/projectionOffsetXValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -289,15 +307,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_projection_offset_y"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/projectionOffsetYValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -329,15 +350,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_projection_transparency"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_slider_title_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/projectionAlphaValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/jetstream_on_surface_variant" />
+            android:textColor="@color/jetstream_slider_value_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

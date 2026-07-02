@@ -21,9 +21,10 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_margin="16dp"
-            android:background="@drawable/shape_search_icon_normal"
+            android:background="@drawable/selector_search_icon"
+            android:duplicateParentState="true"
             android:padding="10dp"
-            app:tint="@color/jetstream_primary"
+            app:tint="@color/jetstream_file_icon_tint"
             tools:src="@drawable/ic_folder" />
 
         <com.google.android.material.textview.MaterialTextView

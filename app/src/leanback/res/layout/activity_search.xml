@@ -38,7 +38,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="18dp"
-                android:background="@drawable/shape_search_field"
+                android:addStatesFromChildren="true"
+                android:background="@drawable/selector_search_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="6dp"
@@ -65,6 +66,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:background="@null"
+                    android:duplicateParentState="true"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:gravity="center_vertical"
@@ -75,8 +77,8 @@
                     android:maxLength="255"
                     android:nextFocusDown="@id/keyboard"
                     android:singleLine="true"
-                    android:textColor="@color/jetstream_on_surface"
-                    android:textColorHint="@color/jetstream_on_surface_variant"
+                    android:textColor="@color/jetstream_list_title_text"
+                    android:textColorHint="@color/jetstream_list_supporting_text"
                     android:textCursorDrawable="@drawable/shape_cursor"
                     android:textSize="22sp" />
 

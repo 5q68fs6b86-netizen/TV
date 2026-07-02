@@ -56,8 +56,8 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textColor="@color/jetstream_on_surface"
-        android:textColorHint="@color/jetstream_on_surface_variant"
+        android:textColor="@color/jetstream_list_title_text"
+        android:textColorHint="@color/jetstream_list_supporting_text"
         android:textCursorDrawable="@drawable/shape_cursor"
         android:textSize="18sp" />
 

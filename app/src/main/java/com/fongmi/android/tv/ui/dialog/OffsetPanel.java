@@ -58,6 +58,7 @@ final class OffsetPanel {
         slider.setLabelFormatter(this::format);
         slider.setValue(clamped);
         label.setText(format(clamped));
+        SliderFocusHelper.bindLabelRow(slider);
         slider.addOnChangeListener((source, value, fromUser) -> {
             if (!fromUser) return;
             float snapped = snapToStep(source, value);

@@ -229,6 +229,7 @@ final class DanmakuSettingPanel {
         slider.setLabelFormatter(formatter::apply);
         slider.setValue(clamped);
         label.setText(formatter.apply(clamped));
+        SliderFocusHelper.bindLabelRow(slider);
         slider.addOnChangeListener((source, value, fromUser) -> {
             if (!fromUser) return;
             setter.accept(value);

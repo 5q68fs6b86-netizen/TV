@@ -7,6 +7,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -16,8 +17,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_scroll"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -33,6 +36,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -42,8 +46,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_top"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -58,6 +64,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -67,8 +74,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_bottom"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -83,6 +92,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -92,8 +102,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_reverse"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -108,6 +120,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -117,8 +130,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_positioned"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -133,6 +148,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -142,8 +158,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_subtitle"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"
@@ -158,6 +176,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:addStatesFromChildren="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -167,8 +186,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:duplicateParentState="true"
             android:text="@string/danmaku_show_special"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/jetstream_list_title_text" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             style="@style/JetStream.Switch"

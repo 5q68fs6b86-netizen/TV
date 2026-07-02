@@ -57,15 +57,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:duplicateParentState="true"
                 android:text="@string/offset_audio"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/jetstream_slider_title_text" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/audioValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:duplicateParentState="true"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_on_surface_variant" />
+                android:textColor="@color/jetstream_slider_value_text" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -104,15 +107,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:duplicateParentState="true"
                 android:text="@string/offset_text"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/jetstream_slider_title_text" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:duplicateParentState="true"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_on_surface_variant" />
+                android:textColor="@color/jetstream_slider_value_text" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
