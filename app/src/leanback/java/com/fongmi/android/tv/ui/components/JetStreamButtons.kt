@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -30,9 +31,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
-import com.fongmi.android.tv.ui.theme.JetStreamColors
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSizes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
@@ -50,6 +50,7 @@ fun JetStreamButton(
     icon: ImageVector? = null,
     scaleOnFocus: Float = JetStreamAnimations.FocusScaleMedium
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -61,11 +62,22 @@ fun JetStreamButton(
 
     val background by animateColorAsState(
         targetValue = when {
-            focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh)
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium)
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            focused -> colorScheme.primaryContainer
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.78f)
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "buttonBackground"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.onPrimaryContainer
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "buttonContent"
     )
 
     Row(
@@ -92,13 +104,13 @@ fun JetStreamButton(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(JetStreamSizes.IconSmall),
-                tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+                tint = contentColor
             )
             Spacer(Modifier.width(JetStreamSpacing.IconPadding))
         }
         Text(
             text = text,
-            color = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled),
+            color = contentColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
@@ -119,6 +131,7 @@ fun JetStreamPrimaryButton(
     enabled: Boolean = true,
     icon: ImageVector? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -130,8 +143,9 @@ fun JetStreamPrimaryButton(
 
     val background by animateColorAsState(
         targetValue = when {
-            focused -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.primaryContainer
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            focused -> colorScheme.primary
+            else -> colorScheme.primaryContainer
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "primaryButtonBackground"
@@ -139,8 +153,9 @@ fun JetStreamPrimaryButton(
 
     val contentColor by animateColorAsState(
         targetValue = when {
-            focused -> MaterialTheme.colorScheme.onPrimary
-            else -> MaterialTheme.colorScheme.onPrimaryContainer
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.onPrimary
+            else -> colorScheme.onPrimaryContainer
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "primaryButtonContent"
@@ -170,13 +185,13 @@ fun JetStreamPrimaryButton(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(JetStreamSizes.IconSmall),
-                tint = contentColor.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+                tint = contentColor
             )
             Spacer(Modifier.width(JetStreamSpacing.IconPadding))
         }
         Text(
             text = text,
-            color = contentColor.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled),
+            color = contentColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
@@ -198,6 +213,7 @@ fun JetStreamIconButton(
     enabled: Boolean = true,
     selected: Boolean = false
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -209,13 +225,24 @@ fun JetStreamIconButton(
 
     val background by animateColorAsState(
         targetValue = when {
-            selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
-            focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-            enabled -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryLight)
+            selected -> colorScheme.secondaryContainer
+            focused -> colorScheme.primaryContainer
+            enabled -> colorScheme.surfaceVariant.copy(alpha = 0.82f)
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "iconButtonBackground"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            selected -> colorScheme.onSecondaryContainer
+            focused -> colorScheme.onPrimaryContainer
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "iconButtonContent"
     )
 
     Box(
@@ -239,7 +266,7 @@ fun JetStreamIconButton(
             imageVector = icon,
             contentDescription = contentDescription,
             modifier = Modifier.size(JetStreamSizes.IconMedium),
-            tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+            tint = contentColor
         )
     }
 }
@@ -255,6 +282,7 @@ fun JetStreamTextButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -266,8 +294,9 @@ fun JetStreamTextButton(
 
     val textColor by animateColorAsState(
         targetValue = when {
-            focused -> MaterialTheme.colorScheme.primary
-            else -> Color.White.copy(alpha = JetStreamAlpha.Medium)
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.primary
+            else -> colorScheme.onSurfaceVariant
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "textButtonColor"
@@ -290,7 +319,7 @@ fun JetStreamTextButton(
     ) {
         Text(
             text = text,
-            color = textColor.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled),
+            color = textColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
@@ -311,6 +340,7 @@ fun JetStreamOutlinedButton(
     enabled: Boolean = true,
     icon: ImageVector? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -322,11 +352,22 @@ fun JetStreamOutlinedButton(
 
     val borderColor by animateColorAsState(
         targetValue = when {
-            focused -> Color.White
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+            !enabled -> colorScheme.outlineVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.primary
+            else -> colorScheme.outlineVariant
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "outlinedButtonBorder"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.primary
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "outlinedButtonContent"
     )
 
     Row(
@@ -338,6 +379,7 @@ fun JetStreamOutlinedButton(
             )
             .clip(JetStreamShapes.Button)
             .background(Color.Transparent)
+            .border(JetStreamBorders.Medium, borderColor, JetStreamShapes.Button)
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -353,13 +395,13 @@ fun JetStreamOutlinedButton(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(JetStreamSizes.IconSmall),
-                tint = borderColor.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+                tint = contentColor
             )
             Spacer(Modifier.width(JetStreamSpacing.IconPadding))
         }
         Text(
             text = text,
-            color = borderColor.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled),
+            color = contentColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
             maxLines = 1,

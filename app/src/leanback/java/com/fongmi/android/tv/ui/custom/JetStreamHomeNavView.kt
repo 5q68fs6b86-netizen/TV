@@ -19,11 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -45,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
@@ -118,12 +115,26 @@ class JetStreamHomeNavView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
+                focused -> MaterialTheme.colorScheme.primaryContainer
+                selected -> MaterialTheme.colorScheme.secondaryContainer
                 else -> Color.Transparent
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "navBackground"
+        )
+        val border by animateColorAsState(
+            targetValue = if (focused) MaterialTheme.colorScheme.primary else Color.Transparent,
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "navBorder"
+        )
+        val contentColor by animateColorAsState(
+            targetValue = when {
+                focused -> MaterialTheme.colorScheme.onPrimaryContainer
+                selected -> MaterialTheme.colorScheme.onSecondaryContainer
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "navContent"
         )
 
         Row(
@@ -136,7 +147,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 .then(
                     if (focused) Modifier.border(
                         JetStreamBorders.Thin,
-                        Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium),
+                        border,
                         JetStreamShapes.Small
                     )
                     else Modifier
@@ -156,13 +167,13 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                     painter = painter,
                     contentDescription = item.text,
                     modifier = Modifier.size(16.dp),
-                    tint = Color.White.copy(alpha = if (focused || selected) 1f else JetStreamAlpha.Low)
+                    tint = contentColor
                 )
                 Spacer(Modifier.width(6.dp))
             }
             Text(
                 text = item.text,
-                color = Color.White.copy(alpha = if (focused || selected) 1f else JetStreamAlpha.Low),
+                color = contentColor,
                 fontSize = 12.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,

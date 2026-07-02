@@ -33,7 +33,8 @@
             android:background="@drawable/selector_chip_round"
             android:focusable="true"
             android:src="@drawable/ic_action_search"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:tint="@color/jetstream_control_text" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/choose"
@@ -41,7 +42,8 @@
             android:layout_height="wrap_content"
             android:background="@drawable/selector_chip_round"
             android:focusable="true"
-            android:src="@drawable/ic_action_choose" />
+            android:src="@drawable/ic_action_choose"
+            app:tint="@color/jetstream_control_text" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/setting"
@@ -50,7 +52,8 @@
             android:layout_marginStart="16dp"
             android:background="@drawable/selector_chip_round"
             android:focusable="true"
-            android:src="@drawable/ic_danmaku_setting" />
+            android:src="@drawable/ic_danmaku_setting"
+            app:tint="@color/jetstream_control_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

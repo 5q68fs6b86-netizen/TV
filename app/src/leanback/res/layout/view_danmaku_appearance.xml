@@ -405,7 +405,7 @@
         android:paddingVertical="4dp"
         android:text="@string/danmaku_color_override_hint"
         android:textAppearance="?attr/textAppearanceBodySmall"
-        android:textColor="?attr/colorError"
+        android:textColor="@color/jetstream_error"
         android:visibility="gone" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

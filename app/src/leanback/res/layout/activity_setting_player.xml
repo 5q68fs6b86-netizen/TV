@@ -25,6 +25,7 @@
         <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
             android:layout_width="match_parent"
             android:layout_height="148dp"
+            app:jetStreamEyebrow="@string/home_setting"
             app:jetStreamSubtitle="@string/setting_page_playback_desc"
             app:jetStreamTitle="@string/setting_section_playback" />
 

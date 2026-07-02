@@ -5,12 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 
 /**
  * JetStream Scrim Overlays
@@ -23,16 +23,19 @@ import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 @Composable
 fun JetStreamVerticalScrim(
     modifier: Modifier = Modifier,
-    startColor: Color = Color.Black.copy(alpha = JetStreamAlpha.ScrimLight),
-    endColor: Color = Color.Black.copy(alpha = JetStreamAlpha.ScrimHeavy),
+    startColor: Color? = null,
+    endColor: Color? = null,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val resolvedStartColor = startColor ?: colorScheme.background.copy(alpha = 0.20f)
+    val resolvedEndColor = endColor ?: colorScheme.surface.copy(alpha = 0.92f)
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(startColor, endColor)
+                    listOf(resolvedStartColor, resolvedEndColor)
                 )
             )
     ) {
@@ -46,17 +49,21 @@ fun JetStreamVerticalScrim(
 @Composable
 fun JetStreamHorizontalScrim(
     modifier: Modifier = Modifier,
-    startColor: Color = Color.White.copy(alpha = 0.16f),
-    middleColor: Color = Color.White.copy(alpha = 0.08f),
-    endColor: Color = Color.White.copy(alpha = 0.03f),
+    startColor: Color? = null,
+    middleColor: Color? = null,
+    endColor: Color? = null,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val resolvedStartColor = startColor ?: colorScheme.surface.copy(alpha = 0.88f)
+    val resolvedMiddleColor = middleColor ?: colorScheme.primaryContainer.copy(alpha = 0.24f)
+    val resolvedEndColor = endColor ?: colorScheme.tertiaryContainer.copy(alpha = 0.12f)
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.horizontalGradient(
-                    listOf(startColor, middleColor, endColor)
+                    listOf(resolvedStartColor, resolvedMiddleColor, resolvedEndColor)
                 )
             )
     ) {
@@ -72,14 +79,15 @@ fun JetStreamControlScrim(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimLight),
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimHeavy)
+                        colorScheme.background.copy(alpha = 0.20f),
+                        colorScheme.surface.copy(alpha = 0.92f)
                     )
                 )
             )
@@ -96,15 +104,16 @@ fun JetStreamInfoScrim(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color.Black.copy(alpha = 0.50f),
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimLight),
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium)
+                        colorScheme.background.copy(alpha = 0.66f),
+                        colorScheme.surface.copy(alpha = 0.14f),
+                        colorScheme.background.copy(alpha = 0.54f)
                     )
                 )
             )
@@ -121,15 +130,16 @@ fun JetStreamPageScrim(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimHeavy),
-                        Color.Black.copy(alpha = 0.46f),
-                        Color.Black.copy(alpha = 0.78f)
+                        colorScheme.background.copy(alpha = 0.82f),
+                        colorScheme.surface.copy(alpha = 0.46f),
+                        colorScheme.background.copy(alpha = 0.78f)
                     )
                 )
             )
@@ -145,15 +155,16 @@ fun JetStreamPageScrim(
 fun JetStreamRadialScrim(
     modifier: Modifier = Modifier,
     centerColor: Color = Color.Transparent,
-    edgeColor: Color = Color.Black.copy(alpha = 0.6f)
+    edgeColor: Color? = null
 ) {
+    val resolvedEdgeColor = edgeColor ?: MaterialTheme.colorScheme.background.copy(alpha = 0.60f)
     Canvas(modifier = modifier.fillMaxSize()) {
         val centerOffset = Offset(size.width / 2f, size.height / 2f)
         val radius = maxOf(size.width, size.height) / 1.5f
 
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(centerColor, edgeColor),
+                colors = listOf(centerColor, resolvedEdgeColor),
                 center = centerOffset,
                 radius = radius
             ),
@@ -171,6 +182,7 @@ fun JetStreamBottomScrim(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -178,8 +190,8 @@ fun JetStreamBottomScrim(
                 Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium),
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimHeavy)
+                        colorScheme.background.copy(alpha = 0.54f),
+                        colorScheme.surface.copy(alpha = 0.92f)
                     ),
                     startY = 0f,
                     endY = Float.POSITIVE_INFINITY
@@ -198,14 +210,15 @@ fun JetStreamTopScrim(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimHeavy),
-                        Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium),
+                        colorScheme.surface.copy(alpha = 0.92f),
+                        colorScheme.background.copy(alpha = 0.54f),
                         Color.Transparent
                     ),
                     startY = 0f,

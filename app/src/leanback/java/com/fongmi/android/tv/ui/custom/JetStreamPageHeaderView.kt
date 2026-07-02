@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
@@ -46,9 +45,11 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
 
     private var title by mutableStateOf("")
     private var subtitle by mutableStateOf("")
+    private var eyebrow by mutableStateOf("")
 
     init {
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.JetStreamPageHeaderView, defStyleAttr, 0)
+        eyebrow = typedArray.getString(R.styleable.JetStreamPageHeaderView_jetStreamEyebrow).orEmpty()
         title = typedArray.getString(R.styleable.JetStreamPageHeaderView_jetStreamTitle).orEmpty()
         subtitle = typedArray.getString(R.styleable.JetStreamPageHeaderView_jetStreamSubtitle).orEmpty()
         typedArray.recycle()
@@ -69,6 +70,10 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
         subtitle = text?.toString().orEmpty()
     }
 
+    fun setEyebrow(text: CharSequence?) {
+        eyebrow = text?.toString().orEmpty()
+    }
+
     @Composable
     override fun Content() {
         JetStreamTheme {
@@ -79,7 +84,7 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                     .background(headerGradient())
                     .border(
                         JetStreamBorders.Thin,
-                        Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium),
+                        MaterialTheme.colorScheme.outlineVariant,
                         JetStreamShapes.Card
                     )
                     .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = JetStreamSpacing.ExtraLarge)
@@ -104,8 +109,8 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                         .fillMaxWidth(0.72f)
                 ) {
                     Text(
-                        text = context.getString(R.string.home_setting).uppercase(),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = JetStreamAlpha.High),
+                        text = eyebrowText().uppercase(),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.86f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp,
@@ -115,7 +120,7 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = title.ifBlank { context.getString(R.string.home_setting) },
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 34.sp,
                         lineHeight = 40.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -126,7 +131,7 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = subtitle,
-                            color = Color.White.copy(alpha = JetStreamAlpha.MediumLow),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
                             lineHeight = 21.sp,
                             maxLines = 2,
@@ -139,17 +144,17 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
                         .align(Alignment.TopEnd)
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = JetStreamAlpha.BackgroundLight))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(
                             JetStreamBorders.Thin,
-                            Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium),
+                            MaterialTheme.colorScheme.outlineVariant,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "TV",
-                        color = Color.White.copy(alpha = JetStreamAlpha.High),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -158,11 +163,15 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
         }
     }
 
+    private fun eyebrowText(): String {
+        return eyebrow.ifBlank { title }.ifBlank { context.getString(R.string.home_setting) }
+    }
+
     @Composable
     private fun headerGradient(): Brush {
         return Brush.horizontalGradient(
             listOf(
-                Color.Black.copy(alpha = 0.56f),
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f),
                 MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.20f)
             )

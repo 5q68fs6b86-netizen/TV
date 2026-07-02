@@ -30,6 +30,7 @@
             <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
                 android:layout_width="match_parent"
                 android:layout_height="132dp"
+                app:jetStreamEyebrow="@string/home_search"
                 app:jetStreamSubtitle="@string/setting_page_search_input_desc"
                 app:jetStreamTitle="@string/home_search" />
 
@@ -118,6 +119,7 @@
                 <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
                     android:layout_width="match_parent"
                     android:layout_height="132dp"
+                    app:jetStreamEyebrow="@string/home_search"
                     app:jetStreamSubtitle="@string/setting_page_search_discovery_desc"
                     app:jetStreamTitle="@string/setting_page_search_discovery_title" />
 

@@ -32,10 +32,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
-import com.fongmi.android.tv.ui.theme.JetStreamColors
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSizes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
@@ -56,6 +54,7 @@ fun JetStreamChip(
     icon: ImageVector? = null,
     scaleOnFocus: Float = JetStreamAnimations.FocusScaleMedium
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -67,25 +66,31 @@ fun JetStreamChip(
 
     val background by animateColorAsState(
         targetValue = when {
-            selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
-            focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh)
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            selected -> colorScheme.secondaryContainer
+            focused -> colorScheme.primaryContainer
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.68f)
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "chipBackground"
     )
 
-    val borderAlpha by animateFloatAsState(
-        targetValue = if (focused) JetStreamAlpha.BackgroundVeryHigh else 0f,
-        animationSpec = JetStreamAnimations.FloatTween,
+    val borderColor by animateColorAsState(
+        targetValue = if (focused) colorScheme.primary.copy(alpha = 0.86f) else Color.Transparent,
+        animationSpec = JetStreamAnimations.ColorTween,
         label = "chipBorder"
     )
 
-    val contentAlpha = when {
-        !enabled -> JetStreamAlpha.Disabled
-        focused || selected -> 1f
-        else -> JetStreamAlpha.Low
-    }
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            selected -> colorScheme.onSecondaryContainer
+            focused -> colorScheme.onPrimaryContainer
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "chipContent"
+    )
 
     Box(
         modifier = modifier
@@ -99,7 +104,7 @@ fun JetStreamChip(
             .then(
                 if (focused) Modifier.border(
                     JetStreamBorders.Medium,
-                    Color.White.copy(alpha = borderAlpha),
+                    borderColor,
                     JetStreamShapes.Chip
                 )
                 else Modifier
@@ -120,13 +125,13 @@ fun JetStreamChip(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(JetStreamSizes.IconExtraSmall),
-                    tint = Color.White.copy(alpha = contentAlpha)
+                    tint = contentColor
                 )
                 Spacer(Modifier.width(6.dp))
             }
             Text(
                 text = text,
-                color = Color.White.copy(alpha = contentAlpha),
+                color = contentColor,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
@@ -148,6 +153,7 @@ fun JetStreamFilterChip(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -159,9 +165,10 @@ fun JetStreamFilterChip(
 
     val background by animateColorAsState(
         targetValue = when {
-            selected -> MaterialTheme.colorScheme.primaryContainer
-            focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            selected -> colorScheme.primaryContainer
+            focused -> colorScheme.secondaryContainer
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.68f)
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "filterChipBackground"
@@ -169,8 +176,10 @@ fun JetStreamFilterChip(
 
     val textColor by animateColorAsState(
         targetValue = when {
-            selected -> MaterialTheme.colorScheme.onPrimaryContainer
-            else -> Color.White
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            selected -> colorScheme.onPrimaryContainer
+            focused -> colorScheme.onSecondaryContainer
+            else -> colorScheme.onSurfaceVariant
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "filterChipText"
@@ -217,6 +226,7 @@ fun JetStreamActionChip(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -227,12 +237,23 @@ fun JetStreamActionChip(
     )
 
     val background by animateColorAsState(
-        targetValue = if (focused)
-            Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh)
-        else
-            Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium),
+        targetValue = when {
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            focused -> colorScheme.primaryContainer
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.78f)
+        },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "actionChipBackground"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            focused -> colorScheme.onPrimaryContainer
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "actionChipContent"
     )
 
     Row(
@@ -257,12 +278,12 @@ fun JetStreamActionChip(
             imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(19.dp),
-            tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+            tint = contentColor
         )
         Spacer(Modifier.width(7.dp))
         Text(
             text = label,
-            color = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled),
+            color = contentColor,
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -283,6 +304,7 @@ fun JetStreamIconChip(
     enabled: Boolean = true,
     selected: Boolean = false
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -294,12 +316,24 @@ fun JetStreamIconChip(
 
     val background by animateColorAsState(
         targetValue = when {
-            selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
-            focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-            else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+            !enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+            selected -> colorScheme.secondaryContainer
+            focused -> colorScheme.primaryContainer
+            else -> colorScheme.surfaceVariant.copy(alpha = 0.82f)
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "iconChipBackground"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            selected -> colorScheme.onSecondaryContainer
+            focused -> colorScheme.onPrimaryContainer
+            else -> colorScheme.onSurfaceVariant
+        },
+        animationSpec = JetStreamAnimations.ColorTween,
+        label = "iconChipContent"
     )
 
     Box(
@@ -323,7 +357,7 @@ fun JetStreamIconChip(
             imageVector = icon,
             contentDescription = contentDescription,
             modifier = Modifier.size(JetStreamSizes.IconMedium),
-            tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+            tint = contentColor
         )
     }
 }

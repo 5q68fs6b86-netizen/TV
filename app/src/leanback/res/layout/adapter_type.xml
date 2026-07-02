@@ -9,6 +9,6 @@
     android:focusableInTouchMode="true"
     android:includeFontPadding="false"
     android:minHeight="40dp"
-    android:textColor="@color/text"
+    android:textColor="@color/jetstream_control_text"
     android:textSize="16sp"
     tools:text="電影" />

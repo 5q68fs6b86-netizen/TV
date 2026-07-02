@@ -5,9 +5,10 @@ import android.widget.TextView;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogContentBinding;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
-import com.github.bassaer.library.MDColor;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ContentDialog extends BaseAlertDialog {
@@ -41,7 +42,7 @@ public class ContentDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         binding.text.setText(content, TextView.BufferType.SPANNABLE);
-        binding.text.setLinkTextColor(MDColor.YELLOW_500);
+        binding.text.setLinkTextColor(ResUtil.getColor(R.color.jetstream_primary));
         CustomMovement.bind(binding.text);
     }
 }

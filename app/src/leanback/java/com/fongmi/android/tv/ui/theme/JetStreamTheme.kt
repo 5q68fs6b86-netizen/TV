@@ -54,24 +54,6 @@ object JetStreamColors {
     val Background = Color(0xFF11131A)
     val OnBackground = Color(0xFFE3E2E6)
 
-    // Scrim Colors - 遮罩层颜色
-    val ScrimLight = Color(0x14FFFFFF)
-    val ScrimMedium = Color(0x29FFFFFF)
-    val ScrimHeavy = Color(0x3DFFFFFF)
-
-    // Common UI Colors - 常用 UI 颜色
-    val White = Color.White
-    val WhiteAlpha72 = Color.White.copy(alpha = 0.72f)
-    val WhiteAlpha86 = Color.White.copy(alpha = 0.86f)
-    val WhiteAlpha92 = Color.White.copy(alpha = 0.92f)
-    val WhiteAlpha38 = Color.White.copy(alpha = 0.38f)
-    val WhiteAlpha62 = Color.White.copy(alpha = 0.62f)
-
-    // Transparent backgrounds for cards and surfaces
-    val CardBackground = Color.White.copy(alpha = 0.10f)
-    val CardBackgroundFocused = Color.White.copy(alpha = 0.22f)
-    val CardBackgroundSelected = Color.White.copy(alpha = 0.18f)
-    val CardBackgroundHighlight = Color.White.copy(alpha = 0.26f)
 }
 
 /**

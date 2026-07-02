@@ -10,27 +10,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,12 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fongmi.android.tv.ui.theme.JetStreamTheme
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
 
 class JetStreamChipRow @JvmOverloads constructor(
     context: Context,
@@ -226,17 +220,26 @@ class JetStreamChipRow @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
+                focused -> MaterialTheme.colorScheme.primaryContainer
+                selected -> MaterialTheme.colorScheme.secondaryContainer
+                else -> MaterialTheme.colorScheme.surfaceVariant
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
         )
-        val borderAlpha by animateFloatAsState(
-            if (focused) JetStreamAlpha.BackgroundVeryHigh else 0f,
-            animationSpec = JetStreamAnimations.FloatTween,
+        val border by animateColorAsState(
+            targetValue = if (focused) MaterialTheme.colorScheme.primary else Color.Transparent,
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBorder"
+        )
+        val textColor by animateColorAsState(
+            targetValue = when {
+                focused -> MaterialTheme.colorScheme.onPrimaryContainer
+                selected -> MaterialTheme.colorScheme.onSecondaryContainer
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "chipText"
         )
 
         Box(
@@ -246,7 +249,7 @@ class JetStreamChipRow @JvmOverloads constructor(
                 .clip(JetStreamShapes.Chip)
                 .background(background)
                 .then(
-                    if (focused) Modifier.border(JetStreamBorders.Medium, Color.White.copy(alpha = borderAlpha), JetStreamShapes.Chip)
+                    if (focused) Modifier.border(JetStreamBorders.Medium, border, JetStreamShapes.Chip)
                     else Modifier
                 )
                 .focusRequester(focusRequester)
@@ -261,7 +264,7 @@ class JetStreamChipRow @JvmOverloads constructor(
         ) {
             Text(
                 text = text,
-                color = Color.White.copy(alpha = if (focused || selected) 1f else 0.78f),
+                color = textColor,
                 fontSize = 14.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 lineHeight = 14.sp,

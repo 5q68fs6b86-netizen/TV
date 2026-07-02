@@ -21,7 +21,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.github.bassaer.library.MDColor;
 
 import java.util.List;
 
@@ -138,10 +137,10 @@ public class CustomMic extends AppCompatImageView {
         mListen = listening;
         if (listening) {
             startAnimation(ResUtil.getAnim(R.anim.flicker));
-            setColorFilter(MDColor.RED_500, PorterDuff.Mode.SRC_IN);
+            setColorFilter(ResUtil.getColor(R.color.jetstream_error), PorterDuff.Mode.SRC_IN);
         } else {
             clearAnimation();
-            setColorFilter(MDColor.WHITE, PorterDuff.Mode.SRC_IN);
+            setColorFilter(ResUtil.getColor(R.color.jetstream_on_surface), PorterDuff.Mode.SRC_IN);
         }
     }
 

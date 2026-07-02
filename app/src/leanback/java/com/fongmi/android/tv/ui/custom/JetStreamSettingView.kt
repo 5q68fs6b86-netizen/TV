@@ -40,7 +40,6 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +54,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
@@ -66,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
@@ -197,8 +194,8 @@ class JetStreamSettingView @JvmOverloads constructor(
         Column(
             modifier = modifier
                 .clip(JetStreamShapes.Card)
-                .background(Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium))
-                .border(JetStreamBorders.Thin, Color.White.copy(alpha = JetStreamAlpha.BackgroundLight), JetStreamShapes.Card)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.86f))
+                .border(JetStreamBorders.Thin, MaterialTheme.colorScheme.outlineVariant, JetStreamShapes.Card)
                 .padding(JetStreamSpacing.ButtonHorizontalPadding)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -206,20 +203,20 @@ class JetStreamSettingView @JvmOverloads constructor(
                     modifier = Modifier
                         .size(34.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = null,
                         modifier = Modifier.size(21.dp),
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
                 Spacer(Modifier.width(JetStreamSpacing.IconPadding))
                 Text(
                     text = context.getString(R.string.home_setting),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -251,13 +248,13 @@ class JetStreamSettingView @JvmOverloads constructor(
         Column(
             modifier = modifier
                 .clip(JetStreamShapes.Card)
-                .background(Color.Black.copy(alpha = 0.34f))
-                .border(JetStreamBorders.Thin, Color.White.copy(alpha = JetStreamAlpha.BackgroundLight), JetStreamShapes.Card)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.80f))
+                .border(JetStreamBorders.Thin, MaterialTheme.colorScheme.outlineVariant, JetStreamShapes.Card)
                 .padding(horizontal = JetStreamSpacing.CardPadding, vertical = JetStreamSpacing.ButtonHorizontalPadding)
         ) {
             Text(
                 text = section?.label.orEmpty(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 25.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -292,12 +289,21 @@ class JetStreamSettingView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryLight)
+                focused -> MaterialTheme.colorScheme.primaryContainer
+                selected -> MaterialTheme.colorScheme.secondaryContainer
+                else -> MaterialTheme.colorScheme.surfaceVariant
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "sectionBackground"
+        )
+        val textColor by animateColorAsState(
+            targetValue = when {
+                focused -> MaterialTheme.colorScheme.onPrimaryContainer
+                selected -> MaterialTheme.colorScheme.onSecondaryContainer
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "sectionText"
         )
         Box(
             modifier = Modifier
@@ -316,7 +322,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         ) {
             Text(
                 text = section.label,
-                color = Color.White.copy(alpha = if (selected || focused) 1f else JetStreamAlpha.MediumLow),
+                color = textColor,
                 fontSize = 16.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
@@ -336,9 +342,19 @@ class JetStreamSettingView @JvmOverloads constructor(
             label = "rowScale"
         )
         val background by animateColorAsState(
-            targetValue = if (focused) Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium) else Color.White.copy(alpha = JetStreamAlpha.BackgroundLight),
+            targetValue = if (focused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
             animationSpec = JetStreamAnimations.ColorTween,
             label = "rowBackground"
+        )
+        val labelColor by animateColorAsState(
+            targetValue = if (focused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "rowLabel"
+        )
+        val valueColor by animateColorAsState(
+            targetValue = if (focused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f) else MaterialTheme.colorScheme.onSurfaceVariant,
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "rowValue"
         )
         val value = rowValues[row.key].orEmpty()
         val requesterModifier = focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
@@ -367,7 +383,7 @@ class JetStreamSettingView @JvmOverloads constructor(
             ) {
                 Text(
                     text = row.label,
-                    color = Color.White,
+                    color = labelColor,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -377,7 +393,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     Spacer(Modifier.height(3.dp))
                     Text(
                         text = value,
-                        color = Color.White.copy(alpha = 0.68f),
+                        color = valueColor,
                         fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -396,7 +412,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                 Text(
                     text = value,
                     modifier = Modifier.widthIn(max = 320.dp),
-                    color = Color.White.copy(alpha = JetStreamAlpha.Medium),
+                    color = valueColor,
                     fontSize = 17.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -416,9 +432,14 @@ class JetStreamSettingView @JvmOverloads constructor(
             label = "chipScale"
         )
         val background by animateColorAsState(
-            targetValue = if (focused) Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh) else Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium),
+            targetValue = if (focused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
+        )
+        val contentColor by animateColorAsState(
+            targetValue = if (focused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "chipContent"
         )
         Row(
             modifier = Modifier
@@ -439,12 +460,12 @@ class JetStreamSettingView @JvmOverloads constructor(
                 imageVector = action.icon,
                 contentDescription = action.label,
                 modifier = Modifier.size(19.dp),
-                tint = Color.White
+                tint = contentColor
             )
             Spacer(Modifier.width(7.dp))
             Text(
                 text = action.label,
-                color = Color.White,
+                color = contentColor,
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -452,12 +473,13 @@ class JetStreamSettingView @JvmOverloads constructor(
         }
     }
 
+    @Composable
     private fun pageScrim(): Brush {
         return Brush.verticalGradient(
             listOf(
-                Color.Black.copy(alpha = 0.72f),
-                Color.Black.copy(alpha = 0.46f),
-                Color.Black.copy(alpha = 0.78f)
+                MaterialTheme.colorScheme.background.copy(alpha = 0.92f),
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.74f),
+                MaterialTheme.colorScheme.background.copy(alpha = 0.96f)
             )
         )
     }

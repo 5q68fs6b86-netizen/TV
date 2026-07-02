@@ -55,7 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -73,7 +72,6 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import kotlinx.coroutines.delay
@@ -232,21 +230,25 @@ class JetStreamVodControlView @JvmOverloads constructor(
         }
     }
 
+    @Composable
     private fun controlScrim(): Brush {
+        val colorScheme = MaterialTheme.colorScheme
         return Brush.verticalGradient(
             listOf(
-                Color.Black.copy(alpha = 0.10f),
-                Color.Black.copy(alpha = 0.80f)
+                colorScheme.background.copy(alpha = 0.20f),
+                colorScheme.surface.copy(alpha = 0.92f)
             )
         )
     }
 
+    @Composable
     private fun infoScrim(): Brush {
+        val colorScheme = MaterialTheme.colorScheme
         return Brush.verticalGradient(
             listOf(
-                Color.Black.copy(alpha = 0.50f),
-                Color.Black.copy(alpha = 0.10f),
-                Color.Black.copy(alpha = 0.42f)
+                colorScheme.background.copy(alpha = 0.66f),
+                colorScheme.surface.copy(alpha = 0.14f),
+                colorScheme.background.copy(alpha = 0.54f)
             )
         )
     }
@@ -279,6 +281,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun BoxScope.TopInfo() {
+        val colorScheme = MaterialTheme.colorScheme
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -294,7 +297,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
             ) {
                 Text(
                     text = mediaTitle,
-                    color = Color.White,
+                    color = colorScheme.onSurface,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -304,7 +307,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = infoSize,
-                        color = Color.White.copy(alpha = 0.72f),
+                        color = colorScheme.onSurfaceVariant,
                         fontSize = 15.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -314,7 +317,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
             if (infoClock.isNotEmpty()) {
                 Text(
                     text = infoClock,
-                    color = Color.White.copy(alpha = 0.86f),
+                    color = colorScheme.onSurface,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
@@ -325,11 +328,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun BoxScope.CenterInfo() {
+        val colorScheme = MaterialTheme.colorScheme
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
                 .clip(RoundedCornerShape(28.dp))
-                .background(Color.Black.copy(alpha = 0.48f))
+                .background(colorScheme.surface.copy(alpha = 0.82f))
                 .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -337,34 +341,34 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.20f)),
+                    .background(colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = centerInfoIcon(),
                     contentDescription = null,
                     modifier = Modifier.size(42.dp),
-                    tint = Color.White
+                    tint = colorScheme.onPrimaryContainer
                 )
             }
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = infoPosition,
-                    color = Color.White,
+                    color = colorScheme.onSurface,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
                 )
                 Text(
                     text = " / ",
-                    color = Color.White.copy(alpha = 0.62f),
+                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.70f),
                     fontSize = 18.sp,
                     maxLines = 1
                 )
                 Text(
                     text = infoDuration,
-                    color = Color.White.copy(alpha = 0.80f),
+                    color = colorScheme.onSurfaceVariant,
                     fontSize = 18.sp,
                     maxLines = 1
                 )
@@ -423,6 +427,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun MediaTitle(modifier: Modifier) {
+        val colorScheme = MaterialTheme.colorScheme
         val subtitle = buildString {
             append(secondaryText)
             if (secondaryText.isNotEmpty() && tertiaryText.isNotEmpty()) append(" • ")
@@ -431,7 +436,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         Column(modifier = modifier.padding(end = 24.dp)) {
             Text(
                 text = mediaTitle,
-                color = Color.White,
+                color = colorScheme.onSurface,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -441,7 +446,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = subtitle,
-                    color = Color.White.copy(alpha = 0.72f),
+                    color = colorScheme.onSurfaceVariant,
                     fontSize = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -508,6 +513,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun CommandChip(state: CommandState, onClick: () -> Unit) {
+        val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
@@ -517,12 +523,21 @@ class JetStreamVodControlView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                state.selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
-                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium)
+                state.selected -> colorScheme.secondaryContainer
+                focused -> colorScheme.primaryContainer
+                else -> colorScheme.surfaceVariant.copy(alpha = 0.78f)
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
+        )
+        val contentColor by animateColorAsState(
+            targetValue = when {
+                state.selected -> colorScheme.onSecondaryContainer
+                focused -> colorScheme.onPrimaryContainer
+                else -> colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "chipContent"
         )
         Box(
             modifier = Modifier
@@ -543,7 +558,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         ) {
             Text(
                 text = state.label,
-                color = Color.White,
+                color = contentColor,
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -563,6 +578,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         contentDescription: String,
         onClick: () -> Unit
     ) {
+        val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
@@ -572,13 +588,23 @@ class JetStreamVodControlView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
-                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
-                enabled -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryLight)
+                selected -> colorScheme.secondaryContainer
+                focused -> colorScheme.primaryContainer
+                enabled -> colorScheme.surfaceVariant.copy(alpha = 0.82f)
+                else -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "iconBackground"
+        )
+        val contentColor by animateColorAsState(
+            targetValue = when {
+                !enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                selected -> colorScheme.onSecondaryContainer
+                focused -> colorScheme.onPrimaryContainer
+                else -> colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "iconContent"
         )
 
         Box(
@@ -602,12 +628,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 modifier = Modifier.size(24.dp),
-                tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
+                tint = contentColor
             )
             if (selected) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawCircle(
-                        color = Color.White,
+                        color = contentColor,
                         radius = 2.dp.toPx(),
                         center = Offset(size.width / 2f, size.height - 6.dp.toPx())
                     )
@@ -624,7 +650,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp),
-            color = Color.White.copy(alpha = JetStreamAlpha.Medium),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             maxLines = 1
         )
@@ -637,7 +663,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
         var selected by remember { mutableStateOf(false) }
         var seekProgress by remember { mutableStateOf(progress) }
         val height by animateDpAsState(if (focused) 10.dp else 4.dp, label = "indicatorHeight")
-        val color = if (selected) Color.White else Color.White.copy(alpha = 0.92f)
+        val colorScheme = MaterialTheme.colorScheme
+        val progressColor = if (selected) colorScheme.primary else colorScheme.onSurface.copy(alpha = 0.92f)
+        val trackColor = colorScheme.outlineVariant.copy(alpha = 0.72f)
         val displayProgress = if (selected) seekProgress else progress
 
         LaunchedEffect(progress, selected) {
@@ -688,14 +716,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
         ) {
             val y = size.height / 2f
             drawLine(
-                color = Color.White.copy(alpha = 0.24f),
+                color = trackColor,
                 start = Offset(0f, y),
                 end = Offset(size.width, y),
                 strokeWidth = size.height,
                 cap = StrokeCap.Round
             )
             drawLine(
-                color = color,
+                color = progressColor,
                 start = Offset(0f, y),
                 end = Offset(size.width * displayProgress.coerceIn(0f, 1f), y),
                 strokeWidth = size.height,

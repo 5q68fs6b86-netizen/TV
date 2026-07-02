@@ -45,8 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -62,11 +62,9 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
-import com.github.bassaer.library.MDColor
 
 class JetStreamVodDetailView @JvmOverloads constructor(
     context: Context,
@@ -195,6 +193,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun DetailSurface() {
+        val colorScheme = MaterialTheme.colorScheme
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -202,9 +201,9 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 .background(
                     Brush.horizontalGradient(
                         listOf(
-                            Color.White.copy(alpha = 0.16f),
-                            Color.White.copy(alpha = 0.08f),
-                            Color.White.copy(alpha = 0.03f)
+                            colorScheme.surface.copy(alpha = 0.88f),
+                            colorScheme.primaryContainer.copy(alpha = 0.24f),
+                            colorScheme.tertiaryContainer.copy(alpha = 0.12f)
                         )
                     )
                 )
@@ -261,7 +260,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         } else {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -272,7 +271,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             Spacer(Modifier.height(4.dp))
             Text(
                 text = remark.toString(),
-                color = Color.White.copy(alpha = 0.72f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -297,17 +296,18 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun MetadataChip(text: String) {
+        val colorScheme = MaterialTheme.colorScheme
         Box(
             modifier = Modifier
                 .height(30.dp)
                 .clip(RoundedCornerShape(15.dp))
-                .background(Color.White.copy(alpha = 0.14f))
+                .background(colorScheme.secondaryContainer.copy(alpha = 0.72f))
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
-                color = Color.White.copy(alpha = 0.86f),
+                color = colorScheme.onSecondaryContainer,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -329,12 +329,14 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     @Composable
     private fun ClickableInfoText(text: CharSequence, maxLines: Int) {
         if (text.isBlank()) return
+        val textColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+        val linkColor = MaterialTheme.colorScheme.primary.toArgb()
         AndroidView(
             modifier = Modifier.fillMaxWidth(),
             factory = { context ->
                 TextView(context).apply {
-                    setTextColor(android.graphics.Color.WHITE)
-                    setLinkTextColor(MDColor.YELLOW_500)
+                    setTextColor(textColor)
+                    setLinkTextColor(linkColor)
                     textSize = 15f
                     includeFontPadding = false
                     highlightColor = android.graphics.Color.TRANSPARENT
@@ -346,6 +348,8 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 view.maxLines = maxLines
                 view.ellipsize = android.text.TextUtils.TruncateAt.END
                 view.text = text
+                view.setTextColor(textColor)
+                view.setLinkTextColor(linkColor)
                 view.movementMethod = if (text is Spanned) LinkMovementMethod.getInstance() else null
             }
         )
@@ -374,6 +378,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun ActionButton(spec: ActionSpec, active: Boolean, onClick: () -> Unit) {
+        val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val scale by animateFloatAsState(
             if (active) JetStreamAnimations.FocusScaleMedium else 1.0f,
@@ -382,12 +387,23 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                active -> Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh)
-                spec.selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
-                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium)
+                !spec.enabled -> colorScheme.surfaceVariant.copy(alpha = 0.42f)
+                active -> colorScheme.primaryContainer
+                spec.selected -> colorScheme.secondaryContainer
+                else -> colorScheme.surfaceVariant.copy(alpha = 0.78f)
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "detailActionBackground"
+        )
+        val contentColor by animateColorAsState(
+            targetValue = when {
+                !spec.enabled -> colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                active -> colorScheme.onPrimaryContainer
+                spec.selected -> colorScheme.onSecondaryContainer
+                else -> colorScheme.onSurfaceVariant
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "detailActionContent"
         )
         Row(
             modifier = Modifier
@@ -408,12 +424,12 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 imageVector = spec.icon,
                 contentDescription = spec.label,
                 modifier = Modifier.size(20.dp),
-                tint = Color.White.copy(alpha = if (spec.enabled) 1f else JetStreamAlpha.Disabled)
+                tint = contentColor
             )
             Spacer(Modifier.width(JetStreamSpacing.IconPadding))
             Text(
                 text = spec.label,
-                color = Color.White.copy(alpha = if (spec.enabled) 1f else JetStreamAlpha.Disabled),
+                color = contentColor,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,

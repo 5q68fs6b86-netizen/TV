@@ -4,5 +4,5 @@
     <item android:color="@color/jetstream_primary" android:state_pressed="true" />
     <item android:color="@color/jetstream_secondary" android:state_checked="true" />
     <item android:color="@color/jetstream_secondary" android:state_selected="true" />
-    <item android:color="@color/white_10" />
+    <item android:color="@color/jetstream_outline_variant" />
 </selector>

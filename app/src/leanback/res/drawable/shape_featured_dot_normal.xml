@@ -5,6 +5,6 @@
     <size
         android:width="7dp"
         android:height="7dp" />
-    <solid android:color="@color/white_30" />
+    <solid android:color="@color/jetstream_outline" />
 
 </shape>

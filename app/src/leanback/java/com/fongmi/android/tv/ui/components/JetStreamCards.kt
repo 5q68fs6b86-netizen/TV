@@ -24,10 +24,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import androidx.compose.ui.graphics.takeOrElse
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamBorders
-import com.fongmi.android.tv.ui.theme.JetStreamColors
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 
@@ -42,14 +41,30 @@ fun JetStreamCard(
     enabled: Boolean = true,
     selected: Boolean = false,
     shape: Shape = JetStreamShapes.Card,
-    backgroundColor: Color = JetStreamColors.CardBackground,
-    focusedBackgroundColor: Color = JetStreamColors.CardBackgroundFocused,
-    selectedBackgroundColor: Color = JetStreamColors.CardBackgroundSelected,
-    borderColor: Color = Color.White.copy(alpha = JetStreamAlpha.BackgroundLight),
-    focusedBorderColor: Color = Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium),
+    backgroundColor: Color = Color.Unspecified,
+    focusedBackgroundColor: Color = Color.Unspecified,
+    selectedBackgroundColor: Color = Color.Unspecified,
+    borderColor: Color = Color.Unspecified,
+    focusedBorderColor: Color = Color.Unspecified,
     scaleOnFocus: Float = JetStreamAnimations.FocusScaleMedium,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val resolvedBackgroundColor = backgroundColor.takeOrElse {
+        colorScheme.surfaceVariant.copy(alpha = 0.68f)
+    }
+    val resolvedFocusedBackgroundColor = focusedBackgroundColor.takeOrElse {
+        colorScheme.primaryContainer
+    }
+    val resolvedSelectedBackgroundColor = selectedBackgroundColor.takeOrElse {
+        colorScheme.secondaryContainer
+    }
+    val resolvedBorderColor = borderColor.takeOrElse {
+        colorScheme.outlineVariant.copy(alpha = 0.46f)
+    }
+    val resolvedFocusedBorderColor = focusedBorderColor.takeOrElse {
+        colorScheme.primary.copy(alpha = 0.82f)
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -61,16 +76,16 @@ fun JetStreamCard(
 
     val background by animateColorAsState(
         targetValue = when {
-            focused -> focusedBackgroundColor
-            selected -> selectedBackgroundColor
-            else -> backgroundColor
+            focused -> resolvedFocusedBackgroundColor
+            selected -> resolvedSelectedBackgroundColor
+            else -> resolvedBackgroundColor
         },
         animationSpec = JetStreamAnimations.ColorTween,
         label = "cardBackground"
     )
 
     val border by animateColorAsState(
-        targetValue = if (focused) focusedBorderColor else borderColor,
+        targetValue = if (focused) resolvedFocusedBorderColor else resolvedBorderColor,
         animationSpec = JetStreamAnimations.ColorTween,
         label = "cardBorder"
     )
@@ -105,15 +120,17 @@ fun JetStreamSurfaceCard(
     onClick: () -> Unit = {},
     enabled: Boolean = true,
     shape: Shape = JetStreamShapes.Card,
-    gradient: Brush = Brush.horizontalGradient(
-        listOf(
-            Color.White.copy(alpha = 0.16f),
-            Color.White.copy(alpha = 0.08f),
-            Color.White.copy(alpha = 0.03f)
-        )
-    ),
+    gradient: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val resolvedGradient = gradient ?: Brush.horizontalGradient(
+        listOf(
+            colorScheme.surface.copy(alpha = 0.88f),
+            colorScheme.primaryContainer.copy(alpha = 0.24f),
+            colorScheme.tertiaryContainer.copy(alpha = 0.12f)
+        )
+    )
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
 
@@ -130,7 +147,7 @@ fun JetStreamSurfaceCard(
                 scaleY = scale
             )
             .clip(shape)
-            .background(gradient)
+            .background(resolvedGradient)
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -150,15 +167,22 @@ fun JetStreamSurfaceCard(
 fun JetStreamGlassCard(
     modifier: Modifier = Modifier,
     shape: Shape = JetStreamShapes.Card,
-    backgroundColor: Color = Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium),
-    borderColor: Color = Color.White.copy(alpha = JetStreamAlpha.BackgroundLight),
+    backgroundColor: Color = Color.Unspecified,
+    borderColor: Color = Color.Unspecified,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val resolvedBackgroundColor = backgroundColor.takeOrElse {
+        colorScheme.surface.copy(alpha = 0.82f)
+    }
+    val resolvedBorderColor = borderColor.takeOrElse {
+        colorScheme.outlineVariant.copy(alpha = 0.48f)
+    }
     Box(
         modifier = modifier
             .clip(shape)
-            .background(backgroundColor)
-            .border(JetStreamBorders.Thin, borderColor, shape)
+            .background(resolvedBackgroundColor)
+            .border(JetStreamBorders.Thin, resolvedBorderColor, shape)
     ) {
         content()
     }

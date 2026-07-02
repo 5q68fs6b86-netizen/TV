@@ -24,7 +24,7 @@
             android:indeterminate="true"
             app:indicatorColor="@color/jetstream_primary"
             app:indicatorSize="@dimen/progress_indicator_size"
-            app:trackColor="@color/white_20"
+            app:trackColor="@color/jetstream_outline_variant"
             app:trackCornerRadius="@dimen/progress_indicator_corner_radius"
             app:trackThickness="@dimen/progress_indicator_track_thickness" />
 

@@ -4,5 +4,5 @@
     <item android:color="@color/jetstream_primary_container" android:state_pressed="true" />
     <item android:color="@color/jetstream_secondary_container" android:state_checked="true" />
     <item android:color="@color/jetstream_secondary_container" android:state_selected="true" />
-    <item android:color="@color/white_05" />
+    <item android:color="@color/jetstream_surface_container_high" />
 </selector>

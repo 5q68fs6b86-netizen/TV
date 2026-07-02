@@ -6,6 +6,7 @@ import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,7 +14,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.fongmi.android.tv.ui.theme.JetStreamColors
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 
 class JetStreamPageBackgroundView @JvmOverloads constructor(
@@ -32,15 +32,16 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
     @Composable
     override fun Content() {
         JetStreamTheme {
+            val colorScheme = MaterialTheme.colorScheme
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                JetStreamColors.Background,
-                                JetStreamColors.Surface,
-                                Color(0xFF090A10)
+                                colorScheme.background,
+                                colorScheme.surface,
+                                colorScheme.background.copy(alpha = 0.92f)
                             )
                         )
                     )
@@ -51,7 +52,7 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
                         .background(
                             Brush.radialGradient(
                                 colors = listOf(
-                                    JetStreamColors.Primary.copy(alpha = 0.22f),
+                                    colorScheme.primary.copy(alpha = 0.22f),
                                     Color.Transparent
                                 ),
                                 center = Offset(180f, 40f),
@@ -65,7 +66,7 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
                         .background(
                             Brush.radialGradient(
                                 colors = listOf(
-                                    JetStreamColors.Tertiary.copy(alpha = 0.16f),
+                                    colorScheme.tertiary.copy(alpha = 0.16f),
                                     Color.Transparent
                                 ),
                                 center = Offset(1600f, 760f),
@@ -79,9 +80,9 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
                         .background(
                             Brush.verticalGradient(
                                 listOf(
-                                    Color.Black.copy(alpha = 0.04f),
+                                    colorScheme.background.copy(alpha = 0.04f),
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.30f)
+                                    colorScheme.background.copy(alpha = 0.30f)
                                 )
                             )
                         )

@@ -33,6 +33,7 @@
             android:focusable="true"
             android:src="@drawable/ic_action_choose"
             android:visibility="gone"
+            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -44,6 +45,7 @@
             android:focusable="true"
             android:src="@drawable/ic_action_subtitle"
             android:visibility="gone"
+            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -55,6 +57,7 @@
             android:focusable="true"
             android:src="@drawable/ic_action_offset"
             android:visibility="gone"
+            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

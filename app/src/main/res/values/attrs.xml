@@ -8,6 +8,7 @@
     </declare-styleable>
 
     <declare-styleable name="JetStreamPageHeaderView">
+        <attr name="jetStreamEyebrow" format="string" />
         <attr name="jetStreamTitle" format="string" />
         <attr name="jetStreamSubtitle" format="string" />
     </declare-styleable>
