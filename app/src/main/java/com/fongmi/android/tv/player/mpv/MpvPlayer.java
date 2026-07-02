@@ -506,10 +506,18 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
 
     private void loadPendingUrl() {
         if (TextUtils.isEmpty(pendingUrl)) return;
+        if (attachedSurface == null || !attachedSurface.isValid()) {
+            MpvLogCollector.log("MpvPlayer", "延迟加载: Surface未准备好");
+            return;
+        }
         String url = pendingUrl;
         long startPositionMs = pendingStartPositionMs;
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
+
+        MpvLogCollector.log("MpvPlayer", "开始加载URL: " + url);
+        MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
+
         if (startPositionMs > 0) command("loadfile", url, "replace", "start=" + seconds(startPositionMs));
         else command("loadfile", url, "replace");
         command("set", "pause", playWhenReady ? "no" : "yes");
@@ -884,22 +892,34 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MpvLogCollector.log("MpvPlayer", "Surface有效: " + surface.isValid());
         MpvLogCollector.log("MpvPlayer", "尺寸: " + width + "x" + height);
 
+        // Attach surface to MPV first
         MPVLib.INSTANCE.attachSurface(surface);
+
+        // Update surface size before setting force-window and vo
+        // This ensures MPV knows the surface dimensions before rendering
+        updateSurfaceSize(width, height);
+
+        // Set force-window and vo after surface is properly configured
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         MPVLib.INSTANCE.setPropertyString("vo", getVo());
-        updateSurfaceSize(width, height);
+
+        // Load pending URL after surface is fully configured
         loadPendingUrl();
     }
 
     private void detachSurface(boolean releaseOwned) {
         if (attachedSurface == null) return;
+        MpvLogCollector.log("MpvPlayer", "=== 分离 Surface ===");
         try {
             MPVLib.INSTANCE.setPropertyString("vo", "null");
             MPVLib.INSTANCE.setPropertyString("force-window", "no");
             MPVLib.INSTANCE.detachSurface();
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException e) {
+            MpvLogCollector.logError("MpvPlayer", "分离Surface异常: " + e.getMessage());
         }
-        if (releaseOwned && ownsSurface) attachedSurface.release();
+        if (releaseOwned && ownsSurface) {
+            attachedSurface.release();
+        }
         attachedSurface = null;
         ownsSurface = false;
     }
@@ -907,7 +927,11 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private void updateSurfaceSize(int width, int height) {
         if (width > 0 && height > 0) {
             surfaceSize = new Size(width, height);
-            MPVLib.INSTANCE.setPropertyString("android-surface-size", width + "x" + height);
+            // Only set surface size if surface is actually attached
+            if (attachedSurface != null && attachedSurface.isValid()) {
+                MPVLib.INSTANCE.setPropertyString("android-surface-size", width + "x" + height);
+                MpvLogCollector.log("MpvPlayer", "Surface尺寸更新: " + width + "x" + height);
+            }
         }
         invalidateOnApplicationThread();
     }
