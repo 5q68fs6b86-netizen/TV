@@ -1,125 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fongmi.android.tv.ui.custom.ProgressLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/progressLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
-        android:id="@+id/video"
-        android:layout_width="441dp"
-        android:layout_height="248dp"
-        android:layout_margin="24dp"
-        android:background="@drawable/shape_video_window"
-        android:clipToOutline="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:foreground="@drawable/selector_video"
-        android:nextFocusLeft="@id/video"
-        android:nextFocusRight="@id/detail"
-        android:nextFocusUp="@id/video"
-        android:nextFocusDown="@id/flag">
-
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/player"
-            style="@style/Player.Vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:surface_type="none" />
-
-        <include
-            android:id="@+id/widget"
-            layout="@layout/view_widget_vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <include
-            android:id="@+id/control"
-            layout="@layout/view_control_vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/progress"
-            layout="@layout/view_progress"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </FrameLayout>
-
-    <com.fongmi.android.tv.ui.custom.JetStreamVodDetailView
-        android:id="@+id/detail"
+    <com.fongmi.android.tv.ui.custom.JetStreamPageBackgroundView
         android:layout_width="match_parent"
-        android:layout_height="248dp"
-        android:layout_alignTop="@+id/video"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="24dp"
-        android:layout_toEndOf="@+id/video"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:nextFocusLeft="@id/video"
-        android:nextFocusDown="@id/flag" />
+        android:layout_height="match_parent" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll"
+    <com.fongmi.android.tv.ui.custom.ProgressLayout
+        android:id="@+id/progressLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/detail"
-        android:layout_marginTop="12dp"
-        android:overScrollMode="never">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <FrameLayout
+            android:id="@+id/video"
+            android:layout_width="441dp"
+            android:layout_height="248dp"
+            android:layout_margin="24dp"
+            android:background="@drawable/shape_video_window"
+            android:clipToOutline="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foreground="@drawable/selector_video"
+            android:nextFocusLeft="@id/video"
+            android:nextFocusRight="@id/detail"
+            android:nextFocusUp="@id/video"
+            android:nextFocusDown="@id/flag">
+
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/player"
+                style="@style/Player.Vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:surface_type="none" />
+
+            <include
+                android:id="@+id/widget"
+                layout="@layout/view_widget_vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <include
+                android:id="@+id/control"
+                layout="@layout/view_control_vod"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/progress"
+                layout="@layout/view_progress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamVodDetailView
+            android:id="@+id/detail"
+            android:layout_width="match_parent"
+            android:layout_height="248dp"
+            android:layout_alignTop="@+id/video"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="24dp"
+            android:layout_toEndOf="@+id/video"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusLeft="@id/video"
+            android:nextFocusDown="@id/flag" />
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingBottom="8dp">
+            android:layout_below="@+id/detail"
+            android:layout_marginTop="12dp"
+            android:overScrollMode="never">
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/flag"
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingBottom="8dp">
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/quality"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/flag"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/episode"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/quality"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/array"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/episode"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/part"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/array"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRow
-                android:id="@+id/quick"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/part"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.core.widget.NestedScrollView>
-</com.fongmi.android.tv.ui.custom.ProgressLayout>
+                <com.fongmi.android.tv.ui.custom.JetStreamChipRow
+                    android:id="@+id/quick"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.core.widget.NestedScrollView>
+    </com.fongmi.android.tv.ui.custom.ProgressLayout>
+</FrameLayout>

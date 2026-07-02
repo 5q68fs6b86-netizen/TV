@@ -1,35 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black_20"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/code"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:scaleType="fitXY" />
+    <com.fongmi.android.tv.ui.custom.JetStreamPageBackgroundView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/info"
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="420dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_gravity="center"
+        android:background="@drawable/shape_search_panel"
         android:gravity="center"
-        android:lineSpacingExtra="8dp"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+        android:orientation="vertical"
+        android:padding="32dp">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/clip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/shape_item_normal"
-        android:text="@string/push_clip"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/code"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:background="@color/white"
+            android:padding="1dp"
+            android:scaleType="fitXY" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:lineSpacingExtra="8dp"
+            android:textColor="@color/white_90"
+            android:textSize="18sp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/clip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/selector_chip"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:text="@string/push_clip"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</FrameLayout>

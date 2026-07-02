@@ -30,6 +30,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/timeOffsetSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,6 +68,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/durationSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -103,6 +105,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/fixedDurationSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

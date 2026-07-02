@@ -30,6 +30,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/maxOnScreenSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,6 +68,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/scrollAreaSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -103,6 +105,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/scrollGapSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -139,6 +142,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/lineSpacingSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -176,6 +180,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/maxScrollLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -213,6 +218,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/maxTopLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -250,6 +256,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.slider.Slider
+        style="@style/JetStream.Slider"
         android:id="@+id/maxBottomLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

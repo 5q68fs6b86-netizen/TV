@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:background="@color/black_20"
+        android:background="@color/white_10"
         app:shapeAppearanceOverlay="@style/Vod.Circle" />
 
     <com.google.android.material.textview.MaterialTextView
