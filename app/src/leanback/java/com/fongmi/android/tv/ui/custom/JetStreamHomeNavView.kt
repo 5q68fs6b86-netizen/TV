@@ -44,6 +44,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamAnimations
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
 
 class JetStreamHomeNavView @JvmOverloads constructor(
     context: Context,
@@ -81,7 +86,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        MaterialTheme(colorScheme = darkColorScheme(primary = Color.White, onSurface = Color.White, surface = Color.Transparent)) {
+        JetStreamTheme {
             Row(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -106,13 +111,18 @@ class JetStreamHomeNavView @JvmOverloads constructor(
     private fun NavButton(item: NavItem, selected: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "navScale")
+        val scale by animateFloatAsState(
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "navScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = 0.16f)
-                selected -> Color.White.copy(alpha = 0.12f)
+                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
                 else -> Color.Transparent
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "navBackground"
         )
 
@@ -121,9 +131,16 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 .height(32.dp)
                 .widthIn(min = 48.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(JetStreamShapes.Small)
                 .background(background)
-                .then(if (focused) Modifier.border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(8.dp)) else Modifier)
+                .then(
+                    if (focused) Modifier.border(
+                        JetStreamBorders.Thin,
+                        Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium),
+                        JetStreamShapes.Small
+                    )
+                    else Modifier
+                )
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -139,13 +156,13 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                     painter = painter,
                     contentDescription = item.text,
                     modifier = Modifier.size(16.dp),
-                    tint = Color.White.copy(alpha = if (focused || selected) 1f else 0.62f)
+                    tint = Color.White.copy(alpha = if (focused || selected) 1f else JetStreamAlpha.Low)
                 )
                 Spacer(Modifier.width(6.dp))
             }
             Text(
                 text = item.text,
-                color = Color.White.copy(alpha = if (focused || selected) 1f else 0.62f),
+                color = Color.White.copy(alpha = if (focused || selected) 1f else JetStreamAlpha.Low),
                 fontSize = 12.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,

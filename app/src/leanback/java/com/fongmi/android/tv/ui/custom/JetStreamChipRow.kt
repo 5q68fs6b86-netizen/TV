@@ -51,6 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamAnimations
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 
 class JetStreamChipRow @JvmOverloads constructor(
     context: Context,
@@ -160,7 +166,7 @@ class JetStreamChipRow @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        MaterialTheme(colorScheme = darkColorScheme(primary = Color.White, onSurface = Color.White, surface = Color.Transparent)) {
+        JetStreamTheme {
             val listState = rememberLazyListState()
             val focusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
 
@@ -177,7 +183,7 @@ class JetStreamChipRow @JvmOverloads constructor(
                     .onPreviewKeyEvent { event ->
                         event.type == KeyEventType.KeyDown && handleKeyDown(event.nativeKeyEvent.keyCode)
                     },
-                contentPadding = PaddingValues(horizontal = 24.dp),
+                contentPadding = PaddingValues(horizontal = JetStreamSpacing.ExtraLarge),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -213,25 +219,34 @@ class JetStreamChipRow @JvmOverloads constructor(
         onLongClick: (() -> Unit)?
     ) {
         val interactionSource = remember { MutableInteractionSource() }
-        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "chipScale")
+        val scale by animateFloatAsState(
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "chipScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = 0.22f)
-                selected -> Color.White.copy(alpha = 0.18f)
-                else -> Color.White.copy(alpha = 0.10f)
+                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLight)
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
         )
-        val borderAlpha by animateFloatAsState(if (focused) 0.30f else 0f, label = "chipBorder")
+        val borderAlpha by animateFloatAsState(
+            if (focused) JetStreamAlpha.BackgroundVeryHigh else 0f,
+            animationSpec = JetStreamAnimations.FloatTween,
+            label = "chipBorder"
+        )
 
         Box(
             modifier = Modifier
                 .height(36.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(JetStreamShapes.Chip)
                 .background(background)
                 .then(
-                    if (focused) Modifier.border(1.5.dp, Color.White.copy(alpha = borderAlpha), RoundedCornerShape(24.dp))
+                    if (focused) Modifier.border(JetStreamBorders.Medium, Color.White.copy(alpha = borderAlpha), JetStreamShapes.Chip)
                     else Modifier
                 )
                 .focusRequester(focusRequester)
@@ -241,7 +256,7 @@ class JetStreamChipRow @JvmOverloads constructor(
                     onClick = onClick,
                     onLongClick = onLongClick
                 )
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .padding(horizontal = JetStreamSpacing.ChipHorizontalPadding, vertical = JetStreamSpacing.ChipVerticalPadding),
             contentAlignment = Alignment.Center
         ) {
             Text(

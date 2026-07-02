@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +61,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamAnimations
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import com.github.bassaer.library.MDColor
 
 class JetStreamVodDetailView @JvmOverloads constructor(
@@ -116,13 +120,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        MaterialTheme(
-            colorScheme = darkColorScheme(
-                primary = Color.White,
-                onSurface = Color.White,
-                surface = Color.Transparent
-            )
-        ) {
+        JetStreamTheme {
             DetailSurface()
         }
     }
@@ -200,7 +198,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(28.dp))
+                .clip(JetStreamShapes.Card)
                 .background(
                     Brush.horizontalGradient(
                         listOf(
@@ -210,7 +208,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                         )
                     )
                 )
-                .padding(horizontal = 28.dp, vertical = 20.dp)
+                .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 20.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -377,20 +375,25 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     @Composable
     private fun ActionButton(spec: ActionSpec, active: Boolean, onClick: () -> Unit) {
         val interactionSource = remember { MutableInteractionSource() }
-        val scale by animateFloatAsState(if (active) 1.05f else 1.0f, label = "detailActionScale")
+        val scale by animateFloatAsState(
+            if (active) JetStreamAnimations.FocusScaleMedium else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "detailActionScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                active -> Color.White.copy(alpha = 0.26f)
-                spec.selected -> Color.White.copy(alpha = 0.22f)
-                else -> Color.White.copy(alpha = 0.14f)
+                active -> Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh)
+                spec.selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium)
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "detailActionBackground"
         )
         Row(
             modifier = Modifier
                 .height(48.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(JetStreamShapes.Button)
                 .background(background)
                 .clickable(
                     enabled = spec.enabled,
@@ -398,19 +401,19 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                     indication = null,
                     onClick = onClick
                 )
-                .padding(start = 18.dp, end = 22.dp),
+                .padding(start = JetStreamSpacing.ButtonHorizontalPadding, end = 22.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = spec.icon,
                 contentDescription = spec.label,
                 modifier = Modifier.size(20.dp),
-                tint = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f)
+                tint = Color.White.copy(alpha = if (spec.enabled) 1f else JetStreamAlpha.Disabled)
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(JetStreamSpacing.IconPadding))
             Text(
                 text = spec.label,
-                color = Color.White.copy(alpha = if (spec.enabled) 1f else 0.38f),
+                color = Color.White.copy(alpha = if (spec.enabled) 1f else JetStreamAlpha.Disabled),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,

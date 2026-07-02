@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +72,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamAnimations
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToLong
@@ -214,14 +217,8 @@ class JetStreamVodControlView @JvmOverloads constructor(
             }
         }
 
-        MaterialTheme(
-            colorScheme = darkColorScheme(
-                primary = Color.White,
-                onSurface = Color.White,
-                surface = Color.Transparent
-            )
-        ) {
-            if (!controlPanelVisible && !isInfoVisible()) return@MaterialTheme
+        JetStreamTheme {
+            if (!controlPanelVisible && !isInfoVisible()) return@JetStreamTheme
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -513,13 +510,18 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private fun CommandChip(state: CommandState, onClick: () -> Unit) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "chipScale")
+        val scale by animateFloatAsState(
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "chipScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                state.selected -> Color.White.copy(alpha = 0.30f)
-                focused -> Color.White.copy(alpha = 0.24f)
-                else -> Color.White.copy(alpha = 0.14f)
+                state.selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
+                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
+                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium)
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
         )
         Box(
@@ -536,7 +538,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                         onClick()
                     }
                 )
-                .padding(horizontal = 18.dp),
+                .padding(horizontal = JetStreamSpacing.ButtonHorizontalPadding),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -563,14 +565,19 @@ class JetStreamVodControlView @JvmOverloads constructor(
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.05f else 1.0f, label = "iconScale")
+        val scale by animateFloatAsState(
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "iconScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                selected -> Color.White.copy(alpha = 0.30f)
-                focused -> Color.White.copy(alpha = 0.24f)
-                enabled -> Color.White.copy(alpha = 0.20f)
-                else -> Color.White.copy(alpha = 0.08f)
+                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryHigh)
+                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
+                enabled -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryLight)
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "iconBackground"
         )
 
@@ -595,7 +602,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 modifier = Modifier.size(24.dp),
-                tint = Color.White.copy(alpha = if (enabled) 1f else 0.38f)
+                tint = Color.White.copy(alpha = if (enabled) 1f else JetStreamAlpha.Disabled)
             )
             if (selected) {
                 Canvas(Modifier.fillMaxSize()) {
@@ -617,7 +624,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp),
-            color = Color.White.copy(alpha = 0.86f),
+            color = Color.White.copy(alpha = JetStreamAlpha.Medium),
             fontSize = 14.sp,
             maxLines = 1
         )

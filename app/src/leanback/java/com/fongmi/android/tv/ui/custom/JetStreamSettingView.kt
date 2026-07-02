@@ -65,6 +65,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.theme.JetStreamAlpha
+import com.fongmi.android.tv.ui.theme.JetStreamAnimations
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamSizes
 
 class JetStreamSettingView @JvmOverloads constructor(
     context: Context,
@@ -109,13 +116,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        MaterialTheme(
-            colorScheme = darkColorScheme(
-                primary = Color.White,
-                onSurface = Color.White,
-                surface = Color.Transparent
-            )
-        ) {
+        JetStreamTheme {
             SettingsSurface()
         }
     }
@@ -195,17 +196,17 @@ class JetStreamSettingView @JvmOverloads constructor(
     private fun NavigationPanel(sections: List<SectionSpec>, selectedKey: String, modifier: Modifier) {
         Column(
             modifier = modifier
-                .clip(RoundedCornerShape(28.dp))
-                .background(Color.Black.copy(alpha = 0.42f))
-                .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(28.dp))
-                .padding(18.dp)
+                .clip(JetStreamShapes.Card)
+                .background(Color.Black.copy(alpha = JetStreamAlpha.ScrimMedium))
+                .border(JetStreamBorders.Thin, Color.White.copy(alpha = JetStreamAlpha.BackgroundLight), JetStreamShapes.Card)
+                .padding(JetStreamSpacing.ButtonHorizontalPadding)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .size(34.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.18f)),
+                        .background(Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -215,7 +216,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                         tint = Color.White
                     )
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(JetStreamSpacing.IconPadding))
                 Text(
                     text = context.getString(R.string.home_setting),
                     color = Color.White,
@@ -225,8 +226,8 @@ class JetStreamSettingView @JvmOverloads constructor(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(Modifier.height(24.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Spacer(Modifier.height(JetStreamSpacing.ExtraLarge))
+            Column(verticalArrangement = Arrangement.spacedBy(JetStreamSpacing.IconPadding)) {
                 sections.forEach { section ->
                     SectionButton(
                         section = section,
@@ -249,10 +250,10 @@ class JetStreamSettingView @JvmOverloads constructor(
     ) {
         Column(
             modifier = modifier
-                .clip(RoundedCornerShape(28.dp))
+                .clip(JetStreamShapes.Card)
                 .background(Color.Black.copy(alpha = 0.34f))
-                .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(28.dp))
-                .padding(horizontal = 22.dp, vertical = 18.dp)
+                .border(JetStreamBorders.Thin, Color.White.copy(alpha = JetStreamAlpha.BackgroundLight), JetStreamShapes.Card)
+                .padding(horizontal = JetStreamSpacing.CardPadding, vertical = JetStreamSpacing.ButtonHorizontalPadding)
         ) {
             Text(
                 text = section?.label.orEmpty(),
@@ -262,12 +263,12 @@ class JetStreamSettingView @JvmOverloads constructor(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(JetStreamSpacing.Medium))
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = contentPadding,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(JetStreamSpacing.Medium)
             ) {
                 items(rows, key = { it.key }) { row ->
                     SettingRow(
@@ -284,13 +285,18 @@ class JetStreamSettingView @JvmOverloads constructor(
     private fun SectionButton(section: SectionSpec, selected: Boolean, onClick: () -> Unit) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.04f else 1.0f, label = "sectionScale")
+        val scale by animateFloatAsState(
+            if (focused) 1.04f else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "sectionScale"
+        )
         val background by animateColorAsState(
             targetValue = when {
-                focused -> Color.White.copy(alpha = 0.24f)
-                selected -> Color.White.copy(alpha = 0.18f)
-                else -> Color.White.copy(alpha = 0.08f)
+                focused -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMediumHigh)
+                selected -> Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium)
+                else -> Color.White.copy(alpha = JetStreamAlpha.BackgroundVeryLight)
             },
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "sectionBackground"
         )
         Box(
@@ -310,7 +316,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         ) {
             Text(
                 text = section.label,
-                color = Color.White.copy(alpha = if (selected || focused) 1f else 0.72f),
+                color = Color.White.copy(alpha = if (selected || focused) 1f else JetStreamAlpha.MediumLow),
                 fontSize = 16.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
@@ -324,9 +330,14 @@ class JetStreamSettingView @JvmOverloads constructor(
     private fun SettingRow(row: RowSpec, focusRequester: FocusRequester?) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.018f else 1.0f, label = "rowScale")
+        val scale by animateFloatAsState(
+            if (focused) 1.018f else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "rowScale"
+        )
         val background by animateColorAsState(
-            targetValue = if (focused) Color.White.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.10f),
+            targetValue = if (focused) Color.White.copy(alpha = JetStreamAlpha.BackgroundMedium) else Color.White.copy(alpha = JetStreamAlpha.BackgroundLight),
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "rowBackground"
         )
         val value = rowValues[row.key].orEmpty()
@@ -335,9 +346,9 @@ class JetStreamSettingView @JvmOverloads constructor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(JetStreamSizes.CardMinHeight)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(18.dp))
+                .clip(JetStreamShapes.Large)
                 .background(background)
                 .then(requesterModifier)
                 .combinedClickable(
@@ -346,7 +357,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     onClick = { listener?.onSettingAction(row.key) },
                     onLongClick = { listener?.onSettingLongAction(row.key) }
                 )
-                .padding(horizontal = 22.dp),
+                .padding(horizontal = JetStreamSpacing.CardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -385,7 +396,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                 Text(
                     text = value,
                     modifier = Modifier.widthIn(max = 320.dp),
-                    color = Color.White.copy(alpha = 0.86f),
+                    color = Color.White.copy(alpha = JetStreamAlpha.Medium),
                     fontSize = 17.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -399,9 +410,14 @@ class JetStreamSettingView @JvmOverloads constructor(
     private fun ActionChip(action: ActionSpec) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(if (focused) 1.06f else 1.0f, label = "chipScale")
+        val scale by animateFloatAsState(
+            if (focused) 1.06f else 1.0f,
+            animationSpec = JetStreamAnimations.ScaleSpring,
+            label = "chipScale"
+        )
         val background by animateColorAsState(
-            targetValue = if (focused) Color.White.copy(alpha = 0.26f) else Color.White.copy(alpha = 0.14f),
+            targetValue = if (focused) Color.White.copy(alpha = JetStreamAlpha.BackgroundHigh) else Color.White.copy(alpha = JetStreamAlpha.BackgroundLightMedium),
+            animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
         )
         Row(
@@ -416,7 +432,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     onClick = { listener?.onSettingAction(action.key) },
                     onLongClick = { listener?.onSettingLongAction(action.key) }
                 )
-                .padding(start = 10.dp, end = 14.dp),
+                .padding(start = JetStreamSpacing.IconPadding, end = JetStreamSpacing.ChipHorizontalPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
