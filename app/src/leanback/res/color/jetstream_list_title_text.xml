@@ -5,5 +5,5 @@
     <item android:color="@color/jetstream_on_secondary_container" android:state_activated="true" />
     <item android:color="@color/jetstream_on_secondary_container" android:state_checked="true" />
     <item android:color="@color/jetstream_on_secondary_container" android:state_selected="true" />
-    <item android:color="@color/jetstream_on_surface_variant" />
+    <item android:color="@color/jetstream_on_surface" />
 </selector>

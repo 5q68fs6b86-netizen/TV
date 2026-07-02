@@ -52,7 +52,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_tunnel"
-                android:textColor="@color/jetstream_on_surface"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_title_text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -60,7 +61,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/jetstream_on_surface_variant"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_value_text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -81,7 +83,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_audio_pass_through"
-                android:textColor="@color/jetstream_on_surface"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_title_text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -89,7 +92,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/jetstream_on_surface_variant"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_value_text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -110,7 +114,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_audio_decode"
-                android:textColor="@color/jetstream_on_surface"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_title_text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -118,7 +123,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/jetstream_on_surface_variant"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_value_text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -139,7 +145,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_video_decode"
-                android:textColor="@color/jetstream_on_surface"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_title_text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -147,7 +154,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/jetstream_on_surface_variant"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_value_text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -168,7 +176,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_aac_track"
-                android:textColor="@color/jetstream_on_surface"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_title_text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -176,7 +185,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/jetstream_on_surface_variant"
+                android:duplicateParentState="true"
+                android:textColor="@color/jetstream_setting_value_text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
