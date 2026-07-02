@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:singleLine="true"
-                android:textColor="@color/white_60"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="14sp"
                 tools:text="1080p" />
 

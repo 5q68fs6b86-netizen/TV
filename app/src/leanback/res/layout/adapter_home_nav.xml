@@ -19,7 +19,7 @@
         android:layout_width="21dp"
         android:layout_height="21dp"
         android:layout_marginEnd="8dp"
-        app:tint="@color/white"
+        app:tint="@color/jetstream_control_text"
         tools:src="@drawable/ic_home_vod" />
 
     <com.google.android.material.textview.MaterialTextView
@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/jetstream_control_text"
         android:textSize="16sp"
         tools:text="點播" />
 

@@ -97,10 +97,10 @@
     </style>
 
     <style name="JetStream.Slider" parent="Widget.Material3.Slider">
-        <item name="haloColor">@color/white_15</item>
-        <item name="thumbColor">@color/white</item>
-        <item name="trackColorActive">@color/white</item>
-        <item name="trackColorInactive">@color/white_20</item>
+        <item name="haloColor">@color/jetstream_scrim_medium</item>
+        <item name="thumbColor">@color/jetstream_primary</item>
+        <item name="trackColorActive">@color/jetstream_primary</item>
+        <item name="trackColorInactive">@color/white_10</item>
         <item name="trackHeight">6dp</item>
     </style>
 

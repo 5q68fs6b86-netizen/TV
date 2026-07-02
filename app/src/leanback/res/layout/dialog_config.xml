@@ -27,7 +27,7 @@
         android:maxLines="3"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:textColor="@color/white_80"
+        android:textColor="@color/jetstream_on_surface_variant"
         android:textSize="16sp"
         tools:text="@string/push_info" />
 
@@ -56,8 +56,8 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white_60"
+        android:textColor="@color/jetstream_on_surface"
+        android:textColorHint="@color/jetstream_on_surface_variant"
         android:textCursorDrawable="@drawable/shape_cursor"
         android:textSize="18sp" />
 
@@ -81,7 +81,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/setting_choose"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_control_text"
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -96,7 +96,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_positive"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_control_text"
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -110,7 +110,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_negative"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_control_text"
             android:textSize="14sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

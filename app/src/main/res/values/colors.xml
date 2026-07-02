@@ -68,5 +68,7 @@
     <color name="jetstream_scrim_light">#14FFFFFF</color>
     <color name="jetstream_scrim_medium">#29FFFFFF</color>
     <color name="jetstream_scrim_heavy">#3DFFFFFF</color>
+    <color name="jetstream_overlay_surface">#CC1A1C1E</color>
+    <color name="jetstream_overlay_surface_light">#661A1C1E</color>
 
 </resources>

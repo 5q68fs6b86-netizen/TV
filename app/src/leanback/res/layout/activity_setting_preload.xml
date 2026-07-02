@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -60,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_threads"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="18sp"
                 tools:text="1" />
 
@@ -111,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_size"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="18sp"
                 tools:text="512 MB" />
 
@@ -141,7 +141,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_time"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -150,7 +150,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="18sp"
                 tools:text="60 s" />
 

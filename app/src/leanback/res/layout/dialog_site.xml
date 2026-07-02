@@ -40,7 +40,7 @@
             android:nextFocusDown="@id/change"
             android:padding="8dp"
             android:src="@drawable/ic_site_search"
-            app:tint="@color/white" />
+            app:tint="@color/jetstream_control_text" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/change"
@@ -54,7 +54,7 @@
             android:nextFocusDown="@id/select"
             android:padding="8dp"
             android:src="@drawable/ic_site_change"
-            app:tint="@color/white" />
+            app:tint="@color/jetstream_control_text" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/select"

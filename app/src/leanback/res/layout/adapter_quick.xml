@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/jetstream_on_surface"
         android:textSize="16sp"
         tools:text="蜘蛛人" />
 
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:singleLine="true"
-        android:textColor="@color/white_60"
+        android:textColor="@color/jetstream_on_surface_variant"
         android:textSize="14sp"
         tools:text="泥巴"
         tools:visibility="visible" />
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:singleLine="true"
-        android:textColor="@color/white_80"
+        android:textColor="@color/jetstream_on_surface_variant"
         android:textSize="14sp"
         tools:text="1080p" />
 

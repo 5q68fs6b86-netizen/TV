@@ -45,7 +45,7 @@
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
                 android:text="@string/setting_page_crash_action_desc"
-                android:textColor="@color/white_90"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="16sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -57,7 +57,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:text="@string/crash_restart"
-                android:textColor="@color/white" />
+                android:textColor="@color/jetstream_control_text" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/details"
@@ -68,7 +68,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:text="@string/crash_details"
-                android:textColor="@color/white" />
+                android:textColor="@color/jetstream_control_text" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/copy"
@@ -79,7 +79,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:text="@string/crash_copy"
-                android:textColor="@color/white" />
+                android:textColor="@color/jetstream_control_text" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 

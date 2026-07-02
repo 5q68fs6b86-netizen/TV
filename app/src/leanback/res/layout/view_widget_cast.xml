@@ -25,7 +25,7 @@
             android:layout_toStartOf="@+id/clock"
             android:ellipsize="marquee"
             android:singleLine="true"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_on_surface"
             android:textSize="20sp"
             tools:text="慶餘年第一季：第一集" />
 
@@ -37,7 +37,7 @@
             android:layout_below="@+id/title"
             android:layout_alignStart="@+id/title"
             android:layout_marginBottom="16dp"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_on_surface_variant"
             android:textSize="16sp"
             tools:text="1920 x 1080" />
 
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:fontFeatureSettings="tnum"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_on_surface"
             android:textSize="20sp"
             tools:text="09:20:00" />
 
@@ -76,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_on_surface"
             android:textSize="16sp"
             tools:text="@string/error_play_url" />
 
@@ -109,7 +109,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="16sp"
                 tools:text="00:00:00" />
 
@@ -119,7 +119,7 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:text="/"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="16sp" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -127,7 +127,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
+                android:textColor="@color/jetstream_on_surface"
                 android:textSize="16sp"
                 tools:text="00:00:00" />
 

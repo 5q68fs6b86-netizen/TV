@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:letterSpacing="0.02"
-        android:textColor="@color/white"
+        android:textColor="@color/jetstream_on_surface"
         android:textSize="18sp"
         tools:text="@string/update_version" />
 
@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:letterSpacing="0.02"
             android:lineSpacingExtra="8dp"
-            android:textColor="@color/white"
+            android:textColor="@color/jetstream_on_surface_variant"
             android:textSize="16sp"
             tools:text="1. 新增 ffmpeg 音頻軟解\n2. 詳情頁新增分詞快搜\n3. 修復搜尋閃退問題\n4. 設定支援渲染切換" />
 
@@ -57,7 +57,7 @@
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:text="@string/update_confirm"
-            android:textColor="@color/white" />
+            android:textColor="@color/jetstream_control_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/cancel"
@@ -69,7 +69,7 @@
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:text="@string/dialog_negative"
-            android:textColor="@color/white" />
+            android:textColor="@color/jetstream_control_text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.appcompat.widget.LinearLayoutCompat>

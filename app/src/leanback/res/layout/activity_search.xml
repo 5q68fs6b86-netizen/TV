@@ -74,8 +74,8 @@
                     android:maxLength="255"
                     android:nextFocusDown="@id/keyboard"
                     android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/white_60"
+                    android:textColor="@color/jetstream_on_surface"
+                    android:textColorHint="@color/jetstream_on_surface_variant"
                     android:textCursorDrawable="@drawable/shape_cursor"
                     android:textSize="22sp" />
 
@@ -137,7 +137,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         android:text="@string/search_record"
-                        android:textColor="@color/white_90"
+                        android:textColor="@color/jetstream_on_surface"
                         android:textSize="22sp" />
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -160,7 +160,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="12dp"
                     android:text="@string/search_hot"
-                    android:textColor="@color/white_90"
+                    android:textColor="@color/jetstream_on_surface"
                     android:textSize="22sp" />
 
                 <androidx.recyclerview.widget.RecyclerView

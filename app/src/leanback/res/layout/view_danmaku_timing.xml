@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/white" />
+            android:textColor="@color/jetstream_on_surface_variant" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -63,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/white" />
+            android:textColor="@color/jetstream_on_surface_variant" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -100,7 +100,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/white" />
+            android:textColor="@color/jetstream_on_surface_variant" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
