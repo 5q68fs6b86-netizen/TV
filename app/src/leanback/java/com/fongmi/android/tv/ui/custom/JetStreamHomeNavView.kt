@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,13 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CloudUpload
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.LiveTv
-import androidx.compose.material.icons.rounded.Movie
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,9 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -168,7 +162,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = remember(item.drawableRes) { iconFor(item.drawableRes) },
+                painter = painterResource(id = iconFor(item.drawableRes)),
                 contentDescription = item.text,
                 modifier = Modifier.size(19.dp),
                 tint = contentColor
@@ -186,14 +180,15 @@ class JetStreamHomeNavView @JvmOverloads constructor(
     }
 
     companion object {
-        private fun iconFor(resId: Int): ImageVector {
+        @DrawableRes
+        private fun iconFor(resId: Int): Int {
             return when (resId) {
-                R.drawable.ic_home_live -> Icons.Rounded.LiveTv
-                R.drawable.ic_home_search -> Icons.Rounded.Search
-                R.drawable.ic_home_keep -> Icons.Rounded.Favorite
-                R.drawable.ic_home_push -> Icons.Rounded.CloudUpload
-                R.drawable.ic_home_setting -> Icons.Rounded.Settings
-                else -> Icons.Rounded.Movie
+                R.drawable.ic_home_live -> R.drawable.msr_live_tv
+                R.drawable.ic_home_search -> R.drawable.msr_search
+                R.drawable.ic_home_keep -> R.drawable.msr_favorite
+                R.drawable.ic_home_push -> R.drawable.msr_cloud_upload
+                R.drawable.ic_home_setting -> R.drawable.msr_settings
+                else -> R.drawable.msr_movie
             }
         }
     }

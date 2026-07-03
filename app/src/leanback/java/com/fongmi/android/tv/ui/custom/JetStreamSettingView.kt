@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,12 +32,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,9 +49,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -96,7 +91,7 @@ class JetStreamSettingView @JvmOverloads constructor(
     private data class ActionSpec(
         val key: String,
         val label: String,
-        val icon: ImageVector
+        @param:DrawableRes val icon: Int
     )
 
     private var listener: Listener? = null
@@ -204,7 +199,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Settings,
+                        painter = painterResource(id = R.drawable.msr_settings),
                         contentDescription = null,
                         modifier = Modifier.size(21.dp),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
@@ -454,7 +449,7 @@ class JetStreamSettingView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = action.icon,
+                painter = painterResource(id = action.icon),
                 contentDescription = action.label,
                 modifier = Modifier.size(19.dp),
                 tint = contentColor
@@ -484,24 +479,24 @@ class JetStreamSettingView @JvmOverloads constructor(
                         key = KEY_VOD,
                         label = context.getString(R.string.setting_vod),
                         actions = listOf(
-                            ActionSpec(KEY_VOD_HOME, context.getString(R.string.setting_home), Icons.Default.Home),
-                            ActionSpec(KEY_VOD_HISTORY, context.getString(R.string.setting_history), Icons.Default.History)
+                            ActionSpec(KEY_VOD_HOME, context.getString(R.string.setting_home), R.drawable.msr_home),
+                            ActionSpec(KEY_VOD_HISTORY, context.getString(R.string.setting_history), R.drawable.msr_history)
                         )
                     ),
                     RowSpec(
                         key = KEY_LIVE,
                         label = context.getString(R.string.setting_live),
                         actions = listOf(
-                            ActionSpec(KEY_LIVE_HOME, context.getString(R.string.setting_home), Icons.Default.Home),
-                            ActionSpec(KEY_LIVE_HISTORY, context.getString(R.string.setting_history), Icons.Default.History)
+                            ActionSpec(KEY_LIVE_HOME, context.getString(R.string.setting_home), R.drawable.msr_home),
+                            ActionSpec(KEY_LIVE_HISTORY, context.getString(R.string.setting_history), R.drawable.msr_history)
                         )
                     ),
                     RowSpec(
                         key = KEY_WALL,
                         label = context.getString(R.string.setting_wall),
                         actions = listOf(
-                            ActionSpec(KEY_WALL_DEFAULT, context.getString(R.string.setting_default), Icons.Default.Home),
-                            ActionSpec(KEY_WALL_REFRESH, context.getString(R.string.setting_refresh), Icons.Default.Refresh)
+                            ActionSpec(KEY_WALL_DEFAULT, context.getString(R.string.setting_default), R.drawable.msr_home),
+                            ActionSpec(KEY_WALL_REFRESH, context.getString(R.string.setting_refresh), R.drawable.msr_refresh)
                         )
                     )
                 )
@@ -565,8 +560,8 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_SIZE, context.getString(R.string.setting_size)),
                     RowSpec(KEY_BACKUP, context.getString(R.string.setting_backup)),
                     RowSpec(KEY_RESTORE, context.getString(R.string.setting_restore)),
-                    RowSpec(KEY_CACHE, context.getString(R.string.setting_cache), actions = listOf(ActionSpec(KEY_CACHE, context.getString(R.string.setting_clear), Icons.Default.Storage))),
-                    RowSpec(KEY_MPV_LOG, "MPV播放日志", actions = listOf(ActionSpec(KEY_MPV_LOG, "导出日志", Icons.Default.Storage))),
+                    RowSpec(KEY_CACHE, context.getString(R.string.setting_cache), actions = listOf(ActionSpec(KEY_CACHE, context.getString(R.string.setting_clear), R.drawable.msr_storage))),
+                    RowSpec(KEY_MPV_LOG, "MPV播放日志", actions = listOf(ActionSpec(KEY_MPV_LOG, "导出日志", R.drawable.msr_storage))),
                     RowSpec(KEY_VERSION, context.getString(R.string.setting_version))
                 )
             )

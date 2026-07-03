@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,18 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesomeMotion
-import androidx.compose.material.icons.filled.ClosedCaption
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,7 +45,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -64,12 +52,14 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.components.JetStreamControlScrim
 import com.fongmi.android.tv.ui.components.JetStreamInfoScrim
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
@@ -323,7 +313,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = centerInfoIcon(),
+                    painter = painterResource(id = centerInfoIcon()),
                     contentDescription = null,
                     modifier = Modifier.size(42.dp),
                     tint = colorScheme.onPrimaryContainer
@@ -354,11 +344,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
         }
     }
 
-    private fun centerInfoIcon(): ImageVector {
+    @DrawableRes
+    private fun centerInfoIcon(): Int {
         return when (infoAction) {
-            ACTION_FORWARD -> Icons.Default.FastForward
-            ACTION_REWIND -> Icons.Default.FastRewind
-            else -> Icons.Default.PlayArrow
+            ACTION_FORWARD -> R.drawable.msr_fast_forward
+            ACTION_REWIND -> R.drawable.msr_fast_rewind
+            else -> R.drawable.msr_play_arrow
         }
     }
 
@@ -375,14 +366,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ControlIcon(Icons.Default.SkipPrevious, isPlaying, true, false, "Previous") {
+                ControlIcon(R.drawable.msr_skip_previous, isPlaying, true, false, "Previous") {
                     listener?.onPrevious()
                 }
-                ControlIcon(Icons.Default.SkipNext, isPlaying, true, false, "Next") {
+                ControlIcon(R.drawable.msr_skip_next, isPlaying, true, false, "Next") {
                     listener?.onNext()
                 }
                 ControlIcon(
-                    icon = if (repeating) Icons.Default.RepeatOne else Icons.Default.Repeat,
+                    icon = if (repeating) R.drawable.msr_repeat_one else R.drawable.msr_repeat,
                     isPlaying = isPlaying,
                     enabled = true,
                     selected = repeating,
@@ -390,13 +381,13 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 ) {
                     listener?.onRepeat()
                 }
-                ControlIcon(Icons.Default.AutoAwesomeMotion, isPlaying, playlistEnabled, activeGroup == GROUP_PLAYLIST, "Playlist") {
+                ControlIcon(R.drawable.msr_auto_awesome_motion, isPlaying, playlistEnabled, activeGroup == GROUP_PLAYLIST, "Playlist") {
                     toggleGroup(GROUP_PLAYLIST)
                 }
-                ControlIcon(Icons.Default.ClosedCaption, isPlaying, captionsEnabled, activeGroup == GROUP_CAPTIONS, "Captions") {
+                ControlIcon(R.drawable.msr_closed_caption, isPlaying, captionsEnabled, activeGroup == GROUP_CAPTIONS, "Captions") {
                     toggleGroup(GROUP_CAPTIONS)
                 }
-                ControlIcon(Icons.Default.Settings, isPlaying, settingsEnabled, activeGroup == GROUP_SETTINGS, "Settings") {
+                ControlIcon(R.drawable.msr_settings, isPlaying, settingsEnabled, activeGroup == GROUP_SETTINGS, "Settings") {
                     toggleGroup(GROUP_SETTINGS)
                 }
             }
@@ -440,7 +431,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ControlIcon(
-                icon = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                icon = if (isPlaying) R.drawable.msr_pause else R.drawable.msr_play_arrow,
                 isPlaying = isPlaying,
                 enabled = true,
                 selected = false,
@@ -538,7 +529,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun ControlIcon(
-        icon: ImageVector,
+        @DrawableRes icon: Int,
         isPlaying: Boolean,
         enabled: Boolean,
         selected: Boolean,
@@ -592,7 +583,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = icon),
                 contentDescription = contentDescription,
                 modifier = Modifier.size(24.dp),
                 tint = contentColor

@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.KeyEvent
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,11 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,9 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -83,7 +79,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     private data class ActionSpec(
         val action: DetailAction,
         val label: String,
-        val icon: ImageVector,
+        @param:DrawableRes val icon: Int,
         val enabled: Boolean,
         val selected: Boolean = false
     )
@@ -412,7 +408,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = spec.icon,
+                painter = painterResource(id = spec.icon),
                 contentDescription = spec.label,
                 modifier = Modifier.size(20.dp),
                 tint = contentColor
@@ -464,15 +460,15 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     private fun actions(): List<ActionSpec> {
         return listOf(
-            ActionSpec(DetailAction.SUMMARY, context.getString(R.string.detail_desc), Icons.Default.Info, summaryEnabled),
+            ActionSpec(DetailAction.SUMMARY, context.getString(R.string.detail_desc), R.drawable.msr_info, summaryEnabled),
             ActionSpec(
                 action = DetailAction.KEEP,
                 label = context.getString(R.string.keep),
-                icon = if (keepSelected) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                icon = if (keepSelected) R.drawable.msr_bookmark else R.drawable.msr_bookmark_border,
                 enabled = true,
                 selected = keepSelected
             ),
-            ActionSpec(DetailAction.CHANGE, context.getString(R.string.play_change), Icons.Default.SwapHoriz, true)
+            ActionSpec(DetailAction.CHANGE, context.getString(R.string.play_change), R.drawable.msr_swap_horiz, true)
         )
     }
 }
