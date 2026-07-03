@@ -145,16 +145,16 @@ class JetStreamHomeNavView @JvmOverloads constructor(
 
         Row(
             modifier = Modifier
-                .height(32.dp)
-                .widthIn(min = 48.dp)
+                .height(34.dp)
+                .widthIn(min = 54.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(JetStreamShapes.Small)
+                .clip(JetStreamShapes.Button)
                 .background(background)
                 .then(
                     if (focused) Modifier.border(
                         JetStreamBorders.Thin,
                         border,
-                        JetStreamShapes.Small
+                        JetStreamShapes.Button
                     )
                     else Modifier
                 )
@@ -164,20 +164,20 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                     onClick = onClick,
                     onLongClick = onLongClick
                 )
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 11.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = remember(item.drawableRes) { iconFor(item.drawableRes) },
                 contentDescription = item.text,
-                modifier = Modifier.size(17.dp),
+                modifier = Modifier.size(19.dp),
                 tint = contentColor
             )
             Spacer(Modifier.width(6.dp))
             Text(
                 text = item.text,
                 color = contentColor,
-                fontSize = 12.sp,
+                fontSize = 13.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

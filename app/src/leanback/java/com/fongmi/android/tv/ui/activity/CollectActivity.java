@@ -19,7 +19,6 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Site;
@@ -134,7 +133,6 @@ public class CollectActivity extends BaseActivity {
         if (mSites.isEmpty()) return;
         mAdapter.add(Collect.all());
         mBinding.pager.getAdapter().notifyDataSetChanged();
-        mBinding.result.setText(getString(R.string.collect_result, getKeyword()));
         mViewModel.searchContent(mSites, getKeyword(), false);
     }
 
