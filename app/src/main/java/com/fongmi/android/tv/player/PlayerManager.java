@@ -25,6 +25,7 @@ import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.player.engine.PlayerEngineFactory;
+import com.fongmi.android.tv.player.media.MediaUrlGuard;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.player.parse.ParseJob;
 import com.fongmi.android.tv.player.track.TrackUtil;
@@ -462,12 +463,24 @@ public class PlayerManager implements ParseCallback {
 
     private void setMediaItem(long timeout, long startPositionMs) {
         if (spec == null || spec.getUrl() == null) return;
+        if (MediaUrlGuard.shouldReject(spec.getUrl(), spec.getFormat())) {
+            rejectMediaItem(spec);
+            return;
+        }
         ensureEngine(spec.checkUa());
         engine.start(spec, startPositionMs);
         setDanmakus(spec.getDanmakus());
         App.post(runnable, timeout);
         callback.onPrepare();
         initTrack = false;
+    }
+
+    private void rejectMediaItem(PlaySpec spec) {
+        App.removeCallbacks(runnable);
+        engine.stop();
+        stopParse();
+        MpvLogCollector.logError("PlayerManager", "拒绝非视频播放地址: key=" + spec.getKey() + ", format=" + spec.getFormat() + ", url=" + spec.getUrl());
+        callback.onError(ResUtil.getString(R.string.error_play_url));
     }
 
     private void startCurrent() {

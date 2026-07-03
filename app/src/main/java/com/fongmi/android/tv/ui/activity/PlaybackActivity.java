@@ -233,6 +233,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     protected void startPlayer(String key, Result result, boolean useParse, long timeout, long startPositionMs, MediaMetadata metadata) {
+        MpvLogCollector.log("PlaybackActivity", "startPlayer: key=" + key + ", resultKey=" + result.getKey() + ", flag=" + result.getFlag() + ", useParse=" + useParse + ", parse=" + result.getParse() + ", format=" + result.getFormat() + ", realUrl=" + result.getRealUrl());
         if (result.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(result.getDrm().getUUID())) {
             onError(ResUtil.getString(R.string.error_play_drm));
         } else if (result.hasMsg()) {

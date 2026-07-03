@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 
 import java.util.Collections;
 import java.util.List;
@@ -306,6 +307,7 @@ public class VodPlaybackController {
         historyPolicy.updateEpisode(state.getHistory(), flag, episode);
         VodPlayRequest request = VodPlayRequest.create(host.getVodKey(), flag, episode);
         state.setPendingRequest(request);
+        MpvLogCollector.log("VodPlaybackController", "requestPlayer: key=" + request.getKey() + ", flag=" + request.getFlag() + ", id=" + request.getId() + ", title=" + request.getTitle());
         host.requestPlayer(request);
     }
 
