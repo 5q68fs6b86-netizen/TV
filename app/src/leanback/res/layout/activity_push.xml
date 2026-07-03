@@ -8,50 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
-        android:layout_width="720dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
-            android:layout_width="match_parent"
-            android:layout_height="132dp"
-            app:jetStreamSubtitle="@string/setting_page_push_desc"
-            app:jetStreamTitle="@string/home_push" />
-
-        <com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout
-            android:layout_width="420dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="32dp">
-
-            <com.fongmi.android.tv.ui.custom.JetStreamQrCodeView
-                android:id="@+id/code"
-                android:layout_width="250dp"
-                android:layout_height="250dp" />
-
-            <com.fongmi.android.tv.ui.custom.JetStreamLargeBodyTextView
-                android:id="@+id/info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:lineSpacingExtra="8dp" />
-
-            <com.fongmi.android.tv.ui.custom.JetStreamMediumChipRoundTextView
-                android:id="@+id/clip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:text="@string/push_clip" />
-
-        </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
-
-    </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+    <com.fongmi.android.tv.ui.custom.JetStreamPushView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout>

@@ -40,5 +40,15 @@
     <!-- Push -->
     <string name="push_clip">推送剪貼簿內容</string>
     <string name="push_info">使用手機掃描 QR Code，或於瀏覽器輸入網址\n<xliff:g name="name">%s</xliff:g></string>
+    <string name="push_service">連線服務</string>
+    <string name="push_title">裝置推送</string>
+    <string name="push_desc">從您的手機或電腦瀏覽器，向這台電視無縫推送連結和剪貼簿內容。</string>
+    <string name="push_browser_address">區域網路瀏覽器訪問位址</string>
+    <string name="push_clip_sent">已傳送推送請求</string>
+    <string name="push_scan_title">掃碼快速連線</string>
+    <string name="push_scan_desc">使用手機相機或微信掃描上方 QR Code</string>
+    <string name="push_wifi_hint">請確保手機/電腦與電視處於同一 Wi-Fi 網路下</string>
+    <string name="push_copy_url">複製位址</string>
+    <string name="push_copied_url">已複製位址到剪貼簿</string>
 
 </resources>

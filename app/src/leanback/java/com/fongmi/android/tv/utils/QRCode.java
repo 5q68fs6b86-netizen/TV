@@ -20,14 +20,24 @@ public class QRCode {
     private static final float MODULE_RADIUS_RATIO = 0.45f;
     private static final int FOREGROUND = Color.WHITE;
     private static final int BACKGROUND = Color.BLACK;
+    private static final int LIGHT_FOREGROUND = Color.BLACK;
+    private static final int LIGHT_BACKGROUND = Color.WHITE;
     private static final float BACKGROUND_RADIUS_RATIO = 0.08f;
 
     public static Bitmap getBitmap(String content, int size, int margin) {
+        return getBitmap(content, size, margin, FOREGROUND, BACKGROUND);
+    }
+
+    public static Bitmap getLightBitmap(String content, int size, int margin) {
+        return getBitmap(content, size, margin, LIGHT_FOREGROUND, LIGHT_BACKGROUND);
+    }
+
+    private static Bitmap getBitmap(String content, int size, int margin, int foreground, int background) {
         try {
             BitMatrix matrix = encode(content, size, margin);
             int quietZone = detectQuietZone(matrix);
             int finderSize = detectFinderPx(matrix, quietZone);
-            return render(matrix, quietZone, finderSize);
+            return render(matrix, quietZone, finderSize, foreground, background);
         } catch (Exception e) {
             return null;
         }
@@ -50,31 +60,31 @@ public class QRCode {
         return 0;
     }
 
-    private static Bitmap render(BitMatrix matrix, int quietZone, int finderSize) {
+    private static Bitmap render(BitMatrix matrix, int quietZone, int finderSize, int foreground, int background) {
         int width = matrix.getWidth(), height = matrix.getHeight();
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        drawBackground(canvas, width, height);
+        drawBackground(canvas, width, height, background);
         float moduleSize = finderSize > 0 ? (float) finderSize / FINDER_MODULES : 1;
         int numModules = finderSize > 0 ? Math.round((width - 2f * quietZone) / moduleSize) : 0;
-        drawDataModules(canvas, matrix, quietZone, moduleSize, numModules, width, height);
+        drawDataModules(canvas, matrix, quietZone, moduleSize, numModules, width, height, foreground);
         if (finderSize <= 0) return bitmap;
-        drawFinderPattern(canvas, quietZone, quietZone, finderSize);
-        drawFinderPattern(canvas, width - quietZone - finderSize, quietZone, finderSize);
-        drawFinderPattern(canvas, quietZone, height - quietZone - finderSize, finderSize);
+        drawFinderPattern(canvas, quietZone, quietZone, finderSize, foreground, background);
+        drawFinderPattern(canvas, width - quietZone - finderSize, quietZone, finderSize, foreground, background);
+        drawFinderPattern(canvas, quietZone, height - quietZone - finderSize, finderSize, foreground, background);
         return bitmap;
     }
 
-    private static void drawBackground(Canvas canvas, int width, int height) {
+    private static void drawBackground(Canvas canvas, int width, int height, int color) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(BACKGROUND);
+        paint.setColor(color);
         float radius = Math.min(width, height) * BACKGROUND_RADIUS_RATIO;
         canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius, paint);
     }
 
-    private static void drawDataModules(Canvas canvas, BitMatrix matrix, int quietZone, float moduleSize, int numModules, int width, int height) {
+    private static void drawDataModules(Canvas canvas, BitMatrix matrix, int quietZone, float moduleSize, int numModules, int width, int height, int color) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(FOREGROUND);
+        paint.setColor(color);
         float radius = moduleSize * MODULE_RADIUS_RATIO;
         for (int my = 0; my < numModules; my++) {
             for (int mx = 0; mx < numModules; mx++) {
@@ -93,16 +103,16 @@ public class QRCode {
         return topLeft || topRight || bottomLeft;
     }
 
-    private static void drawFinderPattern(Canvas canvas, int left, int top, int finderSize) {
+    private static void drawFinderPattern(Canvas canvas, int left, int top, int finderSize, int foreground, int background) {
         float module = finderSize / (float) FINDER_MODULES;
         float cx = left + finderSize / 2f;
         float cy = top + finderSize / 2f;
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(FOREGROUND);
+        paint.setColor(foreground);
         canvas.drawCircle(cx, cy, finderSize / 2f, paint);
-        paint.setColor(BACKGROUND);
+        paint.setColor(background);
         canvas.drawCircle(cx, cy, finderSize / 2f - module, paint);
-        paint.setColor(FOREGROUND);
+        paint.setColor(foreground);
         canvas.drawCircle(cx, cy, finderSize / 2f - 2 * module, paint);
     }
 }

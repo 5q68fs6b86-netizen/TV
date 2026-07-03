@@ -40,5 +40,15 @@
     <!-- Push -->
     <string name="push_clip">推送剪贴板内容</string>
     <string name="push_info">使用手机扫描二维码，或于浏览器访问地址\n<xliff:g name="name">%s</xliff:g></string>
+    <string name="push_service">连接服务</string>
+    <string name="push_title">设备推送</string>
+    <string name="push_desc">从您的手机或电脑浏览器，向这台电视无缝推送链接和剪贴板内容。</string>
+    <string name="push_browser_address">局域网浏览器访问地址</string>
+    <string name="push_clip_sent">已发送推送请求</string>
+    <string name="push_scan_title">扫码快速连接</string>
+    <string name="push_scan_desc">使用手机相机或微信扫描上方二维码</string>
+    <string name="push_wifi_hint">请确保手机/电脑与电视处于同一 Wi-Fi 网络下</string>
+    <string name="push_copy_url">复制地址</string>
+    <string name="push_copied_url">已复制地址到剪贴板</string>
 
 </resources>

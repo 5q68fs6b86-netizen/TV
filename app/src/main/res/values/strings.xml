@@ -216,7 +216,7 @@
     <string name="error_decode_fallback">Hardware decoding failed, switched to software decoding</string>
     <string name="error_play_tvbus">Error code: <xliff:g name="name">%s</xliff:g></string>
     <string name="error_detail">No play data</string>
-    <string name="error_empty">Nothing here 👀</string>
+    <string name="error_empty">Nothing here (┯_┯)</string>
 
     <!-- Update -->
     <string name="update_version">New version <xliff:g name="name">%s</xliff:g></string>
