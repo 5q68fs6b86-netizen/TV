@@ -6,28 +6,21 @@
     android:tint="?attr/colorControlNormal">
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M16,4L18,4C19.1,4 20,4.9 20,6L20,20C20,21.1 19.1,22 18,22L6,22C4.9,22 4,21.1 4,20L4,6C4,4.9 4.9,4 6,4L8,4"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2"
         android:strokeColor="@android:color/white"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="2" />
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M9,2L15,2C15.55,2 16,2.45 16,3L16,5C16,5.55 15.55,6 15,6L9,6C8.45,6 8,5.55 8,5L8,3C8,2.45 8.45,2 9,2Z"
+        android:pathData="M12,16L12,12"
         android:strokeColor="@android:color/white"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="2" />
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M8,13L12,17L16,13"
-        android:strokeColor="@android:color/white"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeWidth="2" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M12,17L12,10"
+        android:pathData="M12,8L12.01,8"
         android:strokeColor="@android:color/white"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"

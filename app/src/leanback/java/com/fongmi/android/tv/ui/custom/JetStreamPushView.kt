@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,7 +115,7 @@ class JetStreamPushView @JvmOverloads constructor(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 72.dp, vertical = 48.dp)
+                    .padding(horizontal = 48.dp, vertical = 48.dp)
             ) {
                 BoxWithConstraints(
                     modifier = Modifier
@@ -128,7 +128,7 @@ class JetStreamPushView @JvmOverloads constructor(
                                 .align(Alignment.Center)
                                 .widthIn(max = 520.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(32.dp)
+                            verticalArrangement = Arrangement.spacedBy(48.dp)
                         ) {
                             QrPanel(Modifier.fillMaxWidth())
                             PushInfoPanel(Modifier.fillMaxWidth())
@@ -137,17 +137,17 @@ class JetStreamPushView @JvmOverloads constructor(
                         Row(
                             modifier = Modifier
                                 .align(Alignment.Center)
-                                .fillMaxWidth(0.9f)
-                                .widthIn(max = 1120.dp),
+                                .fillMaxWidth()
+                                .widthIn(max = 1152.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(72.dp)
+                            horizontalArrangement = Arrangement.spacedBy(96.dp)
                         ) {
                             PushInfoPanel(
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(max = 520.dp)
                             )
-                            QrPanel(Modifier.width(360.dp))
+                            QrPanel(Modifier.width(496.dp))
                         }
                     }
                 }
@@ -163,7 +163,7 @@ class JetStreamPushView @JvmOverloads constructor(
     private fun PushInfoPanel(modifier: Modifier) {
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(34.dp)
+            verticalArrangement = Arrangement.spacedBy(40.dp)
         ) {
             PushHeader()
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -176,22 +176,23 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun PushHeader() {
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.msr_cloud_upload),
+                    painter = painterResource(id = R.drawable.ic_push_cast),
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = Accent
                 )
                 Text(
                     text = stringResource(id = R.string.push_service).uppercase(),
                     color = Accent,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    letterSpacing = 1.4.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -200,16 +201,17 @@ class JetStreamPushView @JvmOverloads constructor(
             Text(
                 text = stringResource(id = R.string.push_title),
                 color = OnSurface,
-                fontSize = 54.sp,
-                lineHeight = 62.sp,
+                fontSize = 60.sp,
+                lineHeight = 64.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = stringResource(id = R.string.push_desc),
+                modifier = Modifier.widthIn(max = 448.dp),
                 color = OnSurfaceVariant,
-                fontSize = 19.sp,
+                fontSize = 20.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Normal
             )
@@ -224,9 +226,9 @@ class JetStreamPushView @JvmOverloads constructor(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.msr_live_tv),
+                    painter = painterResource(id = R.drawable.ic_push_monitor),
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                     tint = MutedText
                 )
                 Text(
@@ -245,7 +247,7 @@ class JetStreamPushView @JvmOverloads constructor(
                     .clip(RoundedCornerShape(20.dp))
                     .background(Surface)
                     .border(1.dp, Outline.copy(alpha = 0.52f), RoundedCornerShape(20.dp))
-                    .padding(start = 22.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
+                    .padding(start = 24.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -258,6 +260,7 @@ class JetStreamPushView @JvmOverloads constructor(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.width(8.dp))
                 CopyAddressButton()
             }
         }
@@ -279,9 +282,9 @@ class JetStreamPushView @JvmOverloads constructor(
         )
         Box(
             modifier = Modifier
-                .size(54.dp)
+                .size(52.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(12.dp))
                 .background(background)
                 .clickable(
                     interactionSource = interactionSource,
@@ -308,8 +311,8 @@ class JetStreamPushView @JvmOverloads constructor(
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
             targetValue = when {
-                pushed -> 0.97f
-                focused -> 1.04f
+                pushed -> 0.95f
+                focused -> 1.02f
                 else -> 1f
             },
             animationSpec = JetStreamAnimations.ScaleSpring,
@@ -339,8 +342,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
         Row(
             modifier = Modifier
-                .widthIn(min = 260.dp)
-                .height(60.dp)
+                .height(56.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(CircleShape)
                 .background(background)
@@ -351,7 +353,7 @@ class JetStreamPushView @JvmOverloads constructor(
                         if (listener?.onPushClipboard() == true) pushed = true
                     }
                 )
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = 32.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -379,8 +381,8 @@ class JetStreamPushView @JvmOverloads constructor(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(top = 0.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -393,7 +395,7 @@ class JetStreamPushView @JvmOverloads constructor(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.msr_info),
+                    painter = painterResource(id = R.drawable.ic_push_info),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                     tint = MutedText
@@ -417,11 +419,11 @@ class JetStreamPushView @JvmOverloads constructor(
                 .clip(panelShape)
                 .background(Surface)
                 .border(1.dp, Outline.copy(alpha = 0.32f), panelShape)
-                .padding(horizontal = 38.dp, vertical = 40.dp),
+                .padding(horizontal = 56.dp, vertical = 56.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             QrImageCard()
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(32.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -448,6 +450,7 @@ class JetStreamPushView @JvmOverloads constructor(
                 color = MutedText,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
+                textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -471,7 +474,7 @@ class JetStreamPushView @JvmOverloads constructor(
         )
         Box(
             modifier = Modifier
-                .size(276.dp)
+                .size(288.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .shadow(14.dp, shape, clip = false)
                 .clip(shape)
@@ -482,7 +485,7 @@ class JetStreamPushView @JvmOverloads constructor(
                     indication = null,
                     onClick = { listener?.onOpenAddress() }
                 )
-                .padding(18.dp),
+                .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
             val bitmap = qrImage
