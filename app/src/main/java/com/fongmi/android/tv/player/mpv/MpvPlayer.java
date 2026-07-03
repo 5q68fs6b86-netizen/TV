@@ -86,6 +86,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private boolean playWhenReady;
     private boolean loading;
     private boolean closed;
+    private boolean renderedFirstFrame;
+    private boolean newlyRenderedFirstFrame;
     private long positionMs;
     private long durationMs;
     private long bufferedPositionMs;
@@ -157,9 +159,11 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
                 .setTrackSelectionParameters(trackSelectionParameters)
                 .setVideoSize(videoSize)
                 .setSurfaceSize(surfaceSize)
+                .setNewlyRenderedFirstFrame(newlyRenderedFirstFrame)
                 .setVolume(volume)
                 .setAudioOffsetMs(audioOffsetMs)
                 .setTextOffsetMs(textOffsetMs);
+        newlyRenderedFirstFrame = false;
         if (mediaItem == null) return builder.build();
         builder.setPlaylist(ImmutableList.of(buildMediaItemData()))
                 .setCurrentMediaItemIndex(0)
@@ -188,6 +192,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
         pendingSeekAfterLoadMs = C.TIME_UNSET;
+        renderedFirstFrame = false;
+        newlyRenderedFirstFrame = false;
         loading = false;
         playbackState = Player.STATE_IDLE;
         playerError = null;
@@ -451,6 +457,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
         this.pendingSeekAfterLoadMs = C.TIME_UNSET;
+        this.renderedFirstFrame = false;
+        this.newlyRenderedFirstFrame = false;
         this.playWhenReady = true;
         this.loading = true;
         this.playerError = null;
@@ -480,6 +488,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
         this.pendingSeekAfterLoadMs = C.TIME_UNSET;
+        this.renderedFirstFrame = false;
+        this.newlyRenderedFirstFrame = false;
         this.playWhenReady = true;
         this.loading = true;
         this.playerError = null;
@@ -500,6 +510,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
         pendingSeekAfterLoadMs = C.TIME_UNSET;
+        renderedFirstFrame = false;
+        newlyRenderedFirstFrame = false;
         loading = false;
         playerError = null;
         playbackState = Player.STATE_IDLE;
@@ -676,9 +688,20 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         if (width > 0 && height > 0) {
             videoSize = new VideoSize(width, height);
             MpvLogCollector.log("MpvPlayer", "视频尺寸: " + width + "x" + height + ", 显示尺寸: " + displayWidth + "x" + displayHeight);
+            markRenderedFirstFrame();
         } else {
             MpvLogCollector.log("MpvPlayer", "无视频尺寸信息 (可能是纯音频)");
         }
+    }
+
+    private void markRenderedFirstFrame() {
+        if (renderedFirstFrame) return;
+        if (attachedSurface == null || !attachedSurface.isValid()) return;
+        if (videoSize.width <= 0 || videoSize.height <= 0) return;
+        renderedFirstFrame = true;
+        newlyRenderedFirstFrame = true;
+        MpvLogCollector.log("MpvPlayer", "通知首帧已渲染");
+        invalidateState();
     }
 
     private void readTracks() {
@@ -863,6 +886,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         textureView = null;
         textureListener = null;
         videoOutput = null;
+        renderedFirstFrame = false;
+        newlyRenderedFirstFrame = false;
         detachSurface(true);
         surfaceSize = Size.UNKNOWN;
     }
@@ -939,6 +964,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         detachSurface(true);
         attachedSurface = surface;
         this.ownsSurface = ownsSurface;
+        renderedFirstFrame = false;
 
         MpvLogCollector.log("MpvPlayer", "=== 附加 Surface ===");
         MpvLogCollector.log("MpvPlayer", "Surface有效: " + surface.isValid());
@@ -948,6 +974,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         updateSurfaceSize(width, height);
         if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", getVo());
+        markRenderedFirstFrame();
         loadPendingUrl();
     }
 
