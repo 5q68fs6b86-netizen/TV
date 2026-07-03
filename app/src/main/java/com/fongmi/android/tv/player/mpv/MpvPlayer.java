@@ -872,16 +872,19 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         surfaceCallback = new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
+                if (holder != surfaceHolder) return;
                 attachHolderSurface(holder);
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                if (holder != surfaceHolder) return;
                 updateSurfaceSize(width, height);
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
+                if (holder != surfaceHolder) return;
                 detachSurface(false);
             }
         };
@@ -901,16 +904,19 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         textureListener = new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+                if (view != textureView) return;
                 attachSurface(new Surface(surfaceTexture), width, height, true);
             }
 
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+                if (view != textureView) return;
                 updateSurfaceSize(width, height);
             }
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+                if (view != textureView) return true;
                 detachSurface(true);
                 return true;
             }
@@ -950,7 +956,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MpvLogCollector.log("MpvPlayer", "=== 分离 Surface ===");
         try {
             MPVLib.INSTANCE.setPropertyString("vo", "null");
-            MPVLib.INSTANCE.setPropertyString("force-window", "no");
+            MPVLib.INSTANCE.setOptionString("force-window", "no");
             MPVLib.INSTANCE.detachSurface();
         } catch (RuntimeException e) {
             MpvLogCollector.logError("MpvPlayer", "分离Surface异常: " + e.getMessage());
