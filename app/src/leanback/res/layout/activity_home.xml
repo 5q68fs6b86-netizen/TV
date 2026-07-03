@@ -65,7 +65,7 @@
 
         </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
 
-        <com.fongmi.android.tv.ui.custom.JetStreamProgressPanelLayout
+        <com.fongmi.android.tv.ui.custom.JetStreamPageProgressLayout
             android:id="@+id/progressLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -75,7 +75,6 @@
             android:layout_marginBottom="36dp"
             android:layout_weight="1"
             android:paddingStart="18dp"
-            android:paddingTop="18dp"
             android:paddingEnd="18dp">
 
             <com.fongmi.android.tv.ui.custom.JetStreamVerticalGridView
@@ -87,7 +86,7 @@
                 app:focusOutEnd="true"
                 app:focusOutFront="true" />
 
-        </com.fongmi.android.tv.ui.custom.JetStreamProgressPanelLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamPageProgressLayout>
 
     </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
 </com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout>

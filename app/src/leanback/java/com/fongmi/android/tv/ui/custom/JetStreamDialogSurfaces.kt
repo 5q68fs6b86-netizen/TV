@@ -599,19 +599,8 @@ private fun LinearLayoutCompat.applyJetStreamDialogActionRailSurface() {
 }
 
 private fun LinearLayoutCompat.applyJetStreamDialogButtonRowSurface() {
-    val left = paddingLeft
-    val top = paddingTop
-    val right = paddingRight
-    val bottom = paddingBottom
-    background = jetStreamDialogRowDrawable()
-    minimumHeight = jetStreamDpInt(56)
-    clipToOutline = true
-    if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-        val padding = jetStreamDpInt(8)
-        setPadding(padding, padding, padding, padding)
-    } else {
-        setPadding(left, top, right, bottom)
-    }
+    clipChildren = false
+    clipToPadding = false
 }
 
 private fun LinearLayoutCompat.applyJetStreamSheetChipRowSurface() {
