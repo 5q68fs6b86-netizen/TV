@@ -5,11 +5,9 @@ import android.graphics.Bitmap
 import android.util.AttributeSet
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,8 +24,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
-import com.fongmi.android.tv.ui.theme.JetStreamBorders
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
@@ -57,18 +53,7 @@ class JetStreamQrCodeView @JvmOverloads constructor(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(JetStreamShapes.Large)
-                    .background(
-                        jetStreamHorizontalScrimBrush(
-                            startColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                            middleColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f),
-                            endColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.58f)
-                        )
-                    )
-                    .border(
-                        JetStreamBorders.Thin,
-                        MaterialTheme.colorScheme.outlineVariant,
-                        JetStreamShapes.Large
-                    )
+                    .background(Color.Black)
                     .padding(JetStreamSpacing.Small),
                 contentAlignment = Alignment.Center
             ) {
@@ -76,7 +61,6 @@ class JetStreamQrCodeView @JvmOverloads constructor(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(JetStreamShapes.Medium)
-                        .background(Color.White)
                         .padding(JetStreamSpacing.Small),
                     contentAlignment = Alignment.Center
                 ) {
@@ -84,7 +68,7 @@ class JetStreamQrCodeView @JvmOverloads constructor(
                     if (bitmap == null) {
                         Text(
                             text = "QR",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )

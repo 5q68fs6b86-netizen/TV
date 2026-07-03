@@ -235,11 +235,10 @@ class JetStreamHomeLogoView @JvmOverloads constructor(
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
     init {
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(20) }
-        )
-        elevation = jetStreamDp(2)
+        background = jetStreamHomeLogoBackground()
+        foreground = jetStreamHomeLogoForeground()
+        scaleType = ScaleType.CENTER_CROP
+        elevation = jetStreamDp(1)
         clipToOutline = true
     }
 }
@@ -880,6 +879,7 @@ class JetStreamSearchInputView @JvmOverloads constructor(
         setHintTextColor(ContextCompat.getColor(context, R.color.jetstream_list_supporting_text))
         setTextColor(ContextCompat.getColor(context, R.color.jetstream_list_title_text))
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+        if (hasNoPadding()) setPadding(jetStreamDpInt(10), 0, jetStreamDpInt(10), 0)
     }
 }
 
@@ -1124,7 +1124,10 @@ private fun MaterialTextView.applyJetStreamChipTextSurface(
 }
 
 private fun MaterialTextView.applyJetStreamControlSurface() {
-    applyJetStreamChipTextSurface(cornerRadiusDp = 28, horizontalPaddingDp = 14, minHeightDp = 40)
+    background = null
+    minHeight = jetStreamDpInt(40)
+    applyJetStreamControlTextDefaults(null, 0)
+    if (hasNoPadding()) setPadding(jetStreamDpInt(8), jetStreamDpInt(8), jetStreamDpInt(8), jetStreamDpInt(8))
     isFocusable = true
     isFocusableInTouchMode = true
     gravity = Gravity.CENTER
@@ -1310,6 +1313,21 @@ private fun View.jetStreamAvatarPlaceholderDrawable(): GradientDrawable {
     return GradientDrawable().apply {
         shape = GradientDrawable.OVAL
         setColor(ContextCompat.getColor(context, R.color.jetstream_surface_container_high))
+    }
+}
+
+private fun View.jetStreamHomeLogoBackground(): GradientDrawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(ContextCompat.getColor(context, R.color.jetstream_surface_container_high))
+    }
+}
+
+private fun View.jetStreamHomeLogoForeground(): GradientDrawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(Color.TRANSPARENT)
+        setStroke(jetStreamDpInt(1), ContextCompat.getColor(context, R.color.jetstream_outline_variant))
     }
 }
 

@@ -558,7 +558,6 @@ private fun LinearLayoutCompat.applyJetStreamSettingControlRowSurface() {
     val bottom = paddingBottom
     orientation = LinearLayoutCompat.HORIZONTAL
     gravity = Gravity.CENTER_VERTICAL
-    setAddStatesFromChildren(true)
     background = StateListDrawable().apply {
         addState(intArrayOf(android.R.attr.state_focused), jetStreamSettingControlRowDrawable(R.color.jetstream_primary_container, R.color.jetstream_primary, 2))
         addState(intArrayOf(android.R.attr.state_pressed), jetStreamSettingControlRowDrawable(R.color.jetstream_primary_container, R.color.jetstream_primary, 2))

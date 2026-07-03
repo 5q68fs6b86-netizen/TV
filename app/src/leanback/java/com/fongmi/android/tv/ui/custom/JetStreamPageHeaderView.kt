@@ -81,83 +81,43 @@ class JetStreamPageHeaderView @JvmOverloads constructor(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(JetStreamShapes.Card)
-                    .background(
-                        jetStreamHorizontalScrimBrush(
-                            startColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
-                            middleColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f),
-                            endColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.20f)
-                        )
-                    )
-                    .border(
-                        JetStreamBorders.Thin,
-                        MaterialTheme.colorScheme.outlineVariant,
-                        JetStreamShapes.Card
-                    )
-                    .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = JetStreamSpacing.ExtraLarge)
+                    .padding(horizontal = 8.dp, vertical = 12.dp)
             ) {
-                JetStreamRadialScrim(
-                    modifier = Modifier.fillMaxSize(),
-                    centerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
-                    edgeColor = Color.Transparent,
-                    center = Offset(920f, 20f),
-                    radius = 760f
-                )
                 Column(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .fillMaxWidth(0.72f)
+                        .fillMaxWidth()
                 ) {
                     Text(
                         text = eyebrowText().uppercase(),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.86f),
-                        fontSize = 13.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
+                        letterSpacing = 1.0.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = title.ifBlank { context.getString(R.string.home_setting) },
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 34.sp,
-                        lineHeight = 40.sp,
+                        fontSize = 24.sp,
+                        lineHeight = 28.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (subtitle.isNotBlank()) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(4.dp))
                         Text(
                             text = subtitle,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 15.sp,
-                            lineHeight = 21.sp,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(
-                            JetStreamBorders.Thin,
-                            MaterialTheme.colorScheme.outlineVariant,
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "TV",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
             }
         }

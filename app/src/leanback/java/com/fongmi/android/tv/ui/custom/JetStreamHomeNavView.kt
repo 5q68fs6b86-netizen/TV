@@ -19,6 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,16 +39,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
+import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
@@ -161,16 +167,13 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val painter = rememberDrawablePainter(item.drawableRes)
-            if (painter != null) {
-                Icon(
-                    painter = painter,
-                    contentDescription = item.text,
-                    modifier = Modifier.size(16.dp),
-                    tint = contentColor
-                )
-                Spacer(Modifier.width(6.dp))
-            }
+            Icon(
+                imageVector = remember(item.drawableRes) { iconFor(item.drawableRes) },
+                contentDescription = item.text,
+                modifier = Modifier.size(17.dp),
+                tint = contentColor
+            )
+            Spacer(Modifier.width(6.dp))
             Text(
                 text = item.text,
                 color = contentColor,
@@ -183,20 +186,14 @@ class JetStreamHomeNavView @JvmOverloads constructor(
     }
 
     companion object {
-        @Composable
-        private fun rememberDrawablePainter(resId: Int): BitmapPainter? {
-            val resources = androidx.compose.ui.platform.LocalContext.current.resources
-            return remember(resId) {
-                val drawable = ResourcesCompat.getDrawable(resources, resId, null) ?: return@remember null
-                val bitmap = android.graphics.Bitmap.createBitmap(
-                    drawable.intrinsicWidth.coerceAtLeast(1),
-                    drawable.intrinsicHeight.coerceAtLeast(1),
-                    android.graphics.Bitmap.Config.ARGB_8888
-                )
-                val canvas = android.graphics.Canvas(bitmap)
-                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                drawable.draw(canvas)
-                BitmapPainter(bitmap.asImageBitmap())
+        private fun iconFor(resId: Int): ImageVector {
+            return when (resId) {
+                R.drawable.ic_home_live -> Icons.Rounded.LiveTv
+                R.drawable.ic_home_search -> Icons.Rounded.Search
+                R.drawable.ic_home_keep -> Icons.Rounded.Favorite
+                R.drawable.ic_home_push -> Icons.Rounded.CloudUpload
+                R.drawable.ic_home_setting -> Icons.Rounded.Settings
+                else -> Icons.Rounded.Movie
             }
         }
     }

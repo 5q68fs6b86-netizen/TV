@@ -8,7 +8,6 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
         android:orientation="vertical">
 
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
@@ -49,7 +48,6 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
         android:orientation="vertical">
 
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
@@ -89,7 +87,6 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
         android:orientation="vertical">
 
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout

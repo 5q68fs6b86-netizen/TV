@@ -18,8 +18,8 @@ public class QRCode {
 
     private static final int FINDER_MODULES = 7;
     private static final float MODULE_RADIUS_RATIO = 0.45f;
-    private static final int FOREGROUND = Color.BLACK;
-    private static final int BACKGROUND = 0xFFE3E9E9;
+    private static final int FOREGROUND = Color.WHITE;
+    private static final int BACKGROUND = Color.BLACK;
     private static final float BACKGROUND_RADIUS_RATIO = 0.08f;
 
     public static Bitmap getBitmap(String content, int size, int margin) {

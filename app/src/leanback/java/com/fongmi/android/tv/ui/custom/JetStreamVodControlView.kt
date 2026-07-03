@@ -499,19 +499,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
             animationSpec = JetStreamAnimations.ScaleSpring,
             label = "chipScale"
         )
-        val background by animateColorAsState(
-            targetValue = when {
-                state.selected -> colorScheme.secondaryContainer
-                focused -> colorScheme.primaryContainer
-                else -> colorScheme.surfaceVariant.copy(alpha = 0.78f)
-            },
-            animationSpec = JetStreamAnimations.ColorTween,
-            label = "chipBackground"
-        )
         val contentColor by animateColorAsState(
             targetValue = when {
-                state.selected -> colorScheme.onSecondaryContainer
-                focused -> colorScheme.onPrimaryContainer
+                state.selected || focused -> colorScheme.onSurface
                 else -> colorScheme.onSurfaceVariant
             },
             animationSpec = JetStreamAnimations.ColorTween,
@@ -521,8 +511,6 @@ class JetStreamVodControlView @JvmOverloads constructor(
             modifier = Modifier
                 .height(36.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clip(RoundedCornerShape(18.dp))
-                .background(background)
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -538,6 +526,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 text = state.label,
                 color = contentColor,
                 fontSize = 14.sp,
+                fontWeight = if (state.selected || focused) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

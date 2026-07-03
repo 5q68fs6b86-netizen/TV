@@ -44,7 +44,7 @@
 
         </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
 
-        <com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout
+        <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginStart="48dp"
@@ -59,7 +59,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-        </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
 
     </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
 </com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout>
