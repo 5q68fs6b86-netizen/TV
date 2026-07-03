@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:addStatesFromChildren="true"
-    android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:layout_height="wrap_content">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamLargeChipRoundTextView
         android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="40dp"
@@ -18,7 +14,6 @@
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textSize="18sp"
         tools:text="tv-2024-12-26.bk.gz" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
@@ -29,7 +24,6 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:src="@drawable/ic_setting_delete"
-        app:tint="@color/jetstream_control_text" />
+        android:src="@drawable/ic_setting_delete" />
 
 </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>

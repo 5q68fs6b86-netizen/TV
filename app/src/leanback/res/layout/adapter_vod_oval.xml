@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamVodOvalRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -11,10 +10,9 @@
         android:id="@+id/image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:shapeAppearanceOverlay="@style/Vod.Circle" />
+        android:layout_margin="8dp" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamLargeSupportingLabelTextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -26,7 +24,6 @@
         android:duplicateParentState="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textSize="16sp"
         tools:text="蜘蛛人" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamVodOvalFocusLayout

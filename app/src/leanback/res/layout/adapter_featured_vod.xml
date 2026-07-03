@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamFeaturedVodLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="324dp"
@@ -11,17 +10,13 @@
         android:id="@+id/imageA"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        app:shapeAppearanceOverlay="@style/JetStream.Hero"
         tools:src="@drawable/wallpaper_1" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamHeroImageView
         android:id="@+id/imageB"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/JetStream.Hero" />
+        android:visibility="gone" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamFeaturedLeftScrimView
         android:layout_width="match_parent"
@@ -40,27 +35,21 @@
         android:paddingEnd="32dp"
         android:paddingBottom="28dp">
 
-        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamHeroTitleTextView
             android:id="@+id/name"
-            style="@style/Shadow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="36sp"
             tools:text="蜘蛛人" />
 
-        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamHeroMetaTextView
             android:id="@+id/meta"
-            style="@style/Shadow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/jetstream_on_surface_variant"
-            android:textSize="16sp"
             tools:text="2024  |  泥巴  |  1080p" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamHeroActionLayout
@@ -80,14 +69,11 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_featured_play" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamHeroActionTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="@string/play"
-                android:textColor="@color/jetstream_on_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="@string/play" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamHeroActionLayout>
 

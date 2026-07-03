@@ -30,7 +30,6 @@
             android:focusable="true"
             android:src="@drawable/ic_action_choose"
             android:visibility="gone"
-            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
@@ -41,7 +40,6 @@
             android:focusable="true"
             android:src="@drawable/ic_action_subtitle"
             android:visibility="gone"
-            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
@@ -52,7 +50,6 @@
             android:focusable="true"
             android:src="@drawable/ic_action_offset"
             android:visibility="gone"
-            app:tint="@color/jetstream_control_text"
             tools:visibility="visible" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
@@ -61,9 +58,6 @@
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
         android:paddingStart="24dp"
         android:paddingTop="16dp"
         android:paddingEnd="24dp"

@@ -28,9 +28,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
             android:padding="12dp"
             app:maxHeight="264dp"
             tools:itemCount="5"
@@ -55,8 +52,7 @@
                 android:nextFocusUp="@id/search"
                 android:nextFocusDown="@id/change"
                 android:padding="8dp"
-                android:src="@drawable/ic_site_search"
-                app:tint="@color/jetstream_control_text" />
+                android:src="@drawable/ic_site_search" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
                 android:id="@+id/change"
@@ -68,8 +64,7 @@
                 android:nextFocusUp="@id/search"
                 android:nextFocusDown="@id/select"
                 android:padding="8dp"
-                android:src="@drawable/ic_site_change"
-                app:tint="@color/jetstream_control_text" />
+                android:src="@drawable/ic_site_change" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
                 android:id="@+id/select"
@@ -81,8 +76,7 @@
                 android:nextFocusUp="@id/change"
                 android:nextFocusDown="@id/cancel"
                 android:padding="8dp"
-                android:src="@drawable/ic_site_select"
-                app:tint="@color/jetstream_control_text" />
+                android:src="@drawable/ic_site_select" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
                 android:id="@+id/cancel"
@@ -94,8 +88,7 @@
                 android:nextFocusUp="@id/select"
                 android:nextFocusDown="@id/mode"
                 android:padding="8dp"
-                android:src="@drawable/ic_site_cancel"
-                app:tint="@color/jetstream_control_text" />
+                android:src="@drawable/ic_site_cancel" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
                 android:id="@+id/mode"
@@ -107,7 +100,6 @@
                 android:nextFocusUp="@id/cancel"
                 android:nextFocusDown="@id/mode"
                 android:padding="8dp"
-                app:tint="@color/jetstream_control_text"
                 tools:src="@drawable/ic_site_list" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamDialogActionRailLayout>

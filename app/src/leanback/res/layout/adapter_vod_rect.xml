@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamVodCardRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:clipChildren="false"
-    android:clipToPadding="false"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:orientation="vertical">
@@ -19,9 +16,7 @@
         <com.fongmi.android.tv.ui.custom.JetStreamPosterImageView
             android:id="@+id/image"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/JetStream.Card" />
+            android:layout_height="match_parent" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamVodScrimView
             android:id="@+id/scrim"
@@ -37,8 +32,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:singleLine="true"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="12sp"
             android:visibility="gone"
             tools:text="2022"
             tools:visibility="visible" />
@@ -51,8 +44,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:singleLine="true"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="12sp"
             android:visibility="gone"
             tools:text="泥巴"
             tools:visibility="visible" />
@@ -67,8 +58,6 @@
             android:ellipsize="end"
             android:maxWidth="120dp"
             android:singleLine="true"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="12sp"
             tools:text="1080p" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamVodPosterLayout>
@@ -82,8 +71,6 @@
         android:ellipsize="end"
         android:gravity="center"
         android:singleLine="true"
-        android:textSize="14sp"
-        android:textStyle="bold"
         tools:text="蜘蛛人" />
 
 </com.fongmi.android.tv.ui.custom.JetStreamVodCardRootLayout>

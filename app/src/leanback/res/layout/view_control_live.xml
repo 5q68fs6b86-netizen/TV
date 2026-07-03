@@ -10,14 +10,11 @@
     android:paddingEnd="48dp"
     android:paddingBottom="24dp">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackBodyTextView
         android:id="@+id/seek_preview"
         android:layout_width="match_parent"
         android:layout_height="24dp"
         android:gravity="center"
-        android:includeFontPadding="false"
-        android:textColor="@color/jetstream_on_surface"
-        android:textSize="16sp"
         android:visibility="gone"
         tools:text="00:30 / 01:30"
         tools:visibility="visible" />

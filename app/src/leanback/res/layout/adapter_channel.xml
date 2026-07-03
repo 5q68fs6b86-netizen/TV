@@ -13,15 +13,13 @@
     android:paddingStart="14dp"
     android:paddingEnd="16dp">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamChannelNumberTextView
         android:id="@+id/number"
         android:layout_width="wrap_content"
         android:layout_height="28dp"
         android:layout_marginEnd="10dp"
         android:duplicateParentState="true"
-        android:fontFeatureSettings="tnum"
         android:gravity="center"
-        android:includeFontPadding="false"
         android:minWidth="32dp"
         android:singleLine="true"
         tools:text="01" />
@@ -31,7 +29,6 @@
         android:layout_width="44dp"
         android:layout_height="32dp"
         android:layout_marginEnd="10dp"
-        android:scaleType="fitCenter"
         android:visibility="gone"
         tools:visibility="visible" />
 

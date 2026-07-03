@@ -25,13 +25,11 @@
 
         <com.fongmi.android.tv.ui.custom.JetStreamDialogButton
             android:id="@+id/reset"
-            style="@style/JetStream.Button.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:text="@string/danmaku_reset"
-            android:textColor="@color/jetstream_control_text" />
+            android:text="@string/danmaku_reset" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 
@@ -48,8 +46,6 @@
         <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:paddingHorizontal="24dp"
             android:paddingVertical="4dp">
 
@@ -58,20 +54,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
-                android:text="@string/offset_audio"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:text="@string/offset_audio" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/audioValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:duplicateParentState="true" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
 
         <com.fongmi.android.tv.ui.custom.JetStreamSlider
-            style="@style/JetStream.Slider"
             android:id="@+id/audioSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -98,8 +91,6 @@
         <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:paddingHorizontal="24dp"
             android:paddingVertical="4dp">
 
@@ -108,20 +99,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
-                android:text="@string/offset_text"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:text="@string/offset_text" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/textValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:duplicateParentState="true" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
 
         <com.fongmi.android.tv.ui.custom.JetStreamSlider
-            style="@style/JetStream.Slider"
             android:id="@+id/textSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

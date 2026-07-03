@@ -1,8 +1,10 @@
 package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView.ScaleType
@@ -10,6 +12,7 @@ import android.widget.RelativeLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import com.fongmi.android.tv.R
 import com.google.android.material.textview.MaterialTextView
 
@@ -49,6 +52,7 @@ class JetStreamPlaybackWidgetIconView @JvmOverloads constructor(
 
     init {
         applyJetStreamPlaybackWidgetSurface()
+        applyJetStreamPlaybackIconTint()
     }
 }
 
@@ -76,6 +80,24 @@ class JetStreamPlaybackWidgetTextView @JvmOverloads constructor(
     }
 }
 
+class JetStreamPlaybackDigitalTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackWidgetSurface()
+        applyJetStreamPlaybackTextDefaults(
+            attrs,
+            defStyleAttr,
+            defaultTextColorRes = R.color.jetstream_on_surface,
+            defaultTextSizeSp = 64f,
+            defaultLetterSpacing = 0.05f
+        )
+    }
+}
+
 class JetStreamPlaybackLabelTextView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -84,6 +106,110 @@ class JetStreamPlaybackLabelTextView @JvmOverloads constructor(
 
     init {
         includeFontPadding = false
+    }
+}
+
+class JetStreamPlaybackTitleTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface, 20f)
+        applyJetStreamPlaybackTextShadow()
+    }
+}
+
+class JetStreamPlaybackClockTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        fontFeatureSettings = "tnum"
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface, 20f)
+        applyJetStreamPlaybackTextShadow()
+    }
+}
+
+class JetStreamPlaybackMetaTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface_variant, 16f)
+        applyJetStreamPlaybackTextShadow()
+    }
+}
+
+class JetStreamPlaybackTrafficTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface_variant, 15f)
+    }
+}
+
+class JetStreamPlaybackBodyTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface, 16f)
+    }
+}
+
+class JetStreamPlaybackTimeTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        fontFeatureSettings = "tnum"
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface, 16f)
+    }
+}
+
+class JetStreamPlaybackSecondaryTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface_variant, 16f)
+    }
+}
+
+class JetStreamLiveChannelNumberTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface_variant, 18f)
+    }
+}
+
+class JetStreamLiveChannelNameTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackTextDefaults(attrs, defStyleAttr, R.color.jetstream_on_surface, 17f)
     }
 }
 
@@ -114,6 +240,41 @@ private fun android.view.View.applyJetStreamPlaybackWidgetSurface() {
         setPadding(jetStreamDpInt(20), jetStreamDpInt(18), jetStreamDpInt(20), jetStreamDpInt(18))
     } else {
         setPadding(left, top, right, bottom)
+    }
+}
+
+private fun MaterialTextView.applyJetStreamPlaybackTextDefaults(
+    attrs: AttributeSet?,
+    defStyleAttr: Int,
+    defaultTextColorRes: Int,
+    defaultTextSizeSp: Float,
+    defaultLetterSpacing: Float? = null
+) {
+    val typedArray = context.obtainStyledAttributes(
+        attrs,
+        intArrayOf(android.R.attr.textColor, android.R.attr.textSize, android.R.attr.textAppearance, android.R.attr.letterSpacing),
+        defStyleAttr,
+        0
+    )
+    val hasTextColor = typedArray.hasValue(0)
+    val hasTextSize = typedArray.hasValue(1)
+    val hasTextAppearance = typedArray.hasValue(2)
+    val hasLetterSpacing = typedArray.hasValue(3)
+    typedArray.recycle()
+
+    includeFontPadding = false
+    if (!hasTextColor) setTextColor(ContextCompat.getColor(context, defaultTextColorRes))
+    if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
+    if (defaultLetterSpacing != null && !hasLetterSpacing) letterSpacing = defaultLetterSpacing
+}
+
+private fun MaterialTextView.applyJetStreamPlaybackTextShadow() {
+    setShadowLayer(2f, 1.5f, 1.5f, ContextCompat.getColor(context, R.color.jetstream_overlay_surface))
+}
+
+private fun AppCompatImageView.applyJetStreamPlaybackIconTint() {
+    if (ImageViewCompat.getImageTintList(this) == null) {
+        ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.jetstream_on_surface)))
     }
 }
 

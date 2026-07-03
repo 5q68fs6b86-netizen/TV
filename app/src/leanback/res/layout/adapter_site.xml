@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamChipRoundLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="40dp"
@@ -9,7 +8,7 @@
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamLargeLabelTextView
         android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -18,7 +17,6 @@
         android:duplicateParentState="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textSize="18sp"
         tools:text="泥巴" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamCheckBox
@@ -29,7 +27,6 @@
         android:clickable="false"
         android:enabled="false"
         android:focusable="false"
-        android:focusableInTouchMode="false"
-        app:buttonTint="@color/jetstream_control_text" />
+        android:focusableInTouchMode="false" />
 
 </com.fongmi.android.tv.ui.custom.JetStreamChipRoundLayout>

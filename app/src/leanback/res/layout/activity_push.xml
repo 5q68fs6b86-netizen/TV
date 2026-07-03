@@ -12,8 +12,6 @@
         android:layout_width="720dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -36,25 +34,22 @@
                 android:layout_width="250dp"
                 android:layout_height="250dp" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamLargeBodyTextView
                 android:id="@+id/info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:gravity="center"
-                android:lineSpacingExtra="8dp"
-                android:textColor="@color/jetstream_on_surface_variant"
-                android:textSize="18sp" />
+                android:lineSpacingExtra="8dp" />
 
-            <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamMediumChipRoundTextView
                 android:id="@+id/clip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:text="@string/push_clip"
-                android:textSize="16sp" />
+                android:text="@string/push_clip" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
 

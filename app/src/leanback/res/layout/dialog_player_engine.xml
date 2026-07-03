@@ -29,8 +29,7 @@
             android:contentDescription="@string/player_debug"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:src="@drawable/ic_action_debug"
-            app:tint="@color/jetstream_control_text" />
+            android:src="@drawable/ic_action_debug" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 

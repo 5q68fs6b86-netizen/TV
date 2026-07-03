@@ -2,9 +2,7 @@
 <com.fongmi.android.tv.ui.custom.JetStreamPlaybackActionScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fillViewport="true"
-    android:scrollbars="none">
+    android:layout_height="wrap_content">
 
     <com.fongmi.android.tv.ui.custom.JetStreamPlaybackActionRowLayout
         android:layout_width="wrap_content"
@@ -14,104 +12,119 @@
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/next"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:nextFocusLeft="@id/repeat"
             android:text="@string/play_next" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/prev"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_prev" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/reset"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_reset" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/replay"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_replay" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/change2"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_change" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/player"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/player_engine" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/decode"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_decode" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/parse"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/parse"
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <com.fongmi.android.tv.ui.custom.JetStreamControlUpDownView
+        <com.fongmi.android.tv.ui.custom.JetStreamNumericControlUpDownView
             android:id="@+id/speed"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:fontFeatureSettings="tnum"
             android:text="@string/play_speed" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/scale"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_scale" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlUpDownView
             android:id="@+id/text"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:tag="3"
             android:text="@string/play_track_text" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/audio"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:tag="1"
             android:text="@string/play_track_audio" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/video"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:tag="2"
             android:text="@string/play_track_video" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlUpDownView
             android:id="@+id/opening"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_op" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlUpDownView
             android:id="@+id/ending"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_ed" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/danmaku"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/danmaku"
             android:visibility="gone"
@@ -119,7 +132,8 @@
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/edition"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_edition"
             android:visibility="gone"
@@ -127,7 +141,8 @@
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/chapter"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:text="@string/play_chapter"
             android:visibility="gone"
@@ -135,7 +150,8 @@
 
         <com.fongmi.android.tv.ui.custom.JetStreamControlTextView
             android:id="@+id/repeat"
-            style="@style/Control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:nextFocusRight="@id/next"
             android:text="@string/play_repeat" />
 

@@ -14,31 +14,24 @@
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="4dp">
+            android:duplicateParentState="true">
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
-                android:text="@string/danmaku_time_offset"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:text="@string/danmaku_time_offset" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/timeOffsetValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:duplicateParentState="true" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
         <com.fongmi.android.tv.ui.custom.JetStreamSlider
-            style="@style/JetStream.Slider"
             android:id="@+id/timeOffsetSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,31 +55,24 @@
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="4dp">
+            android:duplicateParentState="true">
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
-                android:text="@string/danmaku_duration"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:text="@string/danmaku_duration" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/durationValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:duplicateParentState="true" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
         <com.fongmi.android.tv.ui.custom.JetStreamSlider
-            style="@style/JetStream.Slider"
             android:id="@+id/durationSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -109,31 +95,24 @@
         <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="4dp">
+            android:duplicateParentState="true">
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
-                android:text="@string/danmaku_fixed_duration"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:text="@string/danmaku_fixed_duration" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/fixedDurationValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:duplicateParentState="true" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
         <com.fongmi.android.tv.ui.custom.JetStreamSlider
-            style="@style/JetStream.Slider"
             android:id="@+id/fixedDurationSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

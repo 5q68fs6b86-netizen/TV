@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamLargeChipRoundTextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/text"
     android:layout_width="match_parent"
@@ -8,5 +8,4 @@
     android:focusableInTouchMode="true"
     android:gravity="center"
     android:singleLine="true"
-    android:textSize="18sp"
     tools:text="Google" />

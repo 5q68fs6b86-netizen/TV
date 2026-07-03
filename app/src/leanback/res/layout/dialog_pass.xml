@@ -9,7 +9,7 @@
     android:paddingEnd="24dp"
     android:paddingBottom="28dp">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamDialogTextInputEditText
+    <com.fongmi.android.tv.ui.custom.JetStreamCompactDialogTextInputEditText
         android:id="@+id/pass"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -26,10 +26,9 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textCursorDrawable="@drawable/shape_cursor"
-        android:textSize="16sp" />
+        android:textCursorDrawable="@drawable/shape_cursor" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamPrimaryButtonTextView
         android:id="@+id/positive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,7 +37,6 @@
         android:gravity="center"
         android:minWidth="72dp"
         android:singleLine="true"
-        android:text="@string/dialog_positive"
-        android:textStyle="bold" />
+        android:text="@string/dialog_positive" />
 
 </com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

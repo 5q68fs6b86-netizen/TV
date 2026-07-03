@@ -9,13 +9,12 @@
         android:layout_width="196dp"
         android:layout_height="196dp" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
+    <com.fongmi.android.tv.ui.custom.JetStreamMonospaceDialogEditText
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_toEndOf="@+id/code"
-        android:fontFamily="monospace"
         android:gravity="top|start"
         android:hint="@string/player_mpv_conf"
         android:imeOptions="actionDone"
@@ -28,8 +27,7 @@
         android:paddingTop="12dp"
         android:paddingEnd="16dp"
         android:paddingBottom="12dp"
-        android:textCursorDrawable="@drawable/shape_cursor"
-        android:textSize="18sp" />
+        android:textCursorDrawable="@drawable/shape_cursor" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout
         android:id="@+id/bottom"

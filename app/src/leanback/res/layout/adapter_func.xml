@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="100dp"
     android:layout_height="100dp"
@@ -9,22 +8,19 @@
     android:gravity="center"
     android:orientation="vertical">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamInlineIconView
+    <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
         android:id="@+id/icon"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:duplicateParentState="true"
-        app:tint="@color/jetstream_control_text"
         tools:src="@drawable/ic_home_vod" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamFunctionLabelTextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:duplicateParentState="true"
-        android:textColor="@color/jetstream_control_text"
-        android:textSize="18sp"
         tools:text="點播" />
 
 </com.fongmi.android.tv.ui.custom.JetStreamItemLayout>

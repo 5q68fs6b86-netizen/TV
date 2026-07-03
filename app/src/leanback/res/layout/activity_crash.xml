@@ -12,8 +12,6 @@
         android:layout_width="720dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -43,9 +41,7 @@
                 android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
-                android:text="@string/setting_page_crash_action_desc"
-                android:textColor="@color/jetstream_on_surface_variant"
-                android:textSize="16sp" />
+                android:text="@string/setting_page_crash_action_desc" />
 
             <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
                 android:id="@+id/restart"

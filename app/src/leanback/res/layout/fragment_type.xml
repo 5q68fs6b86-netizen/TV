@@ -3,23 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/swipeLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clipChildren="false"
-    android:clipToPadding="false">
+    android:layout_height="match_parent">
 
     <com.fongmi.android.tv.ui.custom.JetStreamPageProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipChildren="false"
-        android:clipToPadding="false">
+        android:layout_height="match_parent">
 
         <com.fongmi.android.tv.ui.custom.JetStreamTypeGridView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:paddingStart="48dp"
             android:paddingTop="12dp"
             android:paddingEnd="48dp"

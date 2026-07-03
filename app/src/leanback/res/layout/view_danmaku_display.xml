@@ -6,23 +6,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_scroll"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_scroll" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showScrollSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,23 +27,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_top"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_top" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showTopSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -61,23 +47,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_bottom"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_bottom" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showBottomSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -88,23 +67,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_reverse"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_reverse" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showReverseSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -115,23 +87,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_positioned"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_positioned" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showPositionedSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -142,23 +107,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_subtitle"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_subtitle" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showSubtitleSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -169,23 +127,16 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:addStatesFromChildren="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_show_special"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_show_special" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSwitch
-            style="@style/JetStream.Switch"
             android:id="@+id/showSpecialSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

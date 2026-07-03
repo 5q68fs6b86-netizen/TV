@@ -41,8 +41,7 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textCursorDrawable="@drawable/shape_cursor"
-        android:textSize="18sp" />
+        android:textCursorDrawable="@drawable/shape_cursor" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout
         android:id="@+id/bottom"

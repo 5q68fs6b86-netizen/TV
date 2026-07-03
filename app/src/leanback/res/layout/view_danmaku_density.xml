@@ -7,31 +7,24 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_max_on_screen"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_max_on_screen" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/maxOnScreenValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/maxOnScreenSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,31 +39,24 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_scroll_area_ratio"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_scroll_area_ratio" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/scrollAreaValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/scrollAreaSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -84,31 +70,24 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_scroll_gap_ratio"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_scroll_gap_ratio" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/scrollGapValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/scrollGapSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -122,31 +101,24 @@
 
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_line_spacing"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_line_spacing" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/lineSpacingValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/lineSpacingSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -161,31 +133,24 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:id="@+id/maxScrollLinesRow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_max_scroll_lines"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_max_scroll_lines" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/maxScrollLinesValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/maxScrollLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -200,31 +165,24 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:id="@+id/maxTopLinesRow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_max_top_lines"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_max_top_lines" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/maxTopLinesValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/maxTopLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -239,31 +197,24 @@
     <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:id="@+id/maxBottomLinesRow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
+        android:layout_height="wrap_content">
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
-            android:text="@string/danmaku_max_bottom_lines"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:text="@string/danmaku_max_bottom_lines" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
             android:id="@+id/maxBottomLinesValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:duplicateParentState="true" />
 
     </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamSlider
-        style="@style/JetStream.Slider"
         android:id="@+id/maxBottomLinesSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
