@@ -4,12 +4,15 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.databinding.AdapterSiteHomeBinding;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
 import com.fongmi.android.tv.setting.Setting;
 
@@ -20,10 +23,16 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     private final OnClickListener listener;
     private final List<Site> mItems;
+    private final boolean home;
     private int type;
 
     public SiteAdapter(OnClickListener listener) {
+        this(listener, false);
+    }
+
+    public SiteAdapter(OnClickListener listener, boolean home) {
         this.listener = listener;
+        this.home = home;
         this.mItems = new ArrayList<>();
         this.addAll();
     }
@@ -62,19 +71,25 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterSiteBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (home) {
+            AdapterSiteHomeBinding binding = AdapterSiteHomeBinding.inflate(inflater, parent, false);
+            return new ViewHolder(binding.getRoot(), binding.text, binding.check);
+        }
+        AdapterSiteBinding binding = AdapterSiteBinding.inflate(inflater, parent, false);
+        return new ViewHolder(binding.getRoot(), binding.text, binding.check);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Site item = mItems.get(position);
-        holder.binding.text.setText(item.getName());
-        holder.binding.check.setChecked(getChecked(item));
-        holder.binding.text.setSelected(item.isSelected());
-        holder.binding.check.setVisibility(type == 0 ? View.GONE : View.VISIBLE);
-        holder.binding.getRoot().setOnLongClickListener(v -> setLongListener(item));
-        holder.binding.getRoot().setOnClickListener(v -> setListener(item, position));
-        holder.binding.text.setGravity(Setting.getSiteMode() == 0 ? Gravity.CENTER : Gravity.START);
+        holder.text.setText(item.getName());
+        holder.check.setChecked(getChecked(item));
+        holder.text.setSelected(item.isSelected());
+        holder.check.setVisibility(type == 0 ? View.GONE : View.VISIBLE);
+        holder.itemView.setOnLongClickListener(v -> setLongListener(item));
+        holder.itemView.setOnClickListener(v -> setListener(item, position));
+        holder.text.setGravity(Setting.getSiteMode() == 0 ? Gravity.CENTER : Gravity.START);
     }
 
     private boolean getChecked(Site item) {
@@ -102,13 +117,15 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         notifyItemRangeChanged(0, getItemCount());
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterSiteBinding binding;
+        private final CompoundButton check;
+        private final TextView text;
 
-        ViewHolder(@NonNull AdapterSiteBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
+        ViewHolder(@NonNull View itemView, TextView text, CompoundButton check) {
+            super(itemView);
+            this.text = text;
+            this.check = check;
         }
     }
 }

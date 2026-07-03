@@ -98,10 +98,12 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void setRecyclerView() {
-        mBinding.recyclerPanel.setClipChildren(true);
-        mBinding.recyclerPanel.setClipToPadding(true);
-        mBinding.recycler.setClipChildren(true);
-        mBinding.recycler.setClipToPadding(true);
+        mBinding.recyclerPanel.setClipChildren(false);
+        mBinding.recyclerPanel.setClipToPadding(false);
+        mBinding.recyclerPanel.setClipToOutline(false);
+        mBinding.recycler.setClipChildren(false);
+        mBinding.recycler.setClipToPadding(false);
+        mBinding.recycler.setClipToOutline(false);
         mBinding.recycler.setPadding(0, 0, ResUtil.dp2px(16), 0);
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);

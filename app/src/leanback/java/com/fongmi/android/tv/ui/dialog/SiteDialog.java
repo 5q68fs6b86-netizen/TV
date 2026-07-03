@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -9,6 +10,7 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.databinding.DialogSiteHomeBinding;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
@@ -21,10 +23,18 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private static final int GRID_COUNT = 10;
 
     private RecyclerView.ItemDecoration decoration;
-    private DialogSiteBinding binding;
+    private ViewBinding binding;
+    private RecyclerView recycler;
     private SiteListener listener;
     private SiteAdapter adapter;
+    private ImageView mode;
+    private View search;
+    private View change;
+    private View select;
+    private View cancel;
+    private View actionView;
     private boolean action;
+    private boolean classic;
     private int type;
 
     public static SiteDialog create() {
@@ -33,6 +43,11 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     public SiteDialog search() {
         type = 1;
+        return this;
+    }
+
+    public SiteDialog classic() {
+        classic = true;
         return this;
     }
 
@@ -64,7 +79,31 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     @Override
     protected ViewBinding getBinding() {
-        return binding = DialogSiteBinding.inflate(getLayoutInflater());
+        return binding = classic ? bindClassic() : bindDefault();
+    }
+
+    private ViewBinding bindDefault() {
+        DialogSiteBinding binding = DialogSiteBinding.inflate(getLayoutInflater());
+        recycler = binding.recycler;
+        actionView = binding.action;
+        search = binding.search;
+        change = binding.change;
+        select = binding.select;
+        cancel = binding.cancel;
+        mode = binding.mode;
+        return binding;
+    }
+
+    private ViewBinding bindClassic() {
+        DialogSiteHomeBinding binding = DialogSiteHomeBinding.inflate(getLayoutInflater());
+        recycler = binding.recycler;
+        actionView = binding.action;
+        search = binding.search;
+        change = binding.change;
+        select = binding.select;
+        cancel = binding.cancel;
+        mode = binding.mode;
+        return binding;
     }
 
     @Override
@@ -74,8 +113,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     @Override
     protected void initView() {
-        adapter = new SiteAdapter(this);
-        if (action) binding.action.setVisibility(View.VISIBLE);
+        adapter = new SiteAdapter(this, classic);
+        if (action) actionView.setVisibility(View.VISIBLE);
         setType(type);
         setRecyclerView();
         setMode();
@@ -83,35 +122,35 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     @Override
     protected void initEvent() {
-        binding.mode.setOnClickListener(this::onMode);
-        binding.select.setOnClickListener(v -> adapter.selectAll());
-        binding.cancel.setOnClickListener(v -> adapter.cancelAll());
-        binding.search.setOnClickListener(v -> setType(v.isSelected() ? 0 : 1));
-        binding.change.setOnClickListener(v -> setType(v.isSelected() ? 0 : 2));
+        mode.setOnClickListener(this::onMode);
+        select.setOnClickListener(v -> adapter.selectAll());
+        cancel.setOnClickListener(v -> adapter.cancelAll());
+        search.setOnClickListener(v -> setType(v.isSelected() ? 0 : 1));
+        change.setOnClickListener(v -> setType(v.isSelected() ? 0 : 2));
     }
 
     private void setRecyclerView() {
-        binding.recycler.setAdapter(adapter);
-        binding.recycler.setHasFixedSize(true);
-        binding.recycler.setItemAnimator(null);
-        if (decoration != null) binding.recycler.removeItemDecoration(decoration);
-        binding.recycler.addItemDecoration(decoration = new SpaceItemDecoration(getCount(), 16));
-        binding.recycler.setLayoutManager(new GridLayoutManager(requireContext(), getCount()));
-        if (!binding.mode.hasFocus()) binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
+        recycler.setAdapter(adapter);
+        recycler.setHasFixedSize(true);
+        recycler.setItemAnimator(null);
+        if (decoration != null) recycler.removeItemDecoration(decoration);
+        recycler.addItemDecoration(decoration = new SpaceItemDecoration(getCount(), 16));
+        recycler.setLayoutManager(new GridLayoutManager(requireContext(), getCount()));
+        if (!mode.hasFocus()) recycler.post(() -> recycler.scrollToPosition(VodConfig.getHomeIndex()));
     }
 
     private void setType(int type) {
-        binding.search.setSelected(type == 1);
-        binding.change.setSelected(type == 2);
-        binding.select.setClickable(type > 0);
-        binding.cancel.setClickable(type > 0);
+        search.setSelected(type == 1);
+        change.setSelected(type == 2);
+        select.setClickable(type > 0);
+        cancel.setClickable(type > 0);
         adapter.setType(this.type = type);
     }
 
     private void setMode() {
         if (adapter.getItemCount() < GRID_COUNT) Setting.putSiteMode(0);
-        binding.mode.setEnabled(adapter.getItemCount() >= GRID_COUNT);
-        binding.mode.setImageResource(getIcon());
+        mode.setEnabled(adapter.getItemCount() >= GRID_COUNT);
+        mode.setImageResource(getIcon());
     }
 
     private void setWidth() {

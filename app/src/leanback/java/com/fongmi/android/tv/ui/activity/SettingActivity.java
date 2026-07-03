@@ -353,7 +353,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void onVodHome() {
-        SiteDialog.create().action().show(this);
+        SiteDialog.create().classic().action().show(this);
     }
 
     private void onLiveHome() {
