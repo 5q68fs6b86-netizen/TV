@@ -17,6 +17,7 @@ import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
 import com.fongmi.android.tv.ui.custom.JetStreamFeaturedIndicatorDotView;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -76,7 +77,10 @@ public class FeaturedVodPresenter extends Presenter {
         }
 
         private void setListeners() {
-            binding.getRoot().setOnFocusChangeListener((view, hasFocus) -> setActionVisible(hasFocus));
+            binding.getRoot().setOnFocusChangeListener((view, hasFocus) -> {
+                JetStreamAnimator.animateFocus(view, hasFocus, JetStreamAnimator.FOCUS_SCALE_LIST, 12);
+                setActionVisible(hasFocus);
+            });
             binding.getRoot().setOnKeyListener((view, keyCode, event) -> {
                 if (event.getAction() != KeyEvent.ACTION_DOWN || row == null || row.size() < 2) return false;
                 if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
@@ -219,6 +223,7 @@ public class FeaturedVodPresenter extends Presenter {
         private void unbind() {
             stop();
             binding.getRoot().setOnClickListener(null);
+            JetStreamAnimator.reset(binding.getRoot());
             Glide.with(binding.imageA).clear(binding.imageA);
             Glide.with(binding.imageB).clear(binding.imageB);
         }

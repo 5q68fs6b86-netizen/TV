@@ -33,6 +33,7 @@ class JetStreamLiveItemLayout @JvmOverloads constructor(
 
     init {
         applyJetStreamLiveItemSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -43,6 +44,7 @@ class JetStreamLiveLeftRightLayout @JvmOverloads constructor(
 
     init {
         applyJetStreamLiveItemSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 

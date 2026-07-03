@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
@@ -243,6 +244,7 @@ private fun android.view.View.applyJetStreamPlaybackWidgetSurface() {
     }
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamPlaybackTextDefaults(
     attrs: AttributeSet?,
     defStyleAttr: Int,

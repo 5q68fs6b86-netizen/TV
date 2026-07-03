@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -180,6 +181,7 @@ class JetStreamDialogButton @JvmOverloads constructor(
     init {
         applyJetStreamDialogButtonSurface()
         clipToOutline = true
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -205,6 +207,7 @@ class JetStreamFilterChip @JvmOverloads constructor(
         applyJetStreamFilterChipSurface()
         minimumHeight = maxOf(minimumHeight, jetStreamDpInt(40))
         clipToOutline = true
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -299,6 +302,7 @@ class JetStreamCheckBox @JvmOverloads constructor(
         if (!hasButtonTint) {
             buttonTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.jetstream_control_text))
         }
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -362,6 +366,7 @@ open class JetStreamSettingControlRowLayout @JvmOverloads constructor(
 
     init {
         applyJetStreamSettingControlRowSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -457,6 +462,7 @@ class JetStreamDialogListRecyclerView @JvmOverloads constructor(
     }
 }
 
+@SuppressLint("ResourceType")
 private fun TextView.applyJetStreamDialogInputSurface(
     attrs: AttributeSet?,
     defStyleAttr: Int,
@@ -477,6 +483,7 @@ private fun TextView.applyJetStreamDialogInputSurface(
     }
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamDialogTextDefaults(
     attrs: AttributeSet?,
     defStyleAttr: Int,

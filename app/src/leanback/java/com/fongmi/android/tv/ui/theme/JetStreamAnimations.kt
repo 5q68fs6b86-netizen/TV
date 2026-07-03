@@ -11,9 +11,11 @@ import androidx.compose.animation.core.tween
  */
 object JetStreamAnimations {
     // Duration constants
-    const val DurationShort = 150
-    const val DurationMedium = 300
+    const val DurationShort = 180
+    const val DurationMedium = 260
     const val DurationLong = 500
+    const val DurationPanel = 220
+    const val DurationExit = 160
 
     // Scale animations - 缩放动画
     val ScaleSpring: AnimationSpec<Float> = spring(
@@ -41,12 +43,12 @@ object JetStreamAnimations {
     )
 
     // Focus scale values - 聚焦缩放值
-    const val FocusScaleSmall = 1.02f
-    const val FocusScaleMedium = 1.05f
+    const val FocusScaleSmall = 1.03f
+    const val FocusScaleMedium = 1.06f
     const val FocusScaleLarge = 1.08f
 
     // Pressed scale values - 按下缩放值
-    const val PressedScale = 0.98f
+    const val PressedScale = 0.96f
 }
 
 /**

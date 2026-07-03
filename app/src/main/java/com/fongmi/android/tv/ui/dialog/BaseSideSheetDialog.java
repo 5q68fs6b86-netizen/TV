@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.sidesheet.SideSheetDialog;
 
@@ -31,6 +32,7 @@ public abstract class BaseSideSheetDialog extends AppCompatDialogFragment {
         Window window = dialog.getWindow();
         if (window == null) return dialog;
         if (Util.isFullscreen(getActivity())) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        if (Util.isLeanback()) window.setWindowAnimations(R.style.JetStreamSideSheetAnim);
         return dialog;
     }
 

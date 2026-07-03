@@ -57,6 +57,7 @@ import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.CustomLiveListView;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
@@ -442,13 +443,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void hideUI() {
         App.removeCallbacks(mR4);
         if (isGone(mBinding.recycler)) return;
-        mBinding.recycler.setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.recycler, -18, 0, View.GONE, JetStreamAnimator.PANEL_DURATION);
         setPosition();
     }
 
     private void showUI() {
         if (isVisible(mBinding.recycler) || mGroupAdapter.getItemCount() == 0) return;
-        mBinding.recycler.setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.recycler, -18, 0, JetStreamAnimator.PANEL_DURATION);
         setPosition();
         setUITimer();
         hideEpg();
@@ -546,14 +547,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void showProgress() {
-        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.progress.getRoot(), 0, 0, JetStreamAnimator.FOCUS_DURATION);
         App.post(mR2, 0);
         hideCenter();
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.progress.getRoot().setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.progress.getRoot(), 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
@@ -570,16 +571,16 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void showControl(View view) {
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        mBinding.widget.top.setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.control.getRoot(), 0, 18, JetStreamAnimator.PANEL_DURATION);
+        JetStreamAnimator.show(mBinding.widget.top, 0, -12, JetStreamAnimator.FOCUS_DURATION);
         App.post(view::requestFocus, 25);
         setR1Callback();
         hideInfo();
     }
 
     private void hideControl() {
-        mBinding.control.getRoot().setVisibility(View.GONE);
-        mBinding.widget.top.setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.control.getRoot(), 0, 18, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        JetStreamAnimator.hide(mBinding.widget.top, 0, -12, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR1);
     }
 
@@ -589,13 +590,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void showInfo() {
-        mBinding.widget.bottom.setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.widget.bottom, 0, 12, JetStreamAnimator.FOCUS_DURATION);
         setR3Callback();
         setInfo();
     }
 
     private void hideInfo() {
-        mBinding.widget.bottom.setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.widget.bottom, 0, 12, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR3);
     }
 

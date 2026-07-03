@@ -30,6 +30,7 @@ import com.fongmi.android.tv.service.DLNARendererService;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.dialog.PlayerEngineDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
@@ -224,14 +225,14 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void showProgress() {
-        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.progress.getRoot(), 0, 0, JetStreamAnimator.FOCUS_DURATION);
         App.post(mR2, 0);
         hideCenter();
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.progress.getRoot().setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.progress.getRoot(), 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
@@ -248,25 +249,25 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void showInfo() {
-        mBinding.widget.top.setVisibility(View.VISIBLE);
-        mBinding.widget.center.setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.widget.top, 0, -12, JetStreamAnimator.FOCUS_DURATION);
+        JetStreamAnimator.show(mBinding.widget.center, 0, 0, JetStreamAnimator.FOCUS_DURATION);
         mBinding.widget.duration.setText(player().getDurationTime());
         mBinding.widget.position.setText(player().getPositionTime(0));
     }
 
     private void hideInfo() {
-        mBinding.widget.top.setVisibility(View.GONE);
-        mBinding.widget.center.setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.widget.top, 0, -12, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        JetStreamAnimator.hide(mBinding.widget.center, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
     }
 
     private void showControl() {
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.control.getRoot(), 0, 18, JetStreamAnimator.PANEL_DURATION);
         mBinding.control.action.reset.requestFocus();
         setR1Callback();
     }
 
     private void hideControl() {
-        mBinding.control.getRoot().setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.control.getRoot(), 0, 18, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR1);
     }
 

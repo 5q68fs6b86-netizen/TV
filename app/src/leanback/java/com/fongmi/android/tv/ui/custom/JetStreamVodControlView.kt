@@ -3,9 +3,17 @@ package com.fongmi.android.tv.ui.custom
 import android.content.Context
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -207,15 +215,37 @@ class JetStreamVodControlView @JvmOverloads constructor(
         }
 
         JetStreamTheme {
-            if (!controlPanelVisible && !isInfoVisible()) return@JetStreamTheme
-            if (controlPanelVisible) {
-                JetStreamControlScrim(modifier = Modifier.fillMaxSize()) {
-                    InfoOverlay()
-                    ControlPanel(polledPlaying, positionMs, durationMs)
+            Box(Modifier.fillMaxSize()) {
+                AnimatedVisibility(
+                    visible = controlPanelVisible,
+                    enter = fadeIn(tween(JetStreamAnimations.DurationPanel)) + slideInVertically(
+                        animationSpec = tween(JetStreamAnimations.DurationPanel),
+                        initialOffsetY = { it / 5 }
+                    ),
+                    exit = fadeOut(tween(JetStreamAnimations.DurationExit)) + slideOutVertically(
+                        animationSpec = tween(JetStreamAnimations.DurationExit),
+                        targetOffsetY = { it / 6 }
+                    )
+                ) {
+                    JetStreamControlScrim(modifier = Modifier.fillMaxSize()) {
+                        InfoOverlay()
+                        ControlPanel(polledPlaying, positionMs, durationMs)
+                    }
                 }
-            } else {
-                JetStreamInfoScrim(modifier = Modifier.fillMaxSize()) {
-                    InfoOverlay()
+                AnimatedVisibility(
+                    visible = !controlPanelVisible && isInfoVisible(),
+                    enter = fadeIn(tween(JetStreamAnimations.DurationShort)) + scaleIn(
+                        animationSpec = tween(JetStreamAnimations.DurationShort),
+                        initialScale = 0.98f
+                    ),
+                    exit = fadeOut(tween(JetStreamAnimations.DurationExit)) + scaleOut(
+                        animationSpec = tween(JetStreamAnimations.DurationExit),
+                        targetScale = 0.98f
+                    )
+                ) {
+                    JetStreamInfoScrim(modifier = Modifier.fillMaxSize()) {
+                        InfoOverlay()
+                    }
                 }
             }
         }

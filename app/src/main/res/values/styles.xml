@@ -37,4 +37,26 @@
         <item name="keep_content_on_player_reset">true</item>
     </style>
 
+    <style name="JetStreamActivityAnim">
+        <item name="android:activityOpenEnterAnimation">@anim/jetstream_activity_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/jetstream_activity_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/jetstream_activity_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/jetstream_activity_close_exit</item>
+    </style>
+
+    <style name="JetStreamDialogAnim">
+        <item name="android:windowEnterAnimation">@anim/jetstream_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/jetstream_dialog_exit</item>
+    </style>
+
+    <style name="JetStreamBottomSheetAnim">
+        <item name="android:windowEnterAnimation">@anim/jetstream_bottom_sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/jetstream_bottom_sheet_exit</item>
+    </style>
+
+    <style name="JetStreamSideSheetAnim">
+        <item name="android:windowEnterAnimation">@anim/jetstream_side_sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/jetstream_side_sheet_exit</item>
+    </style>
+
 </resources>

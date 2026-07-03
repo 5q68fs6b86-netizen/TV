@@ -33,6 +33,7 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         if (window == null) return dialog;
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         if (Util.isFullscreen(getActivity())) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        if (Util.isLeanback()) window.setWindowAnimations(R.style.JetStreamBottomSheetAnim);
         return dialog;
     }
 

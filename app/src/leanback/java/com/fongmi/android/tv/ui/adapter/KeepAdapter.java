@@ -86,21 +86,6 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
         public ViewHolder(@NonNull AdapterVodBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
-            setFocusListener();
-        }
-
-        private void setFocusListener() {
-            itemView.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    v.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150).start();
-                    v.setTranslationZ(10f);
-                    v.setSelected(true);
-                } else {
-                    v.animate().scaleX(1f).scaleY(1f).setDuration(150).start();
-                    v.setTranslationZ(0f);
-                    v.setSelected(false);
-                }
-            });
         }
     }
 }

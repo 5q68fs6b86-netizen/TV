@@ -57,6 +57,7 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.custom.JetStreamChipRow;
 import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
 import com.fongmi.android.tv.ui.custom.JetStreamVodDetailView;
@@ -302,6 +303,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.video.setOnClickListener(view -> onVideo());
+        mBinding.video.setOnFocusChangeListener((view, hasFocus) -> {
+            if (isFullscreen()) JetStreamAnimator.reset(view);
+            else JetStreamAnimator.animateFocus(view, hasFocus, JetStreamAnimator.FOCUS_SCALE_VIDEO, 10);
+        });
         mBinding.detail.setListener(new JetStreamVodDetailView.Listener() {
             @Override
             public void onSummary() {
@@ -902,6 +907,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void enterFullscreen() {
         mFocus1 = getCurrentFocus();
         mBinding.video.requestFocus();
+        JetStreamAnimator.reset(mBinding.video);
         mBinding.video.setForeground(null);
         mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
         mBinding.video.setClipToOutline(false);
@@ -1122,14 +1128,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showProgress() {
-        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+        JetStreamAnimator.show(mBinding.progress.getRoot(), 0, 0, JetStreamAnimator.FOCUS_DURATION);
         App.post(mR3, 0);
         hideCenter();
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.progress.getRoot().setVisibility(View.GONE);
+        JetStreamAnimator.hide(mBinding.progress.getRoot(), 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
         App.removeCallbacks(mR3);
         Traffic.reset();
     }
@@ -1159,9 +1165,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         hideInfo();
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.control.jetstream.setControlsVisible(true);
         syncJetStreamControl();
+        setJetStreamOverlayVisible(true);
         View focus = getJetStreamFocus(view);
         focus.requestFocus();
         setR1Callback();
@@ -1184,7 +1190,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void updateJetStreamVisibility() {
-        mBinding.control.getRoot().setVisibility(isJetStreamControlVisible() || isJetStreamInfoVisible() ? View.VISIBLE : View.GONE);
+        setJetStreamOverlayVisible(isJetStreamControlVisible() || isJetStreamInfoVisible());
+    }
+
+    private void setJetStreamOverlayVisible(boolean visible) {
+        View root = mBinding.control.getRoot();
+        if (visible) {
+            root.animate().cancel();
+            if (root.getVisibility() != View.VISIBLE || root.getAlpha() < 1f || root.getTranslationX() != 0f || root.getTranslationY() != 0f) {
+                JetStreamAnimator.show(root, 0, 0, JetStreamAnimator.FOCUS_DURATION);
+            } else {
+                root.setVisibility(View.VISIBLE);
+            }
+        } else {
+            JetStreamAnimator.hide(root, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        }
     }
 
     private boolean isJetStreamControlVisible() {

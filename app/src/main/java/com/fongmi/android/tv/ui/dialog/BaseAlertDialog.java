@@ -9,7 +9,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public abstract class BaseAlertDialog extends DialogFragment {
@@ -22,9 +24,16 @@ public abstract class BaseAlertDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = getBuilder().create();
+        if (dialog.getWindow() != null && Util.isLeanback()) dialog.getWindow().setWindowAnimations(R.style.JetStreamDialogAnim);
         initView();
         initEvent();
         return dialog;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getDialog() != null && getDialog().getWindow() != null && Util.isLeanback()) getDialog().getWindow().setWindowAnimations(R.style.JetStreamDialogAnim);
     }
 
     protected MaterialAlertDialogBuilder builder() {

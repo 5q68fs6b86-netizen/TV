@@ -123,6 +123,7 @@
     <string name="setting_vod">点播</string>
     <string name="setting_live">直播</string>
     <string name="setting_wall">壁纸</string>
+    <string name="setting_site">站点</string>
     <string name="setting_player">播放设置</string>
     <string name="setting_danmaku">弹幕设置</string>
     <string name="setting_detail_filter">详情文字过滤</string>

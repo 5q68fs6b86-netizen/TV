@@ -275,7 +275,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
-            if (focused) 1.04f else 1.0f,
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
             animationSpec = JetStreamAnimations.ScaleSpring,
             label = "sectionScale"
         )
@@ -329,7 +329,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
-            if (focused) 1.018f else 1.0f,
+            if (focused) JetStreamAnimations.FocusScaleSmall else 1.0f,
             animationSpec = JetStreamAnimations.ScaleSpring,
             label = "rowScale"
         )
@@ -419,7 +419,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
-            if (focused) 1.06f else 1.0f,
+            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
             animationSpec = JetStreamAnimations.ScaleSpring,
             label = "chipScale"
         )

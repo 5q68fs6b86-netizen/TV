@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -213,6 +214,7 @@ class JetStreamListItemLayout @JvmOverloads constructor(
         foreground = jetStreamFocusForeground(cornerRadiusDp = 18, strokeWidthDp = 3)
         elevation = jetStreamDp(4)
         clipToOutline = true
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -329,6 +331,7 @@ class JetStreamFeaturedVodLayout @JvmOverloads constructor(
 
     init {
         foreground = jetStreamFocusForeground(cornerRadiusDp = 28, strokeWidthDp = 3)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 12)
     }
 }
 
@@ -386,6 +389,7 @@ class JetStreamVodCardRootLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 12)
     }
 }
 
@@ -494,6 +498,7 @@ class JetStreamVodOvalRootLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 12)
     }
 }
 
@@ -516,6 +521,7 @@ class JetStreamMediaItemTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamMediaItemTextSurface(attrs, defStyleAttr)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -528,6 +534,7 @@ class JetStreamMediaItemLayout @JvmOverloads constructor(
     init {
         background = jetStreamMediaItemBackground()
         setPadding(jetStreamDpInt(18), jetStreamDpInt(9), jetStreamDpInt(18), jetStreamDpInt(9))
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -539,6 +546,7 @@ class JetStreamRoundItemTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamRoundItemSurface(attrs, defStyleAttr)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -549,6 +557,7 @@ class JetStreamRoundTypeView @JvmOverloads constructor(
 
     init {
         applyJetStreamRoundItemSurface(attrs, 0)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -747,6 +756,7 @@ class JetStreamChipTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamChipTextSurface(cornerRadiusDp = 18, horizontalPaddingDp = 12, minHeightDp = 36, attrs = attrs, defStyleAttr = defStyleAttr)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -758,6 +768,7 @@ class JetStreamChipRoundTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamChipTextSurface(cornerRadiusDp = 28, horizontalPaddingDp = 14, minHeightDp = 40, attrs = attrs, defStyleAttr = defStyleAttr)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -967,6 +978,7 @@ class JetStreamControlTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamControlSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -978,6 +990,7 @@ class JetStreamButtonTextView @JvmOverloads constructor(
 
     init {
         applyJetStreamButtonSurface(attrs, defStyleAttr)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -990,6 +1003,7 @@ class JetStreamPrimaryButtonTextView @JvmOverloads constructor(
     init {
         applyJetStreamButtonSurface(attrs, defStyleAttr)
         setTypeface(typeface, Typeface.BOLD)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -1000,6 +1014,7 @@ class JetStreamControlUpDownView @JvmOverloads constructor(
 
     init {
         applyJetStreamControlSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -1011,6 +1026,7 @@ class JetStreamNumericControlUpDownView @JvmOverloads constructor(
     init {
         fontFeatureSettings = "tnum"
         applyJetStreamControlSurface()
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
 
@@ -1051,6 +1067,7 @@ private fun MaterialTextView.applyJetStreamRoundItemSurface(attrs: AttributeSet?
     if (hasNoPadding()) setPadding(jetStreamDpInt(14), jetStreamDpInt(8), jetStreamDpInt(14), jetStreamDpInt(8))
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamBodyText(
     attrs: AttributeSet?,
     defStyleAttr: Int,
@@ -1075,6 +1092,7 @@ private fun MaterialTextView.applyJetStreamBodyText(
     includeFontPadding = false
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamLabelText(
     attrs: AttributeSet?,
     defStyleAttr: Int,
@@ -1095,6 +1113,7 @@ private fun MaterialTextView.applyJetStreamLabelText(
     includeFontPadding = false
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamVodTitleText(attrs: AttributeSet?, defStyleAttr: Int) {
     val typedArray = context.obtainStyledAttributes(attrs, intArrayOf(android.R.attr.textColor, android.R.attr.textSize, android.R.attr.textAppearance, android.R.attr.textStyle), defStyleAttr, 0)
     val hasTextColor = typedArray.hasValue(0)
@@ -1145,6 +1164,7 @@ private fun MaterialTextView.applyJetStreamButtonSurface(attrs: AttributeSet?, d
     if (hasNoPadding()) setPadding(jetStreamDpInt(16), jetStreamDpInt(9), jetStreamDpInt(16), jetStreamDpInt(9))
 }
 
+@SuppressLint("ResourceType")
 private fun MaterialTextView.applyJetStreamControlTextDefaults(attrs: AttributeSet?, defStyleAttr: Int, defaultTextSizeSp: Float = 14f) {
     val typedArray = context.obtainStyledAttributes(attrs, intArrayOf(android.R.attr.textColor, android.R.attr.textSize, android.R.attr.textAppearance), defStyleAttr, 0)
     val hasTextColor = typedArray.hasValue(0)

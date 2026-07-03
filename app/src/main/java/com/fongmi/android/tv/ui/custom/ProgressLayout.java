@@ -9,6 +9,7 @@ import android.widget.RelativeLayout;
 
 import com.fongmi.android.tv.databinding.ViewEmptyBinding;
 import com.fongmi.android.tv.databinding.ViewProgressBinding;
+import com.fongmi.android.tv.utils.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,18 +102,18 @@ public class ProgressLayout extends RelativeLayout {
         mState = state;
         switch (state) {
             case CONTENT:
-                mEmptyView.setVisibility(GONE);
-                mProgressView.setVisibility(GONE);
+                hideStateView(mEmptyView);
+                hideStateView(mProgressView);
                 setContentVisibility(true);
                 break;
             case PROGRESS:
-                mEmptyView.setVisibility(GONE);
-                mProgressView.setVisibility(VISIBLE);
+                hideStateView(mEmptyView);
+                showStateView(mProgressView);
                 setContentVisibility(false);
                 break;
             case EMPTY:
-                mEmptyView.setVisibility(VISIBLE);
-                mProgressView.setVisibility(GONE);
+                showStateView(mEmptyView);
+                hideStateView(mProgressView);
                 setContentVisibility(false);
                 break;
         }
@@ -126,12 +127,55 @@ public class ProgressLayout extends RelativeLayout {
     }
 
     private void showView(View view) {
+        view.animate().cancel();
+        if (!Util.isLeanback()) {
+            view.setAlpha(0f);
+            view.setVisibility(VISIBLE);
+            view.animate().alpha(1f).setDuration(100);
+            return;
+        }
         view.setAlpha(0f);
+        view.setTranslationY(dp(10));
         view.setVisibility(VISIBLE);
-        view.animate().alpha(1f).setDuration(100);
+        view.animate().alpha(1f).translationY(0f).setDuration(180);
     }
 
     private void hideView(View view) {
-        view.setVisibility(INVISIBLE);
+        view.animate().cancel();
+        if (!Util.isLeanback()) {
+            view.setVisibility(INVISIBLE);
+            return;
+        }
+        view.animate().alpha(0f).translationY(dp(8)).setDuration(140).withEndAction(() -> {
+            if (mState != State.CONTENT) view.setVisibility(INVISIBLE);
+            view.setAlpha(1f);
+            view.setTranslationY(0f);
+        });
+    }
+
+    private void showStateView(View view) {
+        view.animate().cancel();
+        if (!Util.isLeanback()) {
+            view.setVisibility(VISIBLE);
+            return;
+        }
+        view.setAlpha(0f);
+        view.setScaleX(0.96f);
+        view.setScaleY(0.96f);
+        view.setVisibility(VISIBLE);
+        view.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180);
+    }
+
+    private void hideStateView(View view) {
+        view.animate().cancel();
+        view.setVisibility(GONE);
+        view.setAlpha(1f);
+        view.setScaleX(1f);
+        view.setScaleY(1f);
+        view.setTranslationY(0f);
+    }
+
+    private float dp(int value) {
+        return value * getResources().getDisplayMetrics().density;
     }
 }
