@@ -46,6 +46,9 @@ import java.util.List;
 
 public class TypeFragment extends BaseFragment implements CustomScroller.Callback, VodPresenter.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
+    private static final int PAGE_HORIZONTAL_PADDING = 128;
+    private static final int ROW_HORIZONTAL_SPACING = 16;
+
     private HashMap<String, String> mExtends;
     private FragmentTypeBinding mBinding;
     private ArrayObjectAdapter mAdapter;
@@ -201,13 +204,20 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void addGrid(List<Vod> items, Style style) {
         if (checkLastSize(items, style)) return;
         List<ListRow> rows = new ArrayList<>();
-        VodPresenter presenter = new VodPresenter(this, style);
+        VodPresenter presenter = new VodPresenter(this, style, getPageSpec(style));
         for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
             mLast = new ArrayObjectAdapter(presenter);
             mLast.addAll(0, part);
             rows.add(new ListRow(mLast));
         }
         mAdapter.addAll(mAdapter.size(), rows);
+    }
+
+    private int[] getPageSpec(Style style) {
+        int column = Product.getColumn(style);
+        int space = ResUtil.dp2px(PAGE_HORIZONTAL_PADDING) + ResUtil.dp2px(ROW_HORIZONTAL_SPACING * (column - 1));
+        if (style.isOval()) space += ResUtil.dp2px(column * 16);
+        return Product.getSpec(space, column, style);
     }
 
     private ListRow getRow(Filter filter) {

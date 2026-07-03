@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.player.mpv;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -89,6 +90,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private long durationMs;
     private long bufferedPositionMs;
     private long pendingStartPositionMs;
+    private long pendingSeekAfterLoadMs;
     private long audioOffsetMs;
     private long textOffsetMs;
     private float volume;
@@ -111,6 +113,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.durationMs = C.TIME_UNSET;
         this.bufferedPositionMs = C.TIME_UNSET;
         this.pendingStartPositionMs = C.TIME_UNSET;
+        this.pendingSeekAfterLoadMs = C.TIME_UNSET;
         this.volume = 1f;
         initialize();
     }
@@ -184,6 +187,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         command("stop");
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
+        pendingSeekAfterLoadMs = C.TIME_UNSET;
         loading = false;
         playbackState = Player.STATE_IDLE;
         playerError = null;
@@ -383,6 +387,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MPVLib.INSTANCE.setOptionString("tls-verify", "yes");
         MPVLib.INSTANCE.setOptionString("tls-ca-file", new File(context.getFilesDir(), "cacert.pem").getAbsolutePath());
         MPVLib.INSTANCE.setOptionString("input-default-bindings", "yes");
+        MPVLib.INSTANCE.setOptionString("demuxer-lavf-o", "http_persistent=0");
         MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.init();
@@ -445,6 +450,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.trackIdsByGroupId.clear();
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
+        this.pendingSeekAfterLoadMs = C.TIME_UNSET;
         this.playWhenReady = true;
         this.loading = true;
         this.playerError = null;
@@ -473,6 +479,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.trackIdsByGroupId.clear();
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
+        this.pendingSeekAfterLoadMs = C.TIME_UNSET;
         this.playWhenReady = true;
         this.loading = true;
         this.playerError = null;
@@ -492,6 +499,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         trackIdsByGroupId.clear();
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
+        pendingSeekAfterLoadMs = C.TIME_UNSET;
         loading = false;
         playerError = null;
         playbackState = Player.STATE_IDLE;
@@ -518,8 +526,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MpvLogCollector.log("MpvPlayer", "开始加载URL: " + url);
         MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
 
-        if (startPositionMs > 0) command("loadfile", url, "replace", "start=" + seconds(startPositionMs));
-        else command("loadfile", url, "replace");
+        if (startPositionMs > 0 && isHlsUrl(url)) {
+            pendingSeekAfterLoadMs = startPositionMs;
+            command("loadfile", url, "replace");
+        } else if (startPositionMs > 0) {
+            pendingSeekAfterLoadMs = C.TIME_UNSET;
+            command("loadfile", url, "replace", "start=" + seconds(startPositionMs));
+        } else {
+            command("loadfile", url, "replace");
+        }
         command("set", "pause", playWhenReady ? "no" : "yes");
     }
 
@@ -535,18 +550,21 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
                 loading = false;
                 playbackState = Player.STATE_READY;
                 MpvLogCollector.log("MpvPlayer", "文件加载成功");
+                seekAfterLoadIfNeeded();
                 readRuntimeState();
                 addInitialSubtitles();
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_VIDEO_RECONFIG -> {
                 MpvLogCollector.log("MpvPlayer", "视频重新配置");
+                seekAfterLoadIfNeeded();
                 readVideoSize();
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
                 loading = false;
                 if (mediaItem != null) playbackState = Player.STATE_READY;
+                seekAfterLoadIfNeeded();
                 readRuntimeState();
                 invalidateState();
             }
@@ -609,6 +627,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         invalidateState();
     }
 
+    private void seekAfterLoadIfNeeded() {
+        if (pendingSeekAfterLoadMs == C.TIME_UNSET) return;
+        long seekMs = Math.max(0, pendingSeekAfterLoadMs);
+        pendingSeekAfterLoadMs = C.TIME_UNSET;
+        positionMs = seekMs;
+        MpvLogCollector.log("MpvPlayer", "HLS加载后定位: " + seekMs + "ms");
+        command("set", "time-pos", seconds(seekMs));
+    }
+
     private void readRuntimeState() {
         readPosition();
         readDuration();
@@ -636,11 +663,19 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     }
 
     private void readVideoSize() {
-        int width = getInt("dwidth", getInt("width", getInt("video-params/w", 0)));
-        int height = getInt("dheight", getInt("height", getInt("video-params/h", 0)));
+        int codedWidth = getInt("width", 0);
+        int codedHeight = getInt("height", 0);
+        if (codedWidth <= 0 || codedHeight <= 0) {
+            codedWidth = getInt("video-params/w", 0);
+            codedHeight = getInt("video-params/h", 0);
+        }
+        int displayWidth = getInt("dwidth", 0);
+        int displayHeight = getInt("dheight", 0);
+        int width = codedWidth > 0 ? codedWidth : displayWidth;
+        int height = codedHeight > 0 ? codedHeight : displayHeight;
         if (width > 0 && height > 0) {
             videoSize = new VideoSize(width, height);
-            MpvLogCollector.log("MpvPlayer", "视频尺寸: " + width + "x" + height);
+            MpvLogCollector.log("MpvPlayer", "视频尺寸: " + width + "x" + height + ", 显示尺寸: " + displayWidth + "x" + displayHeight);
         } else {
             MpvLogCollector.log("MpvPlayer", "无视频尺寸信息 (可能是纯音频)");
         }
@@ -837,7 +872,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         surfaceCallback = new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                attachSurface(holder.getSurface(), C.LENGTH_UNSET, C.LENGTH_UNSET, false);
+                attachHolderSurface(holder);
             }
 
             @Override
@@ -851,8 +886,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
             }
         };
         holder.addCallback(surfaceCallback);
+        attachHolderSurface(holder);
+    }
+
+    private void attachHolderSurface(SurfaceHolder holder) {
         Surface surface = holder.getSurface();
-        if (surface != null && surface.isValid()) attachSurface(surface, C.LENGTH_UNSET, C.LENGTH_UNSET, false);
+        if (surface == null || !surface.isValid()) return;
+        Rect frame = holder.getSurfaceFrame();
+        attachSurface(surface, frame.width(), frame.height(), false);
     }
 
     private void attachTexture(TextureView view) {
@@ -884,6 +925,11 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
 
     private void attachSurface(Surface surface, int width, int height, boolean ownsSurface) {
         if (surface == null || !surface.isValid()) return;
+        if (surface == attachedSurface) {
+            updateSurfaceSize(width, height);
+            loadPendingUrl();
+            return;
+        }
         detachSurface(true);
         attachedSurface = surface;
         this.ownsSurface = ownsSurface;
@@ -892,18 +938,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MpvLogCollector.log("MpvPlayer", "Surface有效: " + surface.isValid());
         MpvLogCollector.log("MpvPlayer", "尺寸: " + width + "x" + height);
 
-        // Attach surface to MPV first
         MPVLib.INSTANCE.attachSurface(surface);
-
-        // Update surface size before setting force-window and vo
-        // This ensures MPV knows the surface dimensions before rendering
-        updateSurfaceSize(width, height);
-
-        // Set force-window and vo after surface is properly configured
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
-        MPVLib.INSTANCE.setPropertyString("vo", getVo());
-
-        // Load pending URL after surface is fully configured
+        updateSurfaceSize(width, height);
+        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", getVo());
         loadPendingUrl();
     }
 
@@ -925,12 +963,16 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     }
 
     private void updateSurfaceSize(int width, int height) {
+        if ((width <= 0 || height <= 0) && surfaceSize.getWidth() > 0 && surfaceSize.getHeight() > 0) {
+            width = surfaceSize.getWidth();
+            height = surfaceSize.getHeight();
+        }
         if (width > 0 && height > 0) {
+            boolean changed = surfaceSize.getWidth() != width || surfaceSize.getHeight() != height;
             surfaceSize = new Size(width, height);
-            // Only set surface size if surface is actually attached
             if (attachedSurface != null && attachedSurface.isValid()) {
                 MPVLib.INSTANCE.setPropertyString("android-surface-size", width + "x" + height);
-                MpvLogCollector.log("MpvPlayer", "Surface尺寸更新: " + width + "x" + height);
+                if (changed) MpvLogCollector.log("MpvPlayer", "Surface尺寸更新: " + width + "x" + height);
             }
         }
         invalidateOnApplicationThread();
@@ -1076,6 +1118,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    private static boolean isHlsUrl(String url) {
+        return !TextUtils.isEmpty(url) && url.toLowerCase(Locale.US).contains(".m3u8");
     }
 
     private void runOnApplicationThread(Runnable runnable) {

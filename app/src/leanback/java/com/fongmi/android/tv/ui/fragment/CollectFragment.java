@@ -17,6 +17,7 @@ import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
@@ -34,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CollectFragment extends BaseFragment implements CustomScroller.Callback, VodPresenter.OnClickListener {
+
+    private static final int PAGE_HORIZONTAL_PADDING = 128;
+    private static final int ROW_HORIZONTAL_SPACING = 16;
 
     private FragmentTypeBinding mBinding;
     private ArrayObjectAdapter mAdapter;
@@ -106,13 +110,20 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     public void addVideo(List<Vod> items) {
         if (checkLastSize(items) || getActivity() == null || getActivity().isFinishing()) return;
         List<ListRow> rows = new ArrayList<>();
-        VodPresenter presenter = new VodPresenter(this);
+        VodPresenter presenter = new VodPresenter(this, Style.rect(), getPageSpec(Style.rect()));
         for (List<Vod> part : Lists.partition(items, Product.getColumn())) {
             mLast = new ArrayObjectAdapter(presenter);
             mLast.addAll(0, part);
             rows.add(new ListRow(mLast));
         }
         mAdapter.addAll(mAdapter.size(), rows);
+    }
+
+    private int[] getPageSpec(Style style) {
+        int column = Product.getColumn(style);
+        int space = ResUtil.dp2px(PAGE_HORIZONTAL_PADDING) + ResUtil.dp2px(ROW_HORIZONTAL_SPACING * (column - 1));
+        if (style.isOval()) space += ResUtil.dp2px(column * 16);
+        return Product.getSpec(space, column, style);
     }
 
     @Override
