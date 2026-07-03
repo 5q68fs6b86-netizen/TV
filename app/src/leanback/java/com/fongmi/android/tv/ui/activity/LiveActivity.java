@@ -104,7 +104,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private int count;
 
     public static void start(Context context) {
-        context.startActivity(new Intent(context, LiveActivity.class).putExtra("empty", LiveConfig.isEmpty()));
+        Intent intent = new Intent(context, LiveActivity.class).putExtra("empty", LiveConfig.isEmpty());
+        if (!(context instanceof android.app.Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
     }
 
     private boolean isEmpty() {
@@ -366,6 +368,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void checkPlay() {
+        if (!isPlaybackReady()) return;
         if (player().isPlaying()) onPaused();
         else onPlay();
     }
@@ -928,15 +931,18 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void seek(long time) {
+        if (!isPlaybackReady()) return;
         mKeyDown.reset();
         seekTo(time);
     }
 
     private void onPaused() {
+        if (!isPlaybackReady()) return;
         controller().pause();
     }
 
     private void onPlay() {
+        if (!isPlaybackReady()) return;
         controller().play();
     }
 
@@ -948,7 +954,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
         if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
-        if (mKeyDown.hasEvent(event) && service() != null) mKeyDown.onKeyDown(event);
+        if (mKeyDown.hasEvent(event) && isPlaybackReady()) mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
 

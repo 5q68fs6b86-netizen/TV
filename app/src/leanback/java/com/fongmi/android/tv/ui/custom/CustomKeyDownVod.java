@@ -62,8 +62,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isEnterKey(event)) {
             listener.onKeyCenter();
         } else if (event.isLongPress() && KeyUtil.isUpKey(event)) {
-            listener.onSpeedUp();
-            changeSpeed = true;
+            changeSpeed = listener.onSpeedUp();
         }
     }
 
@@ -97,7 +96,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
 
         void onSeekEnd(long time);
 
-        void onSpeedUp();
+        boolean onSpeedUp();
 
         void onSpeedEnd();
 

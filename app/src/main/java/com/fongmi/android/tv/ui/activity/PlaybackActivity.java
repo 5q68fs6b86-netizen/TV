@@ -74,6 +74,10 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         return mService;
     }
 
+    protected boolean isPlaybackReady() {
+        return mService != null && mController != null;
+    }
+
     protected PlayerManager player() {
         return mService.player();
     }
@@ -217,8 +221,10 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     protected void seekTo(long deltaMs) {
-        mController.seekTo(resolveSeekPositionMs(deltaMs));
-        mController.play();
+        MediaController controller = mController;
+        if (mService == null || controller == null) return;
+        controller.seekTo(resolveSeekPositionMs(deltaMs));
+        controller.play();
     }
 
     private long resolveSeekPositionMs(long deltaMs) {

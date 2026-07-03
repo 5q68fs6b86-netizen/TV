@@ -301,10 +301,12 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void onPaused() {
+        if (!isPlaybackReady()) return;
         controller().pause();
     }
 
     private void onPlay() {
+        if (!isPlaybackReady()) return;
         if (isEnded()) controller().seekTo(0);
         if (!player().isEmpty() && isIdle()) controller().prepare();
         controller().play();
@@ -420,7 +422,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) onToggle();
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
-        if (isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
+        if (isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && isPlaybackReady()) return mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
 
@@ -436,23 +438,25 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     @Override
     public void onSeekEnd(long time) {
-        if (player().isEmpty()) return;
+        if (!isPlaybackReady() || player().isEmpty()) return;
         mKeyDown.reset();
         seekTo(time);
     }
 
     @Override
-    public void onSpeedUp() {
-        if (!player().isPlaying()) return;
+    public boolean onSpeedUp() {
+        if (!isPlaybackReady() || !player().isPlaying()) return false;
         mBinding.widget.speed.setVisibility(View.VISIBLE);
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.control.action.speed.setText(player().setSpeed(PlayerSetting.getSpeed()));
+        return true;
     }
 
     @Override
     public void onSpeedEnd() {
         mBinding.widget.speed.clearAnimation();
         mBinding.widget.speed.setVisibility(View.GONE);
+        if (!isPlaybackReady()) return;
         mBinding.control.action.speed.setText(player().setSpeed(1.0f));
     }
 
@@ -468,6 +472,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     @Override
     public void onKeyCenter() {
+        if (!isPlaybackReady()) return;
         if (player().isPlaying()) onPaused();
         else onPlay();
         hideControl();

@@ -1626,21 +1626,25 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void onPaused() {
+        if (!isPlaybackReady()) return;
         controller().pause();
     }
 
     private void onPlay() {
+        if (!isPlaybackReady()) return;
         if (mHistory != null && isEnded()) controller().seekTo(mHistory.getOpening());
         if (!player().isEmpty() && isIdle()) controller().prepare();
         controller().play();
     }
 
     private boolean onSeekBack() {
+        if (!isPlaybackReady()) return false;
         controller().seekBack();
         return true;
     }
 
     private boolean onSeekForward() {
+        if (!isPlaybackReady()) return false;
         controller().seekForward();
         return true;
     }
@@ -1674,7 +1678,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
         if (isJetStreamControlVisible()) setR1Callback();
         if (isJetStreamControlVisible()) mFocus2 = getCurrentFocus();
-        if (isFullscreen() && !isJetStreamControlVisible() && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
+        if (isFullscreen() && !isJetStreamControlVisible() && mKeyDown.hasEvent(event) && isPlaybackReady()) return mKeyDown.onKeyDown(event);
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
@@ -1693,18 +1697,20 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     @Override
-    public void onSpeedUp() {
-        if (!player().isPlaying()) return;
+    public boolean onSpeedUp() {
+        if (!isPlaybackReady() || mHistory == null || !player().isPlaying()) return false;
         mBinding.widget.speed.setVisibility(View.VISIBLE);
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         PlaybackAction.setSpeed(player(), mBinding.control.action.speed, PlayerSetting.getSpeed());
         syncJetStreamControl();
+        return true;
     }
 
     @Override
     public void onSpeedEnd() {
         mBinding.widget.speed.clearAnimation();
         mBinding.widget.speed.setVisibility(View.GONE);
+        if (!isPlaybackReady() || mHistory == null) return;
         PlaybackAction.setSpeed(player(), mBinding.control.action.speed, mHistory.getSpeed());
         syncJetStreamControl();
     }
@@ -1731,6 +1737,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyCenter() {
+        if (!isPlaybackReady()) return;
         if (player().isPlaying()) onPaused();
         else if (player().isEmpty()) onRefresh();
         else onPlay();
@@ -1750,7 +1757,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == 1001) PlayerHelper.onExternalResult(data, service()::dispatchNext, controller()::seekTo);
+        if (resultCode == RESULT_OK && requestCode == 1001 && isPlaybackReady()) PlayerHelper.onExternalResult(data, service()::dispatchNext, controller()::seekTo);
     }
 
     @Override

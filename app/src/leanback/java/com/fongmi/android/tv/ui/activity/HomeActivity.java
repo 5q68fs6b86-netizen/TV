@@ -53,6 +53,7 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.custom.JetStreamHomeNavView;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
@@ -252,16 +253,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setToolbarVisible(boolean visible) {
         if (mToolbarVisible == visible && mBinding.toolbar.getVisibility() == View.VISIBLE) return;
         mToolbarVisible = visible;
-        mBinding.toolbar.animate().cancel();
-        if (visible) mBinding.toolbar.setVisibility(View.VISIBLE);
-        mBinding.toolbar.animate()
-                .alpha(visible ? 1f : 0f)
-                .translationY(visible ? 0 : -ResUtil.dp2px(16))
-                .setDuration(180)
-                .withEndAction(() -> {
-                    if (!mToolbarVisible) mBinding.toolbar.setVisibility(View.GONE);
-                })
-                .start();
+        if (visible) JetStreamAnimator.show(mBinding.toolbar, 0, -16, JetStreamAnimator.FOCUS_DURATION);
+        else JetStreamAnimator.hide(mBinding.toolbar, 0, -16, View.GONE, JetStreamAnimator.FOCUS_DURATION);
     }
 
     private void getVideo() {
@@ -516,7 +509,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) showDialog();
-        if (KeyUtil.isActionDown(event) & KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) return mBinding.recycler.getChildAt(0).requestFocus();
+        if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) {
+            View child = mBinding.recycler.getChildAt(0);
+            if (child != null) return child.requestFocus();
+        }
         return super.dispatchKeyEvent(event);
     }
 
