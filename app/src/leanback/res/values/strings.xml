@@ -17,10 +17,6 @@
     <string name="setting_section_preload">Preload</string>
     <string name="setting_section_danmaku">Danmaku</string>
     <string name="setting_section_app">Application</string>
-    <string name="setting_page_playback_desc">Engine, rendering, speed and playback behavior</string>
-    <string name="setting_page_decode_desc">Hardware tunnel and audio/video decode preferences</string>
-    <string name="setting_page_preload_desc">Cache preloading strategy, workers and buffer limits</string>
-    <string name="setting_page_danmaku_desc">Danmaku source, loading and matching behavior</string>
     <string name="setting_page_file_title">File Picker</string>
     <string name="setting_page_file_desc">Browse device storage and choose a local media or config file</string>
     <string name="setting_page_keep_desc">Saved content, history-like collections and quick return targets</string>

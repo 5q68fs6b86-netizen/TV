@@ -1,33 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_sheet_surface"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
+        android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="16dp">
+        android:layout_height="64dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="14dp"
+        app:jetStreamTitle="@string/dialog_select_edition" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/dialog_select_edition"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="16sp" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogListRecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,10 +24,11 @@
         android:clipToPadding="false"
         android:overScrollMode="never"
         android:paddingStart="24dp"
+        android:paddingTop="16dp"
         android:paddingEnd="24dp"
         android:paddingBottom="24dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:maxHeight="204dp"
         tools:listitem="@layout/adapter_edition" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

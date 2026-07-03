@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_sheet_surface"
     android:gravity="center"
     android:orientation="horizontal"
-    android:padding="24dp">
+    android:paddingStart="24dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="28dp">
 
-    <com.google.android.material.textfield.TextInputEditText
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogTextInputEditText
         android:id="@+id/pass"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_weight="1"
-        android:background="@drawable/selector_dialog_input"
         android:gravity="center_vertical"
         android:hint="@string/live_pass"
         android:imeOptions="actionDone"
@@ -25,22 +26,19 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textColor="@color/jetstream_list_title_text"
-        android:textColorHint="@color/jetstream_list_supporting_text"
         android:textCursorDrawable="@drawable/shape_cursor"
         android:textSize="16sp" />
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
         android:id="@+id/positive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_button"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
+        android:minWidth="72dp"
         android:singleLine="true"
         android:text="@string/dialog_positive"
-        android:textColor="@color/jetstream_control_text"
-        android:textSize="14sp" />
+        android:textStyle="bold" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

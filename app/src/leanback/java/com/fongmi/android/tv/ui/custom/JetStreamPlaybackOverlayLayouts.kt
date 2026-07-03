@@ -1,0 +1,217 @@
+package com.fongmi.android.tv.ui.custom
+
+import android.content.Context
+import android.graphics.drawable.GradientDrawable
+import android.util.AttributeSet
+import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
+import android.widget.ImageView.ScaleType
+import android.widget.RelativeLayout
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.content.ContextCompat
+import com.fongmi.android.tv.R
+import com.google.android.material.textview.MaterialTextView
+
+class JetStreamPlaybackTopBarLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : RelativeLayout(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamOverlayBackground(
+            orientation = GradientDrawable.Orientation.TOP_BOTTOM,
+            cornerRadii = floatArrayOf(0f, 0f, 0f, 0f, jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), jetStreamDp(28))
+        )
+        elevation = jetStreamDp(8)
+        clipToOutline = true
+    }
+}
+
+class JetStreamPlaybackOverlayRootLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
+
+    init {
+        clipChildren = false
+        clipToPadding = false
+    }
+}
+
+class JetStreamPlaybackWidgetIconView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AppCompatImageView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackWidgetSurface()
+    }
+}
+
+class JetStreamPlaybackPanelIconView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AppCompatImageView(context, attrs, defStyleAttr) {
+
+    init {
+        adjustViewBounds = true
+        scaleType = ScaleType.CENTER_INSIDE
+        alpha = 0.92f
+    }
+}
+
+class JetStreamPlaybackWidgetTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackWidgetSurface()
+    }
+}
+
+class JetStreamPlaybackLabelTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : MaterialTextView(context, attrs, defStyleAttr) {
+
+    init {
+        includeFontPadding = false
+    }
+}
+
+class JetStreamPlaybackTimeRowLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        clipChildren = false
+        clipToPadding = false
+    }
+}
+
+private fun android.view.View.applyJetStreamPlaybackWidgetSurface() {
+    val left = paddingLeft
+    val top = paddingTop
+    val right = paddingRight
+    val bottom = paddingBottom
+    background = jetStreamOverlayBackground(
+        orientation = GradientDrawable.Orientation.TL_BR,
+        cornerRadii = FloatArray(8) { jetStreamDp(28) }
+    )
+    elevation = jetStreamDp(10)
+    clipToOutline = true
+    if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+        setPadding(jetStreamDpInt(20), jetStreamDpInt(18), jetStreamDpInt(20), jetStreamDpInt(18))
+    } else {
+        setPadding(left, top, right, bottom)
+    }
+}
+
+class JetStreamPlaybackPanelLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamOverlayBackground(
+            orientation = GradientDrawable.Orientation.TL_BR,
+            cornerRadii = FloatArray(8) { jetStreamDp(28) }
+        )
+        elevation = jetStreamDp(10)
+        clipToOutline = true
+        if (paddingLeft == 0 && paddingTop == 0 && paddingRight == 0 && paddingBottom == 0) {
+            setPadding(jetStreamDpInt(20), jetStreamDpInt(18), jetStreamDpInt(20), jetStreamDpInt(18))
+        }
+    }
+}
+
+class JetStreamLiveBottomBarLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamOverlayBackground(
+            orientation = GradientDrawable.Orientation.BOTTOM_TOP,
+            cornerRadii = floatArrayOf(jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), 0f, 0f, 0f, 0f)
+        )
+        elevation = jetStreamDp(8)
+        clipToOutline = true
+    }
+}
+
+class JetStreamPlaybackControlBarLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamOverlayBackground(
+            orientation = GradientDrawable.Orientation.BOTTOM_TOP,
+            cornerRadii = floatArrayOf(jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), 0f, 0f, 0f, 0f)
+        )
+        elevation = jetStreamDp(12)
+        clipToOutline = true
+    }
+}
+
+class JetStreamPlaybackActionRowLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        applyJetStreamPlaybackActionRowSurface()
+    }
+}
+
+class JetStreamPlaybackActionScrollView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : HorizontalScrollView(context, attrs, defStyleAttr) {
+
+    init {
+        clipChildren = false
+        clipToPadding = false
+        isFillViewport = true
+        isHorizontalScrollBarEnabled = false
+        overScrollMode = OVER_SCROLL_NEVER
+    }
+}
+
+private fun LinearLayoutCompat.applyJetStreamPlaybackActionRowSurface() {
+    val left = paddingLeft
+    val top = paddingTop
+    val right = paddingRight
+    val bottom = paddingBottom
+    background = GradientDrawable().apply {
+        cornerRadius = jetStreamDp(24)
+        setColor(ContextCompat.getColor(context, R.color.jetstream_scrim_light))
+    }
+    minimumHeight = jetStreamDpInt(56)
+    clipChildren = false
+    clipToPadding = false
+    clipToOutline = true
+    elevation = jetStreamDp(4)
+    if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+        val padding = jetStreamDpInt(8)
+        setPadding(padding, padding, padding, padding)
+    } else {
+        setPadding(left, top, right, bottom)
+    }
+}

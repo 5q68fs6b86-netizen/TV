@@ -46,6 +46,7 @@ public class PreloadDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         type = requireArguments().getInt("type");
+        binding.title.setText(getTitleRes());
         binding.slider.setValueTo(getMax());
         binding.slider.setValueFrom(getMin());
         binding.slider.setStepSize(getStep());
@@ -93,6 +94,12 @@ public class PreloadDialog extends BaseAlertDialog {
         if (type == THREADS) return PreloadSetting.getPreloadThreads();
         if (type == SIZE) return PreloadSetting.getPreloadSizeMb();
         return PreloadSetting.getPreloadTimeSeconds();
+    }
+
+    private int getTitleRes() {
+        if (type == THREADS) return R.string.player_preload_threads;
+        if (type == SIZE) return R.string.player_preload_size;
+        return R.string.player_preload_time;
     }
 
     private String format(int value) {

@@ -1,30 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<com.fongmi.android.tv.ui.custom.JetStreamEmptyStateView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="360dp"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_state_surface"
-    android:gravity="center"
     android:minHeight="320dp"
-    android:orientation="vertical"
-    android:paddingStart="36dp"
-    android:paddingTop="28dp"
-    android:paddingEnd="36dp"
-    android:paddingBottom="32dp">
-
-    <com.airbnb.lottie.LottieAnimationView
-        android:layout_width="180dp"
-        android:layout_height="200dp"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/empty" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/error_empty"
-        android:textColor="@color/jetstream_on_surface_variant"
-        android:textSize="17sp" />
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+    android:text="@string/error_empty" />

@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.dialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogSpeedBinding;
 import com.fongmi.android.tv.impl.SpeedListener;
 import com.fongmi.android.tv.setting.PlayerSetting;
@@ -29,6 +30,7 @@ public class SpeedDialog extends BaseAlertDialog {
 
     @Override
     protected void initView() {
+        binding.title.setText(R.string.player_speed);
         binding.slider.setValue(PlayerSetting.getSpeed());
     }
 

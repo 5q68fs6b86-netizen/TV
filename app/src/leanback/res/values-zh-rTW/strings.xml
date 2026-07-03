@@ -17,10 +17,6 @@
     <string name="setting_section_preload">預載</string>
     <string name="setting_section_danmaku">彈幕</string>
     <string name="setting_section_app">應用</string>
-    <string name="setting_page_playback_desc">設定播放器核心、渲染比例、倍速和播放行為</string>
-    <string name="setting_page_decode_desc">管理硬體通道、音訊直通與音影片解碼偏好</string>
-    <string name="setting_page_preload_desc">配置預載開關、執行緒數、快取大小和預載時長</string>
-    <string name="setting_page_danmaku_desc">配置彈幕載入、介面、自動匹配和爬蟲優先權</string>
     <string name="setting_page_file_title">檔案選擇</string>
     <string name="setting_page_file_desc">瀏覽裝置儲存空間，選擇本機媒體或設定檔</string>
     <string name="setting_page_keep_desc">查看已收藏內容、常用合集和快速返回入口</string>

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamDanmakuSectionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:duplicateParentState="true"
@@ -20,26 +20,24 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="4dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
                 android:text="@string/danmaku_time_offset"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/jetstream_slider_title_text" />
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/timeOffsetValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_slider_value_text" />
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-        <com.google.android.material.slider.Slider
+        <com.fongmi.android.tv.ui.custom.JetStreamSlider
             style="@style/JetStream.Slider"
             android:id="@+id/timeOffsetSlider"
             android:layout_width="match_parent"
@@ -53,15 +51,15 @@
             android:valueTo="300000"
             app:tickVisible="false" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:duplicateParentState="true"
@@ -70,26 +68,24 @@
             android:paddingHorizontal="24dp"
             android:paddingTop="4dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
                 android:text="@string/danmaku_duration"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/jetstream_slider_title_text" />
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/durationValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_slider_value_text" />
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-        <com.google.android.material.slider.Slider
+        <com.fongmi.android.tv.ui.custom.JetStreamSlider
             style="@style/JetStream.Slider"
             android:id="@+id/durationSlider"
             android:layout_width="match_parent"
@@ -102,15 +98,15 @@
             android:valueTo="15000"
             app:tickVisible="false" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:duplicateParentState="true"
@@ -119,26 +115,24 @@
             android:paddingHorizontal="24dp"
             android:paddingTop="4dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
                 android:text="@string/danmaku_fixed_duration"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/jetstream_slider_title_text" />
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/fixedDurationValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_slider_value_text" />
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-        <com.google.android.material.slider.Slider
+        <com.fongmi.android.tv.ui.custom.JetStreamSlider
             style="@style/JetStream.Slider"
             android:id="@+id/fixedDurationSlider"
             android:layout_width="match_parent"
@@ -151,6 +145,6 @@
             android:valueTo="10000"
             app:tickVisible="false" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout>
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamDanmakuSectionLayout>

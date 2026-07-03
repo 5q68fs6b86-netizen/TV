@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
@@ -25,16 +25,17 @@
             app:jetStreamSubtitle="@string/setting_page_keep_desc"
             app:jetStreamTitle="@string/home_keep" />
 
-        <com.fongmi.android.tv.ui.custom.ProgressLayout
+        <com.fongmi.android.tv.ui.custom.JetStreamProgressPanelLayout
             android:id="@+id/progressLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="24dp"
             android:layout_weight="1"
             android:clipChildren="false"
-            android:clipToPadding="false">
+            android:clipToPadding="false"
+            android:padding="20dp">
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.fongmi.android.tv.ui.custom.JetStreamPageRecyclerView
                 android:id="@+id/recycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -43,6 +44,6 @@
                 android:overScrollMode="never"
                 android:paddingBottom="24dp" />
 
-        </com.fongmi.android.tv.ui.custom.ProgressLayout>
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</FrameLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamProgressPanelLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout>

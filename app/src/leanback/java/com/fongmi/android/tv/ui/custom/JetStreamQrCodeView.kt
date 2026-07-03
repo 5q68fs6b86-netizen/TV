@@ -1,0 +1,103 @@
+package com.fongmi.android.tv.ui.custom
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.util.AttributeSet
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
+import com.fongmi.android.tv.ui.theme.JetStreamBorders
+import com.fongmi.android.tv.ui.theme.JetStreamShapes
+import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
+
+class JetStreamQrCodeView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AbstractComposeView(context, attrs, defStyleAttr) {
+
+    private var qrBitmap by mutableStateOf<Bitmap?>(null)
+
+    init {
+        isFocusable = false
+        isFocusableInTouchMode = false
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+
+    fun setImageBitmap(bitmap: Bitmap?) {
+        qrBitmap = bitmap
+    }
+
+    @Composable
+    override fun Content() {
+        JetStreamTheme {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(JetStreamShapes.Large)
+                    .background(
+                        jetStreamHorizontalScrimBrush(
+                            startColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                            middleColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f),
+                            endColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.58f)
+                        )
+                    )
+                    .border(
+                        JetStreamBorders.Thin,
+                        MaterialTheme.colorScheme.outlineVariant,
+                        JetStreamShapes.Large
+                    )
+                    .padding(JetStreamSpacing.Small),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(JetStreamShapes.Medium)
+                        .background(Color.White)
+                        .padding(JetStreamSpacing.Small),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val bitmap = qrBitmap
+                    if (bitmap == null) {
+                        Text(
+                            text = "QR",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    } else {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

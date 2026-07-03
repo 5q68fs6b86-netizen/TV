@@ -1,75 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamDialogSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_dialog_surface"
     android:orientation="vertical"
     android:padding="24dp">
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
         android:id="@+id/version"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:letterSpacing="0.02"
-        android:textColor="@color/jetstream_on_surface"
-        android:textSize="18sp"
-        tools:text="@string/update_version" />
-
-    <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="?attr/colorOutlineVariant" />
+        android:layout_height="64dp" />
 
-    <androidx.core.widget.NestedScrollView
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         android:layout_weight="1">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
             android:id="@+id/desc"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:letterSpacing="0.02"
-            android:lineSpacingExtra="8dp"
-            android:textColor="@color/jetstream_on_surface_variant"
-            android:textSize="16sp"
+            android:padding="20dp"
             tools:text="1. 新增 ffmpeg 音頻軟解\n2. 詳情頁新增分詞快搜\n3. 修復搜尋閃退問題\n4. 設定支援渲染切換" />
 
-    </androidx.core.widget.NestedScrollView>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogScrollView>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
             android:id="@+id/confirm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
-            android:background="@drawable/selector_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
-            android:text="@string/update_confirm"
-            android:textColor="@color/jetstream_control_text" />
+            android:singleLine="true"
+            android:text="@string/update_confirm" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
             android:id="@+id/cancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/selector_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
-            android:text="@string/dialog_negative"
-            android:textColor="@color/jetstream_control_text" />
+            android:singleLine="true"
+            android:text="@string/dialog_negative" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamDialogSurfaceLayout>

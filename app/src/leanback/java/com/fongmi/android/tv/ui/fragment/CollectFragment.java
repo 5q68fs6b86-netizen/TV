@@ -77,7 +77,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
-        mBinding.recycler.setHeader(getActivity(), R.id.result, R.id.recycler);
+        mBinding.recycler.setHeader(getActivity(), R.id.result, R.id.recyclerPanel, R.id.recycler);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
 

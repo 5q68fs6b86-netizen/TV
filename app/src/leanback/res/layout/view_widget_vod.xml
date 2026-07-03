@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamPlaybackOverlayRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout
+    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackTopBarLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_player_top_info"
         android:paddingStart="48dp"
         android:paddingTop="20dp"
         android:paddingEnd="48dp"
@@ -17,7 +16,7 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
             android:id="@+id/title"
             style="@style/Shadow"
             android:layout_width="match_parent"
@@ -30,7 +29,7 @@
             android:textSize="20sp"
             tools:text="慶餘年第一季：第一集" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
             android:id="@+id/size"
             style="@style/Shadow"
             android:layout_width="match_parent"
@@ -41,7 +40,7 @@
             android:textSize="16sp"
             tools:text="1920 x 1080" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
             android:id="@+id/clock"
             style="@style/Shadow"
             android:layout_width="wrap_content"
@@ -52,25 +51,24 @@
             android:textSize="20sp"
             tools:text="09:20:00" />
 
-    </RelativeLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamPlaybackTopBarLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelLayout
         android:id="@+id/error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelIconView
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:src="@drawable/ic_widget_error" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
             android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,31 +78,30 @@
             android:textSize="16sp"
             tools:text="@string/error_play_url" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelLayout
         android:id="@+id/center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelIconView
             android:id="@+id/action"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:src="@drawable/ic_widget_play" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamPlaybackTimeRowLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
                 android:id="@+id/position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -113,7 +110,7 @@
                 android:textSize="16sp"
                 tools:text="00:00:00" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
@@ -122,7 +119,7 @@
                 android:textColor="@color/jetstream_on_surface_variant"
                 android:textSize="16sp" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamPlaybackLabelTextView
                 android:id="@+id/duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -131,19 +128,18 @@
                 android:textSize="16sp"
                 tools:text="00:00:00" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamPlaybackTimeRowLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamPlaybackPanelLayout>
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamPlaybackWidgetIconView
         android:id="@+id/speed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center"
         android:layout_marginTop="24dp"
-        android:background="@drawable/shape_widget"
         android:padding="12dp"
         android:src="@drawable/ic_widget_forward"
         app:tint="@color/jetstream_on_surface"
         android:visibility="gone" />
 
-</FrameLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamPlaybackOverlayRootLayout>

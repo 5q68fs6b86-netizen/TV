@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_sheet_surface"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -15,29 +14,27 @@
         android:paddingTop="24dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
             android:id="@+id/title"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
+            android:layout_marginEnd="16dp"
             android:layout_weight="1"
-            android:text="@string/player_engine"
-            android:textColor="@color/jetstream_on_surface"
-            android:textSize="16sp" />
+            app:jetStreamTitle="@string/player_engine" />
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
             android:id="@+id/debug"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/selector_chip_round"
             android:contentDescription="@string/player_debug"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:src="@drawable/ic_action_debug"
             app:tint="@color/jetstream_control_text" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetChipRowLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -45,40 +42,31 @@
         android:paddingEnd="24dp"
         android:paddingBottom="24dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
             android:id="@+id/exo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:background="@drawable/selector_chip_round"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:text="@string/play_exo"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/play_exo" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
             android:id="@+id/mpv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:background="@drawable/selector_chip_round"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:text="@string/play_mpv"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/play_mpv" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
             android:id="@+id/other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/selector_chip_round"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:text="@string/play_other"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/play_other" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamSheetChipRowLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

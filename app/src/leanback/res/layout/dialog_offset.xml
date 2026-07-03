@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_sheet_surface"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -17,15 +16,14 @@
         android:paddingEnd="24dp"
         android:paddingBottom="8dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
+            android:layout_marginEnd="16dp"
             android:layout_weight="1"
-            android:text="@string/offset_setting"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textColor="@color/jetstream_on_surface" />
+            app:jetStreamTitle="@string/offset_setting" />
 
-        <com.google.android.material.button.MaterialButton
+        <com.fongmi.android.tv.ui.custom.JetStreamDialogButton
             android:id="@+id/reset"
             style="@style/JetStream.Button.Tonal"
             android:layout_width="wrap_content"
@@ -35,17 +33,19 @@
             android:text="@string/danmaku_reset"
             android:textColor="@color/jetstream_control_text" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout
         android:id="@+id/audioSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -53,26 +53,24 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="4dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
                 android:text="@string/offset_audio"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/jetstream_slider_title_text" />
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/audioValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_slider_value_text" />
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
 
-        <com.google.android.material.slider.Slider
+        <com.fongmi.android.tv.ui.custom.JetStreamSlider
             style="@style/JetStream.Slider"
             android:id="@+id/audioSlider"
             android:layout_width="match_parent"
@@ -85,17 +83,19 @@
             android:valueTo="10000"
             app:tickVisible="false" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout
         android:id="@+id/textSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -103,26 +103,24 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="4dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:duplicateParentState="true"
                 android:text="@string/offset_text"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/jetstream_slider_title_text" />
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderValueTextView
                 android:id="@+id/textValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/jetstream_slider_value_text" />
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
 
-        <com.google.android.material.slider.Slider
+        <com.fongmi.android.tv.ui.custom.JetStreamSlider
             style="@style/JetStream.Slider"
             android:id="@+id/textSlider"
             android:layout_width="match_parent"
@@ -135,10 +133,10 @@
             android:valueTo="300000"
             app:tickVisible="false" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout>
 
-    <View
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogSpacerView
         android:layout_width="match_parent"
         android:layout_height="24dp" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

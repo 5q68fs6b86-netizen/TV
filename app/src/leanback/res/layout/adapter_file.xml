@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamListItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_vod_list"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_vod">
+    android:focusableInTouchMode="true">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.fongmi.android.tv.ui.custom.JetStreamSearchIconView
             android:id="@+id/image"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_margin="16dp"
-            android:background="@drawable/selector_search_icon"
             android:duplicateParentState="true"
             android:padding="10dp"
             app:tint="@color/jetstream_file_icon_tint"
             tools:src="@drawable/ic_folder" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:duplicateParentState="true"
             android:singleLine="true"
-            android:textColor="@color/jetstream_list_title_text"
-            android:textSize="16sp"
             tools:text="Download" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</FrameLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamListItemLayout>

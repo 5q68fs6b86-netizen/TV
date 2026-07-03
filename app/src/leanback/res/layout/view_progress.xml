@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamPlaybackOverlayRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamProgressStateLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_state_surface"
         android:gravity="center"
         android:minWidth="168dp"
         android:orientation="vertical"
@@ -18,7 +17,7 @@
         android:paddingEnd="30dp"
         android:paddingBottom="26dp">
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
+        <com.fongmi.android.tv.ui.custom.JetStreamCircularProgressIndicator
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:indeterminate="true"
@@ -28,7 +27,7 @@
             app:trackCornerRadius="@dimen/progress_indicator_corner_radius"
             app:trackThickness="@dimen/progress_indicator_track_thickness" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:id="@+id/traffic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,6 +38,6 @@
             tools:text="120 KB/s"
             tools:visibility="visible" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamProgressStateLayout>
 
-</FrameLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamPlaybackOverlayRootLayout>

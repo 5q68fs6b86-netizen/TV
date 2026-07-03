@@ -70,7 +70,7 @@
             android:nextFocusLeft="@id/video"
             android:nextFocusDown="@id/flag" />
 
-        <androidx.core.widget.NestedScrollView
+        <com.fongmi.android.tv.ui.custom.JetStreamPageContentScrollView
             android:id="@+id/scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -78,7 +78,7 @@
             android:layout_marginTop="12dp"
             android:overScrollMode="never">
 
-            <androidx.appcompat.widget.LinearLayoutCompat
+            <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
@@ -128,7 +128,7 @@
                     android:layout_marginBottom="16dp"
                     android:visibility="gone" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
-        </androidx.core.widget.NestedScrollView>
+            </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamPageContentScrollView>
     </com.fongmi.android.tv.ui.custom.ProgressLayout>
 </FrameLayout>

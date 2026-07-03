@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamListItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_vod_list"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_vod">
+    android:focusableInTouchMode="true">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.fongmi.android.tv.ui.custom.JetStreamListThumbnailImageView
             android:id="@+id/image"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -24,7 +22,7 @@
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/JetStream.Card" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -32,28 +30,24 @@
             android:gravity="center_vertical"
             android:orientation="vertical">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
                 android:id="@+id/name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
                 android:singleLine="true"
-                android:textColor="@color/jetstream_list_title_text"
-                android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="蜘蛛人" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
                 android:id="@+id/remark"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:duplicateParentState="true"
                 android:singleLine="true"
-                android:textColor="@color/jetstream_list_supporting_text"
-                android:textSize="14sp"
                 tools:text="1080p" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</FrameLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamListItemLayout>

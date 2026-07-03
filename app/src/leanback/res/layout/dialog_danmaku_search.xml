@@ -1,26 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_sheet_surface"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginEnd="24dp"
+        app:jetStreamSubtitle="@string/search_keyword"
+        app:jetStreamTitle="@string/home_search" />
+
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
-        android:paddingTop="24dp"
+        android:paddingTop="12dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <com.fongmi.android.tv.ui.custom.JetStreamDialogTextInputEditText
             android:id="@+id/keyword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/selector_dialog_input"
             android:hint="@string/search_keyword"
             android:imeOptions="actionSearch"
             android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
@@ -32,14 +39,12 @@
             android:paddingEnd="16dp"
             android:paddingBottom="10dp"
             android:singleLine="true"
-            android:textColor="@color/jetstream_list_title_text"
-            android:textColorHint="@color/jetstream_list_supporting_text"
             android:textCursorDrawable="@drawable/shape_cursor"
             android:textSize="14sp" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout>
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <com.fongmi.android.tv.ui.custom.JetStreamCircularProgressIndicator
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -52,7 +57,7 @@
         app:trackThickness="2dp"
         tools:visibility="visible" />
 
-    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogListRecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -60,6 +65,7 @@
         android:clipToPadding="false"
         android:overScrollMode="never"
         android:paddingStart="24dp"
+        android:paddingTop="16dp"
         android:paddingEnd="24dp"
         android:paddingBottom="24dp"
         android:visibility="gone"
@@ -68,4 +74,4 @@
         tools:listitem="@layout/adapter_danmaku"
         tools:visibility="visible" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

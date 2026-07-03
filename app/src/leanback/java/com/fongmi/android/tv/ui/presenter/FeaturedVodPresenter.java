@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
+import com.fongmi.android.tv.ui.custom.JetStreamFeaturedIndicatorDotView;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -153,13 +154,12 @@ public class FeaturedVodPresenter extends Presenter {
             binding.indicator.removeAllViews();
             binding.indicator.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
             for (int i = 0; i < count; i++) {
-                View dot = new View(binding.indicator.getContext());
+                View dot = new JetStreamFeaturedIndicatorDotView(binding.indicator.getContext());
                 int size = ResUtil.dp2px(7);
                 int margin = ResUtil.dp2px(3);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
                 params.setMarginStart(margin);
                 params.setMarginEnd(margin);
-                dot.setBackgroundResource(com.fongmi.android.tv.R.drawable.selector_featured_dot);
                 binding.indicator.addView(dot, params);
             }
             updateIndicator();

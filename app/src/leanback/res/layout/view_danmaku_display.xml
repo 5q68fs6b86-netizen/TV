@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamDanmakuSectionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -13,16 +13,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_scroll"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showScrollSwitch"
             android:layout_width="wrap_content"
@@ -31,9 +30,9 @@
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/tabDisplay" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -42,16 +41,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_top"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showTopSwitch"
             android:layout_width="wrap_content"
@@ -59,9 +57,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -70,16 +68,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_bottom"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showBottomSwitch"
             android:layout_width="wrap_content"
@@ -87,9 +84,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -98,16 +95,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_reverse"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showReverseSwitch"
             android:layout_width="wrap_content"
@@ -115,9 +111,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -126,16 +122,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_positioned"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showPositionedSwitch"
             android:layout_width="wrap_content"
@@ -143,9 +138,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -154,16 +149,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_subtitle"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showSubtitleSwitch"
             android:layout_width="wrap_content"
@@ -171,9 +165,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:addStatesFromChildren="true"
@@ -182,16 +176,15 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="4dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:duplicateParentState="true"
             android:text="@string/danmaku_show_special"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/jetstream_list_title_text" />
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
             style="@style/JetStream.Switch"
             android:id="@+id/showSpecialSwitch"
             android:layout_width="wrap_content"
@@ -199,5 +192,5 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamDanmakuControlRowLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamDanmakuSectionLayout>

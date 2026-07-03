@@ -1,37 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fongmi.android.tv.ui.custom.CustomLeftRightLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamLiveLeftRightLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/selector_live"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:minHeight="68dp"
     android:minWidth="240dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingStart="14dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="10dp">
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:ellipsize="marquee"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:textColor="@color/jetstream_control_text"
-        android:textSize="16sp"
         tools:text="七龍珠" />
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
         android:id="@+id/time"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:ellipsize="marquee"
         android:layout_marginTop="4dp"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:textColor="@color/jetstream_control_text"
-        android:textSize="14sp"
         tools:text="18:00 ~ 19:00" />
 
-</com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamLiveLeftRightLayout>

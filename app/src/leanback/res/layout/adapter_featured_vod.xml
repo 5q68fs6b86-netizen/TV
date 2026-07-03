@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamFeaturedVodLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="324dp"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_featured_vod">
+    android:focusableInTouchMode="true">
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamHeroImageView
         android:id="@+id/imageA"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/jetstream_surface_container_high"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/JetStream.Hero"
         tools:src="@drawable/wallpaper_1" />
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamHeroImageView
         android:id="@+id/imageB"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/jetstream_surface_container_high"
         android:scaleType="centerCrop"
         android:visibility="gone"
         app:shapeAppearanceOverlay="@style/JetStream.Hero" />
 
-    <View
+    <com.fongmi.android.tv.ui.custom.JetStreamFeaturedLeftScrimView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/shape_featured_left_scrim" />
+        android:layout_height="match_parent" />
 
-    <View
+    <com.fongmi.android.tv.ui.custom.JetStreamFeaturedBottomScrimView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/shape_featured_bottom_scrim" />
+        android:layout_height="match_parent" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="bottom"
@@ -45,7 +40,7 @@
         android:paddingEnd="32dp"
         android:paddingBottom="28dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:id="@+id/name"
             style="@style/Shadow"
             android:layout_width="match_parent"
@@ -56,7 +51,7 @@
             android:textSize="36sp"
             tools:text="蜘蛛人" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
             android:id="@+id/meta"
             style="@style/Shadow"
             android:layout_width="match_parent"
@@ -68,12 +63,11 @@
             android:textSize="16sp"
             tools:text="2024  |  泥巴  |  1080p" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.JetStreamHeroActionLayout
             android:id="@+id/action"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/shape_featured_button"
             android:gravity="center"
             android:orientation="horizontal"
             android:paddingStart="12dp"
@@ -81,12 +75,12 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <androidx.appcompat.widget.AppCompatImageView
+            <com.fongmi.android.tv.ui.custom.JetStreamInlineIconView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:src="@drawable/ic_featured_play" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
@@ -95,21 +89,20 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.fongmi.android.tv.ui.custom.JetStreamHeroActionLayout>
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.fongmi.android.tv.ui.custom.JetStreamListItemContentLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamHeroIndicatorLayout
         android:id="@+id/indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="32dp"
-        android:background="@drawable/shape_featured_indicator"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="8dp"
         tools:visibility="visible" />
 
-</FrameLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamFeaturedVodLayout>

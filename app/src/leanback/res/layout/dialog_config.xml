@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamDialogRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_dialog_surface"
     android:padding="24dp">
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamQrCodeView
         android:id="@+id/code"
         android:layout_width="196dp"
-        android:layout_height="196dp"
-        android:background="@drawable/shape_dialog_qr_panel"
-        android:padding="8dp"
-        android:scaleType="centerInside" />
+        android:layout_height="196dp" />
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
         android:id="@+id/info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,29 +18,24 @@
         android:layout_toEndOf="@+id/code"
         android:ellipsize="end"
         android:focusable="true"
-        android:letterSpacing="0.02"
-        android:lineSpacingExtra="6dp"
         android:maxLines="3"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:textColor="@color/jetstream_on_surface_variant"
-        android:textSize="16sp"
         tools:text="@string/push_info" />
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <com.fongmi.android.tv.ui.custom.CustomEditText
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/bottom"
         android:layout_alignStart="@+id/info"
         android:layout_marginBottom="14dp"
-        android:background="@drawable/selector_dialog_input"
         android:hint="@string/dialog_config_hint"
         android:imeOptions="actionDone"
         android:importantForAutofill="no"
@@ -56,12 +47,10 @@
         android:paddingEnd="16dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textColor="@color/jetstream_list_title_text"
-        android:textColorHint="@color/jetstream_list_supporting_text"
         android:textCursorDrawable="@drawable/shape_cursor"
         android:textSize="18sp" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout
         android:id="@+id/bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,49 +58,40 @@
         android:layout_alignBottom="@+id/code"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
             android:id="@+id/choose"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
-            android:background="@drawable/selector_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:singleLine="true"
-            android:text="@string/setting_choose"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/setting_choose" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
             android:id="@+id/positive"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
-            android:background="@drawable/selector_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:singleLine="true"
-            android:text="@string/dialog_positive"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/dialog_positive" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
             android:id="@+id/negative"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/selector_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:singleLine="true"
-            android:text="@string/dialog_negative"
-            android:textColor="@color/jetstream_control_text"
-            android:textSize="14sp" />
+            android:text="@string/dialog_negative" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</RelativeLayout>
+    </com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamDialogRelativeLayout>

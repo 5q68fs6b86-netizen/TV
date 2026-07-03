@@ -1,36 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:addStatesFromChildren="true"
+    android:gravity="center_vertical"
     android:orientation="horizontal">
 
-    <com.google.android.material.textview.MaterialTextView
+    <com.fongmi.android.tv.ui.custom.JetStreamChipRoundTextView
         android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_weight="1"
-        android:background="@drawable/selector_chip_round"
         android:ellipsize="middle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/jetstream_control_text"
         android:textSize="18sp"
         tools:text="tv-2024-12-26.bk.gz" />
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamChipRoundIconView
         android:id="@+id/delete"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="12dp"
-        android:background="@drawable/selector_chip_round"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
         android:src="@drawable/ic_setting_delete"
         app:tint="@color/jetstream_control_text" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
