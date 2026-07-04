@@ -15,6 +15,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteHomeBinding;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
 import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +127,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
             super(itemView);
             this.text = text;
             this.check = check;
+            JetStreamAnimator.bindFocus(itemView, JetStreamAnimator.FOCUS_SCALE_LIST, 8);
         }
     }
 }

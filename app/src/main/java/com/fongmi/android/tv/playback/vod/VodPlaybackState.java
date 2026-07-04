@@ -96,11 +96,20 @@ public class VodPlaybackState {
     }
 
     public Episode getEpisode() {
-        return getFlag().getEpisodes().get(getFlag().getPosition());
+        Flag flag = getFlag();
+        int position = getEpisodePosition(flag);
+        Episode episode = flag.getEpisodes().get(position);
+        if (flag.getPosition() != position || !episode.isSelected()) flag.toggle(true, episode);
+        return episode;
     }
 
     public boolean hasEpisode() {
-        return hasFlags() && getFlag().getPosition() >= 0 && getFlag().getPosition() < getFlag().getEpisodes().size();
+        return hasFlags() && !getFlag().getEpisodes().isEmpty();
+    }
+
+    private int getEpisodePosition(Flag flag) {
+        int position = flag.getPosition();
+        return position >= 0 && position < flag.getEpisodes().size() ? position : 0;
     }
 
     public Result getQuality() {

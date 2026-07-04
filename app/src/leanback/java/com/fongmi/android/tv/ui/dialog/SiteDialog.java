@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -15,6 +16,7 @@ import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -118,6 +120,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         setType(type);
         setRecyclerView();
         setMode();
+        setAnimation();
     }
 
     @Override
@@ -151,6 +154,27 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         if (adapter.getItemCount() < GRID_COUNT) Setting.putSiteMode(0);
         mode.setEnabled(adapter.getItemCount() >= GRID_COUNT);
         mode.setImageResource(getIcon());
+    }
+
+    private void setAnimation() {
+        if (actionView instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) actionView;
+            viewGroup.setClipChildren(false);
+            viewGroup.setClipToPadding(false);
+        }
+        bindFocus(search);
+        bindFocus(change);
+        bindFocus(select);
+        bindFocus(cancel);
+        bindFocus(mode);
+    }
+
+    private void bindFocus(View view) {
+        view.setOnFocusChangeListener((target, focused) -> {
+            boolean selected = target.isSelected();
+            JetStreamAnimator.animateFocus(target, focused, JetStreamAnimator.FOCUS_SCALE_LIST, 8);
+            target.setSelected(selected);
+        });
     }
 
     private void setWidth() {
