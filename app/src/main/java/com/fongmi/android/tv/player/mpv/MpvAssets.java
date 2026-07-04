@@ -24,8 +24,20 @@ final class MpvAssets {
         copyAsset(context.getAssets(), "subfont.ttf", new File(filesDir, "subfont.ttf"));
         copyAsset(context.getAssets(), "cacert.pem", new File(configDir, "cacert.pem"));
         copyAsset(context.getAssets(), "subfont.ttf", new File(configDir, "subfont.ttf"));
+        copyAssetDirectory(context.getAssets(), "mpv/shaders", new File(configDir, "shaders"));
         writeFontsConf(context, new File(filesDir, "fonts.conf"), true);
         writeFontsConf(context, new File(configDir, "fonts.conf"), false);
+    }
+
+    private static void copyAssetDirectory(AssetManager assets, String path, File outDir) {
+        try {
+            String[] names = assets.list(path);
+            if (names == null || names.length == 0) return;
+            if (!outDir.exists() && !outDir.mkdirs()) return;
+            for (String name : names) copyAsset(assets, path + "/" + name, new File(outDir, name));
+        } catch (IOException e) {
+            Log.w(TAG, "Unable to copy mpv asset directory: " + path, e);
+        }
     }
 
     private static void copyAsset(AssetManager assets, String name, File outFile) {

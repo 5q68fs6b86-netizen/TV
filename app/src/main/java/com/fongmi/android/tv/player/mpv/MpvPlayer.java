@@ -399,6 +399,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.init();
+        MpvAnime4K.apply(configDir);
         MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
         MPVLib.INSTANCE.setOptionString("force-window", "no");
         MPVLib.INSTANCE.setOptionString("idle", "once");

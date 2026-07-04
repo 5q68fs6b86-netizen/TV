@@ -12,12 +12,21 @@ public class PlayerSetting {
     public static final int ENGINE_MPV = 1;
     public static final int RENDER_SURFACE = 0;
     public static final int RENDER_TEXTURE = 1;
+    public static final int MPV_ANIME4K_OFF = 0;
+    public static final int MPV_ANIME4K_FAST_A = 1;
+    public static final int MPV_ANIME4K_FAST_B = 2;
+    public static final int MPV_ANIME4K_FAST_C = 3;
+    public static final int MPV_ANIME4K_HIGH_A = 4;
+    public static final int MPV_ANIME4K_HIGH_B = 5;
+    public static final int MPV_ANIME4K_HIGH_C = 6;
     public static final int MIN_SCALE = 0;
     public static final int MAX_SCALE = 4;
     private static final int MIN_SIZE = 0;
     private static final int MAX_SIZE = 3;
     private static final int MIN_BACKGROUND = 0;
     private static final int MAX_BACKGROUND = 2;
+    private static final int MIN_MPV_ANIME4K = MPV_ANIME4K_OFF;
+    private static final int MAX_MPV_ANIME4K = MPV_ANIME4K_HIGH_C;
     private static final float MIN_SPEED = 2.0f;
     private static final float MAX_SPEED = 5.0f;
 
@@ -48,6 +57,14 @@ public class PlayerSetting {
 
     public static void putMpvVulkan(boolean vulkan) {
         Prefers.put("mpv_vulkan", vulkan);
+    }
+
+    public static int getMpvAnime4K() {
+        return Math.clamp(Prefers.getInt("mpv_anime4k", MPV_ANIME4K_OFF), MIN_MPV_ANIME4K, MAX_MPV_ANIME4K);
+    }
+
+    public static void putMpvAnime4K(int anime4K) {
+        Prefers.put("mpv_anime4k", Math.clamp(anime4K, MIN_MPV_ANIME4K, MAX_MPV_ANIME4K));
     }
 
     public static int getRender() {

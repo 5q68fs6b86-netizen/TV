@@ -513,6 +513,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_BACKGROUND, context.getString(R.string.player_background)),
                     RowSpec(KEY_UA, context.getString(R.string.player_ua)),
                     RowSpec(KEY_MPV_CONF, context.getString(R.string.player_mpv_conf)),
+                    RowSpec(KEY_MPV_ANIME4K, context.getString(R.string.player_mpv_anime4k)),
                     RowSpec(KEY_MPV_GPU_NEXT, context.getString(R.string.player_mpv_gpu_next)),
                     RowSpec(KEY_MPV_VULKAN, context.getString(R.string.player_mpv_vulkan)),
                     RowSpec(KEY_ADBLOCK, context.getString(R.string.player_adblock))
@@ -594,6 +595,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_BACKGROUND = "background"
         const val KEY_UA = "ua"
         const val KEY_MPV_CONF = "mpv_conf"
+        const val KEY_MPV_ANIME4K = "mpv_anime4k"
         const val KEY_MPV_GPU_NEXT = "mpv_gpu_next"
         const val KEY_MPV_VULKAN = "mpv_vulkan"
         const val KEY_ADBLOCK = "adblock"

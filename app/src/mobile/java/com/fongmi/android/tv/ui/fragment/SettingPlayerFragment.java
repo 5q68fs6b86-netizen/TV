@@ -35,6 +35,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
     private String[] render;
     private String[] scale;
     private String[] engine;
+    private String[] mpvAnime4K;
 
     public static SettingPlayerFragment newInstance() {
         return new SettingPlayerFragment();
@@ -52,6 +53,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         format = new DecimalFormat("0.#");
         mBinding.speedText.setText(format.format(PlayerSetting.getSpeed()));
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
+        mBinding.mpvAnime4KText.setText((mpvAnime4K = ResUtil.getStringArray(R.array.select_mpv_anime4k))[PlayerSetting.getMpvAnime4K()]);
         mBinding.mpvVulkanText.setText(Setting.getSwitch(PlayerSetting.isMpvVulkan()));
         mBinding.mpvGpuNextText.setText(Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
         mBinding.scaleText.setText((scale = ResUtil.getStringArray(R.array.select_scale))[PlayerSetting.getScale()]);
@@ -63,6 +65,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
     protected void initEvent() {
         mBinding.engine.setOnClickListener(this::setEngine);
         mBinding.mpvConf.setOnClickListener(this::onMpvConf);
+        mBinding.mpvAnime4K.setOnClickListener(this::onMpvAnime4K);
         mBinding.mpvGpuNext.setOnClickListener(this::setMpvGpuNext);
         mBinding.mpvVulkan.setOnClickListener(this::setMpvVulkan);
         mBinding.render.setOnClickListener(this::setRender);
@@ -80,6 +83,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
     private void setVisible() {
         boolean exo = !PlayerSetting.isMpv();
         mBinding.mpvConf.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.mpvAnime4K.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvVulkan.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.decode.setVisibility(exo ? View.VISIBLE : View.GONE);
@@ -96,6 +100,14 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
 
     private void onMpvConf(View view) {
         MpvConfDialog.show(this);
+    }
+
+    private void onMpvAnime4K(View view) {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_anime4k).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(mpvAnime4K, PlayerSetting.getMpvAnime4K(), (dialog, which) -> {
+            mBinding.mpvAnime4KText.setText(mpvAnime4K[which]);
+            PlayerSetting.putMpvAnime4K(which);
+            dialog.dismiss();
+        }).show();
     }
 
     private void setMpvGpuNext(View view) {

@@ -176,6 +176,7 @@
     <string name="player_preload_time">预载时间</string>
     <string name="player_preload_time_value">%1$d 秒</string>
     <string name="player_mpv_conf">mpv.conf</string>
+    <string name="player_mpv_anime4k">Anime4K</string>
     <string name="player_mpv_gpu_next">gpu-next</string>
     <string name="player_mpv_vulkan">vulkan</string>
     <string name="player_mpv_conf_import_success">已导入 mpv.conf</string>
@@ -263,6 +264,16 @@
     <string-array name="select_caption">
         <item>预设</item>
         <item>系统</item>
+    </string-array>
+
+    <string-array name="select_mpv_anime4k">
+        <item>关闭</item>
+        <item>快速 A</item>
+        <item>快速 B</item>
+        <item>快速 C</item>
+        <item>高质 A</item>
+        <item>高质 B</item>
+        <item>高质 C</item>
     </string-array>
 
     <string-array name="select_track">

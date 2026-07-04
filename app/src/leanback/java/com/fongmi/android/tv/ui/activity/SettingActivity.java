@@ -72,6 +72,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private String[] scale;
     private String[] engine;
     private String[] size;
+    private String[] mpvAnime4K;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -107,6 +108,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         engine = ResUtil.getStringArray(R.array.select_engine);
         render = ResUtil.getStringArray(R.array.select_render);
         caption = ResUtil.getStringArray(R.array.select_caption);
+        mpvAnime4K = ResUtil.getStringArray(R.array.select_mpv_anime4k);
     }
 
     private void refreshAll() {
@@ -135,10 +137,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_CAPTION, caption[PlayerSetting.isCaption() ? 1 : 0]);
         setRowValue(JetStreamSettingView.KEY_BACKGROUND, Setting.getSwitch(PlayerSetting.isBackgroundOn()));
         setRowValue(JetStreamSettingView.KEY_UA, getStatus(Setting.getUa()));
+        setRowValue(JetStreamSettingView.KEY_MPV_ANIME4K, mpvAnime4K[PlayerSetting.getMpvAnime4K()]);
         setRowValue(JetStreamSettingView.KEY_MPV_GPU_NEXT, Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
         setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
         setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
         setRowVisible(JetStreamSettingView.KEY_MPV_CONF, !exo);
+        setRowVisible(JetStreamSettingView.KEY_MPV_ANIME4K, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_GPU_NEXT, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_VULKAN, !exo);
         setRowVisible(JetStreamSettingView.KEY_ADBLOCK, exo);
@@ -235,6 +239,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_BACKGROUND -> onBackground();
             case JetStreamSettingView.KEY_UA -> onUa();
             case JetStreamSettingView.KEY_MPV_CONF -> onMpvConf();
+            case JetStreamSettingView.KEY_MPV_ANIME4K -> setMpvAnime4K();
             case JetStreamSettingView.KEY_MPV_GPU_NEXT -> setMpvGpuNext();
             case JetStreamSettingView.KEY_MPV_VULKAN -> setMpvVulkan();
             case JetStreamSettingView.KEY_ADBLOCK -> setAdblock();
@@ -440,6 +445,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void onMpvConf() {
         MpvConfDialog.show(this);
+    }
+
+    private void setMpvAnime4K() {
+        int index = (PlayerSetting.getMpvAnime4K() + 1) % mpvAnime4K.length;
+        PlayerSetting.putMpvAnime4K(index);
+        setRowValue(JetStreamSettingView.KEY_MPV_ANIME4K, mpvAnime4K[index]);
     }
 
     private void setMpvGpuNext() {

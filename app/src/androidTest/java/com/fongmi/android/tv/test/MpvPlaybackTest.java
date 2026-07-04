@@ -57,6 +57,7 @@ public class MpvPlaybackTest {
         preferences.edit()
                 .putInt("player_engine", 1)
                 .putInt("render", 0)
+                .putInt("mpv_anime4k", 0)
                 .putBoolean("mpv_gpu_next", false)
                 .putBoolean("mpv_vulkan", false)
                 .apply();
