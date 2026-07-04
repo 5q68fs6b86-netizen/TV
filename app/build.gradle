@@ -31,6 +31,7 @@ android {
         targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode 555
         versionName "5.5.5"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "TMDB_API_KEY", buildConfigString(localOrEnv('tmdbApiKey', 'TMDB_API_KEY'))
         buildConfigField "String", "TMDB_LOGO_SIZE", buildConfigString(localOrEnv('tmdbLogoSize', 'TMDB_LOGO_SIZE') ?: 'w500')
         javaCompileOptions {
@@ -156,5 +157,8 @@ dependencies {
     annotationProcessor libs.eventbus.annotation.processor
     annotationProcessor libs.glide.compiler
     testImplementation libs.junit
+    androidTestImplementation libs.junit
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     coreLibraryDesugaring libs.desugar
 }
