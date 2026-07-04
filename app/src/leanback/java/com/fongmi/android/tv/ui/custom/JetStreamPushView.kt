@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -176,6 +177,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun PushHeader() {
+        val colorScheme = MaterialTheme.colorScheme
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -185,11 +187,11 @@ class JetStreamPushView @JvmOverloads constructor(
                     painter = painterResource(id = R.drawable.ic_push_cast),
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Accent
+                    tint = colorScheme.primary
                 )
                 Text(
                     text = stringResource(id = R.string.push_service).uppercase(),
-                    color = Accent,
+                    color = colorScheme.primary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     letterSpacing = 1.4.sp,
@@ -200,7 +202,7 @@ class JetStreamPushView @JvmOverloads constructor(
             }
             Text(
                 text = stringResource(id = R.string.push_title),
-                color = OnSurface,
+                color = colorScheme.onSurface,
                 fontSize = 60.sp,
                 lineHeight = 64.sp,
                 fontWeight = FontWeight.Medium,
@@ -210,7 +212,7 @@ class JetStreamPushView @JvmOverloads constructor(
             Text(
                 text = stringResource(id = R.string.push_desc),
                 modifier = Modifier.widthIn(max = 448.dp),
-                color = OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontSize = 20.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Normal
@@ -220,6 +222,8 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun AddressBlock() {
+        val colorScheme = MaterialTheme.colorScheme
+        val supportingColor = colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -229,11 +233,11 @@ class JetStreamPushView @JvmOverloads constructor(
                     painter = painterResource(id = R.drawable.ic_push_monitor),
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MutedText
+                    tint = supportingColor
                 )
                 Text(
                     text = stringResource(id = R.string.push_browser_address),
-                    color = MutedText,
+                    color = supportingColor,
                     fontSize = 14.sp,
                     lineHeight = 18.sp,
                     fontWeight = FontWeight.Medium,
@@ -245,15 +249,15 @@ class JetStreamPushView @JvmOverloads constructor(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Surface)
-                    .border(1.dp, Outline.copy(alpha = 0.52f), RoundedCornerShape(20.dp))
+                    .background(colorScheme.surface)
+                    .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.52f), RoundedCornerShape(20.dp))
                     .padding(start = 24.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = addressText,
                     modifier = Modifier.weight(1f),
-                    color = Accent,
+                    color = colorScheme.primary,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 18.sp,
                     lineHeight = 24.sp,
@@ -268,6 +272,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun CopyAddressButton() {
+        val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
@@ -276,7 +281,7 @@ class JetStreamPushView @JvmOverloads constructor(
             label = "pushCopyScale"
         )
         val background by animateColorAsState(
-            targetValue = if (focused) Outline else Color.Transparent,
+            targetValue = if (focused) colorScheme.outlineVariant else Color.Transparent,
             animationSpec = JetStreamAnimations.ColorTween,
             label = "pushCopyBackground"
         )
@@ -299,13 +304,14 @@ class JetStreamPushView @JvmOverloads constructor(
                 painter = painterResource(id = if (copied) R.drawable.msr_check else R.drawable.msr_content_copy),
                 contentDescription = stringResource(id = R.string.push_copy_url),
                 modifier = Modifier.size(22.dp),
-                tint = if (copied) Success else OnSurfaceVariant
+                tint = if (copied) colorScheme.tertiary else colorScheme.onSurfaceVariant
             )
         }
     }
 
     @Composable
     private fun PushClipboardButton() {
+        val colorScheme = MaterialTheme.colorScheme
         var pushed by remember { mutableStateOf(false) }
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
@@ -320,15 +326,19 @@ class JetStreamPushView @JvmOverloads constructor(
         )
         val background by animateColorAsState(
             targetValue = when {
-                pushed -> SuccessContainer
-                focused -> AccentFocused
-                else -> Accent
+                pushed -> colorScheme.tertiaryContainer
+                focused -> colorScheme.primary
+                else -> colorScheme.primaryContainer
             },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "pushClipboardBackground"
         )
         val contentColor by animateColorAsState(
-            targetValue = if (pushed) SuccessOnContainer else AccentOn,
+            targetValue = when {
+                pushed -> colorScheme.onTertiaryContainer
+                focused -> colorScheme.onPrimary
+                else -> colorScheme.onPrimaryContainer
+            },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "pushClipboardContent"
         )
@@ -378,6 +388,8 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun HintRow() {
+        val colorScheme = MaterialTheme.colorScheme
+        val supportingColor = colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -388,7 +400,7 @@ class JetStreamPushView @JvmOverloads constructor(
                 modifier = Modifier
                     .height(1.dp)
                     .fillMaxWidth()
-                    .background(Outline.copy(alpha = 0.42f))
+                    .background(colorScheme.outlineVariant.copy(alpha = 0.42f))
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -398,11 +410,11 @@ class JetStreamPushView @JvmOverloads constructor(
                     painter = painterResource(id = R.drawable.ic_push_info),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = MutedText
+                    tint = supportingColor
                 )
                 Text(
                     text = stringResource(id = R.string.push_wifi_hint),
-                    color = MutedText,
+                    color = supportingColor,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
@@ -412,13 +424,14 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun QrPanel(modifier: Modifier) {
+        val colorScheme = MaterialTheme.colorScheme
         val panelShape = RoundedCornerShape(40.dp)
         Column(
             modifier = modifier
                 .shadow(22.dp, panelShape, clip = false)
                 .clip(panelShape)
-                .background(Surface)
-                .border(1.dp, Outline.copy(alpha = 0.32f), panelShape)
+                .background(colorScheme.surface)
+                .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.32f), panelShape)
                 .padding(horizontal = 56.dp, vertical = 56.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -432,11 +445,11 @@ class JetStreamPushView @JvmOverloads constructor(
                     painter = painterResource(id = R.drawable.msr_smartphone),
                     contentDescription = null,
                     modifier = Modifier.size(26.dp),
-                    tint = Accent
+                    tint = colorScheme.primary
                 )
                 Text(
                     text = stringResource(id = R.string.push_scan_title),
-                    color = OnSurface,
+                    color = colorScheme.onSurface,
                     fontSize = 24.sp,
                     lineHeight = 30.sp,
                     fontWeight = FontWeight.Medium,
@@ -447,7 +460,7 @@ class JetStreamPushView @JvmOverloads constructor(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(id = R.string.push_scan_desc),
-                color = MutedText,
+                color = colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Center,
@@ -459,6 +472,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun QrImageCard() {
+        val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val shape = RoundedCornerShape(28.dp)
@@ -468,7 +482,7 @@ class JetStreamPushView @JvmOverloads constructor(
             label = "pushQrScale"
         )
         val borderColor by animateColorAsState(
-            targetValue = if (focused) Accent else Color.Transparent,
+            targetValue = if (focused) colorScheme.primary else Color.Transparent,
             animationSpec = JetStreamAnimations.ColorTween,
             label = "pushQrBorder"
         )
@@ -510,6 +524,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun CopyToast(visible: Boolean, modifier: Modifier) {
+        val colorScheme = MaterialTheme.colorScheme
         AnimatedVisibility(
             visible = visible,
             modifier = modifier,
@@ -520,7 +535,7 @@ class JetStreamPushView @JvmOverloads constructor(
                 modifier = Modifier
                     .shadow(12.dp, CircleShape, clip = false)
                     .clip(CircleShape)
-                    .background(OnSurface)
+                    .background(colorScheme.surface)
                     .padding(horizontal = 22.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -529,11 +544,11 @@ class JetStreamPushView @JvmOverloads constructor(
                     painter = painterResource(id = R.drawable.msr_check),
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = SuccessOnContainer
+                    tint = colorScheme.tertiary
                 )
                 Text(
                     text = stringResource(id = R.string.push_copied_url),
-                    color = Background,
+                    color = colorScheme.onSurface,
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Medium,
@@ -542,20 +557,5 @@ class JetStreamPushView @JvmOverloads constructor(
                 )
             }
         }
-    }
-
-    private companion object {
-        val Background = Color(0xFF131314)
-        val Surface = Color(0xFF1E1F22)
-        val Outline = Color(0xFF444746)
-        val OnSurface = Color(0xFFE2E2E2)
-        val OnSurfaceVariant = Color(0xFFC4C7C5)
-        val MutedText = Color(0xFF8E918F)
-        val Accent = Color(0xFFA8C7FA)
-        val AccentFocused = Color(0xFFD3E3FD)
-        val AccentOn = Color(0xFF062E6F)
-        val Success = Color(0xFF4ADE80)
-        val SuccessContainer = Color(0xFFBBF7D0)
-        val SuccessOnContainer = Color(0xFF14532D)
     }
 }

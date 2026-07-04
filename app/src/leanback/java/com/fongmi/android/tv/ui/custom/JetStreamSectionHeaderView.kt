@@ -66,7 +66,7 @@ class JetStreamSectionHeaderView @JvmOverloads constructor(
                 Box(
                     modifier = Modifier
                         .width(4.dp)
-                        .height(28.dp)
+                        .height(22.dp)
                         .clip(RoundedCornerShape(2.dp))
                         .background(MaterialTheme.colorScheme.primary)
                 )
@@ -74,8 +74,8 @@ class JetStreamSectionHeaderView @JvmOverloads constructor(
                 Text(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 29.sp,
-                    lineHeight = 34.sp,
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

@@ -121,6 +121,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var controlPanelVisible by mutableStateOf(false)
     private var topInfoVisible by mutableStateOf(false)
     private var centerInfoVisible by mutableStateOf(false)
+    private var showTopInfoSubtitle by mutableStateOf(false)
     private var infoSize by mutableStateOf("")
     private var infoClock by mutableStateOf("")
     private var infoAction by mutableStateOf(ACTION_PLAY)
@@ -174,6 +175,10 @@ class JetStreamVodControlView @JvmOverloads constructor(
         setCommandGroupVisibility(GROUP_PLAYLIST, playlist)
         setCommandGroupVisibility(GROUP_CAPTIONS, captions)
         setCommandGroupVisibility(GROUP_SETTINGS, settings)
+    }
+
+    fun setTopInfoSubtitleVisible(visible: Boolean) {
+        showTopInfoSubtitle = visible
     }
 
     fun setControlsVisible(visible: Boolean) {
@@ -329,7 +334,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (subtitle.isNotEmpty()) {
+                if (showTopInfoSubtitle && subtitle.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = subtitle,

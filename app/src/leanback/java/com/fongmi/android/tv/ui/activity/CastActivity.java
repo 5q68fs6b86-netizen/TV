@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
@@ -31,6 +33,7 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
+import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
 import com.fongmi.android.tv.ui.dialog.PlayerEngineDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
@@ -91,6 +94,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     protected void onServiceConnected() {
         mBinding.control.action.decode.setText(player().getDecodeText());
         mBinding.control.action.speed.setText(player().getSpeedText());
+        syncJetStreamControl();
         setAction(getIntent());
     }
 
@@ -134,10 +138,49 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void setVideoView() {
-        setSeekNextFocusDown(R.id.reset);
+        setSeekNextFocusDown(R.id.jetstream);
         setScale(scale = PlayerSetting.getScale());
         setActionFocusBoundary(mBinding.control.action.getRoot());
         PlayerEngineDialog.setText(mBinding.control.action.player);
+        setJetStreamControl();
+    }
+
+    private void setJetStreamControl() {
+        mBinding.control.jetstream.setListener(new JetStreamVodControlView.Listener() {
+            @Override
+            public void onPlayPause() {
+                onJetStreamPlayPause();
+            }
+
+            @Override
+            public void onPrevious() {
+            }
+
+            @Override
+            public void onNext() {
+            }
+
+            @Override
+            public void onRepeat() {
+            }
+
+            @Override
+            public void onCommand(@NonNull String key) {
+                onJetStreamCommand(key);
+            }
+
+            @Override
+            public void onSeekTo(long positionMs) {
+                if (!isPlaybackReady() || player().isEmpty()) return;
+                controller().seekTo(positionMs);
+            }
+
+            @Override
+            public void onShowControls() {
+                setR1Callback();
+            }
+        });
+        mBinding.control.jetstream.setTransportActions(false, false, false);
     }
 
     private String getName() {
@@ -154,14 +197,17 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.widget.title.setText(getName());
         mBinding.widget.title.setSelected(true);
         resetMedia();
+        syncJetStreamControl();
         start();
     }
 
     private void resetMedia() {
         hideError();
         hideControl();
+        hideInfo();
         player().setSpeed(1.0f);
         player().setRepeatOne(false);
+        syncJetStreamControl();
     }
 
     private void start() {
@@ -172,11 +218,13 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     private void setPlaybackMode() {
         PlayerEngineDialog.setText(mBinding.control.action.player, player());
         mBinding.control.action.decode.setText(player().getDecodeText());
+        syncJetStreamControl();
     }
 
     private void setScale(int scale) {
         mBinding.player.setResizeMode(scale);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
+        syncJetStreamControl();
     }
 
     private void onScale() {
@@ -187,14 +235,17 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     private void onSpeed() {
         mBinding.control.action.speed.setText(player().addSpeed());
+        syncJetStreamControl();
     }
 
     private void onSpeedAdd() {
         mBinding.control.action.speed.setText(player().addSpeed(0.25f));
+        syncJetStreamControl();
     }
 
     private void onSpeedSub() {
         mBinding.control.action.speed.setText(player().subSpeed(0.25f));
+        syncJetStreamControl();
     }
 
     private void onReset() {
@@ -212,6 +263,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         if (player().isEmpty()) return;
         position = player().getPosition();
         player().toggleDecode();
+        syncJetStreamControl();
     }
 
     private void onTrack(View view) {
@@ -220,7 +272,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void onToggle() {
-        if (isVisible(mBinding.control.getRoot())) hideControl();
+        if (isJetStreamControlVisible()) hideControl();
         else showControl();
     }
 
@@ -249,31 +301,75 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void showInfo() {
-        JetStreamAnimator.show(mBinding.widget.top, 0, -12, JetStreamAnimator.FOCUS_DURATION);
-        JetStreamAnimator.show(mBinding.widget.center, 0, 0, JetStreamAnimator.FOCUS_DURATION);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(0));
+        if (service() == null || isJetStreamControlVisible()) return;
+        showJetStreamInfo(true, true, JetStreamVodControlView.ACTION_PLAY, player().getPositionTime(0), player().getDurationTime());
     }
 
     private void hideInfo() {
-        JetStreamAnimator.hide(mBinding.widget.top, 0, -12, View.GONE, JetStreamAnimator.EXIT_DURATION);
-        JetStreamAnimator.hide(mBinding.widget.center, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        mBinding.widget.top.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(false, false, "", "", JetStreamVodControlView.ACTION_PLAY, "", "");
+        updateJetStreamVisibility();
     }
 
     private void showControl() {
-        JetStreamAnimator.show(mBinding.control.getRoot(), 0, 18, JetStreamAnimator.PANEL_DURATION);
-        mBinding.control.action.reset.requestFocus();
+        hideInfo();
+        syncJetStreamControl();
+        mBinding.control.jetstream.setControlsVisible(true);
+        setJetStreamOverlayVisible(true);
+        App.post(() -> mBinding.control.jetstream.requestFocus(), 25);
         setR1Callback();
     }
 
     private void hideControl() {
-        JetStreamAnimator.hide(mBinding.control.getRoot(), 0, 18, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        mBinding.control.jetstream.setControlsVisible(false);
+        mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
+        if (service() != null && !player().isPlaying() && isPaused()) showInfo();
+        else updateJetStreamVisibility();
     }
 
     private void hideCenter() {
         mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
         hideInfo();
+    }
+
+    private void showJetStreamInfo(boolean top, boolean center, String action, CharSequence position, CharSequence duration) {
+        syncJetStreamControl();
+        mBinding.widget.top.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(top, center, mBinding.widget.size.getText(), mBinding.widget.clock.getText(), action, position, duration);
+        updateJetStreamVisibility();
+    }
+
+    private void updateJetStreamVisibility() {
+        setJetStreamOverlayVisible(isJetStreamControlVisible() || isJetStreamInfoVisible());
+    }
+
+    private void setJetStreamOverlayVisible(boolean visible) {
+        View root = mBinding.control.getRoot();
+        if (visible) {
+            root.animate().cancel();
+            if (root.getVisibility() != View.VISIBLE || root.getAlpha() < 1f || root.getTranslationX() != 0f || root.getTranslationY() != 0f) {
+                JetStreamAnimator.show(root, 0, 0, JetStreamAnimator.FOCUS_DURATION);
+            } else {
+                root.setVisibility(View.VISIBLE);
+            }
+        } else {
+            JetStreamAnimator.hide(root, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        }
+    }
+
+    private boolean isJetStreamControlVisible() {
+        return mBinding.control.jetstream.isControlsVisible();
+    }
+
+    private boolean isJetStreamInfoVisible() {
+        return mBinding.control.jetstream.isInfoVisible();
+    }
+
+    private boolean isJetStreamCenterVisible() {
+        return mBinding.control.jetstream.isCenterInfoVisible();
     }
 
     private void setTraffic() {
@@ -283,6 +379,77 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     private void setR1Callback() {
         App.post(mR1, Constant.INTERVAL_HIDE);
+    }
+
+    private void onJetStreamPlayPause() {
+        if (!isPlaybackReady()) return;
+        if (player().isPlaying()) onPaused();
+        else onPlay();
+        syncJetStreamControl();
+    }
+
+    private void onJetStreamCommand(String key) {
+        switch (key) {
+            case "reset" -> onReset();
+            case "subtitle" -> onSubtitleClick();
+            case "text" -> onTrack(mBinding.control.action.text);
+            case "audio" -> onTrack(mBinding.control.action.audio);
+            case "video" -> onTrack(mBinding.control.action.video);
+            case "speed" -> onSpeed();
+            case "scale" -> onScale();
+            case "player" -> onChoose();
+            case "decode" -> onDecode();
+        }
+        syncJetStreamControl();
+    }
+
+    private void syncJetStreamControl() {
+        if (mBinding == null) return;
+        boolean owner = service() != null && isOwner();
+        boolean playing = owner && player().isPlaying();
+        mBinding.control.jetstream.setPlayer(controller());
+        mBinding.control.jetstream.setMediaTitle(getJetStreamTitle(), getJetStreamSecondaryText(), getJetStreamTertiaryText());
+        mBinding.control.jetstream.setPlaybackState(playing, false);
+        mBinding.control.jetstream.setTransportActions(false, false, false);
+        mBinding.control.jetstream.setTopInfoSubtitleVisible(false);
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_PLAYLIST, R.drawable.ic_push_cast, getString(R.string.push), true, "reset");
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_CAPTIONS, R.drawable.msr_closed_caption, getString(R.string.play_subtitle), true, "subtitle", "text", "audio", "video");
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_SETTINGS, R.drawable.msr_settings, getString(R.string.setting_section_playback), true, "speed", "scale", "player", "decode");
+        syncJetStreamCommands();
+    }
+
+    private void syncJetStreamCommands() {
+        setJetStreamCommand("reset", mBinding.control.action.reset, true);
+        setJetStreamCommand("subtitle", getString(R.string.play_subtitle), true, false);
+        setJetStreamCommand("text", mBinding.control.action.text, isVisible(mBinding.control.action.text));
+        setJetStreamCommand("audio", mBinding.control.action.audio, isVisible(mBinding.control.action.audio));
+        setJetStreamCommand("video", mBinding.control.action.video, isVisible(mBinding.control.action.video));
+        setJetStreamCommand("speed", mBinding.control.action.speed, true);
+        setJetStreamCommand("scale", mBinding.control.action.scale, true);
+        setJetStreamCommand("player", mBinding.control.action.player, true);
+        setJetStreamCommand("decode", mBinding.control.action.decode, isVisible(mBinding.control.action.decode));
+    }
+
+    private void setJetStreamCommand(String key, TextView view, boolean visible) {
+        setJetStreamCommand(key, view.getText(), visible, view.isSelected());
+    }
+
+    private void setJetStreamCommand(String key, CharSequence label, boolean visible, boolean selected) {
+        mBinding.control.jetstream.setCommand(key, label, visible, selected);
+    }
+
+    private CharSequence getJetStreamTitle() {
+        CharSequence title = mBinding.widget.title.getText();
+        return title == null ? "" : title;
+    }
+
+    private CharSequence getJetStreamSecondaryText() {
+        CharSequence size = mBinding.widget.size.getText();
+        return size == null ? "" : size;
+    }
+
+    private CharSequence getJetStreamTertiaryText() {
+        return "";
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -295,6 +462,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.control.action.text.setVisibility(player().haveTrack(C.TRACK_TYPE_TEXT) || player().isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.action.audio.setVisibility(player().haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(player().haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
+        syncJetStreamControl();
     }
 
     private MediaMetadata buildMetadata() {
@@ -326,6 +494,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
             mRenderer = ((DLNARendererService.LocalBinder) binder).getService();
             mRenderer.setDlnaActive(true);
             consumePendingSeek();
+            syncJetStreamControl();
         }
 
         @Override
@@ -402,10 +571,12 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     @Override
     protected void onSizeChanged(VideoSize size) {
         mBinding.widget.size.setText(player().getSizeText());
+        syncJetStreamControl();
     }
 
     @Override
     protected void onPlayingChanged(boolean isPlaying) {
+        syncJetStreamControl();
         if (isPlaying) {
             hideCenter();
         } else if (isPaused()) {
@@ -422,18 +593,15 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) onToggle();
-        if (isVisible(mBinding.control.getRoot())) setR1Callback();
-        if (isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && isPlaybackReady()) return mKeyDown.onKeyDown(event);
+        if (isJetStreamControlVisible()) setR1Callback();
+        if (!isJetStreamControlVisible() && mKeyDown.hasEvent(event) && isPlaybackReady()) return mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
 
     @Override
     public void onSeeking(long time) {
         if (player().isEmpty()) return;
-        mBinding.widget.center.setVisibility(View.VISIBLE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(time));
-        mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        showJetStreamInfo(true, true, time > 0 ? JetStreamVodControlView.ACTION_FORWARD : JetStreamVodControlView.ACTION_REWIND, player().getPositionTime(time), player().getDurationTime());
         hideProgress();
     }
 
@@ -450,6 +618,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.widget.speed.setVisibility(View.VISIBLE);
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.control.action.speed.setText(player().setSpeed(PlayerSetting.getSpeed()));
+        syncJetStreamControl();
         return true;
     }
 
@@ -459,6 +628,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.widget.speed.setVisibility(View.GONE);
         if (!isPlaybackReady()) return;
         mBinding.control.action.speed.setText(player().setSpeed(1.0f));
+        syncJetStreamControl();
     }
 
     @Override
@@ -503,9 +673,9 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     @Override
     protected void onBackInvoked() {
-        if (isVisible(mBinding.control.getRoot())) {
+        if (isJetStreamControlVisible()) {
             hideControl();
-        } else if (isVisible(mBinding.widget.center)) {
+        } else if (isJetStreamCenterVisible() || isVisible(mBinding.widget.center)) {
             hideCenter();
         } else {
             super.onBackInvoked();

@@ -23,10 +23,10 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Checkout FongMi Media3 fork
+      - name: Checkout Media3 fork
         uses: actions/checkout@v4
         with:
-          repository: FongMi/media
+          repository: wobuhui666/media
           ref: release-1.10.1-fongmi
           path: .media3
           fetch-depth: 1
