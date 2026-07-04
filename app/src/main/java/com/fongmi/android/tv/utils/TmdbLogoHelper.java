@@ -23,8 +23,8 @@ import okhttp3.Response;
 
 public final class TmdbLogoHelper {
 
-    private static final String API_BASE = "https://api.themoviedb.org/3/";
-    private static final String IMAGE_BASE = "https://image.tmdb.org/t/p/";
+    private static final String API_BASE = "https://tapi.coolmarket.eu.org/3/";
+    private static final String IMAGE_BASE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DEFAULT_LOGO_SIZE = "w500";
     private static final String INCLUDE_IMAGE_LANGUAGE = "zh,en,null";
     private static final Pattern YEAR = Pattern.compile("(?:19|20)\\d{2}");
@@ -41,10 +41,6 @@ public final class TmdbLogoHelper {
         String safeTitle = normalize(title);
         String safeYear = normalizeYear(year);
         String safeImageSize = normalizeImageSize(imageSize);
-        if (TextUtils.isEmpty(safeApiKey)) {
-            post(() -> callback.onError(new IllegalArgumentException("TMDB apiKey is empty")));
-            return;
-        }
         if (TextUtils.isEmpty(safeTitle)) {
             post(callback::onNotFound);
             return;
@@ -129,10 +125,10 @@ public final class TmdbLogoHelper {
         HttpUrl url = HttpUrl.parse(API_BASE + type.searchPath);
         if (url == null) throw new IllegalArgumentException("Invalid TMDB search URL");
         HttpUrl.Builder builder = url.newBuilder()
-                .addQueryParameter("api_key", apiKey)
                 .addQueryParameter("query", title)
                 .addQueryParameter("language", "zh-CN")
                 .addQueryParameter("include_adult", "false");
+        if (!TextUtils.isEmpty(apiKey)) builder.addQueryParameter("api_key", apiKey);
         if (!TextUtils.isEmpty(year)) builder.addQueryParameter(type.yearParam, year);
         return builder.build();
     }
@@ -140,10 +136,10 @@ public final class TmdbLogoHelper {
     private static HttpUrl buildImagesUrl(String apiKey, MediaType type, int id) {
         HttpUrl url = HttpUrl.parse(API_BASE + type.detailPath + "/" + id + "/images");
         if (url == null) throw new IllegalArgumentException("Invalid TMDB images URL");
-        return url.newBuilder()
-                .addQueryParameter("api_key", apiKey)
-                .addQueryParameter("include_image_language", INCLUDE_IMAGE_LANGUAGE)
-                .build();
+        HttpUrl.Builder builder = url.newBuilder()
+                .addQueryParameter("include_image_language", INCLUDE_IMAGE_LANGUAGE);
+        if (!TextUtils.isEmpty(apiKey)) builder.addQueryParameter("api_key", apiKey);
+        return builder.build();
     }
 
     @Nullable

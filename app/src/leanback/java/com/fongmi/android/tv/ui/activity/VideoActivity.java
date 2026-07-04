@@ -1376,7 +1376,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void fetchTmdbLogo(Vod item) {
         String apiKey = BuildConfig.TMDB_API_KEY;
         String title = item.getName();
-        if (TextUtils.isEmpty(apiKey) || TextUtils.isEmpty(title)) return;
+        if (TextUtils.isEmpty(title)) return;
         String request = title + "\n" + item.getYear() + "\n" + item.getTypeName();
         mTmdbLogoRequest = request;
         TmdbLogoHelper.findLogo(apiKey, title, item.getYear(), item.getTypeName(), BuildConfig.TMDB_LOGO_SIZE, new TmdbLogoHelper.LogoCallback() {

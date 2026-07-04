@@ -127,7 +127,7 @@ printf '%s\n' \
 
 `release.jks` 和 `local.properties` 已被 `.gitignore` 忽略。正式发布时应替换为自己的 keystore 和密码，不要复用上述测试签名。
 
-如需 TMDB logo，可在 `local.properties` 追加：
+TMDB logo 默认通过反代域名请求；如需在客户端显式携带 TMDB key，可在 `local.properties` 追加：
 
 ```properties
 tmdbApiKey=你的_TMDB_API_KEY
