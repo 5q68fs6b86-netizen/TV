@@ -86,6 +86,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private boolean playWhenReady;
     private boolean loading;
     private boolean closed;
+    private boolean fileLoaded;
     private boolean renderedFirstFrame;
     private boolean newlyRenderedFirstFrame;
     private long positionMs;
@@ -192,6 +193,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
         pendingSeekAfterLoadMs = C.TIME_UNSET;
+        fileLoaded = false;
         renderedFirstFrame = false;
         newlyRenderedFirstFrame = false;
         loading = false;
@@ -457,6 +459,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
         this.pendingSeekAfterLoadMs = C.TIME_UNSET;
+        this.fileLoaded = false;
         this.renderedFirstFrame = false;
         this.newlyRenderedFirstFrame = false;
         this.playWhenReady = true;
@@ -488,6 +491,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         this.pendingUrl = null;
         this.pendingStartPositionMs = C.TIME_UNSET;
         this.pendingSeekAfterLoadMs = C.TIME_UNSET;
+        this.fileLoaded = false;
         this.renderedFirstFrame = false;
         this.newlyRenderedFirstFrame = false;
         this.playWhenReady = true;
@@ -510,6 +514,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         pendingUrl = null;
         pendingStartPositionMs = C.TIME_UNSET;
         pendingSeekAfterLoadMs = C.TIME_UNSET;
+        fileLoaded = false;
         renderedFirstFrame = false;
         newlyRenderedFirstFrame = false;
         loading = false;
@@ -538,7 +543,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         MpvLogCollector.log("MpvPlayer", "开始加载URL: " + url);
         MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
 
-        if (startPositionMs > 0 && isHlsUrl(url)) {
+        if (startPositionMs > 0 && shouldDeferInitialSeek(url)) {
             pendingSeekAfterLoadMs = startPositionMs;
             command("loadfile", url, "replace");
         } else if (startPositionMs > 0) {
@@ -553,12 +558,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
     private void handleEvent(int eventId, MPVNode data) {
         switch (eventId) {
             case MpvEvent.MPV_EVENT_START_FILE -> {
+                fileLoaded = false;
                 loading = true;
                 playbackState = Player.STATE_BUFFERING;
                 playerError = null;
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_FILE_LOADED -> {
+                fileLoaded = true;
                 loading = false;
                 playbackState = Player.STATE_READY;
                 MpvLogCollector.log("MpvPlayer", "文件加载成功");
@@ -574,6 +581,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
+                fileLoaded = true;
                 loading = false;
                 if (mediaItem != null) playbackState = Player.STATE_READY;
                 seekAfterLoadIfNeeded();
@@ -586,6 +594,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
 
     private void handleEndFile(MPVNode data) {
         loading = false;
+        fileLoaded = false;
         String reason = getString(data, "reason");
         if ("error".equals(reason)) {
             // Extract detailed error information from mpv
@@ -644,7 +653,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         long seekMs = Math.max(0, pendingSeekAfterLoadMs);
         pendingSeekAfterLoadMs = C.TIME_UNSET;
         positionMs = seekMs;
-        MpvLogCollector.log("MpvPlayer", "HLS加载后定位: " + seekMs + "ms");
+        MpvLogCollector.log("MpvPlayer", "加载后定位: " + seekMs + "ms");
         command("set", "time-pos", seconds(seekMs));
     }
 
@@ -696,6 +705,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
 
     private void markRenderedFirstFrame() {
         if (renderedFirstFrame) return;
+        if (!fileLoaded) return;
         if (attachedSurface == null || !attachedSurface.isValid()) return;
         if (videoSize.width <= 0 || videoSize.height <= 0) return;
         renderedFirstFrame = true;
@@ -1155,6 +1165,16 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
 
     private static boolean isHlsUrl(String url) {
         return !TextUtils.isEmpty(url) && url.toLowerCase(Locale.US).contains(".m3u8");
+    }
+
+    private static boolean isHttpUrl(String url) {
+        if (TextUtils.isEmpty(url)) return false;
+        String lower = url.toLowerCase(Locale.US);
+        return lower.startsWith("http://") || lower.startsWith("https://");
+    }
+
+    private static boolean shouldDeferInitialSeek(String url) {
+        return isHlsUrl(url) || isHttpUrl(url);
     }
 
     private void runOnApplicationThread(Runnable runnable) {
