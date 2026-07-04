@@ -43,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -99,6 +100,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
         val selected: Boolean
     )
 
+    private data class CommandGroupState(
+        val key: String,
+        @param:DrawableRes val icon: Int,
+        val label: String,
+        val visible: Boolean,
+        val commandKeys: List<String>
+    )
+
     private var listener: Listener? = null
     private var mediaPlayer by mutableStateOf<Player?>(null)
     private var mediaTitle by mutableStateOf("")
@@ -106,9 +115,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var tertiaryText by mutableStateOf("")
     private var playing by mutableStateOf(false)
     private var repeating by mutableStateOf(false)
-    private var playlistEnabled by mutableStateOf(true)
-    private var captionsEnabled by mutableStateOf(true)
-    private var settingsEnabled by mutableStateOf(true)
+    private var previousVisible by mutableStateOf(true)
+    private var nextVisible by mutableStateOf(true)
+    private var repeatVisible by mutableStateOf(true)
     private var controlPanelVisible by mutableStateOf(false)
     private var topInfoVisible by mutableStateOf(false)
     private var centerInfoVisible by mutableStateOf(false)
@@ -118,6 +127,11 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var infoPosition by mutableStateOf("")
     private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
+    private val commandGroups = mutableStateListOf(
+        CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
+        CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, "Captions", true, CAPTION_COMMANDS),
+        CommandGroupState(GROUP_SETTINGS, R.drawable.msr_settings, "Settings", true, SETTINGS_COMMANDS)
+    )
     private val commands = mutableStateMapOf<String, CommandState>()
 
     init {
@@ -150,10 +164,16 @@ class JetStreamVodControlView @JvmOverloads constructor(
         repeating = isRepeating
     }
 
+    fun setTransportActions(previous: Boolean, next: Boolean, repeat: Boolean) {
+        previousVisible = previous
+        nextVisible = next
+        repeatVisible = repeat
+    }
+
     fun setTopActions(playlist: Boolean, captions: Boolean, settings: Boolean) {
-        playlistEnabled = playlist
-        captionsEnabled = captions
-        settingsEnabled = settings
+        setCommandGroupVisibility(GROUP_PLAYLIST, playlist)
+        setCommandGroupVisibility(GROUP_CAPTIONS, captions)
+        setCommandGroupVisibility(GROUP_SETTINGS, settings)
     }
 
     fun setControlsVisible(visible: Boolean) {
@@ -192,6 +212,13 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     fun setCommand(key: String, label: CharSequence?, visible: Boolean, selected: Boolean) {
         commands[key] = CommandState(label?.toString().orEmpty(), visible, selected)
+    }
+
+    fun setCommandGroup(key: String, @DrawableRes icon: Int, label: CharSequence?, visible: Boolean, vararg commandKeys: String) {
+        val group = CommandGroupState(key, icon, label?.toString().orEmpty(), visible, commandKeys.toList())
+        val index = commandGroups.indexOfFirst { it.key == key }
+        if (index >= 0) commandGroups[index] = group else commandGroups.add(group)
+        if (!visible && activeGroup == key) activeGroup = null
     }
 
     fun showGroup(group: String?) {
@@ -280,6 +307,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun BoxScope.TopInfo() {
         val colorScheme = MaterialTheme.colorScheme
+        val subtitle = subtitleText()
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -301,6 +329,16 @@ class JetStreamVodControlView @JvmOverloads constructor(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (subtitle.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = subtitle,
+                        color = colorScheme.onSurfaceVariant,
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 if (infoSize.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -396,29 +434,31 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ControlIcon(R.drawable.msr_skip_previous, isPlaying, true, false, "Previous") {
-                    listener?.onPrevious()
+                if (previousVisible) {
+                    ControlIcon(R.drawable.msr_skip_previous, isPlaying, true, false, "Previous") {
+                        listener?.onPrevious()
+                    }
                 }
-                ControlIcon(R.drawable.msr_skip_next, isPlaying, true, false, "Next") {
-                    listener?.onNext()
+                if (nextVisible) {
+                    ControlIcon(R.drawable.msr_skip_next, isPlaying, true, false, "Next") {
+                        listener?.onNext()
+                    }
                 }
-                ControlIcon(
-                    icon = if (repeating) R.drawable.msr_repeat_one else R.drawable.msr_repeat,
-                    isPlaying = isPlaying,
-                    enabled = true,
-                    selected = repeating,
-                    contentDescription = "Repeat"
-                ) {
-                    listener?.onRepeat()
+                if (repeatVisible) {
+                    ControlIcon(
+                        icon = if (repeating) R.drawable.msr_repeat_one else R.drawable.msr_repeat,
+                        isPlaying = isPlaying,
+                        enabled = true,
+                        selected = repeating,
+                        contentDescription = "Repeat"
+                    ) {
+                        listener?.onRepeat()
+                    }
                 }
-                ControlIcon(R.drawable.msr_auto_awesome_motion, isPlaying, playlistEnabled, activeGroup == GROUP_PLAYLIST, "Playlist") {
-                    toggleGroup(GROUP_PLAYLIST)
-                }
-                ControlIcon(R.drawable.msr_closed_caption, isPlaying, captionsEnabled, activeGroup == GROUP_CAPTIONS, "Captions") {
-                    toggleGroup(GROUP_CAPTIONS)
-                }
-                ControlIcon(R.drawable.msr_settings, isPlaying, settingsEnabled, activeGroup == GROUP_SETTINGS, "Settings") {
-                    toggleGroup(GROUP_SETTINGS)
+                commandGroups.filter { it.visible }.forEach { group ->
+                    ControlIcon(group.icon, isPlaying, true, activeGroup == group.key, group.label) {
+                        toggleGroup(group.key)
+                    }
                 }
             }
         }
@@ -427,11 +467,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun MediaTitle(modifier: Modifier) {
         val colorScheme = MaterialTheme.colorScheme
-        val subtitle = buildString {
-            append(secondaryText)
-            if (secondaryText.isNotEmpty() && tertiaryText.isNotEmpty()) append(" • ")
-            append(tertiaryText)
-        }
+        val subtitle = subtitleText()
         Column(modifier = modifier.padding(end = 24.dp)) {
             Text(
                 text = mediaTitle,
@@ -483,13 +519,8 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun MorePanel() {
         val group = activeGroup ?: return
-        val keys = when (group) {
-            GROUP_PLAYLIST -> PLAYLIST_COMMANDS
-            GROUP_CAPTIONS -> CAPTION_COMMANDS
-            GROUP_SETTINGS -> SETTINGS_COMMANDS
-            else -> emptyList()
-        }
-        val visibleCommands = keys.mapNotNull { key ->
+        val groupState = commandGroups.firstOrNull { it.key == group && it.visible } ?: return
+        val visibleCommands = groupState.commandKeys.mapNotNull { key ->
             commands[key]?.takeIf { it.visible && it.label.isNotEmpty() }?.let { key to it }
         }
         if (visibleCommands.isEmpty()) return
@@ -723,6 +754,22 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private fun toggleGroup(group: String) {
         activeGroup = if (activeGroup == group) null else group
         listener?.onShowControls()
+    }
+
+    private fun setCommandGroupVisibility(key: String, visible: Boolean) {
+        val index = commandGroups.indexOfFirst { it.key == key }
+        if (index < 0) return
+        val group = commandGroups[index]
+        commandGroups[index] = group.copy(visible = visible)
+        if (!visible && activeGroup == key) activeGroup = null
+    }
+
+    private fun subtitleText(): String {
+        return buildString {
+            append(secondaryText)
+            if (secondaryText.isNotEmpty() && tertiaryText.isNotEmpty()) append(" • ")
+            append(tertiaryText)
+        }
     }
 
     private fun normalize(value: Long?): Long {

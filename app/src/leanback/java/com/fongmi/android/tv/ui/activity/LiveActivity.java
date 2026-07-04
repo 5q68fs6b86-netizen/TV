@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,6 +59,7 @@ import com.fongmi.android.tv.ui.adapter.GroupAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.CustomLiveListView;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
+import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
@@ -156,6 +158,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     protected void onServiceConnected() {
         PlaybackAction.setPlaybackMode(player(), mBinding.control.action.player, mBinding.control.action.decode);
         PlaybackAction.setSpeedText(player(), mBinding.control.action.speed);
+        syncJetStreamControl();
         checkLive();
     }
 
@@ -221,22 +224,64 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setVideoView() {
         setScale(LiveSetting.getScale());
-        setSeekNextFocusDown(R.id.config);
+        setSeekNextFocusDown(R.id.jetstream);
         setActionFocusBoundary(mBinding.control.action.getRoot());
         PlayerEngineDialog.setText(mBinding.control.action.player);
         mBinding.control.action.invert.setSelected(LiveSetting.isInvert());
         mBinding.control.action.across.setSelected(LiveSetting.isAcross());
         mBinding.control.action.change.setSelected(LiveSetting.isChange());
+        setJetStreamControl();
     }
 
     private void setPlaybackMode() {
         PlaybackAction.setPlaybackMode(player(), mBinding.control.action.player, mBinding.control.action.decode);
+        syncJetStreamControl();
     }
 
     private void setScale(int scale) {
         LiveSetting.putScale(scale);
         mBinding.player.setResizeMode(scale);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
+        syncJetStreamControl();
+    }
+
+    private void setJetStreamControl() {
+        mBinding.control.jetstream.setListener(new JetStreamVodControlView.Listener() {
+            @Override
+            public void onPlayPause() {
+                onJetStreamPlayPause();
+            }
+
+            @Override
+            public void onPrevious() {
+                prevChannel();
+            }
+
+            @Override
+            public void onNext() {
+                nextChannel();
+            }
+
+            @Override
+            public void onRepeat() {
+            }
+
+            @Override
+            public void onCommand(@NonNull String key) {
+                onJetStreamCommand(key);
+            }
+
+            @Override
+            public void onSeekTo(long positionMs) {
+                if (controller() != null && !player().isLive()) controller().seekTo(positionMs);
+            }
+
+            @Override
+            public void onShowControls() {
+                setR1Callback();
+            }
+        });
+        mBinding.control.jetstream.setTransportActions(true, true, false);
     }
 
     private void setViewModel() {
@@ -281,6 +326,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void getLive() {
         mBinding.control.action.home.setText(LiveConfig.isOnly() ? getString(R.string.live_refresh) : getHome().getName());
+        syncJetStreamControl();
         mViewModel.parse(getHome());
         showProgress();
     }
@@ -387,6 +433,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onLine() {
         nextLine(false);
+        syncJetStreamControl();
     }
 
     private void onScale() {
@@ -397,14 +444,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onSpeed() {
         PlaybackAction.addSpeed(player(), mBinding.control.action.speed);
+        syncJetStreamControl();
     }
 
     private void onSpeedAdd() {
         PlaybackAction.addSpeed(player(), mBinding.control.action.speed, 0.25f);
+        syncJetStreamControl();
     }
 
     private void onSpeedSub() {
         PlaybackAction.subSpeed(player(), mBinding.control.action.speed, 0.25f);
+        syncJetStreamControl();
     }
 
     private void onConfig() {
@@ -419,16 +469,19 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void onInvert() {
         LiveSetting.putInvert(!LiveSetting.isInvert());
         mBinding.control.action.invert.setSelected(LiveSetting.isInvert());
+        syncJetStreamControl();
     }
 
     private void onAcross() {
         LiveSetting.putAcross(!LiveSetting.isAcross());
         mBinding.control.action.across.setSelected(LiveSetting.isAcross());
+        syncJetStreamControl();
     }
 
     private void onChange() {
         LiveSetting.putChange(!LiveSetting.isChange());
         mBinding.control.action.change.setSelected(LiveSetting.isChange());
+        syncJetStreamControl();
     }
 
     private void onChoose() {
@@ -438,6 +491,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onDecode() {
         PlaybackAction.toggleDecode(player());
+        syncJetStreamControl();
     }
 
     private void hideUI() {
@@ -520,11 +574,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         } else if (isPaused()) {
             mBinding.control.action.action.setText(R.string.play);
         }
+        syncJetStreamControl();
     }
 
     @Override
     protected void onSizeChanged(VideoSize size) {
         mBinding.widget.size.setText(player().getSizeText());
+        syncJetStreamControl();
     }
 
     @Override
@@ -571,33 +627,86 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void showControl(View view) {
-        JetStreamAnimator.show(mBinding.control.getRoot(), 0, 18, JetStreamAnimator.PANEL_DURATION);
-        JetStreamAnimator.show(mBinding.widget.top, 0, -12, JetStreamAnimator.FOCUS_DURATION);
-        App.post(view::requestFocus, 25);
-        setR1Callback();
         hideInfo();
+        syncJetStreamControl();
+        mBinding.control.jetstream.setControlsVisible(true);
+        setJetStreamOverlayVisible(true);
+        App.post(() -> getJetStreamFocus(view).requestFocus(), 25);
+        setR1Callback();
     }
 
     private void hideControl() {
-        JetStreamAnimator.hide(mBinding.control.getRoot(), 0, 18, View.GONE, JetStreamAnimator.EXIT_DURATION);
-        JetStreamAnimator.hide(mBinding.widget.top, 0, -12, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        mBinding.control.jetstream.setControlsVisible(false);
+        mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
+        updateJetStreamVisibility();
     }
 
     private void hideCenter() {
         mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
         mBinding.widget.center.setVisibility(View.GONE);
+        if (isJetStreamCenterVisible()) hideInfo();
     }
 
     private void showInfo() {
-        JetStreamAnimator.show(mBinding.widget.bottom, 0, 12, JetStreamAnimator.FOCUS_DURATION);
-        setR3Callback();
+        if (mChannel == null) return;
         setInfo();
+        if (isJetStreamControlVisible()) return;
+        showJetStreamInfo(true, false, JetStreamVodControlView.ACTION_PLAY, "", "");
+        setR3Callback();
     }
 
     private void hideInfo() {
-        JetStreamAnimator.hide(mBinding.widget.bottom, 0, 12, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        mBinding.widget.top.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.widget.bottom.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(false, false, "", "", JetStreamVodControlView.ACTION_PLAY, "", "");
+        updateJetStreamVisibility();
         App.removeCallbacks(mR3);
+    }
+
+    private void showJetStreamInfo(boolean top, boolean center, String action, CharSequence position, CharSequence duration) {
+        syncJetStreamControl();
+        mBinding.widget.top.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
+        mBinding.widget.bottom.setVisibility(View.GONE);
+        mBinding.control.jetstream.setInfoState(top, center, mBinding.widget.size.getText(), mBinding.widget.clock.getText(), action, position, duration);
+        updateJetStreamVisibility();
+    }
+
+    private void updateJetStreamVisibility() {
+        setJetStreamOverlayVisible(isJetStreamControlVisible() || isJetStreamInfoVisible());
+    }
+
+    private void setJetStreamOverlayVisible(boolean visible) {
+        View root = mBinding.control.getRoot();
+        if (visible) {
+            root.animate().cancel();
+            if (root.getVisibility() != View.VISIBLE || root.getAlpha() < 1f || root.getTranslationX() != 0f || root.getTranslationY() != 0f) {
+                JetStreamAnimator.show(root, 0, 0, JetStreamAnimator.FOCUS_DURATION);
+            } else {
+                root.setVisibility(View.VISIBLE);
+            }
+        } else {
+            JetStreamAnimator.hide(root, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        }
+    }
+
+    private boolean isJetStreamControlVisible() {
+        return mBinding.control.jetstream.isControlsVisible();
+    }
+
+    private boolean isJetStreamInfoVisible() {
+        return mBinding.control.jetstream.isInfoVisible();
+    }
+
+    private boolean isJetStreamCenterVisible() {
+        return mBinding.control.jetstream.isCenterInfoVisible();
+    }
+
+    private View getJetStreamFocus(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return mBinding.control.jetstream;
+        return view == mBinding.control.jetstream ? view : mBinding.control.jetstream;
     }
 
     private void setTraffic() {
@@ -614,7 +723,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void onToggle() {
-        if (isVisible(mBinding.control.getRoot())) hideControl();
+        if (isJetStreamControlVisible()) hideControl();
         else if (isVisible(mBinding.recycler)) hideUI();
         else showUI();
         hideInfo();
@@ -689,6 +798,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setInfo() {
+        if (mChannel == null) return;
         mViewModel.getEpg(mChannel);
         mBinding.widget.play.setText("");
         mBinding.widget.name.setMaxEms(48);
@@ -701,6 +811,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.number.setText(mChannel.getNumber());
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setVisibility(mChannel.getLineVisible());
+        syncJetStreamControl();
     }
 
     private void setEpg(Epg epg) {
@@ -713,6 +824,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.play.setText(data.format());
         setWidth(epg);
         setMetadata();
+        syncJetStreamControl();
     }
 
     private void setEpg(boolean success) {
@@ -821,12 +933,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void resetAdapter() {
         mBinding.control.action.line.setVisibility(View.GONE);
         mBinding.widget.title.setText("");
+        mBinding.widget.play.setText("");
         mEpgDataAdapter.clear();
         mChannelAdapter.clear();
         mGroupAdapter.clear();
         mHides.clear();
         mChannel = null;
         mGroup = null;
+        syncJetStreamControl();
     }
 
     @Override
@@ -905,6 +1019,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
+        syncJetStreamControl();
     }
 
     private MediaMetadata buildMetadata() {
@@ -913,6 +1028,86 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setMetadata() {
         player().setMetadata(buildMetadata());
+    }
+
+    private void onJetStreamPlayPause() {
+        checkPlay();
+        syncJetStreamControl();
+    }
+
+    private void onJetStreamCommand(String key) {
+        switch (key) {
+            case "home" -> onHome();
+            case "line" -> onLine();
+            case "config" -> onConfig();
+            case "subtitle" -> onSubtitleClick();
+            case "text" -> onTrack(mBinding.control.action.text);
+            case "audio" -> onTrack(mBinding.control.action.audio);
+            case "video" -> onTrack(mBinding.control.action.video);
+            case "speed" -> onSpeed();
+            case "scale" -> onScale();
+            case "player" -> onChoose();
+            case "decode" -> onDecode();
+            case "invert" -> onInvert();
+            case "across" -> onAcross();
+            case "change" -> onChange();
+        }
+        syncJetStreamControl();
+    }
+
+    private void syncJetStreamControl() {
+        if (mBinding == null) return;
+        boolean owner = service() != null && isOwner();
+        boolean playing = owner && player().isPlaying();
+        mBinding.control.jetstream.setPlayer(controller());
+        mBinding.control.jetstream.setMediaTitle(getJetStreamTitle(), getJetStreamSecondaryText(), getJetStreamTertiaryText());
+        mBinding.control.jetstream.setPlaybackState(playing, false);
+        mBinding.control.jetstream.setTransportActions(true, true, false);
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_PLAYLIST, R.drawable.msr_live_tv, getString(R.string.setting_live), true, "home", "line", "config");
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_CAPTIONS, R.drawable.msr_closed_caption, getString(R.string.play_subtitle), true, "subtitle", "text", "audio", "video");
+        mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_SETTINGS, R.drawable.msr_settings, getString(R.string.setting_section_playback), true, "speed", "scale", "player", "decode", "invert", "across", "change");
+        syncJetStreamCommands();
+    }
+
+    private void syncJetStreamCommands() {
+        setJetStreamCommand("home", mBinding.control.action.home, true);
+        setJetStreamCommand("line", mBinding.control.action.line, isVisible(mBinding.control.action.line));
+        setJetStreamCommand("config", mBinding.control.action.config, true);
+        setJetStreamCommand("subtitle", getString(R.string.play_subtitle), true, false);
+        setJetStreamCommand("text", mBinding.control.action.text, isVisible(mBinding.control.action.text));
+        setJetStreamCommand("audio", mBinding.control.action.audio, isVisible(mBinding.control.action.audio));
+        setJetStreamCommand("video", mBinding.control.action.video, isVisible(mBinding.control.action.video));
+        setJetStreamCommand("speed", mBinding.control.action.speed, true);
+        setJetStreamCommand("scale", mBinding.control.action.scale, true);
+        setJetStreamCommand("player", mBinding.control.action.player, true);
+        setJetStreamCommand("decode", mBinding.control.action.decode, isVisible(mBinding.control.action.decode));
+        setJetStreamCommand("invert", mBinding.control.action.invert, true);
+        setJetStreamCommand("across", mBinding.control.action.across, true);
+        setJetStreamCommand("change", mBinding.control.action.change, true);
+    }
+
+    private void setJetStreamCommand(String key, TextView view, boolean visible) {
+        setJetStreamCommand(key, view.getText(), visible, view.isSelected());
+    }
+
+    private void setJetStreamCommand(String key, CharSequence label, boolean visible, boolean selected) {
+        mBinding.control.jetstream.setCommand(key, label, visible, selected);
+    }
+
+    private CharSequence getJetStreamTitle() {
+        CharSequence title = mBinding.widget.title.getText();
+        if (title != null && title.length() > 0) return title;
+        return mChannel == null ? "" : mChannel.getShow();
+    }
+
+    private CharSequence getJetStreamSecondaryText() {
+        CharSequence play = mBinding.widget.play.getText();
+        if (play != null && play.length() > 0) return play;
+        return mChannel == null ? "" : mChannel.getNumber();
+    }
+
+    private CharSequence getJetStreamTertiaryText() {
+        return mChannel == null ? "" : mChannel.getLine();
     }
 
     private void prevChannel() {
@@ -948,13 +1143,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.action.config : mFocus2;
+        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.jetstream : getJetStreamFocus(mFocus2);
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (isVisible(mBinding.control.getRoot())) setR1Callback();
-        if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
+        if (isJetStreamControlVisible()) setR1Callback();
+        if (isJetStreamControlVisible()) mFocus2 = getCurrentFocus();
         if (mKeyDown.hasEvent(event) && isPlaybackReady()) mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
@@ -966,7 +1161,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public boolean dispatch(boolean check) {
-        return !check || isGone(mBinding.recycler) && isGone(mBinding.control.getRoot());
+        return !check || isGone(mBinding.recycler) && !isJetStreamControlVisible();
     }
 
     @Override
@@ -984,10 +1179,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void onSeeking(long time) {
         if (player().isLive()) return;
-        mBinding.widget.center.setVisibility(View.VISIBLE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(time));
-        mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        showJetStreamInfo(false, true, time > 0 ? JetStreamVodControlView.ACTION_FORWARD : JetStreamVodControlView.ACTION_REWIND, player().getPositionTime(time), player().getDurationTime());
+        setR3Callback();
         hideProgress();
     }
 
@@ -1034,7 +1227,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void onDoubleTap() {
         if (isVisible(mBinding.recycler)) hideUI();
-        else if (isVisible(mBinding.control.getRoot())) hideControl();
+        else if (isJetStreamControlVisible()) hideControl();
         else onMenu();
     }
 
@@ -1052,9 +1245,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     protected void onBackInvoked() {
-        if (isVisible(mBinding.control.getRoot())) {
+        if (isJetStreamControlVisible()) {
             hideControl();
-        } else if (isVisible(mBinding.widget.bottom)) {
+        } else if (isJetStreamInfoVisible()) {
             hideInfo();
         } else if (isVisible(mBinding.recycler)) {
             hideUI();
