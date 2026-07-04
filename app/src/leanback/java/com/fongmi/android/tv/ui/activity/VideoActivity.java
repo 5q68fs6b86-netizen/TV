@@ -950,10 +950,18 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.post(() -> {
             if (isFullscreen()) return;
             applyWindowVideoStyle();
+            restoreWindowVideoVisibility();
             mBinding.video.requestFocus();
             mBinding.video.refreshDrawableState();
             mBinding.video.postInvalidateOnAnimation();
         });
+    }
+
+    private void restoreWindowVideoVisibility() {
+        mBinding.video.setVisibility(View.VISIBLE);
+        mBinding.video.setAlpha(1f);
+        mBinding.video.setTranslationX(0f);
+        mBinding.video.setTranslationY(0f);
     }
 
     private void updateFullscreenViews() {

@@ -19,6 +19,7 @@ import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
 import com.fongmi.android.tv.ui.custom.JetStreamFeaturedIndicatorDotView;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
+import com.fongmi.android.tv.utils.FeaturedPosterCache;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.TmdbLogoHelper;
@@ -67,6 +68,7 @@ public class FeaturedVodPresenter extends Presenter {
         private final Runnable rotate;
         private final Map<String, String> artworkCache;
         private final Set<String> artworkMissing;
+        private final FeaturedPosterCache posterCache;
         private FeaturedVodRow row;
         private ShapeableImageView front;
         private String artworkRequest;
@@ -79,6 +81,7 @@ public class FeaturedVodPresenter extends Presenter {
             this.handler = new Handler(Looper.getMainLooper());
             this.artworkCache = new HashMap<>();
             this.artworkMissing = new HashSet<>();
+            this.posterCache = new FeaturedPosterCache();
             this.rotate = () -> {
                 show(index + 1, true);
                 schedule();
@@ -111,6 +114,10 @@ public class FeaturedVodPresenter extends Presenter {
             this.row = row;
             this.index = 0;
             this.front = binding.imageA;
+            if (posterCache.prepare(row.getItems())) {
+                artworkCache.clear();
+                artworkMissing.clear();
+            }
             binding.imageA.animate().cancel();
             binding.imageB.animate().cancel();
             binding.imageA.setAlpha(1f);
@@ -152,9 +159,16 @@ public class FeaturedVodPresenter extends Presenter {
         }
 
         private void loadFeaturedArtwork(Vod item, ShapeableImageView target) {
-            String key = getArtworkKey(item);
+            String key = FeaturedPosterCache.keyOf(item);
+            String requestSignature = posterCache.getSignature();
             artworkRequest = key;
-            String cached = artworkCache.get(key);
+            String cached = posterCache.get(item);
+            if (!TextUtils.isEmpty(cached)) {
+                artworkCache.put(key, cached);
+                ImgUtil.load(item.getName(), cached, target);
+                return;
+            }
+            cached = artworkCache.get(key);
             if (!TextUtils.isEmpty(cached)) {
                 ImgUtil.load(item.getName(), cached, target);
                 return;
@@ -164,8 +178,20 @@ public class FeaturedVodPresenter extends Presenter {
             TmdbLogoHelper.findPoster(BuildConfig.TMDB_API_KEY, item.getName(), item.getYear(), item.getTypeName(), new TmdbLogoHelper.ImageCallback() {
                 @Override
                 public void onFound(@NonNull String imageUrl) {
+                    if (!posterCache.isCurrent(requestSignature)) return;
                     artworkCache.put(key, imageUrl);
                     if (isArtworkRequestActive(key)) ImgUtil.load(item.getName(), imageUrl, front);
+                    posterCache.put(requestSignature, item, imageUrl, new FeaturedPosterCache.Callback() {
+                        @Override
+                        public void success(@NonNull String cachedUrl) {
+                            artworkCache.put(key, cachedUrl);
+                            if (isArtworkRequestActive(key)) ImgUtil.load(item.getName(), cachedUrl, front);
+                        }
+
+                        @Override
+                        public void error(@NonNull Exception error) {
+                        }
+                    });
                 }
 
                 @Override
@@ -178,10 +204,6 @@ public class FeaturedVodPresenter extends Presenter {
                     artworkMissing.add(key);
                 }
             });
-        }
-
-        private String getArtworkKey(Vod item) {
-            return item.getName() + "\n" + item.getYear() + "\n" + item.getTypeName();
         }
 
         private boolean isArtworkRequestActive(String key) {
