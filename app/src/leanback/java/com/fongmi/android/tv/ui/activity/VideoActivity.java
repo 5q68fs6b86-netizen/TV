@@ -636,7 +636,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.progressLayout.showContent();
         updateFullscreenViews();
         showTitleText(item.getName());
-        mBinding.video.requestFocus();
+        restoreWindowVideoFocus();
         App.removeCallbacks(mR4);
         setArtwork(item.getPic());
         fetchTmdbLogo(item);
@@ -936,11 +936,22 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void applyWindowVideoStyle() {
         if (isFullscreen()) return;
         mBinding.player.setRender(PlayerSetting.RENDER_TEXTURE);
+        mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setClipToOutline(true);
         mBinding.video.post(() -> {
             if (isFullscreen()) return;
             mBinding.video.invalidateOutline();
+            mBinding.video.postInvalidateOnAnimation();
+        });
+    }
+
+    private void restoreWindowVideoFocus() {
+        mBinding.video.post(() -> {
+            if (isFullscreen()) return;
+            applyWindowVideoStyle();
+            mBinding.video.requestFocus();
+            mBinding.video.refreshDrawableState();
             mBinding.video.postInvalidateOnAnimation();
         });
     }

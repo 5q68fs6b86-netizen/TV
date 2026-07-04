@@ -25,7 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +46,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -394,7 +397,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         )
         Row(
             modifier = Modifier
-                .height(48.dp)
+                .requiredHeight(48.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(JetStreamShapes.Button)
                 .background(background)
@@ -410,7 +413,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             Icon(
                 painter = painterResource(id = spec.icon),
                 contentDescription = spec.label,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.requiredSize(20.dp),
                 tint = contentColor
             )
             Spacer(Modifier.width(JetStreamSpacing.IconPadding))
@@ -419,8 +422,10 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 color = contentColor,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
+                lineHeight = 20.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
         }
     }
