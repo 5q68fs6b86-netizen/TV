@@ -37,11 +37,9 @@ import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
-import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.Map;
 import java.util.Optional;
 
 import okhttp3.Call;
@@ -157,7 +155,7 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
         mWordAdapter.setItems(Word.objectFrom(Setting.getHot()).getData());
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Map.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
+        OkHttp.newCall("https://hot.api.coolmarket.eu.org/api/douban-hot-mixed").enqueue(getCallback(true));
     }
 
     private void getSuggest(String text) {

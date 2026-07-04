@@ -185,7 +185,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
             return when (resId) {
                 R.drawable.ic_home_live -> R.drawable.msr_live_tv
                 R.drawable.ic_home_search -> R.drawable.msr_search
-                R.drawable.ic_home_keep -> R.drawable.msr_favorite
+                R.drawable.ic_home_keep -> R.drawable.msr_bookmark_border
                 R.drawable.ic_home_push -> R.drawable.msr_cloud_upload
                 R.drawable.ic_home_setting -> R.drawable.msr_settings
                 else -> R.drawable.msr_movie
