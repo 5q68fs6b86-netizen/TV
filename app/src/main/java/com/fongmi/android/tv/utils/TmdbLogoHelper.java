@@ -26,6 +26,7 @@ public final class TmdbLogoHelper {
     private static final String API_BASE = "https://tapi.coolmarket.eu.org/3/";
     private static final String IMAGE_BASE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DEFAULT_LOGO_SIZE = "w500";
+    private static final String DEFAULT_POSTER_SIZE = "original";
     private static final String INCLUDE_IMAGE_LANGUAGE = "zh,en,null";
     private static final Pattern YEAR = Pattern.compile("(?:19|20)\\d{2}");
 
@@ -49,11 +50,11 @@ public final class TmdbLogoHelper {
         MediaType secondType = firstType == MediaType.TV ? MediaType.MOVIE : MediaType.TV;
         search(safeApiKey, firstType, safeTitle, safeYear, new SearchCallback() {
             @Override
-            public void onFound(@Nullable Integer id) {
-                if (id != null) {
-                    fetchLogo(safeApiKey, firstType, id, safeImageSize, callback);
+            public void onFound(@Nullable SearchResult result) {
+                if (result != null) {
+                    fetchLogo(safeApiKey, firstType, result.id, safeImageSize, callback);
                 } else {
-                    searchAlternative(safeApiKey, secondType, safeTitle, safeYear, safeImageSize, callback);
+                    searchAlternativeLogo(safeApiKey, secondType, safeTitle, safeYear, safeImageSize, callback);
                 }
             }
 
@@ -64,11 +65,40 @@ public final class TmdbLogoHelper {
         });
     }
 
-    private static void searchAlternative(String apiKey, MediaType type, String title, String year, String imageSize, LogoCallback callback) {
+    public static void findPoster(@Nullable String apiKey, @Nullable String title, @Nullable String year, @Nullable String typeName, @NonNull ImageCallback callback) {
+        findPoster(apiKey, title, year, typeName, DEFAULT_POSTER_SIZE, callback);
+    }
+
+    public static void findPoster(@Nullable String apiKey, @Nullable String title, @Nullable String year, @Nullable String typeName, @Nullable String imageSize, @NonNull ImageCallback callback) {
+        String safeApiKey = normalize(apiKey);
+        String safeTitle = normalize(title);
+        String safeYear = normalizeYear(year);
+        String safeImageSize = normalizeImageSize(imageSize);
+        if (TextUtils.isEmpty(safeTitle)) {
+            post(callback::onNotFound);
+            return;
+        }
+        MediaType firstType = guessMediaType(typeName);
+        MediaType secondType = firstType == MediaType.TV ? MediaType.MOVIE : MediaType.TV;
+        search(safeApiKey, firstType, safeTitle, safeYear, new SearchCallback() {
+            @Override
+            public void onFound(@Nullable SearchResult result) {
+                if (dispatchPosterResult(result, safeImageSize, callback)) return;
+                searchAlternativePoster(safeApiKey, secondType, safeTitle, safeYear, safeImageSize, callback);
+            }
+
+            @Override
+            public void onError(@NonNull Exception error) {
+                post(() -> callback.onError(error));
+            }
+        });
+    }
+
+    private static void searchAlternativeLogo(String apiKey, MediaType type, String title, String year, String imageSize, LogoCallback callback) {
         search(apiKey, type, title, year, new SearchCallback() {
             @Override
-            public void onFound(@Nullable Integer id) {
-                if (id != null) fetchLogo(apiKey, type, id, imageSize, callback);
+            public void onFound(@Nullable SearchResult result) {
+                if (result != null) fetchLogo(apiKey, type, result.id, imageSize, callback);
                 else post(callback::onNotFound);
             }
 
@@ -77,6 +107,27 @@ public final class TmdbLogoHelper {
                 post(() -> callback.onError(error));
             }
         });
+    }
+
+    private static void searchAlternativePoster(String apiKey, MediaType type, String title, String year, String imageSize, ImageCallback callback) {
+        search(apiKey, type, title, year, new SearchCallback() {
+            @Override
+            public void onFound(@Nullable SearchResult result) {
+                if (!dispatchPosterResult(result, imageSize, callback)) post(callback::onNotFound);
+            }
+
+            @Override
+            public void onError(@NonNull Exception error) {
+                post(() -> callback.onError(error));
+            }
+        });
+    }
+
+    private static boolean dispatchPosterResult(@Nullable SearchResult result, String imageSize, ImageCallback callback) {
+        String filePath = result == null ? "" : result.getFeaturedImagePath();
+        if (TextUtils.isEmpty(filePath)) return false;
+        post(() -> callback.onFound(buildImageUrl(imageSize, filePath)));
+        return true;
     }
 
     private static void search(String apiKey, MediaType type, String title, String year, SearchCallback callback) {
@@ -91,7 +142,7 @@ public final class TmdbLogoHelper {
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try (Response resp = response) {
                     if (!resp.isSuccessful() || resp.body() == null) throw new IOException("TMDB search failed: HTTP " + resp.code());
-                    callback.onFound(parseFirstId(resp.body().string()));
+                    callback.onFound(parseFirstResult(resp.body().string()));
                 } catch (Exception e) {
                     post(() -> callback.onError(e));
                 }
@@ -143,12 +194,13 @@ public final class TmdbLogoHelper {
     }
 
     @Nullable
-    private static Integer parseFirstId(String body) throws Exception {
+    private static SearchResult parseFirstResult(String body) throws Exception {
         JSONArray results = new JSONObject(body).optJSONArray("results");
         if (results == null) return null;
         for (int i = 0; i < results.length(); i++) {
-            int id = results.optJSONObject(i) == null ? 0 : results.optJSONObject(i).optInt("id");
-            if (id > 0) return id;
+            JSONObject result = results.optJSONObject(i);
+            int id = result == null ? 0 : result.optInt("id");
+            if (id > 0) return new SearchResult(id, result.optString("backdrop_path"), result.optString("poster_path"));
         }
         return null;
     }
@@ -196,6 +248,11 @@ public final class TmdbLogoHelper {
         return value == null ? "" : value.trim();
     }
 
+    private static String normalizeImagePath(@Nullable String value) {
+        String path = normalize(value);
+        return TextUtils.isEmpty(path) || "null".equalsIgnoreCase(path) ? "" : path;
+    }
+
     private static String normalizeYear(@Nullable String year) {
         Matcher matcher = YEAR.matcher(normalize(year));
         return matcher.find() ? matcher.group() : "";
@@ -214,20 +271,40 @@ public final class TmdbLogoHelper {
         else App.post(runnable);
     }
 
-    public interface LogoCallback {
+    public interface ImageCallback {
 
-        void onFound(@NonNull String logoUrl);
+        void onFound(@NonNull String imageUrl);
 
         void onNotFound();
 
         void onError(@NonNull Exception error);
     }
 
+    public interface LogoCallback extends ImageCallback {
+    }
+
     private interface SearchCallback {
 
-        void onFound(@Nullable Integer id);
+        void onFound(@Nullable SearchResult result);
 
         void onError(@NonNull Exception error);
+    }
+
+    private static class SearchResult {
+
+        private final int id;
+        private final String backdropPath;
+        private final String posterPath;
+
+        private SearchResult(int id, String backdropPath, String posterPath) {
+            this.id = id;
+            this.backdropPath = normalizeImagePath(backdropPath);
+            this.posterPath = normalizeImagePath(posterPath);
+        }
+
+        private String getFeaturedImagePath() {
+            return TextUtils.isEmpty(backdropPath) ? posterPath : backdropPath;
+        }
     }
 
     private enum MediaType {

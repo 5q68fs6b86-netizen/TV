@@ -41,6 +41,8 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
+            android:textSize="44sp"
+            android:textStyle="bold"
             tools:text="蜘蛛人" />
 
         <com.fongmi.android.tv.ui.custom.JetStreamHeroMetaTextView

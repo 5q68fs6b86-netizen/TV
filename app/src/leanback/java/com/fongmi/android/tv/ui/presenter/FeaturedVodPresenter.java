@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
 import com.bumptech.glide.Glide;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
@@ -20,10 +21,15 @@ import com.fongmi.android.tv.ui.custom.JetStreamFeaturedIndicatorDotView;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.TmdbLogoHelper;
 import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class FeaturedVodPresenter extends Presenter {
 
@@ -59,8 +65,11 @@ public class FeaturedVodPresenter extends Presenter {
         private final VodPresenter.OnClickListener listener;
         private final Handler handler;
         private final Runnable rotate;
+        private final Map<String, String> artworkCache;
+        private final Set<String> artworkMissing;
         private FeaturedVodRow row;
         private ShapeableImageView front;
+        private String artworkRequest;
         private int index;
 
         public ViewHolder(@NonNull AdapterFeaturedVodBinding binding, VodPresenter.OnClickListener listener) {
@@ -68,6 +77,8 @@ public class FeaturedVodPresenter extends Presenter {
             this.binding = binding;
             this.listener = listener;
             this.handler = new Handler(Looper.getMainLooper());
+            this.artworkCache = new HashMap<>();
+            this.artworkMissing = new HashSet<>();
             this.rotate = () -> {
                 show(index + 1, true);
                 schedule();
@@ -124,20 +135,57 @@ public class FeaturedVodPresenter extends Presenter {
             updateIndicator();
             ShapeableImageView next = front == binding.imageA ? binding.imageB : binding.imageA;
             if (!animate) {
-                ImgUtil.load(item.getName(), item.getPic(), front);
+                loadFeaturedArtwork(item, front);
                 return;
             }
-            ImgUtil.load(item.getName(), item.getPic(), next);
             next.animate().cancel();
             front.animate().cancel();
             next.setAlpha(0f);
             next.setVisibility(View.VISIBLE);
             ShapeableImageView old = front;
             front = next;
+            loadFeaturedArtwork(item, next);
             next.animate().alpha(1f).setDuration(CROSS_FADE).start();
             old.animate().alpha(0f).setDuration(CROSS_FADE).withEndAction(() -> {
                 if (old != front) old.setVisibility(View.GONE);
             }).start();
+        }
+
+        private void loadFeaturedArtwork(Vod item, ShapeableImageView target) {
+            String key = getArtworkKey(item);
+            artworkRequest = key;
+            String cached = artworkCache.get(key);
+            if (!TextUtils.isEmpty(cached)) {
+                ImgUtil.load(item.getName(), cached, target);
+                return;
+            }
+            ImgUtil.load(item.getName(), item.getPic(), target);
+            if (TextUtils.isEmpty(item.getName()) || artworkMissing.contains(key)) return;
+            TmdbLogoHelper.findPoster(BuildConfig.TMDB_API_KEY, item.getName(), item.getYear(), item.getTypeName(), new TmdbLogoHelper.ImageCallback() {
+                @Override
+                public void onFound(@NonNull String imageUrl) {
+                    artworkCache.put(key, imageUrl);
+                    if (isArtworkRequestActive(key)) ImgUtil.load(item.getName(), imageUrl, front);
+                }
+
+                @Override
+                public void onNotFound() {
+                    artworkMissing.add(key);
+                }
+
+                @Override
+                public void onError(@NonNull Exception error) {
+                    artworkMissing.add(key);
+                }
+            });
+        }
+
+        private String getArtworkKey(Vod item) {
+            return item.getName() + "\n" + item.getYear() + "\n" + item.getTypeName();
+        }
+
+        private boolean isArtworkRequestActive(String key) {
+            return row != null && TextUtils.equals(key, artworkRequest);
         }
 
         private void bindText(Vod item) {
@@ -222,6 +270,7 @@ public class FeaturedVodPresenter extends Presenter {
 
         private void unbind() {
             stop();
+            artworkRequest = null;
             binding.getRoot().setOnClickListener(null);
             JetStreamAnimator.reset(binding.getRoot());
             Glide.with(binding.imageA).clear(binding.imageA);
