@@ -29,8 +29,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import dalvik.system.DexClassLoader;
 
@@ -38,7 +36,6 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     private static final String TAG = Spider.class.getSimpleName();
     private static final int PREVIEW_LIMIT = 240;
-    private static final Pattern CORE_IMPORT = Pattern.compile("from\\s*[\"']([^\"']*drpy-core[^\"']*)[\"']");
 
     private final ExecutorService executor;
     private final DexClassLoader dex;
@@ -226,18 +223,13 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     private String patchDrpyCompat(String content) {
         if (!needsDrpyCompat(content)) return content;
-        String compat = Asset.read("js/lib/drpy-compat.js").replace("__DRPY_CORE_IMPORT__", getDrpyCoreImport(content));
+        String compat = Asset.read("js/lib/drpy-compat.js");
         QuickLog.d(TAG, "inject drpy compat site=%s api=%s", siteKey, api);
         return compat + "\n" + content;
     }
 
     private boolean needsDrpyCompat(String content) {
         return content.contains("defaultParser") && content.contains("pdfh") && content.contains("pdfa") && content.matches("(?s).*pd\\s*:\\s*pd.*") && !content.matches("(?s).*function\\s+pdfh\\s*\\(.*");
-    }
-
-    private String getDrpyCoreImport(String content) {
-        Matcher matcher = CORE_IMPORT.matcher(content);
-        return matcher.find() ? matcher.group(1) : "./drpy-core-lite.min.js";
     }
 
     private Object getExt(String ext) {

@@ -157,6 +157,30 @@ public class Global {
 
     @Keep
     @JSMethod
+    public String drpyPdfh(String html, String parse) {
+        return Drpy.pdfh(html, parse);
+    }
+
+    @Keep
+    @JSMethod
+    public String drpyPdfa(String html, String parse) {
+        return Drpy.pdfa(html, parse);
+    }
+
+    @Keep
+    @JSMethod
+    public String drpyPd(String html, String parse, String baseUrl) {
+        return Drpy.pd(html, parse, baseUrl);
+    }
+
+    @Keep
+    @JSMethod
+    public String drpyPdfl(String html, String listParse, String titleParse, String urlParse, String baseUrl) {
+        return Drpy.pdfl(html, listParse, titleParse, urlParse, baseUrl);
+    }
+
+    @Keep
+    @JSMethod
     public String md5X(String text) {
         String result = Crypto.md5(text);
         Logger.t("md5X").d("text:%s\nresult:\n%s", text, result);
