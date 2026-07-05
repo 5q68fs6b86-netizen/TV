@@ -56,11 +56,16 @@ final class Drpy {
 
     static String pdfl(String html, String listParse, String titleParse, String urlParse, String baseUrl) {
         JSONArray array = new JSONArray();
-        for (Element element : select(html, parts(firstParse(listParse)))) {
-            String item = element.outerHtml();
-            String title = pdfh(item, titleParse).trim();
-            String url = pd(item, urlParse, baseUrl);
-            array.put(title + "$" + url);
+        for (String parse : parses(listParse)) {
+            Elements elements = select(html, parts(parse));
+            if (elements.isEmpty()) continue;
+            for (Element element : elements) {
+                String item = element.outerHtml();
+                String title = pdfh(item, titleParse).trim();
+                String url = pd(item, urlParse, baseUrl);
+                array.put(title + "$" + url);
+            }
+            break;
         }
         return array.toString();
     }
@@ -73,11 +78,6 @@ final class Drpy {
             if (!item.isEmpty()) result.add(item);
         }
         return result;
-    }
-
-    private static String firstParse(String parse) {
-        List<String> parses = parses(parse);
-        return parses.isEmpty() ? "" : parses.get(0);
     }
 
     private static List<String> selectorParts(String parse) {
@@ -116,12 +116,16 @@ final class Drpy {
         Elements selected = selectOnly(bases, split[0].trim());
         if (split.length > 1) {
             String remove = split[1].trim();
-            if (!remove.isEmpty()) selected.select(remove).remove();
+            try {
+                if (!remove.isEmpty()) selected.select(remove).remove();
+            } catch (Throwable ignored) {
+            }
         }
         return selected;
     }
 
     private static Elements selectOnly(Elements bases, String selector) {
+        selector = normalizeSelector(selector);
         if (selector.isEmpty()) return bases;
         try {
             return bases.select(selector);
@@ -130,6 +134,10 @@ final class Drpy {
         } catch (Throwable e) {
             return new Elements();
         }
+    }
+
+    private static String normalizeSelector(String selector) {
+        return selector.replaceAll(":first(?![-\\w(])", ":eq(0)").replaceAll(":last(?![-\\w(])", ":eq(-1)");
     }
 
     private static Elements selectWithIndex(Elements bases, String selector) {

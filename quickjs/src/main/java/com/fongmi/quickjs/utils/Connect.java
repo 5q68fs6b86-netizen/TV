@@ -36,7 +36,7 @@ public class Connect {
             setHeader(ctx, res, jsHeader);
             jsObject.setProperty("code", res.code());
             jsObject.setProperty("headers", jsHeader);
-            if (req.getBuffer() == 0) jsObject.setProperty("content", new String(res.body().bytes(), req.getCharset()));
+            if (req.getBuffer() == 0) jsObject.setProperty("content", patchScript(res.request().url().toString(), new String(res.body().bytes(), req.getCharset())));
             if (req.getBuffer() == 1) jsObject.setProperty("content", JSUtil.toArray(ctx, res.body().bytes()));
             if (req.getBuffer() == 2) jsObject.setProperty("content", Util.base64(res.body().bytes()));
             if (req.getBuffer() == 3) jsObject.setProperty("content", res.body().bytes());
@@ -44,6 +44,16 @@ public class Connect {
         } catch (Exception e) {
             return error(ctx);
         }
+    }
+
+    private static String patchScript(String url, String content) {
+        if (!isScript(url)) return content;
+        return content.endsWith("\n") ? content : content + "\n";
+    }
+
+    private static boolean isScript(String url) {
+        String path = url.split("\\?", 2)[0].toLowerCase();
+        return path.endsWith(".js") || path.endsWith(".mjs");
     }
 
     public static JSObject error(QuickJSContext ctx) {
