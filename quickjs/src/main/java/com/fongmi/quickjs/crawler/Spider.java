@@ -13,6 +13,7 @@ import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.UriUtil;
 import com.github.catvod.utils.Util;
+import com.orhanobut.logger.Logger;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
@@ -32,6 +33,9 @@ import java.util.concurrent.Future;
 import dalvik.system.DexClassLoader;
 
 public class Spider extends com.github.catvod.crawler.Spider {
+
+    private static final String TAG = Spider.class.getSimpleName();
+    private static final int PREVIEW_LIMIT = 240;
 
     private final ExecutorService executor;
     private final DexClassLoader dex;
@@ -53,13 +57,24 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private Object call(String func, Object... args) throws Exception {
-        return submit(() -> Async.run(jsObject, func, args)).get().get();
+        long start = System.currentTimeMillis();
+        try {
+            Object result = submit(() -> Async.run(jsObject, func, args)).get().get();
+            Logger.t(TAG).d("call success site=%s func=%s elapsed=%sms result=%s", siteKey, func, System.currentTimeMillis() - start, describe(result));
+            return result;
+        } catch (Exception e) {
+            Logger.t(TAG).e("call failed site=" + siteKey + " func=" + func + " error=" + e.getClass().getSimpleName() + ": " + e.getMessage());
+            throw e;
+        }
     }
 
     @Override
     public void init(Context context, String extend) throws Exception {
+        long start = System.currentTimeMillis();
+        Logger.t(TAG).d("init start site=%s api=%s ext=%s", siteKey, api, preview(extend));
         initializeJS();
         call("init", submit(() -> getExt(extend)).get());
+        Logger.t(TAG).d("init success site=%s elapsed=%sms", siteKey, System.currentTimeMillis() - start);
     }
 
     @Override
@@ -159,6 +174,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private void createCtx() {
+        Logger.t(TAG).d("createCtx site=%s", siteKey);
         ctx = QuickJSContext.create();
         ctx.setConsole(new Console());
         ctx.evaluate(Asset.read("js/lib/http.js"));
@@ -179,9 +195,16 @@ public class Spider extends com.github.catvod.crawler.Spider {
     private void createFun() {
         try {
             global = Global.create(ctx, executor);
+            Logger.t(TAG).d("createFun global ready site=%s", siteKey);
+            if (dex == null) {
+                Logger.t(TAG).d("createFun skip jar function site=%s dex=null", siteKey);
+                return;
+            }
             Class<?> clz = dex.loadClass("com.github.catvod.js.Function");
             clz.getDeclaredConstructor(QuickJSContext.class).newInstance(ctx);
+            Logger.t(TAG).d("createFun jar function loaded site=%s", siteKey);
         } catch (Throwable ignored) {
+            Logger.t(TAG).d("createFun jar function unavailable site=%s error=%s: %s", siteKey, ignored.getClass().getSimpleName(), ignored.getMessage());
         }
     }
 
@@ -190,9 +213,12 @@ public class Spider extends com.github.catvod.crawler.Spider {
         String global = "globalThis." + spider;
         String content = Module.get().fetch(api);
         cat = content.contains("__jsEvalReturn");
+        Logger.t(TAG).d("createObj module fetched site=%s api=%s length=%s cat=%s", siteKey, api, content.length(), cat);
         ctx.evaluateModule(content.replace(spider, global), api);
         ctx.evaluateModule(String.format(Asset.read("js/lib/spider.js"), api));
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
+        if (jsObject == null) throw new IllegalStateException("JS spider object missing: " + api);
+        Logger.t(TAG).d("createObj ready site=%s api=%s", siteKey, api);
     }
 
     private Object getExt(String ext) {
@@ -242,5 +268,20 @@ public class Spider extends com.github.catvod.crawler.Spider {
             if (base64 && content.contains("base64,")) content = content.split("base64,")[1];
             return new ByteArrayInputStream(base64 ? Util.decode(content) : content.getBytes());
         }
+    }
+
+    private static String preview(String text) {
+        if (text == null) return "null";
+        text = text.replace('\n', ' ').replace('\r', ' ');
+        return text.length() <= PREVIEW_LIMIT ? text : text.substring(0, PREVIEW_LIMIT) + "...";
+    }
+
+    private static String describe(Object result) {
+        if (result == null) return "null";
+        if (result instanceof String text) return "String(len=" + text.length() + ", preview=" + preview(text) + ")";
+        if (result instanceof JSArray) return "JSArray";
+        if (result instanceof JSObject) return "JSObject";
+        if (result instanceof byte[] bytes) return "byte[" + bytes.length + "]";
+        return result.getClass().getSimpleName();
     }
 }

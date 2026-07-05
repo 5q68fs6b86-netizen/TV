@@ -36,15 +36,15 @@ public class BaseLoader {
     }
 
     private static boolean isJs(String api) {
-        return api.contains(".js");
+        return !TextUtils.isEmpty(api) && api.contains(".js");
     }
 
     private static boolean isPy(String api) {
-        return api.contains(".py");
+        return !TextUtils.isEmpty(api) && api.contains(".py");
     }
 
     private static boolean isCsp(String api) {
-        return api.startsWith("csp_");
+        return !TextUtils.isEmpty(api) && api.startsWith("csp_");
     }
 
     public void clear() {
@@ -55,11 +55,15 @@ public class BaseLoader {
         });
     }
 
-    public Spider getSpider(String key, String api, String ext, String jar) {
+    public Spider getSpider(String key, int type, String api, String ext, String jar) {
         if (isPy(api)) return pyLoader.getSpider(key, api, ext);
-        else if (isJs(api)) return jsLoader.getSpider(key, api, ext, jar);
         else if (isCsp(api)) return jarLoader.getSpider(key, api, ext, jar);
+        else if (type == 3 || isJs(api)) return jsLoader.getSpider(key, api, ext, jar);
         else return new SpiderNull();
+    }
+
+    public Spider getSpider(String key, String api, String ext, String jar) {
+        return getSpider(key, 0, api, ext, jar);
     }
 
     public Spider getSpider(String key) {
@@ -70,10 +74,14 @@ public class BaseLoader {
         return new SpiderNull();
     }
 
-    public void setRecent(String key, String api, String jar) {
-        if (isJs(api)) jsLoader.setRecent(key);
-        else if (isPy(api)) pyLoader.setRecent(key);
+    public void setRecent(String key, int type, String api, String jar) {
+        if (isPy(api)) pyLoader.setRecent(key);
         else if (isCsp(api)) jarLoader.setRecent(Util.md5(jar));
+        else if (type == 3 || isJs(api)) jsLoader.setRecent(key);
+    }
+
+    public void setRecent(String key, String api, String jar) {
+        setRecent(key, 0, api, jar);
     }
 
     public Object[] proxy(Map<String, String> params) throws Exception {

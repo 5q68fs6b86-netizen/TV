@@ -322,12 +322,12 @@ public class Site implements Parcelable {
     }
 
     public Site recent() {
-        BaseLoader.get().setRecent(getKey(), getApi(), getJar());
+        BaseLoader.get().setRecent(getKey(), getType(), getApi(), getJar());
         return this;
     }
 
     public Spider spider() {
-        return BaseLoader.get().getSpider(getKey(), getApi(), getExt(), getJar());
+        return BaseLoader.get().getSpider(getKey(), getType(), getApi(), getExt(), getJar());
     }
 
     public void save() {
