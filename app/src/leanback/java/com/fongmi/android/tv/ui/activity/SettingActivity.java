@@ -37,7 +37,6 @@ import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.JetStreamSettingView;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.DanmakuApiDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
@@ -48,9 +47,11 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.quickjs.utils.QuickLog;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -191,7 +192,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
-        setRowValue(JetStreamSettingView.KEY_MPV_LOG, com.fongmi.android.tv.utils.MpvLogCollector.getLogCount() + " 条");
+        setMpvLogText();
+        setQuickJsLogText();
         setRowValue(JetStreamSettingView.KEY_VERSION, BuildConfig.VERSION_NAME);
     }
 
@@ -270,7 +272,10 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
             case JetStreamSettingView.KEY_RESTORE -> onRestore();
             case JetStreamSettingView.KEY_CACHE -> onCache();
-            case JetStreamSettingView.KEY_MPV_LOG -> onMpvLog();
+            case JetStreamSettingView.KEY_MPV_LOG -> setMpvLog();
+            case JetStreamSettingView.KEY_MPV_LOG_EXPORT -> onMpvLog();
+            case JetStreamSettingView.KEY_QUICKJS_LOG -> setQuickJsLog();
+            case JetStreamSettingView.KEY_QUICKJS_LOG_EXPORT -> onQuickJsLog();
             case JetStreamSettingView.KEY_VERSION -> onVersion();
         }
     }
@@ -538,11 +543,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void onDanmakuApi() {
-        DanmakuApiDialog.show(this);
+        setApiUrl(R.string.danmaku_api, DanmakuSetting.getApiUrl(), this::setDanmakuApi);
     }
 
     private void onLogvrApi() {
-        DanmakuApiDialog.showLogvr(this);
+        setApiUrl(R.string.danmaku_logvr_api, DanmakuSetting.getLogvrUrl(), this::setLogvrApi);
     }
 
     @Override
@@ -607,6 +612,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
+    private void setApiUrl(int title, String value, Consumer<String> callback) {
+        EditText input = new EditText(this);
+        int padding = ResUtil.dp2px(24);
+        input.setHint(title);
+        input.setSingleLine(true);
+        input.setText(value);
+        input.setPadding(padding, 0, padding, 0);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
+        new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+    }
+
     private void setSize() {
         int index = (PlayerSetting.getSize() + 1) % size.length;
         PlayerSetting.putSize(index);
@@ -634,14 +651,52 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         });
     }
 
+    private String getLogText(boolean enabled, int count) {
+        return Setting.getSwitch(enabled) + " / " + count + " 条";
+    }
+
+    private void setMpvLogText() {
+        setRowValue(JetStreamSettingView.KEY_MPV_LOG, getLogText(MpvLogCollector.isEnabled(), MpvLogCollector.getLogCount()));
+    }
+
+    private void setQuickJsLogText() {
+        setRowValue(JetStreamSettingView.KEY_QUICKJS_LOG, getLogText(QuickLog.isEnabled(), QuickLog.getLogCount()));
+    }
+
+    private void setMpvLog() {
+        MpvLogCollector.putEnabled(!MpvLogCollector.isEnabled());
+        setMpvLogText();
+    }
+
+    private void setQuickJsLog() {
+        QuickLog.putEnabled(!QuickLog.isEnabled());
+        setQuickJsLogText();
+    }
+
     private void onMpvLog() {
         PermissionUtil.requestFile(this, allGranted -> {
-            String path = com.fongmi.android.tv.utils.MpvLogCollector.exportToFile(this);
+            String path = MpvLogCollector.exportToFile(this);
             if (path != null) {
                 Notify.show("日志已导出到: " + path);
-                setRowValue(JetStreamSettingView.KEY_MPV_LOG, com.fongmi.android.tv.utils.MpvLogCollector.getLogCount() + " 条");
+                setMpvLogText();
+            } else if (MpvLogCollector.getLogCount() == 0) {
+                Notify.show("暂无MPV日志可导出");
             } else {
                 Notify.show("导出日志失败，请检查存储权限");
+            }
+        });
+    }
+
+    private void onQuickJsLog() {
+        PermissionUtil.requestFile(this, allGranted -> {
+            String path = QuickLog.exportToFile(this);
+            if (path != null) {
+                Notify.show("JS日志已导出到: " + path);
+                setQuickJsLogText();
+            } else if (QuickLog.getLogCount() == 0) {
+                Notify.show("暂无JS日志可导出");
+            } else {
+                Notify.show("导出JS日志失败，请检查存储权限");
             }
         });
     }

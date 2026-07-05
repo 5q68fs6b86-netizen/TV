@@ -9,11 +9,11 @@ import com.fongmi.quickjs.method.Local;
 import com.fongmi.quickjs.utils.Async;
 import com.fongmi.quickjs.utils.JSUtil;
 import com.fongmi.quickjs.utils.Module;
+import com.fongmi.quickjs.utils.QuickLog;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.UriUtil;
 import com.github.catvod.utils.Util;
-import com.orhanobut.logger.Logger;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
@@ -60,10 +60,10 @@ public class Spider extends com.github.catvod.crawler.Spider {
         long start = System.currentTimeMillis();
         try {
             Object result = submit(() -> Async.run(jsObject, func, args)).get().get();
-            Logger.t(TAG).d("call success site=%s func=%s elapsed=%sms result=%s", siteKey, func, System.currentTimeMillis() - start, describe(result));
+            QuickLog.d(TAG, "call success site=%s func=%s elapsed=%sms result=%s", siteKey, func, System.currentTimeMillis() - start, describe(result));
             return result;
         } catch (Exception e) {
-            Logger.t(TAG).e("call failed site=" + siteKey + " func=" + func + " error=" + e.getClass().getSimpleName() + ": " + e.getMessage());
+            QuickLog.e(TAG, "call failed site=" + siteKey + " func=" + func + " error=" + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
             throw e;
         }
     }
@@ -71,10 +71,10 @@ public class Spider extends com.github.catvod.crawler.Spider {
     @Override
     public void init(Context context, String extend) throws Exception {
         long start = System.currentTimeMillis();
-        Logger.t(TAG).d("init start site=%s api=%s ext=%s", siteKey, api, preview(extend));
+        QuickLog.d(TAG, "init start site=%s api=%s ext=%s", siteKey, api, preview(extend));
         initializeJS();
         call("init", submit(() -> getExt(extend)).get());
-        Logger.t(TAG).d("init success site=%s elapsed=%sms", siteKey, System.currentTimeMillis() - start);
+        QuickLog.d(TAG, "init success site=%s elapsed=%sms", siteKey, System.currentTimeMillis() - start);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private void createCtx() {
-        Logger.t(TAG).d("createCtx site=%s", siteKey);
+        QuickLog.d(TAG, "createCtx site=%s", siteKey);
         ctx = QuickJSContext.create();
         ctx.setConsole(new Console());
         ctx.evaluate(Asset.read("js/lib/http.js"));
@@ -195,16 +195,16 @@ public class Spider extends com.github.catvod.crawler.Spider {
     private void createFun() {
         try {
             global = Global.create(ctx, executor);
-            Logger.t(TAG).d("createFun global ready site=%s", siteKey);
+            QuickLog.d(TAG, "createFun global ready site=%s", siteKey);
             if (dex == null) {
-                Logger.t(TAG).d("createFun skip jar function site=%s dex=null", siteKey);
+                QuickLog.d(TAG, "createFun skip jar function site=%s dex=null", siteKey);
                 return;
             }
             Class<?> clz = dex.loadClass("com.github.catvod.js.Function");
             clz.getDeclaredConstructor(QuickJSContext.class).newInstance(ctx);
-            Logger.t(TAG).d("createFun jar function loaded site=%s", siteKey);
+            QuickLog.d(TAG, "createFun jar function loaded site=%s", siteKey);
         } catch (Throwable ignored) {
-            Logger.t(TAG).d("createFun jar function unavailable site=%s error=%s: %s", siteKey, ignored.getClass().getSimpleName(), ignored.getMessage());
+            QuickLog.d(TAG, "createFun jar function unavailable site=%s error=%s: %s", siteKey, ignored.getClass().getSimpleName(), ignored.getMessage());
         }
     }
 
@@ -213,12 +213,12 @@ public class Spider extends com.github.catvod.crawler.Spider {
         String global = "globalThis." + spider;
         String content = Module.get().fetch(api);
         cat = content.contains("__jsEvalReturn");
-        Logger.t(TAG).d("createObj module fetched site=%s api=%s length=%s cat=%s", siteKey, api, content.length(), cat);
+        QuickLog.d(TAG, "createObj module fetched site=%s api=%s length=%s cat=%s", siteKey, api, content.length(), cat);
         ctx.evaluateModule(content.replace(spider, global), api);
         ctx.evaluateModule(String.format(Asset.read("js/lib/spider.js"), api));
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
         if (jsObject == null) throw new IllegalStateException("JS spider object missing: " + api);
-        Logger.t(TAG).d("createObj ready site=%s api=%s", siteKey, api);
+        QuickLog.d(TAG, "createObj ready site=%s api=%s", siteKey, api);
     }
 
     private Object getExt(String ext) {

@@ -563,7 +563,8 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_BACKUP, context.getString(R.string.setting_backup)),
                     RowSpec(KEY_RESTORE, context.getString(R.string.setting_restore)),
                     RowSpec(KEY_CACHE, context.getString(R.string.setting_cache), actions = listOf(ActionSpec(KEY_CACHE, context.getString(R.string.setting_clear), R.drawable.msr_storage))),
-                    RowSpec(KEY_MPV_LOG, "MPV播放日志", actions = listOf(ActionSpec(KEY_MPV_LOG, "导出日志", R.drawable.msr_storage))),
+                    RowSpec(KEY_MPV_LOG, "MPV播放日志", actions = listOf(ActionSpec(KEY_MPV_LOG_EXPORT, "导出日志", R.drawable.msr_storage))),
+                    RowSpec(KEY_QUICKJS_LOG, "JS调试日志", actions = listOf(ActionSpec(KEY_QUICKJS_LOG_EXPORT, "导出日志", R.drawable.msr_storage))),
                     RowSpec(KEY_VERSION, context.getString(R.string.setting_version))
                 )
             )
@@ -627,6 +628,9 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_RESTORE = "restore"
         const val KEY_CACHE = "cache"
         const val KEY_MPV_LOG = "mpv_log"
+        const val KEY_MPV_LOG_EXPORT = "mpv_log_export"
+        const val KEY_QUICKJS_LOG = "quickjs_log"
+        const val KEY_QUICKJS_LOG_EXPORT = "quickjs_log_export"
         const val KEY_VERSION = "version"
     }
 }

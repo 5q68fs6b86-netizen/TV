@@ -3,6 +3,8 @@ package com.fongmi.android.tv.utils;
 import android.content.Context;
 import android.os.Environment;
 
+import com.github.catvod.utils.Prefers;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +18,11 @@ public class MpvLogCollector {
 
     private static final List<String> logs = new ArrayList<>();
     private static final int MAX_LOG_SIZE = 1000;
+    private static final String ENABLED = "mpv_log_enabled";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
 
     public static void log(String tag, String message) {
+        if (!isEnabled()) return;
         synchronized (logs) {
             String timestamp = dateFormat.format(new Date());
             String logEntry = String.format("[%s] %s: %s", timestamp, tag, message);
@@ -35,6 +39,7 @@ public class MpvLogCollector {
     }
 
     public static void logError(String tag, String message) {
+        if (!isEnabled()) return;
         synchronized (logs) {
             String timestamp = dateFormat.format(new Date());
             String logEntry = String.format("[%s] ERROR-%s: %s", timestamp, tag, message);
@@ -46,6 +51,14 @@ public class MpvLogCollector {
 
             android.util.Log.e("MpvLogCollector", logEntry);
         }
+    }
+
+    public static boolean isEnabled() {
+        return Prefers.getBoolean(ENABLED, true);
+    }
+
+    public static void putEnabled(boolean enabled) {
+        Prefers.put(ENABLED, enabled);
     }
 
     public static void clear() {

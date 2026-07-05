@@ -3,9 +3,9 @@ package com.fongmi.android.tv.api.loader;
 import com.fongmi.android.tv.App;
 import com.fongmi.quickjs.crawler.Loader;
 import com.fongmi.quickjs.utils.Module;
+import com.fongmi.quickjs.utils.QuickLog;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
-import com.orhanobut.logger.Logger;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,26 +33,26 @@ public class JsLoader {
 
     public void setRecent(String recent) {
         this.recent = recent;
-        Logger.t(TAG).d("setRecent key=%s", recent);
+        QuickLog.d(TAG, "setRecent key=%s", recent);
     }
 
     public Spider getSpider(String key, String api, String ext, String jar) {
         Spider cached = spiders.get(key);
         if (cached != null) {
-            Logger.t(TAG).d("getSpider cache hit key=%s api=%s", key, api);
+            QuickLog.d(TAG, "getSpider cache hit key=%s api=%s", key, api);
             return cached;
         }
         return spiders.computeIfAbsent(key, k -> {
             long start = System.currentTimeMillis();
-            Logger.t(TAG).d("getSpider start key=%s api=%s ext=%s jar=%s", key, api, preview(ext), preview(jar));
+            QuickLog.d(TAG, "getSpider start key=%s api=%s ext=%s jar=%s", key, api, preview(ext), preview(jar));
             try {
                 Spider spider = loader.spider(api, BaseLoader.get().dex(jar));
                 spider.siteKey = key;
                 spider.init(App.get(), ext);
-                Logger.t(TAG).d("getSpider success key=%s elapsed=%sms", key, System.currentTimeMillis() - start);
+                QuickLog.d(TAG, "getSpider success key=%s elapsed=%sms", key, System.currentTimeMillis() - start);
                 return spider;
             } catch (Throwable e) {
-                Logger.t(TAG).e("getSpider failed key=" + key + " api=" + api + " error=" + e.getClass().getSimpleName() + ": " + e.getMessage());
+                QuickLog.e(TAG, "getSpider failed key=" + key + " api=" + api + " error=" + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
                 e.printStackTrace();
                 return new SpiderNull();
             }
