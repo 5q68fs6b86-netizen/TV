@@ -177,6 +177,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void refreshDanmakuRows() {
         setRowValue(JetStreamSettingView.KEY_DANMAKU_LOAD, Setting.getSwitch(DanmakuSetting.isLoad()));
         setRowValue(JetStreamSettingView.KEY_DANMAKU_API, getApiStatus());
+        setRowValue(JetStreamSettingView.KEY_DANMAKU_LOGVR_API, getLogvrStatus());
         setRowValue(JetStreamSettingView.KEY_DANMAKU_AUTO, Setting.getSwitch(DanmakuSetting.isAuto()));
         setRowValue(JetStreamSettingView.KEY_DANMAKU_SPIDER, Setting.getSwitch(DanmakuSetting.isSpiderFirst()));
         updateDanmakuVisibility();
@@ -208,6 +209,10 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private String getApiStatus() {
         return getStatus(DanmakuSetting.getEffectiveApiUrl());
+    }
+
+    private String getLogvrStatus() {
+        return getStatus(DanmakuSetting.getEffectiveLogvrUrl());
     }
 
     private void setCacheText() {
@@ -254,6 +259,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_PRELOAD_TIME -> PreloadDialog.show(this, PreloadDialog.TIME);
             case JetStreamSettingView.KEY_DANMAKU_LOAD -> setDanmakuLoad();
             case JetStreamSettingView.KEY_DANMAKU_API -> onDanmakuApi();
+            case JetStreamSettingView.KEY_DANMAKU_LOGVR_API -> onLogvrApi();
             case JetStreamSettingView.KEY_DANMAKU_AUTO -> setDanmakuAuto();
             case JetStreamSettingView.KEY_DANMAKU_SPIDER -> setDanmakuSpider();
             case JetStreamSettingView.KEY_INCOGNITO -> setIncognito();
@@ -535,9 +541,19 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         DanmakuApiDialog.show(this);
     }
 
+    private void onLogvrApi() {
+        DanmakuApiDialog.showLogvr(this);
+    }
+
     @Override
     public void setDanmakuApi(String url) {
         DanmakuSetting.putApiUrl(url);
+        refreshDanmakuRows();
+    }
+
+    @Override
+    public void setLogvrApi(String url) {
+        DanmakuSetting.putLogvrUrl(url);
         refreshDanmakuRows();
     }
 
@@ -553,8 +569,9 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void updateDanmakuVisibility() {
         boolean load = DanmakuSetting.isLoad();
-        boolean api = !TextUtils.isEmpty(DanmakuSetting.getEffectiveApiUrl());
+        boolean api = DanmakuSetting.hasSearchApi();
         setRowVisible(JetStreamSettingView.KEY_DANMAKU_API, load);
+        setRowVisible(JetStreamSettingView.KEY_DANMAKU_LOGVR_API, load);
         setRowVisible(JetStreamSettingView.KEY_DANMAKU_AUTO, load && api);
         setRowVisible(JetStreamSettingView.KEY_DANMAKU_SPIDER, load && api && DanmakuSetting.isAuto());
     }

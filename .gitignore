@@ -13,3 +13,4 @@ lib-*.aar
 /Release
 /docs
 .codex-apk-work
+.codex

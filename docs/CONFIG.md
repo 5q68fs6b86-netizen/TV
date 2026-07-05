@@ -51,6 +51,7 @@ Vod 配置為一個 JSON 物件，作為應用程式的主要配置入口。配�
 | `flags`     | `array<string>` | 平台標示旗標，用於標記特殊平台處理（如 `"qq"`）。                                   |
 | `ads`       | `array<string>` | 廣告域名過濾清單，符合的請求將被攔截。詳見 [ads](#ads--廣告過濾)。                       |
 | `danmaku`   | `string`        | 彈幕 API URL，用於自動搜尋彈幕。詳見 [danmaku](#danmaku--彈幕-api)。            |
+| `logvr`     | `string`        | Logvr API 根地址，用於優先透過 Logvr 搜尋彈幕。詳見 [danmaku](#danmaku--彈幕-api)。 |
 
 ---
 
@@ -584,6 +585,15 @@ scheme://username:password@host:port
 ## danmaku — 彈幕 API
 
 `danmaku` 為 VodConfig 頂層字串欄位，指定彈幕搜尋接口。
+
+`logvr` 為可選的 Logvr API 根地址，支援填寫部署根地址或 `/api/v2` 地址：
+
+```
+http://192.168.1.7:9321/87654321
+http://192.168.1.7:9321/87654321/api/v2
+```
+
+使用者也可在設定頁單獨配置 Logvr API，會優先覆蓋此欄位。自動搜尋時優先使用 Logvr：先以播放頁 URL 請求 `GET /api/v2/comment?url={url}&format=xml`，無結果再使用 `POST /api/v2/match` 片名集數匹配，最後回退到 `danmaku` 舊接口。
 
 ### GET 模式（含佔位符）
 

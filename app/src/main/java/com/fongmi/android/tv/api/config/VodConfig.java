@@ -148,6 +148,7 @@ public class VodConfig extends BaseConfig {
         config.setLogo(Json.safeString(object, "logo"));
         config.setNotice(Json.safeString(object, "notice"));
         config.setDanmaku(Json.safeString(object, "danmaku"));
+        config.setLogvr(Json.safeString(object, "logvr"));
     }
 
     private void initList(JsonObject object) {

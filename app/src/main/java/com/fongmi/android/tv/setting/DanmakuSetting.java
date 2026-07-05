@@ -69,6 +69,14 @@ public class DanmakuSetting {
         Prefers.put("danmaku_api_url", url);
     }
 
+    public static String getLogvrUrl() {
+        return Prefers.getString("danmaku_logvr_url", "");
+    }
+
+    public static void putLogvrUrl(String url) {
+        Prefers.put("danmaku_logvr_url", url);
+    }
+
     public static boolean isShow() {
         return Prefers.getBoolean("danmaku_show", true);
     }
@@ -297,6 +305,16 @@ public class DanmakuSetting {
         String userUrl = getApiUrl();
         if (!TextUtils.isEmpty(userUrl)) return userUrl;
         return VodConfig.get().getConfig().getDanmaku();
+    }
+
+    public static String getEffectiveLogvrUrl() {
+        String userUrl = getLogvrUrl();
+        if (!TextUtils.isEmpty(userUrl)) return userUrl;
+        return VodConfig.get().getConfig().getLogvr();
+    }
+
+    public static boolean hasSearchApi() {
+        return !TextUtils.isEmpty(getEffectiveApiUrl()) || !TextUtils.isEmpty(getEffectiveLogvrUrl());
     }
 
     public static void resetAppearance() {

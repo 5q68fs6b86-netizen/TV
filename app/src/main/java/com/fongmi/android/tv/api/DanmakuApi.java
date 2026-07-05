@@ -7,11 +7,13 @@ import androidx.collection.ArrayMap;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Danmaku;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import okhttp3.Call;
@@ -21,8 +23,15 @@ public class DanmakuApi {
 
     private static final String TAG = DanmakuApi.class.getSimpleName();
 
+    public interface SearchCallback {
+
+        void onSuccess(List<Danmaku> items);
+
+        void onError(Exception e);
+    }
+
     public static boolean canSearch() {
-        return DanmakuSetting.isLoad() && DanmakuSetting.isAuto() && !TextUtils.isEmpty(DanmakuSetting.getEffectiveApiUrl());
+        return DanmakuSetting.isLoad() && DanmakuSetting.isAuto() && DanmakuSetting.hasSearchApi();
     }
 
     public static Call newCall(String name, String episode) {
@@ -40,19 +49,82 @@ public class DanmakuApi {
         }
     }
 
-    public static void search(String name, String episode, Consumer<Danmaku> found) {
+    public static void search(String name, String episode, Result result, Consumer<Danmaku> found) {
+        searchAuto(name, episode, result, new SearchCallback() {
+            @Override
+            public void onSuccess(List<Danmaku> items) {
+                items.stream().findFirst().ifPresent(found);
+            }
+
+            @Override
+            public void onError(Exception e) {
+            }
+        });
+    }
+
+    public static void searchAuto(String name, String episode, Result result, SearchCallback callback) {
+        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvrUrl())) {
+            LogvrApi.searchAuto(name, episode, result, new LogvrApi.Listener() {
+                @Override
+                public void onSuccess(List<Danmaku> items) {
+                    if (items.isEmpty()) searchLegacy(name, episode, callback);
+                    else callback.onSuccess(items);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    searchLegacy(name, episode, callback);
+                }
+            });
+        } else {
+            searchLegacy(name, episode, callback);
+        }
+    }
+
+    public static void searchManual(String name, String episode, SearchCallback callback) {
+        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvrUrl())) {
+            LogvrApi.searchEpisodes(name, episode, new LogvrApi.Listener() {
+                @Override
+                public void onSuccess(List<Danmaku> items) {
+                    if (items.isEmpty()) searchLegacy(name, episode, callback);
+                    else callback.onSuccess(items);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    searchLegacy(name, episode, callback);
+                }
+            });
+        } else {
+            searchLegacy(name, episode, callback);
+        }
+    }
+
+    private static void searchLegacy(String name, String episode, SearchCallback callback) {
+        if (TextUtils.isEmpty(DanmakuSetting.getEffectiveApiUrl())) {
+            App.post(() -> callback.onSuccess(List.of()));
+            return;
+        }
         newCall(name, episode).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try {
-                    Danmaku.arrayFrom(response.body().string()).stream().findFirst().ifPresent(item -> App.post(() -> found.accept(item)));
-                } catch (Exception ignored) {
+                    List<Danmaku> items = Danmaku.arrayFrom(response.body().string());
+                    App.post(() -> callback.onSuccess(items));
+                } catch (Exception e) {
+                    App.post(() -> callback.onError(e));
                 }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull java.io.IOException e) {
+                App.post(() -> callback.onError(e));
             }
         });
     }
 
     public static void cancel() {
         OkHttp.cancel(TAG);
+        LogvrApi.cancel();
     }
 }

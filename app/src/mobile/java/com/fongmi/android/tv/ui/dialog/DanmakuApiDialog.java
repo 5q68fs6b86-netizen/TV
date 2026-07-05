@@ -16,9 +16,16 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class DanmakuApiDialog extends BaseAlertDialog {
 
     private DialogUaBinding binding;
+    private boolean logvr;
 
     public static void show(Fragment fragment) {
         new DanmakuApiDialog().show(fragment.getChildFragmentManager(), null);
+    }
+
+    public static void showLogvr(Fragment fragment) {
+        DanmakuApiDialog dialog = new DanmakuApiDialog();
+        dialog.logvr = true;
+        dialog.show(fragment.getChildFragmentManager(), null);
     }
 
     @Override
@@ -28,13 +35,13 @@ public class DanmakuApiDialog extends BaseAlertDialog {
 
     @Override
     protected MaterialAlertDialogBuilder getBuilder() {
-        return builder().setTitle(R.string.danmaku_api).setView(getBinding().getRoot()).setPositiveButton(R.string.dialog_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, null);
+        return builder().setTitle(logvr ? R.string.danmaku_logvr_api : R.string.danmaku_api).setView(getBinding().getRoot()).setPositiveButton(R.string.dialog_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, null);
     }
 
     @Override
     protected void initView() {
         String text;
-        binding.text.setText(text = DanmakuSetting.getEffectiveApiUrl());
+        binding.text.setText(text = logvr ? DanmakuSetting.getEffectiveLogvrUrl() : DanmakuSetting.getEffectiveApiUrl());
         binding.text.setSelection(TextUtils.isEmpty(text) ? 0 : text.length());
     }
 
@@ -47,7 +54,8 @@ public class DanmakuApiDialog extends BaseAlertDialog {
     }
 
     private void onPositive(DialogInterface dialog, int which) {
-        ((DanmakuListener) requireParentFragment()).setDanmakuApi(binding.text.getText().toString().trim());
+        if (logvr) ((DanmakuListener) requireParentFragment()).setLogvrApi(binding.text.getText().toString().trim());
+        else ((DanmakuListener) requireParentFragment()).setDanmakuApi(binding.text.getText().toString().trim());
         dismiss();
     }
 }
