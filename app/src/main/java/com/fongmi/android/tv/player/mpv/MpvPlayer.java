@@ -52,10 +52,11 @@ import java.util.concurrent.TimeUnit;
 import is.xyz.mpv.MPVLib;
 import is.xyz.mpv.MPVLib.MpvEvent;
 import is.xyz.mpv.MPVLib.MpvFormat;
+import is.xyz.mpv.MPVLib.MpvLogLevel;
 import is.xyz.mpv.MPVNode;
 
 @UnstableApi
-final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
+final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, MPVLib.LogObserver {
 
     private static final long LIVE_DURATION_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(1);
     private static final String HWDEC = "mediacodec,mediacodec-copy";
@@ -207,6 +208,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         if (closed) return Futures.immediateVoidFuture();
         closed = true;
         MPVLib.removeObserver(this);
+        MPVLib.removeLogObserver(this);
         clearVideoOutputInternal(null);
         try {
             MPVLib.INSTANCE.destroy();
@@ -374,13 +376,23 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         runOnApplicationThread(() -> handleEvent(eventId, data));
     }
 
+    @Override
+    public void logMessage(String prefix, int level, String text) {
+        if (TextUtils.isEmpty(text) || level > MpvLogLevel.MPV_LOG_LEVEL_WARN) return;
+        String message = (TextUtils.isEmpty(prefix) ? "" : prefix + ": ") + text.trim();
+        if (level <= MpvLogLevel.MPV_LOG_LEVEL_ERROR) MpvLogCollector.logError("MPV", message);
+        else MpvLogCollector.log("MPV", message);
+    }
+
     private void initialize() {
         File configDir = Path.mpv();
         File cacheDir = Path.mpvCache();
         MpvAssets.ensure(context, configDir);
         MPVLib.INSTANCE.create(context);
+        MPVLib.addLogObserver(this);
         MPVLib.INSTANCE.setOptionString("config", "yes");
         MPVLib.INSTANCE.setOptionString("config-dir", configDir.getAbsolutePath());
+        MPVLib.INSTANCE.setOptionString("msg-level", "all=warn");
         MPVLib.INSTANCE.setOptionString("gpu-shader-cache-dir", cacheDir.getAbsolutePath());
         MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
         MPVLib.INSTANCE.setOptionString("profile", "fast");
@@ -857,17 +869,65 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver {
         List<String> fields = new ArrayList<>();
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
-                String key = entry.getKey();
+                String key = entry.getKey() == null ? "" : entry.getKey().trim();
                 String value = entry.getValue();
                 if (TextUtils.isEmpty(key) || value == null) continue;
-                if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) userAgent = value;
-                else if (HttpHeaders.REFERER.equalsIgnoreCase(key)) referrer = value;
+                if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) {
+                    userAgent = value;
+                    continue;
+                }
+                if (isReferrerHeader(key)) {
+                    referrer = value;
+                    continue;
+                }
+                if (HttpHeaders.RANGE.equalsIgnoreCase(key)) {
+                    MpvLogCollector.log("MpvPlayer", "跳过静态 Range 请求头");
+                    continue;
+                }
                 fields.add(key + ": " + value);
             }
         }
-        MPVLib.INSTANCE.setOptionString("user-agent", userAgent);
-        MPVLib.INSTANCE.setOptionString("referrer", referrer);
-        MPVLib.INSTANCE.setOptionString("http-header-fields", String.join(",", fields));
+        setOptionString("user-agent", userAgent);
+        setOptionString("referrer", referrer);
+        applyHttpHeaderFields(fields);
+        MpvLogCollector.log("MpvPlayer", "请求头: User-Agent=" + !TextUtils.isEmpty(userAgent) + ", Referer=" + !TextUtils.isEmpty(referrer) + ", extra=" + fields.size());
+    }
+
+    private void applyHttpHeaderFields(List<String> fields) {
+        boolean changed = tryCommand("change-list", "http-header-fields", "clr");
+        if (changed) {
+            for (String field : fields) {
+                if (tryCommand("change-list", "http-header-fields", "append", field)) continue;
+                changed = false;
+                break;
+            }
+        }
+        if (!changed) {
+            MpvLogCollector.logError("MpvPlayer", "逐条设置请求头失败，回退到兼容模式");
+            setOptionString("http-header-fields", String.join(",", fields));
+        }
+    }
+
+    private boolean tryCommand(String... args) {
+        try {
+            MPVLib.INSTANCE.command(args);
+            return true;
+        } catch (RuntimeException e) {
+            MpvLogCollector.logError("MpvPlayer", "MPV命令失败: " + String.join(" ", args) + ", error=" + e.getMessage());
+            return false;
+        }
+    }
+
+    private void setOptionString(String name, String value) {
+        try {
+            MPVLib.INSTANCE.setOptionString(name, value == null ? "" : value);
+        } catch (RuntimeException e) {
+            MpvLogCollector.logError("MpvPlayer", "MPV选项设置失败: " + name + ", error=" + e.getMessage());
+        }
+    }
+
+    private static boolean isReferrerHeader(String key) {
+        return HttpHeaders.REFERER.equalsIgnoreCase(key) || "Referrer".equalsIgnoreCase(key);
     }
 
     private void applyDecode(int decode) {
