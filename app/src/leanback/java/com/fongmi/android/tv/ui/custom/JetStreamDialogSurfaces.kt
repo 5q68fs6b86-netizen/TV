@@ -57,14 +57,31 @@ class JetStreamSheetSurfaceLayout @JvmOverloads constructor(
 ) : LinearLayoutCompat(context, attrs, defStyleAttr) {
 
     init {
-        clipChildren = false
-        clipToPadding = false
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.JetStreamSheetSurfaceLayout, defStyleAttr, 0)
+        val edge = typedArray.getInt(R.styleable.JetStreamSheetSurfaceLayout_jetStreamSheetEdge, SHEET_EDGE_BOTTOM)
+        typedArray.recycle()
+
+        clipChildren = edge == SHEET_EDGE_RIGHT
+        clipToPadding = edge == SHEET_EDGE_RIGHT
         background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.BOTTOM_TOP,
-            cornerRadii = floatArrayOf(jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), 0f, 0f, 0f, 0f)
+            orientation = if (edge == SHEET_EDGE_RIGHT) GradientDrawable.Orientation.LEFT_RIGHT else GradientDrawable.Orientation.BOTTOM_TOP,
+            cornerRadii = if (edge == SHEET_EDGE_RIGHT) rightSheetCornerRadii() else bottomSheetCornerRadii()
         )
         elevation = jetStreamDp(10)
         clipToOutline = true
+    }
+
+    private fun bottomSheetCornerRadii(): FloatArray {
+        return floatArrayOf(jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), jetStreamDp(28), 0f, 0f, 0f, 0f)
+    }
+
+    private fun rightSheetCornerRadii(): FloatArray {
+        return floatArrayOf(jetStreamDp(28), jetStreamDp(28), 0f, 0f, 0f, 0f, jetStreamDp(28), jetStreamDp(28))
+    }
+
+    private companion object {
+        private const val SHEET_EDGE_BOTTOM = 0
+        private const val SHEET_EDGE_RIGHT = 1
     }
 }
 

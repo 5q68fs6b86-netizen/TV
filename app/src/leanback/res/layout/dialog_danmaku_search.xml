@@ -3,17 +3,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:jetStreamSheetEdge="right">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="18dp"
-        android:layout_marginEnd="24dp"
-        app:jetStreamSubtitle="@string/search_keyword"
-        app:jetStreamTitle="@string/home_search" />
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="8dp">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            app:jetStreamSubtitle="@string/search_keyword"
+            app:jetStreamTitle="@string/home_search" />
+
+    </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
         android:layout_width="match_parent"
@@ -48,21 +60,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
         android:visibility="gone"
         tools:visibility="visible" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamDialogListRecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="24dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:layout_weight="1"
         android:paddingTop="16dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="24dp"
+        android:paddingBottom="16dp"
         android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:maxHeight="204dp"
         tools:listitem="@layout/adapter_danmaku"
         tools:visibility="visible" />
 

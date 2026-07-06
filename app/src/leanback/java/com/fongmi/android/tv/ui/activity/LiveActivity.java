@@ -272,6 +272,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
             }
 
             @Override
+            public void onCommandLongClick(@NonNull String key) {
+            }
+
+            @Override
             public void onSeekTo(long positionMs) {
                 if (controller() != null && !player().isLive()) controller().seekTo(positionMs);
             }

@@ -15,8 +15,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -90,6 +92,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         fun onNext()
         fun onRepeat()
         fun onCommand(key: String)
+        fun onCommandLongClick(key: String)
         fun onSeekTo(positionMs: Long)
         fun onShowControls()
     }
@@ -539,15 +542,18 @@ class JetStreamVodControlView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             visibleCommands.forEach { (key, state) ->
-                CommandChip(state) {
-                    listener?.onCommand(key)
-                }
+                CommandChip(
+                    state = state,
+                    onClick = { listener?.onCommand(key) },
+                    onLongClick = { listener?.onCommandLongClick(key) }
+                )
             }
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun CommandChip(state: CommandState, onClick: () -> Unit) {
+    private fun CommandChip(state: CommandState, onClick: () -> Unit, onLongClick: () -> Unit) {
         val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
@@ -568,12 +574,16 @@ class JetStreamVodControlView @JvmOverloads constructor(
             modifier = Modifier
                 .height(36.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
-                .clickable(
+                .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
                     onClick = {
                         listener?.onShowControls()
                         onClick()
+                    },
+                    onLongClick = {
+                        listener?.onShowControls()
+                        onLongClick()
                     }
                 )
                 .padding(horizontal = JetStreamSpacing.ButtonHorizontalPadding),

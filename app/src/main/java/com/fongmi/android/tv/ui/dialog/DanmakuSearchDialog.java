@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -27,18 +28,12 @@ import com.fongmi.android.tv.utils.Util;
 
 import java.util.List;
 
-public final class DanmakuSearchDialog extends BaseBottomSheetDialog implements DanmakuAdapter.OnClickListener {
+public final class DanmakuSearchDialog {
 
-    private final DanmakuAdapter adapter;
-    private DialogDanmakuSearchBinding binding;
     private PlayerManager player;
 
     public static DanmakuSearchDialog create() {
         return new DanmakuSearchDialog();
-    }
-
-    public DanmakuSearchDialog() {
-        this.adapter = new DanmakuAdapter(this);
     }
 
     public DanmakuSearchDialog player(PlayerManager player) {
@@ -47,94 +42,182 @@ public final class DanmakuSearchDialog extends BaseBottomSheetDialog implements 
     }
 
     public void show(FragmentActivity activity) {
-        for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof DanmakuSearchDialog) return;
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        for (Fragment f : manager.getFragments()) if (f instanceof BottomSheet || f instanceof SideSheet) return;
+        if (Util.isFullscreenLand(activity) || Util.isLeanback()) new SideSheet(player).show(manager, null);
+        else new BottomSheet(player).show(manager, null);
     }
 
-    @Override
-    protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return binding = DialogDanmakuSearchBinding.inflate(inflater, container, false);
+    private static DialogDanmakuSearchBinding inflate(LayoutInflater inflater, ViewGroup container) {
+        return DialogDanmakuSearchBinding.inflate(inflater, container, false);
     }
 
-    @Override
-    protected void initView() {
-        binding.recycler.setAdapter(adapter);
-        binding.recycler.setItemAnimator(null);
-        binding.recycler.setHasFixedSize(false);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        setKeyword(player.getMetadata().title);
-        Util.showKeyboard(binding.keyword);
+    public static final class BottomSheet extends BaseBottomSheetDialog {
+
+        private final PlayerManager player;
+        private DialogDanmakuSearchBinding binding;
+        private Panel panel;
+
+        BottomSheet(PlayerManager player) {
+            this.player = player;
+        }
+
+        @Override
+        protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+            return binding = DanmakuSearchDialog.inflate(inflater, container);
+        }
+
+        @Override
+        protected void initView() {
+            panel = new Panel(binding, player, this::dismiss);
+            panel.initView();
+        }
+
+        @Override
+        protected void initEvent() {
+            panel.initEvent();
+        }
+
+        @Override
+        public void onDestroyView() {
+            if (panel != null) panel.onDestroyView();
+            super.onDestroyView();
+        }
     }
 
-    @Override
-    protected void initEvent() {
-        binding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH && !binding.keyword.getText().toString().trim().isEmpty()) search();
-            return true;
-        });
-        binding.keyword.setOnKeyListener((view, keyCode, event) -> {
-            if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && binding.recycler.getVisibility() == VISIBLE) return binding.recycler.requestFocus();
-            return false;
-        });
+    public static final class SideSheet extends BaseSideSheetDialog {
+
+        private final PlayerManager player;
+        private DialogDanmakuSearchBinding binding;
+        private Panel panel;
+
+        SideSheet(PlayerManager player) {
+            this.player = player;
+        }
+
+        @Override
+        protected int getWidth() {
+            return Math.min(ResUtil.dp2px(420), ResUtil.getScreenWidth() / 2);
+        }
+
+        @Override
+        protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+            return binding = DanmakuSearchDialog.inflate(inflater, container);
+        }
+
+        @Override
+        protected void initView() {
+            panel = new Panel(binding, player, this::dismiss);
+            panel.initView();
+        }
+
+        @Override
+        protected void initEvent() {
+            panel.initEvent();
+        }
+
+        @Override
+        public void onDestroyView() {
+            if (panel != null) panel.onDestroyView();
+            super.onDestroyView();
+        }
     }
 
-    @Override
-    public void onItemClick(Danmaku item) {
-        player.setDanmaku(item.isSelected() ? Danmaku.empty() : item);
-        dismiss();
-    }
+    private static final class Panel implements DanmakuAdapter.OnClickListener {
 
-    private void setKeyword(CharSequence text) {
-        binding.keyword.setText(text);
-        binding.keyword.setSelection(text.length());
-    }
+        private final DialogDanmakuSearchBinding binding;
+        private final PlayerManager player;
+        private final DanmakuAdapter adapter;
+        private final Runnable dismiss;
 
-    private void showProgress() {
-        binding.recycler.setVisibility(GONE);
-        binding.progress.setVisibility(VISIBLE);
-    }
+        private Panel(DialogDanmakuSearchBinding binding, PlayerManager player, Runnable dismiss) {
+            this.binding = binding;
+            this.player = player;
+            this.dismiss = dismiss;
+            this.adapter = new DanmakuAdapter(this);
+        }
 
-    private void hideProgress(boolean empty) {
-        binding.progress.setVisibility(GONE);
-        binding.recycler.setVisibility(empty ? GONE : VISIBLE);
-    }
+        private void initView() {
+            binding.recycler.setAdapter(adapter);
+            binding.recycler.setItemAnimator(null);
+            binding.recycler.setHasFixedSize(false);
+            binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
+            setKeyword(player == null || player.getMetadata() == null ? "" : player.getMetadata().title);
+            Util.showKeyboard(binding.keyword);
+        }
 
-    private void search() {
-        showProgress();
-        adapter.clear();
-        Util.hideKeyboard(binding.keyword);
-        DanmakuApi.searchManual(binding.keyword.getText().toString().trim(), getEpisode(), new DanmakuApi.SearchCallback() {
-            @Override
-            public void onSuccess(List<Danmaku> items) {
-                if (items.isEmpty()) onError(new Exception(ResUtil.getString(R.string.error_empty)));
-                else DanmakuSearchDialog.this.onSuccess(items);
-            }
+        private void initEvent() {
+            binding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH && !getKeyword().isEmpty()) search();
+                return true;
+            });
+            binding.keyword.setOnKeyListener((view, keyCode, event) -> {
+                if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && binding.recycler.getVisibility() == VISIBLE) return binding.recycler.requestFocus();
+                return false;
+            });
+        }
 
-            @Override
-            public void onError(Exception e) {
-                DanmakuSearchDialog.this.onError(e);
-            }
-        });
-    }
+        @Override
+        public void onItemClick(Danmaku item) {
+            if (player != null) player.setDanmaku(item.isSelected() ? Danmaku.empty() : item);
+            dismiss.run();
+        }
 
-    private String getEpisode() {
-        return player.getMetadata() == null || player.getMetadata().artist == null ? "" : player.getMetadata().artist.toString().trim();
-    }
+        private void setKeyword(CharSequence text) {
+            CharSequence keyword = text == null ? "" : text;
+            binding.keyword.setText(keyword);
+            binding.keyword.setSelection(keyword.length());
+        }
 
-    private void onSuccess(List<Danmaku> items) {
-        adapter.addAll(items);
-        hideProgress(items.isEmpty());
-        binding.recycler.requestFocus();
-    }
+        private String getKeyword() {
+            return binding.keyword.getText() == null ? "" : binding.keyword.getText().toString().trim();
+        }
 
-    private void onError(Exception e) {
-        hideProgress(true);
-        Notify.show(e.getMessage());
-    }
+        private void showProgress() {
+            binding.recycler.setVisibility(GONE);
+            binding.progress.setVisibility(VISIBLE);
+        }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        DanmakuApi.cancel();
+        private void hideProgress(boolean empty) {
+            binding.progress.setVisibility(GONE);
+            binding.recycler.setVisibility(empty ? GONE : VISIBLE);
+        }
+
+        private void search() {
+            showProgress();
+            adapter.clear();
+            Util.hideKeyboard(binding.keyword);
+            DanmakuApi.searchManual(getKeyword(), getEpisode(), new DanmakuApi.SearchCallback() {
+                @Override
+                public void onSuccess(List<Danmaku> items) {
+                    if (items.isEmpty()) onError(new Exception(ResUtil.getString(R.string.error_empty)));
+                    else Panel.this.onSuccess(items);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Panel.this.onError(e);
+                }
+            });
+        }
+
+        private String getEpisode() {
+            return player == null || player.getMetadata() == null || player.getMetadata().artist == null ? "" : player.getMetadata().artist.toString().trim();
+        }
+
+        private void onSuccess(List<Danmaku> items) {
+            adapter.addAll(items);
+            hideProgress(items.isEmpty());
+            binding.recycler.requestFocus();
+        }
+
+        private void onError(Exception e) {
+            hideProgress(true);
+            Notify.show(e.getMessage());
+        }
+
+        private void onDestroyView() {
+            DanmakuApi.cancel();
+        }
     }
 }

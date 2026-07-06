@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,5 +64,10 @@ public abstract class BaseSideSheetDialog extends AppCompatDialogFragment {
         ViewGroup.LayoutParams params = sheet.getLayoutParams();
         params.width = getWidth();
         sheet.setLayoutParams(params);
+        if (!Util.isLeanback()) return;
+        sheet.setBackgroundColor(Color.TRANSPARENT);
+        sheet.setClipChildren(false);
+        sheet.setClipToPadding(false);
+        sheet.setClipToOutline(false);
     }
 }

@@ -170,6 +170,10 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
             }
 
             @Override
+            public void onCommandLongClick(@NonNull String key) {
+            }
+
+            @Override
             public void onSeekTo(long positionMs) {
                 if (!isPlaybackReady() || player().isEmpty()) return;
                 controller().seekTo(positionMs);

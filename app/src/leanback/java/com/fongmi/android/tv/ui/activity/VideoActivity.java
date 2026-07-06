@@ -479,6 +479,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             }
 
             @Override
+            public void onCommandLongClick(@NonNull String key) {
+                onJetStreamCommandLongClick(key);
+            }
+
+            @Override
             public void onSeekTo(long positionMs) {
                 if (controller() != null) controller().seekTo(positionMs);
             }
@@ -1276,6 +1281,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             case "ending" -> onEnding();
             case "edition" -> onEdition();
             case "chapter" -> onChapter();
+        }
+        syncJetStreamControl();
+    }
+
+    private void onJetStreamCommandLongClick(String key) {
+        switch (key) {
+            case "opening" -> onOpeningReset();
+            case "ending" -> onEndingReset();
         }
         syncJetStreamControl();
     }

@@ -18,4 +18,11 @@
         <attr name="jetStreamTitle" />
         <attr name="jetStreamSubtitle" />
     </declare-styleable>
+
+    <declare-styleable name="JetStreamSheetSurfaceLayout">
+        <attr name="jetStreamSheetEdge" format="enum">
+            <enum name="bottom" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+    </declare-styleable>
 </resources>
