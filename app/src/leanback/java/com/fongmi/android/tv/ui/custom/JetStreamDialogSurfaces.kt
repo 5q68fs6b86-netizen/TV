@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
@@ -343,7 +344,7 @@ class JetStreamDanmakuSectionLayout @JvmOverloads constructor(
 ) : LinearLayoutCompat(context, attrs, defStyleAttr) {
 
     init {
-        applyJetStreamDialogSectionSurface()
+        applyJetStreamDanmakuSectionSurface()
     }
 }
 
@@ -378,6 +379,13 @@ class JetStreamDanmakuControlRowLayout @JvmOverloads constructor(
 
     init {
         applyJetStreamDanmakuControlRowSurface()
+    }
+
+    override fun setLayoutParams(params: ViewGroup.LayoutParams?) {
+        if (params is ViewGroup.MarginLayoutParams && params.bottomMargin == 0) {
+            params.bottomMargin = jetStreamDpInt(8)
+        }
+        super.setLayoutParams(params)
     }
 }
 
@@ -558,6 +566,16 @@ private fun LinearLayoutCompat.applyJetStreamDialogSectionSurface() {
     }
 }
 
+private fun LinearLayoutCompat.applyJetStreamDanmakuSectionSurface() {
+    clipChildren = false
+    clipToPadding = false
+    background = null
+    elevation = 0f
+    if (paddingLeft == 0 && paddingTop == 0 && paddingRight == 0 && paddingBottom == 0) {
+        setPadding(0, 0, 0, jetStreamDpInt(8))
+    }
+}
+
 private fun LinearLayoutCompat.applyJetStreamSettingControlRowSurface() {
     val left = paddingLeft
     val top = paddingTop
@@ -577,7 +595,7 @@ private fun LinearLayoutCompat.applyJetStreamSettingControlRowSurface() {
 
 private fun LinearLayoutCompat.applyJetStreamDanmakuControlRowSurface() {
     if (paddingLeft == 0 && paddingTop == 0 && paddingRight == 0 && paddingBottom == 0) {
-        setPadding(jetStreamDpInt(24), jetStreamDpInt(4), jetStreamDpInt(24), jetStreamDpInt(4))
+        setPadding(jetStreamDpInt(24), jetStreamDpInt(6), jetStreamDpInt(24), jetStreamDpInt(6))
     }
 }
 

@@ -210,8 +210,31 @@ public class VodPlaybackController {
 
     public void reverseEpisode(boolean scroll) {
         if (!state.hasFlags()) return;
-        for (Flag flag : state.getFlags()) Collections.reverse(flag.getEpisodes());
+        for (Flag flag : state.getFlags()) reverseEpisodesKeepingCurrent(flag);
         host.renderReverseEpisodes(state.getFlag().getEpisodes(), scroll);
+    }
+
+    static void reverseEpisodesKeepingCurrent(Flag flag) {
+        List<Episode> episodes = flag.getEpisodes();
+        if (episodes.size() <= 1) return;
+        Episode current = currentEpisode(flag);
+        Collections.reverse(episodes);
+        if (current == null) return;
+        int position = indexOf(episodes, current);
+        if (position >= 0) flag.setPosition(position);
+    }
+
+    private static Episode currentEpisode(Flag flag) {
+        int position = flag.getPosition();
+        List<Episode> episodes = flag.getEpisodes();
+        if (position >= 0 && position < episodes.size()) return episodes.get(position);
+        for (Episode episode : episodes) if (episode.isSelected()) return episode;
+        return null;
+    }
+
+    private static int indexOf(List<Episode> episodes, Episode target) {
+        for (int i = 0; i < episodes.size(); i++) if (episodes.get(i) == target) return i;
+        return -1;
     }
 
     private void saveCurrentHistory() {

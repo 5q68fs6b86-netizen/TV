@@ -8,6 +8,8 @@ import com.google.common.net.HttpHeaders;
 import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class Connect {
 
@@ -33,16 +36,34 @@ public class Connect {
         try (res) {
             JSObject jsObject = ctx.createNewJSObject();
             JSObject jsHeader = ctx.createNewJSObject();
+            ResponseBody body = res.body();
+            Charset charset = getCharset(req, body);
+            byte[] bytes = body == null ? new byte[0] : body.bytes();
             setHeader(ctx, res, jsHeader);
             jsObject.setProperty("code", res.code());
             jsObject.setProperty("headers", jsHeader);
-            if (req.getBuffer() == 0) jsObject.setProperty("content", patchScript(res.request().url().toString(), new String(res.body().bytes(), req.getCharset())));
-            if (req.getBuffer() == 1) jsObject.setProperty("content", JSUtil.toArray(ctx, res.body().bytes()));
-            if (req.getBuffer() == 2) jsObject.setProperty("content", Util.base64(res.body().bytes()));
-            if (req.getBuffer() == 3) jsObject.setProperty("content", res.body().bytes());
+            if (req.getBuffer() == 0) jsObject.setProperty("content", patchScript(res.request().url().toString(), new String(bytes, charset)));
+            if (req.getBuffer() == 1) jsObject.setProperty("content", JSUtil.toArray(ctx, bytes));
+            if (req.getBuffer() == 2) jsObject.setProperty("content", Util.base64(bytes));
+            if (req.getBuffer() == 3) jsObject.setProperty("content", bytes);
             return jsObject;
         } catch (Exception e) {
             return error(ctx);
+        }
+    }
+
+    private static Charset getCharset(Req req, ResponseBody body) {
+        try {
+            if (body != null && body.contentType() != null) {
+                Charset charset = body.contentType().charset();
+                if (charset != null) return charset;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            return Charset.forName(req.getCharset());
+        } catch (Exception ignored) {
+            return StandardCharsets.UTF_8;
         }
     }
 

@@ -228,8 +228,17 @@ public class Global {
     }
 
     private void completeSuccess(JSFunction complete, Req req, Response res) {
-        boolean posted = postCallback(complete, () -> complete.call(Connect.success(ctx, req, res)));
-        if (!posted) res.close();
+        boolean posted = submit(() -> {
+            try {
+                if (!destroyed) complete.call(Connect.success(ctx, req, res));
+                else res.close();
+            } finally {
+                complete.release();
+            }
+        });
+        if (posted) return;
+        res.close();
+        complete.release();
     }
 
     private void completeError(JSFunction complete) {

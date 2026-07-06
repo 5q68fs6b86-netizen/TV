@@ -44,6 +44,20 @@ public class VodPlaybackStateTest {
         assertFalse(flag.getEpisodes().get(1).isSelected());
     }
 
+    @Test
+    public void shouldKeepCurrentEpisodeWhenReversingEpisodes() {
+        Flag flag = createFlagWithTwoEpisodes();
+        Episode first = flag.getEpisodes().get(0);
+        flag.toggle(true, first);
+
+        VodPlaybackController.reverseEpisodesKeepingCurrent(flag);
+
+        assertSame(first, flag.getEpisodes().get(1));
+        assertEquals(1, flag.getPosition());
+        assertTrue(first.isSelected());
+        assertFalse(flag.getEpisodes().get(0).isSelected());
+    }
+
     private Flag createFlagWithTwoEpisodes() {
         Flag flag = new Flag("main");
         flag.getEpisodes().add(Episode.create("01", "url1"));

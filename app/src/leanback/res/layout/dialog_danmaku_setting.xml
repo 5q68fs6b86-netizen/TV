@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         app:selectionRequired="true"
         app:singleSelection="true">
 
@@ -77,9 +77,13 @@
 
     </com.fongmi.android.tv.ui.custom.JetStreamDialogToggleGroup>
 
-    <com.fongmi.android.tv.ui.custom.JetStreamDialogScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
         <com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout
             android:layout_width="match_parent"
@@ -119,5 +123,5 @@
                 android:visibility="gone" />
 
         </com.fongmi.android.tv.ui.custom.JetStreamDialogContentLayout>
-    </com.fongmi.android.tv.ui.custom.JetStreamDialogScrollView>
+    </androidx.core.widget.NestedScrollView>
 </com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

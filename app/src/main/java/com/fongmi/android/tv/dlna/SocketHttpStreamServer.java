@@ -31,6 +31,10 @@ import java.util.Objects;
 
 public class SocketHttpStreamServer implements StreamServer<SocketHttpStreamServer.Configuration> {
 
+    private static final int MAX_LINE_LENGTH = 8 * 1024;
+    private static final int MAX_HEADER_BYTES = 64 * 1024;
+    private static final int MAX_BODY_BYTES = 4 * 1024 * 1024;
+
     private final Configuration configuration;
     private ServerSocket serverSocket;
     private volatile boolean stopped;
@@ -104,6 +108,7 @@ public class SocketHttpStreamServer implements StreamServer<SocketHttpStreamServ
                     return sb.toString();
                 }
                 sb.append((char) b);
+                if (sb.length() > MAX_LINE_LENGTH) throw new IOException("HTTP line too long");
                 prev = b;
             }
             return sb.toString();
@@ -152,7 +157,10 @@ public class SocketHttpStreamServer implements StreamServer<SocketHttpStreamServ
         private Map<String, List<String>> readHeaders(InputStream is) throws IOException {
             Map<String, List<String>> headers = new HashMap<>();
             String line;
+            int bytes = 0;
             while (!(line = readLine(is)).isEmpty()) {
+                bytes += line.length();
+                if (bytes > MAX_HEADER_BYTES) throw new IOException("HTTP headers too large");
                 int colon = line.indexOf(':');
                 if (colon < 0) continue;
                 headers.computeIfAbsent(line.substring(0, colon).trim().toLowerCase(), k -> new ArrayList<>()).add(line.substring(colon + 1).trim());
@@ -172,9 +180,11 @@ public class SocketHttpStreamServer implements StreamServer<SocketHttpStreamServ
             if (length == null || length.isEmpty()) return;
             int len = Integer.parseInt(length.get(0).trim());
             if (len <= 0) return;
+            if (len > MAX_BODY_BYTES) throw new IOException("HTTP body too large: " + len);
             byte[] body = new byte[len];
             int offset = 0, read;
             while (offset < len && (read = is.read(body, offset, len - offset)) != -1) offset += read;
+            if (offset < len) throw new IOException("Unexpected end of HTTP body");
             if (msg.isContentTypeMissingOrText()) msg.setBodyCharacters(body);
             else msg.setBody(UpnpMessage.BodyType.BYTES, body);
         }

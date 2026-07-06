@@ -7,6 +7,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 
 import androidx.viewbinding.ViewBinding;
 
@@ -614,14 +615,19 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void setApiUrl(int title, String value, Consumer<String> callback) {
         EditText input = new EditText(this);
-        int padding = ResUtil.dp2px(24);
+        FrameLayout container = new FrameLayout(this);
+        int horizontalPadding = ResUtil.dp2px(24);
+        int verticalPadding = ResUtil.dp2px(12);
         input.setHint(title);
         input.setSingleLine(true);
         input.setText(value);
-        input.setPadding(padding, 0, padding, 0);
+        input.setMinHeight(ResUtil.dp2px(56));
+        input.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
-        new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+        container.setPadding(0, ResUtil.dp2px(8), 0, 0);
+        container.addView(input, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+        new MaterialAlertDialogBuilder(this).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
     private void setSize() {
