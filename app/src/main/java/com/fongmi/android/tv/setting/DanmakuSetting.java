@@ -69,12 +69,13 @@ public class DanmakuSetting {
         Prefers.put("danmaku_api_url", url);
     }
 
-    public static String getLogvrUrl() {
-        return Prefers.getString("danmaku_logvr_url", "");
+    public static String getLogvarUrl() {
+        String url = Prefers.getString("danmaku_logvar_url", "");
+        return TextUtils.isEmpty(url) ? Prefers.getString("danmaku_logvr_url", "") : url;
     }
 
-    public static void putLogvrUrl(String url) {
-        Prefers.put("danmaku_logvr_url", url);
+    public static void putLogvarUrl(String url) {
+        Prefers.put("danmaku_logvar_url", url);
     }
 
     public static boolean isShow() {
@@ -307,14 +308,14 @@ public class DanmakuSetting {
         return VodConfig.get().getConfig().getDanmaku();
     }
 
-    public static String getEffectiveLogvrUrl() {
-        String userUrl = getLogvrUrl();
+    public static String getEffectiveLogvarUrl() {
+        String userUrl = getLogvarUrl();
         if (!TextUtils.isEmpty(userUrl)) return userUrl;
-        return VodConfig.get().getConfig().getLogvr();
+        return VodConfig.get().getConfig().getLogvar();
     }
 
     public static boolean hasSearchApi() {
-        return !TextUtils.isEmpty(getEffectiveApiUrl()) || !TextUtils.isEmpty(getEffectiveLogvrUrl());
+        return !TextUtils.isEmpty(getEffectiveApiUrl()) || !TextUtils.isEmpty(getEffectiveLogvarUrl());
     }
 
     public static void resetAppearance() {

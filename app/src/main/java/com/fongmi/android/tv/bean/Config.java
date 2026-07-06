@@ -49,8 +49,8 @@ public class Config {
     @SerializedName("danmaku")
     private String danmaku;
     @Ignore
-    @SerializedName("logvr")
-    private String logvr;
+    @SerializedName(value = "logvar", alternate = {"logvr"})
+    private String logvar;
 
     public static List<Config> arrayFrom(String str) {
         Type listType = TypeToken.getParameterized(List.class, Config.class).getType();
@@ -221,12 +221,12 @@ public class Config {
         this.danmaku = danmaku;
     }
 
-    public String getLogvr() {
-        return logvr;
+    public String getLogvar() {
+        return logvar;
     }
 
-    public void setLogvr(String logvr) {
-        this.logvr = logvr;
+    public void setLogvar(String logvar) {
+        this.logvar = logvar;
     }
 
     public Config type(int type) {

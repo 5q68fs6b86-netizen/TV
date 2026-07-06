@@ -24,15 +24,15 @@ import org.greenrobot.eventbus.ThreadMode;
 public class DanmakuApiDialog extends BaseAlertDialog {
 
     private DialogUaBinding binding;
-    private boolean logvr;
+    private boolean logvar;
 
     public static void show(FragmentActivity activity) {
         new DanmakuApiDialog().show(activity.getSupportFragmentManager(), null);
     }
 
-    public static void showLogvr(FragmentActivity activity) {
+    public static void showLogvar(FragmentActivity activity) {
         DanmakuApiDialog dialog = new DanmakuApiDialog();
-        dialog.logvr = true;
+        dialog.logvar = true;
         dialog.show(activity.getSupportFragmentManager(), null);
     }
 
@@ -49,7 +49,7 @@ public class DanmakuApiDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         String text;
-        binding.text.setText(text = logvr ? DanmakuSetting.getEffectiveLogvrUrl() : DanmakuSetting.getEffectiveApiUrl());
+        binding.text.setText(text = logvar ? DanmakuSetting.getEffectiveLogvarUrl() : DanmakuSetting.getEffectiveApiUrl());
         binding.text.setSelection(TextUtils.isEmpty(text) ? 0 : text.length());
         binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
         binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("\uff0c", "\n"));
@@ -66,7 +66,7 @@ public class DanmakuApiDialog extends BaseAlertDialog {
     }
 
     private void onPositive(View view) {
-        if (logvr) ((DanmakuListener) requireActivity()).setLogvrApi(binding.text.getText().toString().trim());
+        if (logvar) ((DanmakuListener) requireActivity()).setLogvarApi(binding.text.getText().toString().trim());
         else ((DanmakuListener) requireActivity()).setDanmakuApi(binding.text.getText().toString().trim());
         dismiss();
     }

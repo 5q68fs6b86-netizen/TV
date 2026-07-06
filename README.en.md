@@ -74,8 +74,8 @@ This repository is the `wobuhui666/TV` maintained fork. The main work is focused
 ### 3. Subtitles And Danmaku
 
 - Reworked subtitle dialog layouts and controls, including subtitle size up/down, move up/down, and reset actions for both TV and mobile workflows.
-- Added Logvr danmaku API support. Users can configure a Logvr root URL, match by playback URL or title and episode, and fall back to the legacy danmaku API when needed.
-- Added unit tests for Logvr base URL normalization, request URL construction, episode matching, and response parsing.
+- Added Logvar danmaku API support. Users can configure a Logvar root URL, match by playback URL or title and episode, and fall back to the legacy danmaku API when needed.
+- Added unit tests for Logvar base URL normalization, request URL construction, episode matching, and response parsing.
 - Kept remote subtitle and danmaku injection through the local HTTP API.
 
 ### 4. Spider, Parser, And Script Compatibility
@@ -106,7 +106,7 @@ This repository is the `wobuhui666/TV` maintained fork. The main work is focused
 - **mpv**: mpv playback, config editing, Vulkan, `gpu-next`, Anime4K, playback logs, and HTTP headers.
 - **Rendering**: SurfaceView / TextureView.
 - **DRM**: Widevine, PlayReady, and ClearKey with `#KODIPROP` support.
-- **Danmaku**: DanmakuFlameMaster synchronized with the playback timeline, with remote push and Logvr matching.
+- **Danmaku**: DanmakuFlameMaster synchronized with the playback timeline, with remote push and Logvar matching.
 - **Subtitles**: External SRT / SSA / ASS subtitles, system CaptioningManager, and remote real-time injection.
 - **Other**: Playback speed, aspect scaling, Picture-in-Picture, background audio, and intro/outro skipping.
 
@@ -188,7 +188,7 @@ VOD configuration is the main entry point. It can be loaded from a URL or local 
 - VOD sites (`sites`) and parse rules (`parses`)
 - Live sources (`lives`)
 - Network settings (`doh`, `proxy`, `hosts`, `ads`)
-- Danmaku settings (`danmaku`, `logvr`)
+- Danmaku settings (`danmaku`, `logvar`)
 
 Live configuration can be embedded or stored separately. See [CONFIG.md](docs/CONFIG.md) for all fields.
 

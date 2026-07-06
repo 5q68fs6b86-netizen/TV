@@ -4,5 +4,5 @@ public interface DanmakuListener {
 
     void setDanmakuApi(String url);
 
-    void setLogvrApi(String url);
+    void setLogvarApi(String url);
 }

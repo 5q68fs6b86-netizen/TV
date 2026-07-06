@@ -546,7 +546,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                 rows = listOf(
                     RowSpec(KEY_DANMAKU_LOAD, context.getString(R.string.danmaku_load)),
                     RowSpec(KEY_DANMAKU_API, context.getString(R.string.danmaku_api)),
-                    RowSpec(KEY_DANMAKU_LOGVR_API, context.getString(R.string.danmaku_logvr_api)),
+                    RowSpec(KEY_DANMAKU_LOGVAR_API, context.getString(R.string.danmaku_logvar_api)),
                     RowSpec(KEY_DANMAKU_AUTO, context.getString(R.string.danmaku_auto_load)),
                     RowSpec(KEY_DANMAKU_SPIDER, context.getString(R.string.danmaku_spider_first))
                 )
@@ -615,7 +615,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
         const val KEY_DANMAKU_LOAD = "danmaku_load"
         const val KEY_DANMAKU_API = "danmaku_api"
-        const val KEY_DANMAKU_LOGVR_API = "danmaku_logvr_api"
+        const val KEY_DANMAKU_LOGVAR_API = "danmaku_logvar_api"
         const val KEY_DANMAKU_AUTO = "danmaku_auto"
         const val KEY_DANMAKU_SPIDER = "danmaku_spider"
 

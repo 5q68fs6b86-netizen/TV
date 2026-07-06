@@ -29,8 +29,8 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
         return getString(TextUtils.isEmpty(DanmakuSetting.getEffectiveApiUrl()) ? R.string.none : R.string.yes);
     }
 
-    private String getLogvrStatus() {
-        return getString(TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvrUrl()) ? R.string.none : R.string.yes);
+    private String getLogvarStatus() {
+        return getString(TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvarUrl()) ? R.string.none : R.string.yes);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
     @Override
     protected void initView() {
         mBinding.danmakuApiText.setText(getApiStatus());
-        mBinding.danmakuLogvrApiText.setText(getLogvrStatus());
+        mBinding.danmakuLogvarApiText.setText(getLogvarStatus());
         mBinding.danmakuAutoText.setText(Setting.getSwitch(DanmakuSetting.isAuto()));
         mBinding.danmakuLoadText.setText(Setting.getSwitch(DanmakuSetting.isLoad()));
         mBinding.danmakuSpiderText.setText(Setting.getSwitch(DanmakuSetting.isSpiderFirst()));
@@ -51,7 +51,7 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
     @Override
     protected void initEvent() {
         mBinding.danmakuApi.setOnClickListener(this::onDanmakuApi);
-        mBinding.danmakuLogvrApi.setOnClickListener(this::onLogvrApi);
+        mBinding.danmakuLogvarApi.setOnClickListener(this::onLogvarApi);
         mBinding.danmakuAuto.setOnClickListener(this::setDanmakuAuto);
         mBinding.danmakuLoad.setOnClickListener(this::setDanmakuLoad);
         mBinding.danmakuSpider.setOnClickListener(this::setDanmakuSpider);
@@ -66,7 +66,7 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
     private void updateApiVisibility() {
         boolean load = DanmakuSetting.isLoad();
         mBinding.danmakuApi.setVisibility(load ? View.VISIBLE : View.GONE);
-        mBinding.danmakuLogvrApi.setVisibility(load ? View.VISIBLE : View.GONE);
+        mBinding.danmakuLogvarApi.setVisibility(load ? View.VISIBLE : View.GONE);
         updateAutoVisibility();
     }
 
@@ -85,8 +85,8 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
         DanmakuApiDialog.show(this);
     }
 
-    private void onLogvrApi(View view) {
-        DanmakuApiDialog.showLogvr(this);
+    private void onLogvarApi(View view) {
+        DanmakuApiDialog.showLogvar(this);
     }
 
     @Override
@@ -97,9 +97,9 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
     }
 
     @Override
-    public void setLogvrApi(String url) {
-        DanmakuSetting.putLogvrUrl(url);
-        mBinding.danmakuLogvrApiText.setText(getLogvrStatus());
+    public void setLogvarApi(String url) {
+        DanmakuSetting.putLogvarUrl(url);
+        mBinding.danmakuLogvarApiText.setText(getLogvarStatus());
         updateAutoVisibility();
     }
 

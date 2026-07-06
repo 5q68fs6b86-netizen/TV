@@ -192,7 +192,7 @@
     <!-- Danmaku -->
     <string name="danmaku_load">Danmaku load</string>
     <string name="danmaku_api">Search API</string>
-    <string name="danmaku_logvr_api">Logvr API</string>
+    <string name="danmaku_logvar_api">Logvar API</string>
     <string name="danmaku_auto_load">Auto search</string>
     <string name="danmaku_spider_first">Spider first</string>
 

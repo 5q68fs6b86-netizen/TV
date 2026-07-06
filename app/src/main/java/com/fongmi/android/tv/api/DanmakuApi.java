@@ -63,8 +63,8 @@ public class DanmakuApi {
     }
 
     public static void searchAuto(String name, String episode, Result result, SearchCallback callback) {
-        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvrUrl())) {
-            LogvrApi.searchAuto(name, episode, result, new LogvrApi.Listener() {
+        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvarUrl())) {
+            LogvarApi.searchAuto(name, episode, result, new LogvarApi.Listener() {
                 @Override
                 public void onSuccess(List<Danmaku> items) {
                     if (items.isEmpty()) searchLegacy(name, episode, callback);
@@ -82,8 +82,8 @@ public class DanmakuApi {
     }
 
     public static void searchManual(String name, String episode, SearchCallback callback) {
-        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvrUrl())) {
-            LogvrApi.searchEpisodes(name, episode, new LogvrApi.Listener() {
+        if (!TextUtils.isEmpty(DanmakuSetting.getEffectiveLogvarUrl())) {
+            LogvarApi.searchEpisodes(name, episode, new LogvarApi.Listener() {
                 @Override
                 public void onSuccess(List<Danmaku> items) {
                     if (items.isEmpty()) searchLegacy(name, episode, callback);
@@ -125,6 +125,6 @@ public class DanmakuApi {
 
     public static void cancel() {
         OkHttp.cancel(TAG);
-        LogvrApi.cancel();
+        LogvarApi.cancel();
     }
 }

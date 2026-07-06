@@ -86,7 +86,7 @@
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/danmakuLogvrApi"
+                android:id="@+id/danmakuLogvarApi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -99,12 +99,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
-                    android:text="@string/danmaku_logvr_api"
+                    android:text="@string/danmaku_logvar_api"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/danmakuLogvrApiText"
+                    android:id="@+id/danmakuLogvarApiText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="middle"

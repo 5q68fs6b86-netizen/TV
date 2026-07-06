@@ -16,15 +16,15 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class DanmakuApiDialog extends BaseAlertDialog {
 
     private DialogUaBinding binding;
-    private boolean logvr;
+    private boolean logvar;
 
     public static void show(Fragment fragment) {
         new DanmakuApiDialog().show(fragment.getChildFragmentManager(), null);
     }
 
-    public static void showLogvr(Fragment fragment) {
+    public static void showLogvar(Fragment fragment) {
         DanmakuApiDialog dialog = new DanmakuApiDialog();
-        dialog.logvr = true;
+        dialog.logvar = true;
         dialog.show(fragment.getChildFragmentManager(), null);
     }
 
@@ -35,13 +35,13 @@ public class DanmakuApiDialog extends BaseAlertDialog {
 
     @Override
     protected MaterialAlertDialogBuilder getBuilder() {
-        return builder().setTitle(logvr ? R.string.danmaku_logvr_api : R.string.danmaku_api).setView(getBinding().getRoot()).setPositiveButton(R.string.dialog_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, null);
+        return builder().setTitle(logvar ? R.string.danmaku_logvar_api : R.string.danmaku_api).setView(getBinding().getRoot()).setPositiveButton(R.string.dialog_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, null);
     }
 
     @Override
     protected void initView() {
         String text;
-        binding.text.setText(text = logvr ? DanmakuSetting.getEffectiveLogvrUrl() : DanmakuSetting.getEffectiveApiUrl());
+        binding.text.setText(text = logvar ? DanmakuSetting.getEffectiveLogvarUrl() : DanmakuSetting.getEffectiveApiUrl());
         binding.text.setSelection(TextUtils.isEmpty(text) ? 0 : text.length());
     }
 
@@ -54,7 +54,7 @@ public class DanmakuApiDialog extends BaseAlertDialog {
     }
 
     private void onPositive(DialogInterface dialog, int which) {
-        if (logvr) ((DanmakuListener) requireParentFragment()).setLogvrApi(binding.text.getText().toString().trim());
+        if (logvar) ((DanmakuListener) requireParentFragment()).setLogvarApi(binding.text.getText().toString().trim());
         else ((DanmakuListener) requireParentFragment()).setDanmakuApi(binding.text.getText().toString().trim());
         dismiss();
     }

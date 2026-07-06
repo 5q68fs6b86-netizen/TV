@@ -4,7 +4,7 @@
 
 基于 [FongMi/TV](https://github.com/FongMi/TV) 和 [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader) 的 Android 影音应用，支持 **Android TV 大屏** 和 **Android 手机** 两种使用场景，并通过外部配置扩展点播、直播、解析、弹幕、字幕和爬虫能力。
 
-[讨论群组](https://t.me/fongmi_official) | [发布频道](https://t.me/fongmi_release)
+Bug请提交Issue
 
 [![Star History Chart](https://api.star-history.com/svg?repos=wobuhui666/TV&type=Date)](https://www.star-history.com/#wobuhui666/TV&Date)
 
@@ -74,8 +74,8 @@ TV/
 ### 3. 字幕与弹幕能力
 
 - 重做字幕弹窗布局和控制按钮，补充字幕放大、缩小、上移、下移、重置等入口，提升 TV 与移动端的字幕调节体验。
-- 增加 Logvr 弹幕 API 支持，可配置 Logvr 根地址，自动通过播放 URL 或片名集数匹配弹幕，失败后再回退到旧弹幕接口。
-- 为 Logvr 地址归一化、URL 构造、剧集匹配、返回解析等逻辑增加单元测试。
+- 增加 Logvar 弹幕 API 支持，可配置 Logvar 根地址，自动通过播放 URL 或片名集数匹配弹幕，失败后再回退到旧弹幕接口。
+- 为 Logvar 地址归一化、URL 构造、剧集匹配、返回解析等逻辑增加单元测试。
 - 保留远程字幕/弹幕注入能力，可通过本地 HTTP API 推送字幕或弹幕到当前播放器。
 
 ### 4. 爬虫、解析与脚本兼容
@@ -106,7 +106,7 @@ TV/
 - **mpv**：支持 mpv 播放、配置文件编辑、Vulkan、`gpu-next`、Anime4K、播放日志和 HTTP header。
 - **渲染**：SurfaceView / TextureView。
 - **DRM**：Widevine、PlayReady、ClearKey，支持 `#KODIPROP` 声明。
-- **弹幕**：DanmakuFlameMaster，和播放时间轴同步，支持远程推送与 Logvr 匹配。
+- **弹幕**：DanmakuFlameMaster，和播放时间轴同步，支持远程推送与 Logvar 匹配。
 - **字幕**：SRT / SSA / ASS 外挂字幕、系统 CaptioningManager、远程实时注入。
 - **其他**：倍速、多缩放比例、画中画（PiP）、背景音频、片头 / 片尾自动跳过。
 
@@ -188,7 +188,7 @@ Vod 配置是应用主要入口，可通过 URL 或本地路径载入，顶层�
 - 点播站点（`sites`）、解析规则（`parses`）
 - 直播来源（`lives`）
 - 网络设置（`doh`、`proxy`、`hosts`、`ads`）
-- 弹幕设置（`danmaku`、`logvr`）
+- 弹幕设置（`danmaku`、`logvar`）
 
 Live 配置可内嵌或独立存放。完整字段说明见 [CONFIG.md](docs/CONFIG.md)。
 

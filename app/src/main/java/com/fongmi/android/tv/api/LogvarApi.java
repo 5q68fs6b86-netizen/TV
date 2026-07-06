@@ -28,9 +28,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public class LogvrApi {
+public class LogvarApi {
 
-    private static final String TAG = LogvrApi.class.getSimpleName();
+    private static final String TAG = LogvarApi.class.getSimpleName();
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final Pattern SEASON_PATTERN = Pattern.compile("(?i)\\bS(\\d{1,2})\\b|(?:第)?([0-9一二三四五六七八九十两]+)季");
     private static final Pattern EPISODE_CHINESE_PATTERN = Pattern.compile("第\\s*0*(\\d{1,4})\\s*[集话話]");
@@ -45,11 +45,11 @@ public class LogvrApi {
     }
 
     public static boolean canSearch() {
-        return !normalizeBase(DanmakuSetting.getEffectiveLogvrUrl()).isEmpty();
+        return !normalizeBase(DanmakuSetting.getEffectiveLogvarUrl()).isEmpty();
     }
 
     public static void searchAuto(String name, String episode, @Nullable Result result, Listener listener) {
-        String base = normalizeBase(DanmakuSetting.getEffectiveLogvrUrl());
+        String base = normalizeBase(DanmakuSetting.getEffectiveLogvarUrl());
         if (base.isEmpty()) {
             postSuccess(listener, Collections.emptyList());
             return;
@@ -74,7 +74,7 @@ public class LogvrApi {
     }
 
     public static void searchEpisodes(String name, String episode, Listener listener) {
-        String base = normalizeBase(DanmakuSetting.getEffectiveLogvrUrl());
+        String base = normalizeBase(DanmakuSetting.getEffectiveLogvarUrl());
         if (base.isEmpty()) {
             postSuccess(listener, Collections.emptyList());
             return;
@@ -114,7 +114,7 @@ public class LogvrApi {
                 try (ResponseBody body = response.body()) {
                     String text = body == null ? "" : body.string();
                     if (response.isSuccessful() && hasDanmakuXml(text)) {
-                        postSuccess(listener, Collections.singletonList(createDanmaku("Logvr URL", url)));
+                        postSuccess(listener, Collections.singletonList(createDanmaku("Logvar URL", url)));
                     } else {
                         postSuccess(listener, Collections.emptyList());
                     }
@@ -225,7 +225,7 @@ public class LogvrApi {
             String title = joinName(string(item, "animeTitle"), string(item, "episodeTitle"));
             String url = buildCommentUrl(base, episodeId);
             if (!url.isEmpty()) {
-                items.add(createDanmaku(title.isEmpty() ? "Logvr" : title, url));
+                items.add(createDanmaku(title.isEmpty() ? "Logvar" : title, url));
                 break;
             }
         }
@@ -246,7 +246,7 @@ public class LogvrApi {
                 String episodeId = string(episode, "episodeId");
                 String name = joinName(animeTitle, string(episode, "episodeTitle"));
                 String url = buildCommentUrl(base, episodeId);
-                if (!url.isEmpty()) items.add(createDanmaku(name.isEmpty() ? "Logvr" : name, url));
+                if (!url.isEmpty()) items.add(createDanmaku(name.isEmpty() ? "Logvar" : name, url));
             }
         }
         return items;
