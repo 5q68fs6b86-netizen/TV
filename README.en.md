@@ -13,6 +13,7 @@ An Android media app based on [FongMi/TV](https://github.com/FongMi/TV) and [Cat
 ## Contents
 
 - [Project Structure](#project-structure)
+- [Disclaimer](#disclaimer)
 - [What This Fork Changes](#what-this-fork-changes)
 - [Player](#player)
 - [VOD](#vod)
@@ -25,6 +26,14 @@ An Android media app based on [FongMi/TV](https://github.com/FongMi/TV) and [Cat
 - [Configuration](#configuration)
 - [Build Commands](#build-commands)
 - [Further Reading](#further-reading)
+
+---
+
+## Disclaimer
+
+This project is provided only for learning, research, and lawful personal use. It does not include, store, or distribute any media content, live TV sources, parser endpoints, or spider rules. External configurations, third-party APIs, and returned content are added and managed by users, who are responsible for related copyright, compliance, and usage risks.
+
+Use this project only in compliance with applicable laws and copyright requirements, and support legitimate content sources.
 
 ---
 
