@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.media3.ui.SubtitleView;
 import androidx.viewbinding.ViewBinding;
 
@@ -19,9 +20,8 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 
-public final class SubtitleDialog extends BaseBottomSheetDialog {
+public final class SubtitleDialog {
 
-    private DialogSubtitleBinding binding;
     private SubtitleView subtitleView;
     private PlayerManager player;
 
@@ -40,89 +40,141 @@ public final class SubtitleDialog extends BaseBottomSheetDialog {
     }
 
     public void show(FragmentActivity activity) {
-        for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof SubtitleDialog) return;
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        for (Fragment fragment : manager.getFragments()) if (fragment instanceof BottomSheet || fragment instanceof SideSheet) return;
+        if (Util.isLeanback()) new SideSheet(subtitleView, player).show(manager, null);
+        else new BottomSheet(subtitleView, player).show(manager, null);
     }
 
-    private boolean isFull() {
-        return Util.isFullscreen(getActivity());
+    private static DialogSubtitleBinding inflate(LayoutInflater inflater, ViewGroup container) {
+        return DialogSubtitleBinding.inflate(inflater, container, false);
     }
 
-    @Override
-    protected boolean transparent() {
-        return isFull();
+    private static void initEvent(DialogSubtitleBinding binding, SubtitleView subtitleView, PlayerManager player) {
+        binding.up.setOnClickListener(view -> onUp(subtitleView, player));
+        binding.down.setOnClickListener(view -> onDown(subtitleView, player));
+        binding.large.setOnClickListener(view -> onLarge(subtitleView, player));
+        binding.small.setOnClickListener(view -> onSmall(subtitleView, player));
+        binding.reset.setOnClickListener(view -> onReset(subtitleView, player));
     }
 
-    @Override
-    protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return binding = DialogSubtitleBinding.inflate(inflater, container, false);
-    }
-
-    @Override
-    protected void initView() {
-        if (Util.isLeanback()) binding.large.requestFocus();
-        if (isFull() && !Util.isLeanback()) tintImages(binding.getRoot());
-    }
-
-    @Override
-    protected void initEvent() {
-        binding.up.setOnClickListener(this::onUp);
-        binding.down.setOnClickListener(this::onDown);
-        binding.large.setOnClickListener(this::onLarge);
-        binding.small.setOnClickListener(this::onSmall);
-        binding.reset.setOnClickListener(this::onReset);
-    }
-
-    private void onUp(View view) {
+    private static void onUp(SubtitleView subtitleView, PlayerManager player) {
         subtitleView.addPosition(0.005f);
         PlayerSetting.putSubtitlePosition(subtitleView.getPosition());
-        applySubtitleStyle();
+        applySubtitleStyle(player);
     }
 
-    private void onDown(View view) {
+    private static void onDown(SubtitleView subtitleView, PlayerManager player) {
         subtitleView.subPosition(0.005f);
         PlayerSetting.putSubtitlePosition(subtitleView.getPosition());
-        applySubtitleStyle();
+        applySubtitleStyle(player);
     }
 
-    private void onLarge(View view) {
+    private static void onLarge(SubtitleView subtitleView, PlayerManager player) {
         subtitleView.addTextSize(0.002f);
         PlayerSetting.putSubtitleTextSize(subtitleView.getTextSize());
-        applySubtitleStyle();
+        applySubtitleStyle(player);
     }
 
-    private void onSmall(View view) {
+    private static void onSmall(SubtitleView subtitleView, PlayerManager player) {
         subtitleView.subTextSize(0.002f);
         PlayerSetting.putSubtitleTextSize(subtitleView.getTextSize());
-        applySubtitleStyle();
+        applySubtitleStyle(player);
     }
 
-    private void onReset(View view) {
+    private static void onReset(SubtitleView subtitleView, PlayerManager player) {
         PlayerSetting.putSubtitleTextSize(0.0f);
         PlayerSetting.putSubtitlePosition(0.0f);
         subtitleView.reset();
-        applySubtitleStyle();
+        applySubtitleStyle(player);
     }
 
-    private void applySubtitleStyle() {
+    private static void applySubtitleStyle(PlayerManager player) {
         if (player != null && !player.isReleased()) player.setSubtitleStyle();
     }
 
-    private void tintImages(View view) {
+    private static void tintImages(View view) {
         if (view instanceof ImageView imageView && imageView.getDrawable() != null) imageView.getDrawable().setTint(MDColor.WHITE);
         if (!(view instanceof ViewGroup group)) return;
         for (int i = 0; i < group.getChildCount(); i++) tintImages(group.getChildAt(i));
     }
 
-    private int getDialogWidth() {
-        if (Util.isLeanback()) return 360;
-        return isFull() ? 232 : 216;
+    public static final class BottomSheet extends BaseBottomSheetDialog {
+
+        private final SubtitleView subtitleView;
+        private final PlayerManager player;
+        private DialogSubtitleBinding binding;
+
+        BottomSheet(SubtitleView subtitleView, PlayerManager player) {
+            this.subtitleView = subtitleView;
+            this.player = player;
+        }
+
+        private boolean isFull() {
+            return Util.isFullscreen(getActivity());
+        }
+
+        @Override
+        protected boolean transparent() {
+            return isFull();
+        }
+
+        @Override
+        protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+            return binding = SubtitleDialog.inflate(inflater, container);
+        }
+
+        @Override
+        protected void initView() {
+            if (isFull()) tintImages(binding.getRoot());
+        }
+
+        @Override
+        protected void initEvent() {
+            SubtitleDialog.initEvent(binding, subtitleView, player);
+        }
+
+        private int getDialogWidth() {
+            return isFull() ? 232 : 216;
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (getDialog() == null || getDialog().getWindow() == null) return;
+            getDialog().getWindow().setLayout(ResUtil.dp2px(getDialogWidth()), -1);
+        }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (getDialog() == null || getDialog().getWindow() == null) return;
-        getDialog().getWindow().setLayout(ResUtil.dp2px(getDialogWidth()), -1);
+    public static final class SideSheet extends BaseSideSheetDialog {
+
+        private final SubtitleView subtitleView;
+        private final PlayerManager player;
+        private DialogSubtitleBinding binding;
+
+        SideSheet(SubtitleView subtitleView, PlayerManager player) {
+            this.subtitleView = subtitleView;
+            this.player = player;
+        }
+
+        @Override
+        protected int getWidth() {
+            return Math.min(ResUtil.dp2px(420), ResUtil.getScreenWidth() / 2);
+        }
+
+        @Override
+        protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+            return binding = SubtitleDialog.inflate(inflater, container);
+        }
+
+        @Override
+        protected void initView() {
+            binding.large.requestFocus();
+        }
+
+        @Override
+        protected void initEvent() {
+            SubtitleDialog.initEvent(binding, subtitleView, player);
+        }
     }
 }

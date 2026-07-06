@@ -80,7 +80,7 @@ public final class OffsetDialog {
 
         @Override
         protected int getWidth() {
-            return Math.min(ResUtil.dp2px(320), ResUtil.getScreenWidth() / 2);
+            return Math.min(ResUtil.dp2px(420), ResUtil.getScreenWidth() / 2);
         }
 
         @Override

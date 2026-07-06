@@ -475,15 +475,25 @@ class JetStreamDialogListRecyclerView @JvmOverloads constructor(
 ) : CustomRecyclerView(context, attrs, defStyleAttr) {
 
     init {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.JetStreamDialogListRecyclerView, defStyleAttr, 0)
+        val framed = typedArray.getBoolean(R.styleable.JetStreamDialogListRecyclerView_jetStreamListFramed, true)
+        typedArray.recycle()
+
         clipChildren = false
         clipToPadding = false
         overScrollMode = View.OVER_SCROLL_NEVER
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(22) }
-        )
-        elevation = jetStreamDp(6)
-        clipToOutline = true
+        if (framed) {
+            background = jetStreamOverlayBackground(
+                orientation = GradientDrawable.Orientation.TL_BR,
+                cornerRadii = FloatArray(8) { jetStreamDp(22) }
+            )
+            elevation = jetStreamDp(6)
+            clipToOutline = true
+        } else {
+            background = null
+            elevation = 0f
+            clipToOutline = false
+        }
     }
 }
 
@@ -498,7 +508,7 @@ private fun TextView.applyJetStreamDialogInputSurface(
     val hasTextAppearance = typedArray.hasValue(1)
     typedArray.recycle()
 
-    includeFontPadding = false
+    includeFontPadding = true
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     setHintTextColor(ContextCompat.getColor(context, R.color.jetstream_list_supporting_text))
     setTextColor(ContextCompat.getColor(context, R.color.jetstream_list_title_text))

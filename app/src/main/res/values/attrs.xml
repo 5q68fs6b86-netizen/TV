@@ -25,4 +25,8 @@
             <enum name="right" value="1" />
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="JetStreamDialogListRecyclerView">
+        <attr name="jetStreamListFramed" format="boolean" />
+    </declare-styleable>
 </resources>

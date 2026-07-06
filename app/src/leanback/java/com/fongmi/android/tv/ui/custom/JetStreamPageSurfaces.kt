@@ -882,7 +882,7 @@ class JetStreamSearchInputView @JvmOverloads constructor(
 
     init {
         background = null
-        includeFontPadding = false
+        includeFontPadding = true
         val typedArray = context.obtainStyledAttributes(attrs, intArrayOf(android.R.attr.letterSpacing), 0, 0)
         val hasLetterSpacing = typedArray.hasValue(0)
         typedArray.recycle()
