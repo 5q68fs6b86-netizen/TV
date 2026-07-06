@@ -85,7 +85,7 @@ Vod 配置為一個 JSON 物件，作為應用程式的主要配置入口。配�
 |--------|---------------------------------------|------------------------------------------------------------------|
 | `0`    | HTTP URL                              | 直接 GET 請求，回傳 XML 格式（`ac=videolist`）。                             |
 | `1`    | HTTP URL                              | 直接 GET 請求，回傳 JSON 格式，額外支援 Filter 篩選參數（`f=`）。                     |
-| `3`    | `csp_ClassName` / `xxx.js` / `xxx.py` | 爬蟲直接呼叫：JAR（DexClassLoader）、JavaScript（QuickJS）、Python（Chaquopy）。 |
+| `3`    | `csp_ClassName` / `xxx.js` / `xxx.fwd` / `xxx.py` | 爬蟲直接呼叫：JAR（DexClassLoader）、JavaScript（QuickJS）、Forward Widget、Python（Chaquopy）。 |
 | `4`    | HTTP URL                              | 同 `1`，`ext` 擴充參數以 Base64 編碼傳遞（`ext=`）。                           |
 
 **範例：**
@@ -109,6 +109,78 @@ Vod 配置為一個 JSON 物件，作為應用程式的主要配置入口。配�
   }
 }
 ```
+
+---
+
+### Forward Widget 配置
+
+Forward Widget 可作為 `type: 3` 的 JavaScript 來源使用，`api` 支援單個 Widget `.js` 或 `.fwd` 合集 URL。
+
+目前支援：
+
+- 視頻類 modules：列表、篩選、詳情、搜尋、播放地址。
+- `Widget.http.get/post`、`Widget.html.load`、`Widget.storage`、基本 `Widget.tmdb.get`。
+- `videoUrl`、`customHeaders` 播放資料。
+- TMDB 相對圖片路徑（如 `/abc.jpg`）會自動轉為 `https://image.tmdb.org/t/p/w500/abc.jpg`。
+- Bangumi/TMDB 這類資料源可作為索引源；本身沒有 `videoUrl` 時，需開啟 `changeable`，由應用按片名搜尋其他可換源站點播放。
+
+暫不支援：
+
+- `type: "danmu"`、`type: "subtitle"`、`type: "stream"`。
+- `requiresWebView: true`。
+- `FWENC1` 加密 Widget。
+- `type: "tmdb"` 不會自動轉成可播放 URL；需要依賴換源站點搜尋到同名影片。
+
+**單個 Widget 範例：**
+
+```json
+{
+  "key": "forward_bangumi",
+  "name": "Forward 動漫資料",
+  "type": 3,
+  "api": "https://raw.githubusercontent.com/InchStudio/ForwardWidgets/master/widgets/bangumi.js",
+  "searchable": 0,
+  "changeable": 1
+}
+```
+
+**AI 搜尋 Widget 範例：**
+
+```json
+{
+  "key": "forward_nlsearch",
+  "name": "Forward AI 搜尋",
+  "type": 3,
+  "api": "https://raw.githubusercontent.com/InchStudio/ForwardWidgets/master/widgets/nlsearch.js",
+  "ext": {
+    "userId": ""
+  },
+  "searchable": 1,
+  "changeable": 0
+}
+```
+
+**`.fwd` 合集範例：**
+
+```json
+{
+  "key": "forward_widgets",
+  "name": "Forward Widgets",
+  "type": 3,
+  "api": "https://example.com/widgets.fwd",
+  "ext": {
+    "widgets": [
+      "douban",
+      "live"
+    ],
+    "tmdbToken": ""
+  }
+}
+```
+
+`ext.widgets` 可限制只載入合集中的指定 Widget，值可填 Widget `id`、標題或 URL。需要 TMDB API 的 Widget 可在 `ext.tmdbToken` 或 `ext.tmdbBearer` 中填入 Bearer token。
+
+資料源直跳播放依賴應用既有換源流程：目前站點詳情沒有播放線路時，會用片名搜尋其他站點，並自動切到第一個同名結果。要生效，資料源需允許換源（`changeable: 1` 或省略），被搜尋的播放站點也需 `searchable: 1` 且 `changeable: 1`；自動換源只接受片名完全相同的結果。
 
 ---
 
@@ -662,6 +734,25 @@ POST body：`name=劇集名稱&episode=集數名稱`
         "type": "rect",
         "ratio": 1.33
       }
+    },
+    {
+      "key": "forward_bangumi",
+      "name": "Forward 動漫資料",
+      "type": 3,
+      "api": "https://raw.githubusercontent.com/InchStudio/ForwardWidgets/master/widgets/bangumi.js",
+      "searchable": 0,
+      "changeable": 1
+    },
+    {
+      "key": "forward_nlsearch",
+      "name": "Forward AI 搜尋",
+      "type": 3,
+      "api": "https://raw.githubusercontent.com/InchStudio/ForwardWidgets/master/widgets/nlsearch.js",
+      "ext": {
+        "userId": ""
+      },
+      "searchable": 1,
+      "changeable": 0
     }
   ],
   "lives": [

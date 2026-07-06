@@ -151,6 +151,8 @@ TV/
 
 通过 `api` 字段指定爬虫，通过 `ext` 字段传入初始化参数。完整 API 规格见 [SPIDER.md](docs/SPIDER.md)。
 
+同时支持部分 [Forward Widget](https://github.com/InchStudio/ForwardWidgets) 模块：`api` 可直接填写 Forward 单文件 `.js` 或 `.fwd` 合集地址。当前支持视频类模块的列表、筛选、详情、搜索、播放地址和自定义播放 header；TMDB 相对海报路径会自动补全为 `https://image.tmdb.org/t/p/...`。Bangumi/TMDB 这类资料源本身不含视频，开启 `changeable` 后可沿用应用现有换源逻辑：无播放线路时按片名搜索其他可换源站点并播放。暂不支持 `danmu`、`subtitle`、`stream`、`requiresWebView: true` 和 `FWENC1` 加密 Widget。配置示例见 [CONFIG.md](docs/CONFIG.md#forward-widget-配置)。
+
 ---
 
 ## 网络功能

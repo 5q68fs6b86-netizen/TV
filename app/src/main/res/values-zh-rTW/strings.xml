@@ -18,6 +18,8 @@
     <string name="detail_actor">演員：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_content">簡介：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_desc">簡介</string>
+    <string name="detail_rating_tmdb">TMDB <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_rating_douban">豆瓣 <xliff:g name="name">%s</xliff:g></string>
 
     <!-- Keep -->
     <string name="keep">收藏</string>

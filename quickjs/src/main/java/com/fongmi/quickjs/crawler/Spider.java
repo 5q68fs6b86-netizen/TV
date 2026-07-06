@@ -19,6 +19,7 @@ import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -212,6 +213,10 @@ public class Spider extends com.github.catvod.crawler.Spider {
         String spider = "__JS_SPIDER__";
         String global = "globalThis." + spider;
         String content = patchDrpyCompat(Module.get().fetch(api));
+        if (isForward(content)) {
+            createForwardObj(spider, content);
+            return;
+        }
         cat = content.contains("__jsEvalReturn");
         QuickLog.d(TAG, "createObj module fetched site=%s api=%s length=%s cat=%s", siteKey, api, content.length(), cat);
         ctx.evaluateModule(content.replace(spider, global), api);
@@ -219,6 +224,25 @@ public class Spider extends com.github.catvod.crawler.Spider {
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
         if (jsObject == null) throw new IllegalStateException("JS spider object missing: " + api);
         QuickLog.d(TAG, "createObj ready site=%s api=%s", siteKey, api);
+    }
+
+    private void createForwardObj(String spider, String content) {
+        QuickLog.d(TAG, "createForwardObj start site=%s api=%s length=%s", siteKey, api, content.length());
+        ctx.evaluateModule("import * as cheerio from 'lib/cheerio.min.js'; globalThis.__FORWARD_CHEERIO__ = cheerio;", "forward-cheerio.js");
+        String script = Asset.read("js/lib/forward.js")
+                .replace("__FORWARD_API_PLACEHOLDER__", JSONObject.quote(api))
+                .replace("__FORWARD_SOURCE_PLACEHOLDER__", JSONObject.quote(content));
+        ctx.evaluate(script);
+        jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
+        if (jsObject == null) throw new IllegalStateException("Forward spider object missing: " + api);
+        cat = false;
+        QuickLog.d(TAG, "createForwardObj ready site=%s api=%s", siteKey, api);
+    }
+
+    private boolean isForward(String content) {
+        String path = api.split("\\?", 2)[0].toLowerCase();
+        if (path.endsWith(".fwd")) return true;
+        return content.contains("WidgetMetadata") && content.contains("functionName") && content.contains("modules");
     }
 
     private String patchDrpyCompat(String content) {

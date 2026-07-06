@@ -18,6 +18,8 @@
     <string name="detail_actor">Actor: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_content">Summary: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_desc">Summary</string>
+    <string name="detail_rating_tmdb">TMDB <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_rating_douban">Douban <xliff:g name="name">%s</xliff:g></string>
 
     <!-- Keep -->
     <string name="keep">Keep</string>

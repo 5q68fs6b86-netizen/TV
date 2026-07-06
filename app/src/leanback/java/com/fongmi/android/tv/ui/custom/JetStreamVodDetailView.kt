@@ -97,6 +97,8 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     private var title by mutableStateOf("")
     private var logoUrl by mutableStateOf("")
     private var remark by mutableStateOf<CharSequence>("")
+    private var tmdbRating by mutableStateOf<CharSequence>("")
+    private var doubanRating by mutableStateOf<CharSequence>("")
     private var site by mutableStateOf<CharSequence>("")
     private var year by mutableStateOf<CharSequence>("")
     private var area by mutableStateOf<CharSequence>("")
@@ -167,6 +169,8 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     }
 
     fun setMetadata(
+        tmdbRating: CharSequence?,
+        doubanRating: CharSequence?,
         site: CharSequence?,
         year: CharSequence?,
         area: CharSequence?,
@@ -175,6 +179,8 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         actor: CharSequence?,
         remark: CharSequence?
     ) {
+        this.tmdbRating = tmdbRating ?: ""
+        this.doubanRating = doubanRating ?: ""
         this.site = site ?: ""
         this.year = year ?: ""
         this.area = area ?: ""
@@ -271,7 +277,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun MetadataRow() {
-        val items = listOf(site, year, area, type).filter { it.isNotBlank() }
+        val items = listOf(tmdbRating, doubanRating, site, year, area, type).filter { it.isNotBlank() }
         if (items.isEmpty()) return
         Row(
             modifier = Modifier

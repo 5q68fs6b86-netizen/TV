@@ -79,6 +79,7 @@ import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
+import com.fongmi.android.tv.utils.MediaRatingHelper;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -128,6 +129,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private View mFocus1;
     private View mFocus2;
     private CharSequence mDetailTitle;
+    private CharSequence mDetailTmdbRating;
+    private CharSequence mDetailDoubanRating;
     private CharSequence mDetailSite;
     private CharSequence mDetailYear;
     private CharSequence mDetailArea;
@@ -138,6 +141,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private String mDetailContent;
     private String mTmdbLogoUrl;
     private String mTmdbLogoRequest;
+    private int mRatingRequest;
 
     public static void push(FragmentActivity activity, String text) {
         Uri uri = UrlUtil.uri(text);
@@ -405,7 +409,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void clearDetailState() {
+        mRatingRequest++;
+        MediaRatingHelper.cancel();
         mDetailTitle = getName();
+        mDetailTmdbRating = "";
+        mDetailDoubanRating = "";
         mDetailSite = "";
         mDetailYear = "";
         mDetailArea = "";
@@ -422,7 +430,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (mBinding == null) return;
         mBinding.detail.setTitle(getVodName());
         mBinding.detail.setLogoUrl(mTmdbLogoUrl);
-        mBinding.detail.setMetadata(mDetailSite, mDetailYear, mDetailArea, mDetailType, mDetailDirector, mDetailActor, mDetailRemark);
+        mBinding.detail.setMetadata(mDetailTmdbRating, mDetailDoubanRating, mDetailSite, mDetailYear, mDetailArea, mDetailType, mDetailDirector, mDetailActor, mDetailRemark);
         mBinding.detail.setActions(!TextUtils.isEmpty(mDetailContent), Keep.find(getHistoryKey()) != null);
     }
 
@@ -645,6 +653,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         App.removeCallbacks(mR4);
         setArtwork(item.getPic());
         fetchTmdbLogo(item);
+        fetchRatings(item);
         checkKeepImg();
         setText(item);
         updateKeep();
@@ -1440,6 +1449,53 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         return !isHostFinishing() && TextUtils.equals(request, mTmdbLogoRequest);
     }
 
+    private void fetchRatings(Vod item) {
+        String title = item.getName();
+        mRatingRequest++;
+        MediaRatingHelper.cancel();
+        mDetailTmdbRating = "";
+        mDetailDoubanRating = "";
+        updateDetailView();
+        if (TextUtils.isEmpty(title)) return;
+        int request = mRatingRequest;
+        MediaRatingHelper.findTmdbRating(BuildConfig.TMDB_API_KEY, title, item.getYear(), item.getTypeName(), new MediaRatingHelper.RatingCallback() {
+            @Override
+            public void onFound(@NonNull MediaRatingHelper.Rating rating) {
+                if (!isRatingRequestActive(request)) return;
+                mDetailTmdbRating = getString(R.string.detail_rating_tmdb, rating.getText());
+                updateDetailView();
+            }
+
+            @Override
+            public void onNotFound() {
+            }
+
+            @Override
+            public void onError(@NonNull Exception error) {
+            }
+        });
+        MediaRatingHelper.findDoubanRating(title, item.getYear(), item.getTypeName(), new MediaRatingHelper.RatingCallback() {
+            @Override
+            public void onFound(@NonNull MediaRatingHelper.Rating rating) {
+                if (!isRatingRequestActive(request)) return;
+                mDetailDoubanRating = getString(R.string.detail_rating_douban, rating.getText());
+                updateDetailView();
+            }
+
+            @Override
+            public void onNotFound() {
+            }
+
+            @Override
+            public void onError(@NonNull Exception error) {
+            }
+        });
+    }
+
+    private boolean isRatingRequestActive(int request) {
+        return !isHostFinishing() && request == mRatingRequest;
+    }
+
     private void setArtwork(String url) {
         mHistory.setVodPic(url);
         setArtwork();
@@ -1513,6 +1569,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVod.mergeFlags(item.getFlags());
         if (pic) setArtwork(item.getPic());
         if (name) fetchTmdbLogo(item);
+        if (name) fetchRatings(item);
         if (pic || name) setMetadata();
         if (pic || name) syncHistory();
         if (pic || name) updateKeep();
@@ -1841,6 +1898,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onDestroy() {
+        mRatingRequest++;
+        MediaRatingHelper.cancel();
         mClock.release();
         saveHistory(true);
         DanmakuApi.cancel();
