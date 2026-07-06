@@ -3,8 +3,14 @@ package com.fongmi.android.tv.ui.custom
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
@@ -236,12 +242,33 @@ class JetStreamHomeLogoView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
+    private val maskBounds = RectF()
+    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+    }
+
     init {
         background = jetStreamHomeLogoBackground()
         foreground = jetStreamHomeLogoForeground()
         scaleType = ScaleType.CENTER_CROP
         elevation = jetStreamDp(1)
-        clipToOutline = true
+        clipToOutline = false
+    }
+
+    override fun setImageDrawable(drawable: Drawable?) {
+        drawable?.setFilterBitmap(true)
+        super.setImageDrawable(drawable)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (width <= 0 || height <= 0) return
+        maskBounds.set(0f, 0f, width.toFloat(), height.toFloat())
+        val checkpoint = canvas.saveLayer(maskBounds, null)
+        super.onDraw(canvas)
+        canvas.drawOval(maskBounds, maskPaint)
+        canvas.restoreToCount(checkpoint)
     }
 }
 
