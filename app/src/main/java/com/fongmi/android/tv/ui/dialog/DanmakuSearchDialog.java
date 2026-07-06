@@ -79,6 +79,12 @@ public final class DanmakuSearchDialog {
         }
 
         @Override
+        public void onStart() {
+            super.onStart();
+            if (panel != null) panel.showKeyboard();
+        }
+
+        @Override
         public void onDestroyView() {
             if (panel != null) panel.onDestroyView();
             super.onDestroyView();
@@ -117,6 +123,12 @@ public final class DanmakuSearchDialog {
         }
 
         @Override
+        public void onStart() {
+            super.onStart();
+            if (panel != null) panel.showKeyboard();
+        }
+
+        @Override
         public void onDestroyView() {
             if (panel != null) panel.onDestroyView();
             super.onDestroyView();
@@ -143,7 +155,7 @@ public final class DanmakuSearchDialog {
             binding.recycler.setHasFixedSize(false);
             binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
             setKeyword(player == null || player.getMetadata() == null ? "" : player.getMetadata().title);
-            Util.showKeyboard(binding.keyword);
+            showKeyboard();
         }
 
         private void initEvent() {
@@ -168,6 +180,10 @@ public final class DanmakuSearchDialog {
             CharSequence keyword = text == null ? "" : text;
             binding.keyword.setText(keyword);
             binding.keyword.setSelection(keyword.length());
+        }
+
+        private void showKeyboard() {
+            Util.showKeyboard(binding.keyword);
         }
 
         private String getKeyword() {
@@ -218,6 +234,7 @@ public final class DanmakuSearchDialog {
         }
 
         private void onDestroyView() {
+            Util.hideKeyboard(binding.keyword);
             DanmakuApi.cancel();
         }
     }
