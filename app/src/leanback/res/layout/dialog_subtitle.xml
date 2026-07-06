@@ -1,56 +1,200 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingStart="18dp"
-    android:paddingTop="16dp"
-    android:paddingEnd="18dp"
-    android:paddingBottom="20dp">
+    android:orientation="vertical">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSubtitleIconView
-        android:id="@+id/large"
-        android:layout_width="wrap_content"
+    <com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="8dp"
-        android:src="@drawable/ic_subtitle_large" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSubtitleIconView
-        android:id="@+id/small"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="8dp"
-        android:src="@drawable/ic_subtitle_small" />
+        <com.fongmi.android.tv.ui.custom.JetStreamSheetHeaderView
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            app:jetStreamSubtitle="@string/subtitle_adjust_hint"
+            app:jetStreamTitle="@string/play_subtitle" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSubtitleIconView
-        android:id="@+id/up"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="8dp"
-        android:src="@drawable/ic_subtitle_up" />
+    </com.fongmi.android.tv.ui.custom.JetStreamSheetToolbarLayout>
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSubtitleIconView
-        android:id="@+id/down"
-        android:layout_width="wrap_content"
+    <com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="8dp"
-        android:src="@drawable/ic_subtitle_down" />
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:orientation="vertical">
 
-    <com.fongmi.android.tv.ui.custom.JetStreamSubtitleIconView
-        android:id="@+id/reset"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="8dp"
-        android:src="@drawable/ic_subtitle_reset" />
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
+            android:id="@+id/large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/subtitle_size_larger"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/small"
+            android:nextFocusUp="@id/large"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:duplicateParentState="true"
+                android:padding="5dp"
+                android:src="@drawable/msr_text_increase" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/subtitle_size_larger" />
+
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
+            android:id="@+id/small"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/subtitle_size_smaller"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/up"
+            android:nextFocusUp="@id/large"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:duplicateParentState="true"
+                android:padding="5dp"
+                android:src="@drawable/msr_text_decrease" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/subtitle_size_smaller" />
+
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
+            android:id="@+id/up"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/subtitle_position_up"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/down"
+            android:nextFocusUp="@id/small"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:duplicateParentState="true"
+                android:padding="5dp"
+                android:src="@drawable/msr_arrow_upward" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/subtitle_position_up" />
+
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
+            android:id="@+id/down"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/subtitle_position_down"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/reset"
+            android:nextFocusUp="@id/up"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:duplicateParentState="true"
+                android:padding="5dp"
+                android:src="@drawable/msr_arrow_downward" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/subtitle_position_down" />
+
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout
+            android:id="@+id/reset"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/subtitle_reset"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/reset"
+            android:nextFocusUp="@id/down"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamFunctionIconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:duplicateParentState="true"
+                android:padding="5dp"
+                android:src="@drawable/msr_restart_alt" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSliderTitleTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/subtitle_reset" />
+
+        </com.fongmi.android.tv.ui.custom.JetStreamSettingControlRowLayout>
+
+    </com.fongmi.android.tv.ui.custom.JetStreamSliderSectionLayout>
 
 </com.fongmi.android.tv.ui.custom.JetStreamSheetSurfaceLayout>

@@ -47,6 +47,12 @@
     <string name="play_chapter">Chapter</string>
     <string name="play_scale">Default</string>
     <string name="play_subtitle">Subtitle</string>
+    <string name="subtitle_adjust_hint">Adjust size and position</string>
+    <string name="subtitle_size_larger">Larger text</string>
+    <string name="subtitle_size_smaller">Smaller text</string>
+    <string name="subtitle_position_up">Move up</string>
+    <string name="subtitle_position_down">Move down</string>
+    <string name="subtitle_reset">Reset subtitle</string>
     <string name="play_config">Config</string>
     <string name="play_change">Change</string>
     <string name="play_invert">Invert</string>

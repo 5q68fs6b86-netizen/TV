@@ -60,8 +60,8 @@ public final class SubtitleDialog extends BaseBottomSheetDialog {
 
     @Override
     protected void initView() {
-        int count = binding.getRoot().getChildCount();
-        if (isFull()) for (int i = 0; i < count; i++) ((ImageView) binding.getRoot().getChildAt(i)).getDrawable().setTint(MDColor.WHITE);
+        if (Util.isLeanback()) binding.large.requestFocus();
+        if (isFull() && !Util.isLeanback()) tintImages(binding.getRoot());
     }
 
     @Override
@@ -108,9 +108,21 @@ public final class SubtitleDialog extends BaseBottomSheetDialog {
         if (player != null && !player.isReleased()) player.setSubtitleStyle();
     }
 
+    private void tintImages(View view) {
+        if (view instanceof ImageView imageView && imageView.getDrawable() != null) imageView.getDrawable().setTint(MDColor.WHITE);
+        if (!(view instanceof ViewGroup group)) return;
+        for (int i = 0; i < group.getChildCount(); i++) tintImages(group.getChildAt(i));
+    }
+
+    private int getDialogWidth() {
+        if (Util.isLeanback()) return 360;
+        return isFull() ? 232 : 216;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        getDialog().getWindow().setLayout(ResUtil.dp2px(isFull() ? 232 : 216), -1);
+        if (getDialog() == null || getDialog().getWindow() == null) return;
+        getDialog().getWindow().setLayout(ResUtil.dp2px(getDialogWidth()), -1);
     }
 }
