@@ -425,13 +425,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         return view != null && view.isShown() && view.isEnabled();
     }
 
-    private void restoreControlFocusIfHidden(View... views) {
+    private boolean hasFocus(View... views) {
         for (View view : views) {
-            if (view.hasFocus() && !canRequestFocus(view)) {
-                requestFocusLater(mBinding.control.jetstream);
-                return;
-            }
+            if (view != null && view.hasFocus()) return true;
         }
+        return false;
+    }
+
+    private void restoreControlFocusIfHidden(boolean restoreFocus, View... views) {
+        if (!restoreFocus) return;
+        for (View view : views) if (canRequestFocus(view) && view.hasFocus()) return;
+        requestFocusLater(mBinding.control.jetstream);
     }
 
     private void onChildSelected(@Nullable RecyclerView.ViewHolder child, Group group) {
@@ -882,9 +886,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.title.setText(mChannel.getShow());
         mBinding.control.action.line.setText(mChannel.getLine());
         mBinding.widget.number.setText(mChannel.getNumber());
+        boolean restoreFocus = hasFocus(mBinding.control.action.line);
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setVisibility(mChannel.getLineVisible());
-        restoreControlFocusIfHidden(mBinding.control.action.line);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.line);
         syncJetStreamControl();
     }
 
@@ -1013,8 +1018,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void resetAdapter() {
         boolean restoreFocus = mBinding.recycler.hasFocus() || mBinding.epgData.hasFocus() || mBinding.channel.hasFocus() || mBinding.group.hasFocus();
+        boolean restoreControlFocus = hasFocus(mBinding.control.action.line);
         mBinding.control.action.line.setVisibility(View.GONE);
-        restoreControlFocusIfHidden(mBinding.control.action.line);
+        restoreControlFocusIfHidden(restoreControlFocus, mBinding.control.action.line);
         mBinding.widget.title.setText("");
         mBinding.widget.play.setText("");
         mEpgDataAdapter.clear();
@@ -1102,8 +1108,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setTrackVisible() {
+        boolean restoreFocus = hasFocus(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
-        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
         syncJetStreamControl();
     }
 
@@ -1153,6 +1160,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_CAPTIONS, R.drawable.msr_closed_caption, getString(R.string.play_subtitle), true, "subtitle", "text", "audio", "video");
         mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_SETTINGS, R.drawable.msr_settings, getString(R.string.setting_section_playback), true, "speed", "scale", "player", "decode", "invert", "across", "change");
         syncJetStreamCommands();
+        updateActionFocusBoundary(mBinding.control.action.getRoot());
     }
 
     private void syncJetStreamCommands() {

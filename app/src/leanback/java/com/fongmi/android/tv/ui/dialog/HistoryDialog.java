@@ -95,7 +95,10 @@ public class HistoryDialog extends BaseAlertDialog implements ConfigAdapter.OnCl
             binding.recycler.scrollToPosition(position);
             binding.recycler.postDelayed(() -> {
                 RecyclerView.ViewHolder holder = binding.recycler.findViewHolderForAdapterPosition(position);
-                if (holder == null) return;
+                if (holder == null) {
+                    if (canRequestFocus(binding.recycler)) binding.recycler.requestFocus();
+                    return;
+                }
                 View target = focusId == View.NO_ID ? null : holder.itemView.findViewById(focusId);
                 if (canRequestFocus(target) && target.requestFocus()) return;
                 target = findFocusable(holder.itemView);

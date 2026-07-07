@@ -25,10 +25,12 @@ public class ProgressLayout extends RelativeLayout {
     private List<View> mContentViews;
     private View mProgressView;
     private View mEmptyView;
+    private View mLastFocus;
     private State mState;
 
     public ProgressLayout(Context context) {
         super(context);
+        init();
     }
 
     public ProgressLayout(Context context, AttributeSet attrs) {
@@ -99,24 +101,93 @@ public class ProgressLayout extends RelativeLayout {
 
     public void switchState(State state) {
         if (mState == state) return;
+        boolean restoreFocus = shouldRestoreFocus(state);
         mState = state;
         switch (state) {
             case CONTENT:
                 hideStateView(mEmptyView);
                 hideStateView(mProgressView);
                 setContentVisibility(true);
+                if (restoreFocus) restoreContentFocus();
+                else clearStateFocusability();
                 break;
             case PROGRESS:
                 hideStateView(mEmptyView);
                 showStateView(mProgressView);
                 setContentVisibility(false);
+                requestStateFocus(State.PROGRESS, restoreFocus);
                 break;
             case EMPTY:
                 showStateView(mEmptyView);
                 hideStateView(mProgressView);
                 setContentVisibility(false);
+                requestStateFocus(State.EMPTY, restoreFocus);
                 break;
         }
+    }
+
+    private boolean shouldRestoreFocus(State state) {
+        if (!Util.isLeanback()) return false;
+        if (state == State.CONTENT) {
+            boolean restoreFocus = hasFocus();
+            if (!restoreFocus) mLastFocus = null;
+            return restoreFocus;
+        }
+        for (View view : mContentViews) {
+            if (view.hasFocus()) {
+                mLastFocus = findFocus();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void requestStateFocus(State state, boolean restoreFocus) {
+        if (!restoreFocus) return;
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        post(() -> {
+            if (mState != state) return;
+            if (isShown() && isEnabled()) requestFocus();
+        });
+    }
+
+    private void restoreContentFocus() {
+        postDelayed(() -> {
+            if (mState != State.CONTENT) return;
+            View target = canRequestFocus(mLastFocus) ? mLastFocus : findFocusableContent();
+            mLastFocus = null;
+            if (target != null) target.requestFocus();
+            clearStateFocusability();
+        }, 200);
+    }
+
+    private void clearStateFocusability() {
+        setFocusable(false);
+        setFocusableInTouchMode(false);
+    }
+
+    private View findFocusableContent() {
+        for (View view : mContentViews) {
+            View target = findFocusable(view);
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private View findFocusable(View view) {
+        if (!canRequestFocus(view)) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup group)) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private void setContentVisibility(boolean visible) {

@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.fragment;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 
@@ -233,7 +235,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         for (Filter filter : mFilters) rows.add(getRow(filter));
         mBinding.recycler.postDelayed(() -> {
             mBinding.recycler.scrollToPosition(0);
-            requestRecyclerFocus();
+            requestRecyclerFocus(0);
         }, 48);
         mAdapter.addAll(0, rows);
     }
@@ -241,7 +243,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void hideFilter() {
         boolean restoreFocus = mBinding.recycler.hasFocus() && mBinding.recycler.getSelectedPosition() < mFilters.size();
         mAdapter.removeItems(0, mFilters.size());
-        if (restoreFocus) requestRecyclerFocus();
+        if (restoreFocus) requestRecyclerFocus(0);
     }
 
     public void toggleFilter(boolean visible) {
@@ -254,11 +256,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void checkFilter() {
         int adapterSize = mAdapter.size();
         int filterSize = filterVisible ? mFilters.size() : 0;
+        boolean showProgress = adapterSize == 0 || filterSize == 0;
         boolean restoreFocus = mBinding.recycler.hasFocus() && mBinding.recycler.getSelectedPosition() >= filterSize;
+        if (showProgress) mBinding.progressLayout.showProgress();
         if (adapterSize > filterSize) mAdapter.removeItems(filterSize, mAdapter.size() - filterSize);
-        if (restoreFocus) requestRecyclerFocus();
-        if (adapterSize == 0) mBinding.progressLayout.showProgress();
-        else mBinding.swipeLayout.setRefreshing(true);
+        if (restoreFocus && !showProgress) requestRecyclerFocus(Math.max(0, filterSize - 1));
+        if (!showProgress) mBinding.swipeLayout.setRefreshing(true);
     }
 
     public void onRefresh() {
@@ -304,9 +307,34 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void requestRecyclerFocus() {
+        requestRecyclerFocus(RecyclerView.NO_POSITION);
+    }
+
+    private void requestRecyclerFocus(int position) {
         mBinding.recycler.post(() -> {
-            if (mAdapter.size() > 0 && mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+            if (mAdapter.size() == 0 || !mBinding.recycler.isShown() || !mBinding.recycler.isEnabled()) return;
+            int target = position == RecyclerView.NO_POSITION ? mBinding.recycler.getSelectedPosition() : position;
+            target = Math.max(0, Math.min(target, mAdapter.size() - 1));
+            mBinding.recycler.setSelectedPosition(target);
+            int focusTarget = target;
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(focusTarget);
+                View focus = holder == null ? null : findFocusable(holder.itemView);
+                if (focus != null && focus.requestFocus()) return;
+                if (mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+            }, 50);
         });
+    }
+
+    private View findFocusable(View view) {
+        if (view == null || !view.isShown() || !view.isEnabled()) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup group)) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
     }
 
     @Override

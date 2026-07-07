@@ -137,8 +137,10 @@ final class DanmakuSettingPanel {
     private void showTab(int index) {
         View[] roots = {binding.appearance.getRoot(), binding.timing.getRoot(), binding.density.getRoot(), binding.display.getRoot()};
         MaterialButton[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
+        boolean restoreFocus = roots[currentTab].hasFocus() && currentTab != index;
         for (int i = 0; i < roots.length; i++) roots[i].setVisibility(visibleIf(index == i));
         binding.reset.setNextFocusDownId(tabs[currentTab = index].getId());
+        if (restoreFocus) requestFocus(tabs[index], binding.tabAppearance);
     }
 
     private void updateStyleSubSettings(int mode) {
@@ -149,8 +151,10 @@ final class DanmakuSettingPanel {
     }
 
     private void applyVisible(boolean visible, View... views) {
+        boolean restoreFocus = !visible && hasFocus(views);
         int visibility = visibleIf(visible);
         for (View view : views) view.setVisibility(visibility);
+        if (restoreFocus) requestFocus(getCheckedChild(binding.appearance.styleChipGroup), binding.tabAppearance);
     }
 
     private void updateColorOverrideHint(int mode) {
@@ -175,8 +179,41 @@ final class DanmakuSettingPanel {
     }
 
     private void applyEnabled(View row, Slider slider, boolean enabled) {
+        boolean restoreFocus = !enabled && slider.hasFocus();
         row.setAlpha(enabled ? 1f : 0.38f);
         slider.setEnabled(enabled);
+        slider.setFocusable(enabled);
+        slider.setFocusableInTouchMode(enabled);
+        if (restoreFocus) requestFocus(getCurrentTabView(), binding.tabDensity);
+    }
+
+    private boolean hasFocus(View... views) {
+        for (View view : views) if (view.hasFocus()) return true;
+        return false;
+    }
+
+    private View getCurrentTabView() {
+        MaterialButton[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
+        if (currentTab < 0 || currentTab >= tabs.length) return binding.tabAppearance;
+        return tabs[currentTab];
+    }
+
+    private View getCheckedChild(ChipGroup group) {
+        int id = group.getCheckedChipId();
+        return id == View.NO_ID ? null : group.findViewById(id);
+    }
+
+    private void requestFocus(View target, View fallback) {
+        View view = canRequestFocus(target) ? target : fallback;
+        if (view == null) return;
+        view.post(() -> {
+            View focus = canRequestFocus(target) ? target : fallback;
+            if (canRequestFocus(focus)) focus.requestFocus();
+        });
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private void applyConfig() {

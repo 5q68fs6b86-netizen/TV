@@ -748,7 +748,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public void renderUseParse(boolean useParse) {
         setUseParse(useParse);
+        boolean restoreFocus = hasFocus(mBinding.control.action.parse);
         mBinding.control.action.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.parse);
         syncJetStreamControl();
     }
 
@@ -1253,13 +1255,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         updateFocus();
     }
 
-    private void restoreControlFocusIfHidden(View... views) {
+    private boolean hasFocus(View... views) {
         for (View view : views) {
-            if (view.hasFocus() && !canRequestFocus(view)) {
-                requestFocus(mBinding.control.jetstream, mBinding.video);
-                return;
-            }
+            if (view != null && view.hasFocus()) return true;
         }
+        return false;
+    }
+
+    private void restoreControlFocusIfHidden(boolean restoreFocus, View... views) {
+        if (!restoreFocus) return;
+        for (View view : views) if (canRequestFocus(view) && view.hasFocus()) return;
+        requestFocus(mBinding.control.jetstream, mBinding.video);
     }
 
     private boolean isJetStreamControlVisible() {
@@ -1347,6 +1353,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.jetstream.setPlaybackState(playing, repeating);
         mBinding.control.jetstream.setTopActions(true, true, true);
         syncJetStreamCommands();
+        updateActionFocusBoundary(mBinding.control.action.getRoot());
     }
 
     private void syncJetStreamCommands() {
@@ -1748,14 +1755,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setTrackVisible() {
+        boolean restoreFocus = hasFocus(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
-        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         syncJetStreamControl();
     }
 
     private void setMediaOptionVisible() {
+        boolean restoreFocus = hasFocus(mBinding.control.action.edition, mBinding.control.action.chapter);
         PlaybackAction.setMediaOptions(player(), mBinding.control.action.edition, mBinding.control.action.chapter);
-        restoreControlFocusIfHidden(mBinding.control.action.edition, mBinding.control.action.chapter);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.edition, mBinding.control.action.chapter);
         syncJetStreamControl();
     }
 

@@ -4,6 +4,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
@@ -155,6 +156,7 @@ public final class DanmakuSearchDialog {
             binding.recycler.setHasFixedSize(false);
             binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
             setKeyword(player == null || player.getMetadata() == null ? "" : player.getMetadata().title);
+            updateKeywordDownFocus(false);
             showKeyboard();
         }
 
@@ -191,13 +193,19 @@ public final class DanmakuSearchDialog {
         }
 
         private void showProgress() {
+            boolean restoreFocus = binding.recycler.hasFocus();
             binding.recycler.setVisibility(GONE);
             binding.progress.setVisibility(VISIBLE);
+            updateKeywordDownFocus(false);
+            if (restoreFocus) requestKeywordFocus();
         }
 
         private void hideProgress(boolean empty) {
+            boolean restoreFocus = empty && binding.recycler.hasFocus();
             binding.progress.setVisibility(GONE);
             binding.recycler.setVisibility(empty ? GONE : VISIBLE);
+            updateKeywordDownFocus(!empty);
+            if (restoreFocus) requestKeywordFocus();
         }
 
         private void search() {
@@ -225,13 +233,27 @@ public final class DanmakuSearchDialog {
         private void onSuccess(List<Danmaku> items) {
             adapter.addAll(items);
             hideProgress(items.isEmpty());
-            binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
+            DialogFocus.requestRecyclerFocus(binding.recycler, 0, adapter.getItemCount());
         }
 
         private boolean focusFirstResult() {
             if (binding.recycler.getVisibility() != VISIBLE || adapter.getItemCount() == 0) return false;
-            binding.recycler.scrollToPosition(0);
+            DialogFocus.requestRecyclerFocus(binding.recycler, 0, adapter.getItemCount());
             return true;
+        }
+
+        private void updateKeywordDownFocus(boolean hasResults) {
+            binding.keyword.setNextFocusDownId(hasResults ? binding.recycler.getId() : binding.keyword.getId());
+        }
+
+        private void requestKeywordFocus() {
+            binding.keyword.post(() -> {
+                if (canRequestFocus(binding.keyword)) binding.keyword.requestFocus();
+            });
+        }
+
+        private boolean canRequestFocus(View view) {
+            return view != null && view.isShown() && view.isEnabled();
         }
 
         private void onError(Exception e) {

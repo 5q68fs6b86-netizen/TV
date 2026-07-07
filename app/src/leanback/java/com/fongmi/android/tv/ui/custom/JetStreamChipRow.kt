@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.KeyEvent
+import android.view.View
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -168,6 +169,8 @@ class JetStreamChipRow @JvmOverloads constructor(
                     false
                 }
             }
+            KeyEvent.KEYCODE_DPAD_UP -> moveViewFocus(View.FOCUS_UP)
+            KeyEvent.KEYCODE_DPAD_DOWN -> moveViewFocus(View.FOCUS_DOWN)
             else -> false
         }
     }
@@ -179,6 +182,11 @@ class JetStreamChipRow @JvmOverloads constructor(
         if (next == focusedIndex) return false
         focusedIndex = next
         return true
+    }
+
+    private fun moveViewFocus(direction: Int): Boolean {
+        val next = focusSearch(direction)
+        return next != null && next !== this && next.isShown && next.isEnabled && next.requestFocus()
     }
 
     private fun normalizeFocus() {

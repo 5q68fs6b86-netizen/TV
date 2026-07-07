@@ -161,9 +161,27 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     protected void setActionFocusBoundary(View view) {
+        updateActionFocusBoundary(view);
+    }
+
+    protected void updateActionFocusBoundary(View view) {
+        List<View> views = new ArrayList<>();
+        collectActionFocusViews(view, views, true);
+        for (int i = 0; i < views.size(); i++) {
+            View item = views.get(i);
+            int previous = views.get(i == 0 ? views.size() - 1 : i - 1).getId();
+            int next = views.get(i == views.size() - 1 ? 0 : i + 1).getId();
+            item.setNextFocusLeftId(previous);
+            item.setNextFocusRightId(next);
+            item.setNextFocusDownId(item.getId());
+        }
+    }
+
+    private void collectActionFocusViews(View view, List<View> views, boolean root) {
         if (view == null) return;
-        if (view.isFocusable() && view.getId() != View.NO_ID) view.setNextFocusDownId(view.getId());
-        if (view instanceof ViewGroup group) for (int i = 0; i < group.getChildCount(); i++) setActionFocusBoundary(group.getChildAt(i));
+        if (!root && (view.getVisibility() != View.VISIBLE || !view.isEnabled())) return;
+        if (!root && view.isFocusable() && view.getId() != View.NO_ID) views.add(view);
+        if (view instanceof ViewGroup group) for (int i = 0; i < group.getChildCount(); i++) collectActionFocusViews(group.getChildAt(i), views, false);
     }
 
     protected boolean isIdle() {

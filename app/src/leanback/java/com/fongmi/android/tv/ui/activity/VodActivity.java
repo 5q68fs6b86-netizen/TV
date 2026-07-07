@@ -108,11 +108,11 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(mAdapter = new TypeAdapter(this));
-        requestRecyclerFocus();
     }
 
     private void setTypes() {
         mAdapter.addAll(getResult().getTypes());
+        requestRecyclerFocus();
     }
 
     private void setPager() {
@@ -143,8 +143,31 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     private void requestRecyclerFocus() {
         mBinding.recycler.post(() -> {
-            if (mAdapter.getItemCount() > 0 && mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+            int position = clampPosition(mBinding.recycler.getSelectedPosition());
+            if (position == RecyclerView.NO_POSITION || !canRequestFocus(mBinding.recycler)) return;
+            mBinding.recycler.setSelectedPosition(position);
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+                View target = holder == null ? null : findFocusable(holder.itemView);
+                if (target != null && target.requestFocus()) return;
+                if (canRequestFocus(mBinding.recycler)) mBinding.recycler.requestFocus();
+            }, 50);
         });
+    }
+
+    private View findFocusable(View view) {
+        if (!canRequestFocus(view)) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup group)) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private boolean isFilterVisible() {

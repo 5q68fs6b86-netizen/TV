@@ -143,24 +143,50 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void focusRecycler(int position) {
-        int count = adapter.getItemCount();
-        if (count == 0) return;
-        int target = Math.max(0, Math.min(position, count - 1));
-        recycler.post(() -> recycler.scrollToPosition(target));
+        DialogFocus.requestRecyclerFocus(recycler, position, adapter.getItemCount());
     }
 
     private void setType(int type) {
+        boolean enableBatch = type > 0;
+        boolean restoreFocus = !enableBatch && (select.hasFocus() || cancel.hasFocus());
         search.setSelected(type == 1);
         change.setSelected(type == 2);
-        select.setClickable(type > 0);
-        cancel.setClickable(type > 0);
+        setActionEnabled(select, enableBatch);
+        setActionEnabled(cancel, enableBatch);
         adapter.setType(this.type = type);
+        updateActionFocusChain();
+        if (restoreFocus) focusRecycler(VodConfig.getHomeIndex());
+    }
+
+    private void setActionEnabled(View view, boolean enabled) {
+        view.setEnabled(enabled);
+        view.setFocusable(enabled);
+        view.setFocusableInTouchMode(enabled);
     }
 
     private void setMode() {
-        if (adapter.getItemCount() < GRID_COUNT) Setting.putSiteMode(0);
-        mode.setEnabled(adapter.getItemCount() >= GRID_COUNT);
+        boolean enabled = adapter.getItemCount() >= GRID_COUNT;
+        boolean restoreFocus = mode.hasFocus() && !enabled;
+        if (!enabled) Setting.putSiteMode(0);
+        setActionEnabled(mode, enabled);
         mode.setImageResource(getIcon());
+        updateActionFocusChain();
+        if (restoreFocus) focusRecycler(VodConfig.getHomeIndex());
+    }
+
+    private void updateActionFocusChain() {
+        boolean enableBatch = type > 0;
+        boolean enableMode = mode.isEnabled() && mode.isFocusable();
+        search.setNextFocusUpId(search.getId());
+        search.setNextFocusDownId(change.getId());
+        change.setNextFocusUpId(search.getId());
+        change.setNextFocusDownId(enableBatch ? select.getId() : enableMode ? mode.getId() : change.getId());
+        select.setNextFocusUpId(change.getId());
+        select.setNextFocusDownId(cancel.getId());
+        cancel.setNextFocusUpId(select.getId());
+        cancel.setNextFocusDownId(enableMode ? mode.getId() : cancel.getId());
+        mode.setNextFocusUpId(enableBatch ? cancel.getId() : change.getId());
+        mode.setNextFocusDownId(mode.getId());
     }
 
     private void setAnimation() {
