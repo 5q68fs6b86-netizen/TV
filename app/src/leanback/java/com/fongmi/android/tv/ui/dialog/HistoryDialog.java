@@ -1,6 +1,10 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.view.View;
+import android.view.ViewGroup;
+
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.bean.Config;
@@ -62,6 +66,7 @@ public class HistoryDialog extends BaseAlertDialog implements ConfigAdapter.OnCl
         binding.recycler.setHasFixedSize(false);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
         binding.recycler.setAdapter(adapter.readOnly(readOnly).addAll(type));
+        requestFocus(0, View.NO_ID);
     }
 
     @Override
@@ -72,7 +77,48 @@ public class HistoryDialog extends BaseAlertDialog implements ConfigAdapter.OnCl
 
     @Override
     public void onDeleteClick(Config item) {
-        if (adapter.remove(item) == 0) dismiss();
+        int position = adapter.indexOf(item);
+        int focusId = getFocusId();
+        int count = adapter.remove(item);
+        if (count == 0) dismiss();
+        else if (position >= 0) requestFocus(Math.min(position, count - 1), focusId);
+    }
+
+    private int getFocusId() {
+        View focus = getDialog() == null ? null : getDialog().getCurrentFocus();
+        return focus == null ? View.NO_ID : focus.getId();
+    }
+
+    private void requestFocus(int position, int focusId) {
+        binding.recycler.post(() -> {
+            if (position < 0 || position >= adapter.getItemCount()) return;
+            binding.recycler.scrollToPosition(position);
+            binding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = binding.recycler.findViewHolderForAdapterPosition(position);
+                if (holder == null) return;
+                View target = focusId == View.NO_ID ? null : holder.itemView.findViewById(focusId);
+                if (canRequestFocus(target) && target.requestFocus()) return;
+                target = findFocusable(holder.itemView);
+                if (target != null && target.requestFocus()) return;
+                if (canRequestFocus(binding.recycler)) binding.recycler.requestFocus();
+            }, 50);
+        });
+    }
+
+    private View findFocusable(View view) {
+        if (!canRequestFocus(view)) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     @Override

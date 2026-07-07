@@ -45,7 +45,10 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.ViewHolder> {
         File file = mItems.get(position);
         holder.binding.name.setText(file.getName());
         holder.binding.image.setImageResource(file.isDirectory() ? R.drawable.ic_folder : R.drawable.ic_file);
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(file));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition >= 0 && adapterPosition < mItems.size()) mListener.onItemClick(mItems.get(adapterPosition));
+        });
     }
 
     public interface OnClickListener {

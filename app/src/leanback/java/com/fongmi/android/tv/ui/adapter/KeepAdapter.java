@@ -49,9 +49,13 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
         notifyItemRangeChanged(0, getItemCount());
     }
 
-    private void setClickListener(View root, Keep item) {
+    private void setClickListener(ViewHolder holder) {
+        View root = holder.itemView;
         root.setOnLongClickListener(view -> listener.onLongClick());
         root.setOnClickListener(view -> {
+            int position = holder.getBindingAdapterPosition();
+            if (position < 0 || position >= getItemCount()) return;
+            Keep item = getItem(position);
             if (isDelete()) listener.onItemDelete(item);
             else listener.onItemClick(item);
         });
@@ -70,7 +74,7 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Keep item = getItem(position);
-        setClickListener(holder.itemView, item);
+        setClickListener(holder);
         holder.binding.name.setText(item.getVodName());
         holder.binding.remark.setVisibility(View.GONE);
         holder.binding.site.setVisibility(View.VISIBLE);

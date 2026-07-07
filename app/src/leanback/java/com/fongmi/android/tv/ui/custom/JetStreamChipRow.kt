@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.KeyEvent
 import androidx.compose.animation.animateColorAsState
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,6 +71,7 @@ class JetStreamChipRow @JvmOverloads constructor(
     private val items = mutableStateListOf<String>()
     private var selectedIndex by mutableIntStateOf(-1)
     private var focusedIndex by mutableIntStateOf(-1)
+    private var rowFocused by mutableStateOf(false)
     private var clickListener: ((Int) -> Unit)? = null
     private var longClickListener: ((Int) -> Unit)? = null
 
@@ -81,8 +84,12 @@ class JetStreamChipRow @JvmOverloads constructor(
     fun setItems(texts: List<String>, selected: Int) {
         items.clear()
         items.addAll(texts)
-        selectedIndex = selected
-        focusedIndex = if (selected >= 0) selected else 0
+        selectedIndex = if (selected in items.indices) selected else -1
+        focusedIndex = when {
+            items.isEmpty() -> -1
+            selectedIndex in items.indices -> selectedIndex
+            else -> 0
+        }
     }
 
     fun setItems(texts: List<String>) {
@@ -92,12 +99,17 @@ class JetStreamChipRow @JvmOverloads constructor(
     fun getSelectedPosition(): Int = selectedIndex
 
     fun setSelectedPosition(position: Int) {
-        selectedIndex = position
-        setFocusedPosition(position)
+        selectedIndex = if (position in items.indices) position else -1
+        setFocusedPosition(selectedIndex)
     }
 
     fun setFocusedPosition(position: Int) {
-        if (position in 0 until items.size) focusedIndex = position
+        focusedIndex = when {
+            items.isEmpty() -> -1
+            position in items.indices -> position
+            focusedIndex in items.indices -> focusedIndex
+            else -> 0
+        }
     }
 
     fun setNextFocusUp(id: Int) {
@@ -124,6 +136,17 @@ class JetStreamChipRow @JvmOverloads constructor(
         longClickListener = { pos -> listener.onChipLongClick(pos) }
     }
 
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        rowFocused = gainFocus
+        if (gainFocus) normalizeFocus()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN && handleKeyDown(event.keyCode)) return true
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun onKeyPreIme(keyCode: Int, event: KeyEvent): Boolean {
         return event.action == KeyEvent.ACTION_DOWN && handleKeyDown(keyCode) || super.onKeyPreIme(keyCode, event)
     }
@@ -131,24 +154,15 @@ class JetStreamChipRow @JvmOverloads constructor(
     private fun handleKeyDown(keyCode: Int): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (focusedIndex > 0) {
-                    focusedIndex--
-                    true
-                } else {
-                    false
-                }
+                moveFocus(-1)
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (focusedIndex < items.size - 1) {
-                    focusedIndex++
-                    true
-                } else {
-                    false
-                }
+                moveFocus(1)
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                normalizeFocus()
                 if (focusedIndex in 0 until items.size) {
-                    clickListener?.invoke(focusedIndex)
+                    clickChip(focusedIndex)
                     true
                 } else {
                     false
@@ -156,6 +170,32 @@ class JetStreamChipRow @JvmOverloads constructor(
             }
             else -> false
         }
+    }
+
+    private fun moveFocus(step: Int): Boolean {
+        if (items.isEmpty()) return false
+        normalizeFocus()
+        val next = (focusedIndex + step).coerceIn(0, items.size - 1)
+        if (next == focusedIndex) return false
+        focusedIndex = next
+        return true
+    }
+
+    private fun normalizeFocus() {
+        if (items.isEmpty()) {
+            focusedIndex = -1
+            return
+        }
+        if (focusedIndex in items.indices) return
+        focusedIndex = if (selectedIndex in items.indices) selectedIndex else 0
+    }
+
+    private fun clickChip(index: Int) {
+        if (index in items.indices) clickListener?.invoke(index)
+    }
+
+    private fun longClickChip(index: Int) {
+        if (index in items.indices) longClickListener?.invoke(index)
     }
 
     @Composable
@@ -185,16 +225,16 @@ class JetStreamChipRow @JvmOverloads constructor(
                     val requester = focusRequesters.getOrPut(index) { FocusRequester() }
                     Chip(
                         text = text,
-                        focused = index == focusedIndex,
+                        focused = rowFocused && index == focusedIndex,
                         selected = index == selectedIndex,
                         focusRequester = requester,
-                        onClick = { clickListener?.invoke(index) },
-                        onLongClick = longClickListener?.let { listener -> { listener(index) } }
+                        onClick = { clickChip(index) },
+                        onLongClick = longClickListener?.let { { longClickChip(index) } }
                     )
 
-                    LaunchedEffect(focusedIndex) {
-                        if (index == focusedIndex) {
-                            requester.requestFocus()
+                    LaunchedEffect(rowFocused, focusedIndex) {
+                        if (rowFocused && index == focusedIndex) {
+                            runCatching { requester.requestFocus() }
                         }
                     }
                 }

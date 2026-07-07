@@ -21,9 +21,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
@@ -49,11 +51,12 @@ class JetStreamQrCodeView @JvmOverloads constructor(
     @Composable
     override fun Content() {
         JetStreamTheme {
+            val surfaceColor = colorResource(R.color.jetstream_surface)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(JetStreamShapes.Large)
-                    .background(Color.Black)
+                    .background(surfaceColor)
                     .padding(JetStreamSpacing.Small),
                 contentAlignment = Alignment.Center
             ) {

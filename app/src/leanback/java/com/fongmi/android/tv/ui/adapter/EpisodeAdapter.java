@@ -48,6 +48,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
     }
 
     public Episode getNext() {
+        if (mItems.isEmpty()) return new Episode();
         int current = getPosition();
         int max = getItemCount() - 1;
         current = ++current > max ? max : current;
@@ -55,6 +56,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
     }
 
     public Episode getPrev() {
+        if (mItems.isEmpty()) return new Episode();
         int current = getPosition();
         current = --current < 0 ? 0 : current;
         return mItems.get(current);
@@ -89,7 +91,14 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
         holder.binding.text.setNextFocusDownId(nextFocusDown);
         holder.binding.text.setSelected(item.isSelected());
         holder.binding.text.setText(item.getDesc().concat(item.getName()));
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

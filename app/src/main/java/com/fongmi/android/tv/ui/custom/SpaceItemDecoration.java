@@ -25,9 +25,11 @@ public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
     @Override
     public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, RecyclerView parent, @NonNull RecyclerView.State state) {
         int position = parent.getChildAdapterPosition(view);
+        RecyclerView.Adapter<?> adapter = parent.getAdapter();
+        int count = adapter == null ? 0 : adapter.getItemCount();
         if (position >= 0 && spanCount == -1) {
             outRect.left = position == 0 ? 0 : spacing / 2;
-            outRect.right = position == parent.getAdapter().getItemCount() - 1 ? 0 : spacing / 2;
+            outRect.right = position == count - 1 ? 0 : spacing / 2;
         } else if (position >= 0 && spanCount > 0) {
             int column = position % spanCount;
             outRect.left = column * spacing / spanCount;

@@ -15,6 +15,7 @@ public interface LivePlaybackHost {
 
     int getGroupPosition();
 
+    @Nullable
     Group getGroup(int position);
 
     boolean isPlayerLive();

@@ -57,9 +57,10 @@ public final class DanmakuDialog extends BaseBottomSheetDialog implements Danmak
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setAdapter(adapter.addAll(player.getDanmakus()));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
+        focusRecycler(adapter.getSelected());
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
         binding.search.setVisibility(player.getMetadata() == null || !DanmakuSetting.hasSearchApi() ? View.GONE : View.VISIBLE);
+        focusInitialView();
     }
 
     @Override
@@ -82,6 +83,21 @@ public final class DanmakuDialog extends BaseBottomSheetDialog implements Danmak
     private void onSetting(View view) {
         DanmakuSettingDialog.create().player(player).show(getActivity());
         dismiss();
+    }
+
+    private void focusRecycler(int position) {
+        int count = adapter.getItemCount();
+        if (count == 0) return;
+        int target = Math.max(0, Math.min(position, count - 1));
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(target));
+    }
+
+    private void focusInitialView() {
+        if (adapter.getItemCount() > 0) return;
+        View target = binding.search.getVisibility() == View.VISIBLE ? binding.search : binding.choose;
+        target.post(() -> {
+            if (target.isShown() && target.isEnabled()) target.requestFocus();
+        });
     }
 
     @Override

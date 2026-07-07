@@ -32,7 +32,10 @@ public class WordAdapter extends BaseDiffAdapter<Word.Data, WordAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Word.Data item = getItem(position);
         holder.binding.text.setText(item.getTitle());
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item.getTitle()));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition >= 0 && adapterPosition < getItemCount()) listener.onItemClick(getItem(adapterPosition).getTitle());
+        });
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

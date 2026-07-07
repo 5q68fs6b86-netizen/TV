@@ -40,7 +40,9 @@ final class DanmakuSettingPanel {
         bindDisplay();
         bindTabs();
         showTab(0);
-        binding.tabAppearance.requestFocus();
+        binding.tabAppearance.post(() -> {
+            if (binding.tabAppearance.isShown() && binding.tabAppearance.isEnabled()) binding.tabAppearance.requestFocus();
+        });
         binding.reset.setOnClickListener(this::onReset);
         binding.tabGroup.check(binding.tabAppearance.getId());
     }

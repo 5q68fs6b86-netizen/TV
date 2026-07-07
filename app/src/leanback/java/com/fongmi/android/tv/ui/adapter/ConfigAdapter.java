@@ -49,9 +49,13 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return getItemCount();
     }
 
+    public int indexOf(Config item) {
+        return mItems.indexOf(item);
+    }
+
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return mItems == null ? 0 : mItems.size();
     }
 
     @NonNull
@@ -64,9 +68,19 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Config item = mItems.get(position);
         holder.binding.text.setText(item.getDesc());
-        holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onTextClick(mItems.get(adapterPosition));
+        });
         holder.binding.delete.setVisibility(readOnly ? View.GONE : View.VISIBLE);
-        holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
+        holder.binding.delete.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onDeleteClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < getItemCount();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

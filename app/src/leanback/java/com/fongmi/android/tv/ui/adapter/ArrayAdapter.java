@@ -56,9 +56,16 @@ public class ArrayAdapter extends RecyclerView.Adapter<ArrayAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String text = mItems.get(position);
         holder.binding.text.setText(text);
-        if (text.equals(reverse)) holder.binding.getRoot().setOnClickListener(view -> mListener.onRevSort());
-        else if (text.equals(backward) || text.equals(forward)) holder.binding.getRoot().setOnClickListener(view -> mListener.onRevPlay(holder.binding.text));
+        if (text.equals(reverse) || text.equals(backward) || text.equals(forward)) holder.binding.getRoot().setOnClickListener(view -> onItemClick(holder));
         else holder.binding.getRoot().setOnClickListener(null);
+    }
+
+    private void onItemClick(ViewHolder holder) {
+        int position = holder.getBindingAdapterPosition();
+        if (position < 0 || position >= mItems.size()) return;
+        String text = mItems.get(position);
+        if (text.equals(reverse)) mListener.onRevSort();
+        else if (text.equals(backward) || text.equals(forward)) mListener.onRevPlay(holder.binding.text);
     }
 
     public interface OnClickListener {

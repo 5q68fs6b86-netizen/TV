@@ -58,7 +58,10 @@ public class PartAdapter extends RecyclerView.Adapter<PartAdapter.ViewHolder> {
         holder.binding.text.setText(text);
         holder.binding.text.setMaxWidth(maxWidth);
         holder.binding.text.setNextFocusUpId(nextFocusUp);
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(text));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition >= 0 && adapterPosition < mItems.size()) mListener.onItemClick(mItems.get(adapterPosition));
+        });
     }
 
     public interface OnClickListener {

@@ -65,6 +65,10 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
         return item.label + " [" + Util.timeMs(item.timeUs / 1000) + "]";
     }
 
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final AdapterChapterBinding binding;
@@ -77,7 +81,9 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
 
         @Override
         public void onClick(View view) {
-            listener.onItemClick(mItems.get(getLayoutPosition()));
+            int position = getBindingAdapterPosition();
+            if (!isValidPosition(position)) return;
+            listener.onItemClick(mItems.get(position));
         }
     }
 }

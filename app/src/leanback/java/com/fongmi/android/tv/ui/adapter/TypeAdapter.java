@@ -32,6 +32,7 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
     }
 
     public Class get(int position) {
+        if (position < 0 || position >= mItems.size()) return new Class();
         return mItems.get(position);
     }
 
@@ -56,12 +57,22 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
         holder.binding.text.setText(item.getTypeName());
         holder.binding.text.setCompoundDrawablePadding(ResUtil.dp2px(4));
         holder.binding.text.setCompoundDrawablesWithIntrinsicBounds(0, 0, getIcon(item), 0);
-        holder.binding.text.setListener(() -> mListener.onRefresh(item));
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.text.setListener(() -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onRefresh(mItems.get(adapterPosition));
+        });
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
     }
 
     private int getIcon(Class item) {
         return Cache.get(item).isEmpty() ? 0 : item.getFilter() ? R.drawable.ic_vod_filter_off : R.drawable.ic_vod_filter_on;
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

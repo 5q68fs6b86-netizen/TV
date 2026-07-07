@@ -45,7 +45,14 @@ public class DohDialog extends BaseAlertDialog implements DohAdapter.OnClickList
         binding.recycler.setAdapter(adapter);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelect()));
+        focusRecycler(adapter.getSelect());
+    }
+
+    private void focusRecycler(int position) {
+        int count = adapter.getItemCount();
+        if (count == 0) return;
+        int target = Math.max(0, Math.min(position, count - 1));
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(target));
     }
 
     @Override

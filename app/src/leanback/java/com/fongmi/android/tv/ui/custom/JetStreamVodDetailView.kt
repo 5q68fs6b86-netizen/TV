@@ -134,18 +134,22 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (!moveSelection(-1)) listener?.onFocusVideo()
-                true
+                if (moveSelection(-1)) true
+                else listener?.let {
+                    it.onFocusVideo()
+                    true
+                } ?: super.dispatchKeyEvent(event)
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                moveSelection(1)
-                true
+                moveSelection(1) || super.dispatchKeyEvent(event)
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                listener?.onFocusList()
-                true
+                listener?.let {
+                    it.onFocusList()
+                    true
+                } ?: super.dispatchKeyEvent(event)
             }
-            KeyEvent.KEYCODE_DPAD_UP -> true
+            KeyEvent.KEYCODE_DPAD_UP -> super.dispatchKeyEvent(event)
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 performSelectedAction()
                 true
@@ -365,7 +369,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                     active = detailFocused && selectedAction == index,
                     onClick = {
                         selectedAction = index
-                        performAction(spec)
+                        performAction(spec.action)
                     }
                 )
             }
@@ -437,7 +441,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     }
 
     private fun performSelectedAction() {
-        actions().getOrNull(selectedAction)?.let { performAction(it) }
+        actions().getOrNull(selectedAction)?.let { performAction(it.action) }
     }
 
     private fun moveSelection(step: Int): Boolean {
@@ -460,7 +464,8 @@ class JetStreamVodDetailView @JvmOverloads constructor(
         selectedAction = specs.indexOfFirst { it.enabled }.takeIf { it >= 0 } ?: 0
     }
 
-    private fun performAction(spec: ActionSpec) {
+    private fun performAction(action: DetailAction) {
+        val spec = actions().firstOrNull { it.action == action } ?: return
         if (!spec.enabled) return
         when (spec.action) {
             DetailAction.SUMMARY -> listener?.onSummary()

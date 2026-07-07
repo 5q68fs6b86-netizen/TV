@@ -65,7 +65,7 @@ public class Util {
 
     private static void showKeyboard(View view, int flags) {
         view.post(() -> {
-            if (!view.isAttachedToWindow()) return;
+            if (!view.isAttachedToWindow() || !view.isShown() || !view.isEnabled()) return;
             if (!view.requestFocus()) return;
             InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             if (imm != null) imm.showSoftInput(view, flags);

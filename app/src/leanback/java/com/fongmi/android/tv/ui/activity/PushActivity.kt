@@ -51,6 +51,7 @@ class PushActivity : BaseActivity(), JetStreamPushView.Listener {
     override fun initView(savedInstanceState: Bundle?) {
         binding.content.setAddress(displayAddress)
         binding.content.setQrBitmap(QRCode.getLightBitmap(openAddress, 250, 1))
+        binding.content.post { if (binding.content.isShown && binding.content.isEnabled) binding.content.requestFocus() }
     }
 
     override fun initEvent() {

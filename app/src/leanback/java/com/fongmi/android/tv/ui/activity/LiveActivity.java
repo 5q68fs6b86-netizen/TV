@@ -116,7 +116,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         return getIntent().getBooleanExtra("empty", true);
     }
 
+    @Nullable
     private Group getKeep() {
+        if (mGroupAdapter.getItemCount() == 0) return null;
         return mGroupAdapter.get(0);
     }
 
@@ -208,7 +210,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.group.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mGroupAdapter.getItemCount() > 0) onChildSelected(child, mGroup = mGroupAdapter.get(position));
+                int safePosition = clampPosition(position, mGroupAdapter.getItemCount());
+                if (safePosition != RecyclerView.NO_POSITION) onChildSelected(child, mGroup = mGroupAdapter.get(safePosition));
             }
         });
     }
@@ -380,13 +383,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setPosition(int[] position) {
-        if (position[0] == -1) return;
-        int size = mGroupAdapter.getItemCount();
-        if (size == 1 || position[0] >= size) return;
-        mGroup = mGroupAdapter.get(position[0]);
-        mBinding.group.setSelectedPosition(position[0]);
-        mGroup.setPosition(position[1]);
+        if (position == null || position.length < 2 || position[0] == -1) return;
+        int groupPosition = clampPosition(position[0], mGroupAdapter.getItemCount());
+        if (groupPosition == RecyclerView.NO_POSITION) return;
+        mGroup = mGroupAdapter.get(groupPosition);
+        int channelPosition = clampPosition(position[1], mGroup.getChannel().size());
+        if (channelPosition != RecyclerView.NO_POSITION) mGroup.setPosition(channelPosition);
         mLive.selectGroup(mGroup);
+        if (channelPosition == RecyclerView.NO_POSITION) return;
         mLive.selectChannel(mGroup.current());
     }
 
@@ -394,10 +398,40 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (mChannel == null) return;
         mGroup = mChannel.getGroup();
         int position = mGroupAdapter.indexOf(mGroup);
+        if (position == -1) return;
+        int channelPosition = clampPosition(mGroup.getPosition(), mGroup.getChannel().size());
+        if (channelPosition == RecyclerView.NO_POSITION) return;
+        mGroup.setPosition(channelPosition);
         boolean change = mBinding.group.getSelectedPosition() != position;
         if (change) mBinding.group.setSelectedPosition(position);
         if (change) mChannelAdapter.addAll(mGroup.getChannel());
-        mBinding.channel.setSelectedPosition(mGroup.getPosition());
+        mBinding.channel.setSelectedPosition(channelPosition);
+    }
+
+    private int clampPosition(int position, int size) {
+        if (size <= 0) return RecyclerView.NO_POSITION;
+        if (position < 0) return 0;
+        return Math.min(position, size - 1);
+    }
+
+    private void requestFocusLater(View view) {
+        view.post(() -> {
+            if (canRequestFocus(view) && view.requestFocus()) return;
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
+        });
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
+    }
+
+    private void restoreControlFocusIfHidden(View... views) {
+        for (View view : views) {
+            if (view.hasFocus() && !canRequestFocus(view)) {
+                requestFocusLater(mBinding.control.jetstream);
+                return;
+            }
+        }
     }
 
     private void onChildSelected(@Nullable RecyclerView.ViewHolder child, Group group) {
@@ -426,13 +460,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onTrack(View view) {
         TrackDialog.create().type(Integer.parseInt(view.getTag().toString())).player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onHome() {
-        if (LiveConfig.isOnly()) setLive(getHome());
-        else LiveDialog.create().show(this);
-        hideControl();
+        if (LiveConfig.isOnly()) {
+            setLive(getHome());
+            hideControl();
+        } else {
+            LiveDialog.create().show(this);
+            hideControl(false);
+        }
     }
 
     private void onLine() {
@@ -463,7 +501,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onConfig() {
         HistoryDialog.create().live().readOnly().show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onAction() {
@@ -490,7 +528,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void onChoose() {
         PlayerEngineDialog.show(this, mBinding.control.action.player, player(), mBinding.widget.title.getText());
-        hideControl();
+        hideControl(false);
     }
 
     private void onDecode() {
@@ -503,6 +541,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (isGone(mBinding.recycler)) return;
         JetStreamAnimator.hide(mBinding.recycler, -18, 0, View.GONE, JetStreamAnimator.PANEL_DURATION);
         setPosition();
+        requestFocusLater(mBinding.video);
     }
 
     private void showUI() {
@@ -511,6 +550,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         setPosition();
         setUITimer();
         hideEpg();
+        requestFocusLater(mBinding.channel);
     }
 
     private final PlaybackService.NavigationCallback mNavigationCallback = new PlaybackService.NavigationCallback() {
@@ -590,11 +630,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void showEpg(Channel item) {
         if (mChannel == null || mChannel.getData(mViewModel.getZoneId()).getList().isEmpty() || mEpgDataAdapter.getItemCount() == 0 || !mChannel.equals(item) || !mChannel.getGroup().equals(mGroup)) return;
-        mBinding.epgData.setSelectedPosition(mChannel.getData(mViewModel.getZoneId()).getSelected());
+        int position = clampPosition(mChannel.getData(mViewModel.getZoneId()).getSelected(), mEpgDataAdapter.getItemCount());
+        if (position == RecyclerView.NO_POSITION) return;
+        mBinding.epgData.setSelectedPosition(position);
         mBinding.epgData.setVisibility(View.VISIBLE);
         mBinding.channel.setVisibility(View.GONE);
         mBinding.group.setVisibility(View.GONE);
-        mBinding.epgData.requestFocus();
+        requestFocusLater(mBinding.epgData);
     }
 
     @Override
@@ -602,7 +644,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.channel.setVisibility(View.VISIBLE);
         mBinding.group.setVisibility(View.VISIBLE);
         mBinding.epgData.setVisibility(View.GONE);
-        mBinding.channel.requestFocus();
+        requestFocusLater(mBinding.channel);
     }
 
     @Override
@@ -635,15 +677,25 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         syncJetStreamControl();
         mBinding.control.jetstream.setControlsVisible(true);
         setJetStreamOverlayVisible(true);
-        App.post(() -> getJetStreamFocus(view).requestFocus(), 25);
+        App.post(() -> {
+            View focus = getJetStreamFocus(view);
+            if (canRequestFocus(focus) && focus.requestFocus()) return;
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
+        }, 25);
         setR1Callback();
     }
 
     private void hideControl() {
+        hideControl(true);
+    }
+
+    private void hideControl(boolean restoreFocus) {
+        boolean restoreVideoFocus = restoreFocus && mBinding.control.getRoot().hasFocus();
         mBinding.control.jetstream.setControlsVisible(false);
         mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
         updateJetStreamVisibility();
+        if (restoreVideoFocus) requestFocusLater(mBinding.video);
     }
 
     private void hideCenter() {
@@ -709,7 +761,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private View getJetStreamFocus(View view) {
-        if (view == null || view.getVisibility() != View.VISIBLE) return mBinding.control.jetstream;
+        if (!canRequestFocus(view)) return mBinding.control.jetstream;
         return view == mBinding.control.jetstream ? view : mBinding.control.jetstream;
     }
 
@@ -765,7 +817,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (!item.getData(mViewModel.getZoneId()).getList().isEmpty() && item.isSelected() && mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup)) {
             showEpg(item);
         } else if (mGroup != null) {
-            mGroup.setPosition(mBinding.channel.getSelectedPosition());
+            int position = mChannelAdapter.indexOf(item);
+            if (position == -1) position = clampPosition(mBinding.channel.getSelectedPosition(), mChannelAdapter.getItemCount());
+            if (position == RecyclerView.NO_POSITION) return;
+            mGroup.setPosition(position);
             mLive.selectChannel(item.group(mGroup));
             hideUI();
         }
@@ -773,7 +828,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public boolean onLongClick(Channel item) {
-        if (mGroup.isHidden()) return false;
+        if (mGroup == null || mGroup.isHidden()) return false;
         boolean exist = Keep.exist(item.getName());
         Notify.show(exist ? R.string.keep_del : R.string.keep_add);
         if (exist) delKeep(item);
@@ -787,17 +842,31 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void addKeep(Channel item) {
-        getKeep().add(item);
-        Keep keep = new Keep();
-        keep.setKey(item.getName());
-        keep.setType(1);
-        keep.save();
+        Group keep = getKeep();
+        if (keep == null) return;
+        keep.add(item);
+        Keep record = new Keep();
+        record.setKey(item.getName());
+        record.setType(1);
+        record.save();
     }
 
     private void delKeep(Channel item) {
-        if (mGroup.isKeep()) mChannelAdapter.remove(item);
-        if (mChannelAdapter.getItemCount() == 0) mBinding.group.requestFocus();
-        getKeep().getChannel().remove(item);
+        int position = mChannelAdapter.indexOf(item);
+        boolean restoreFocus = mBinding.channel.hasFocus();
+        if (mGroup.isKeep()) {
+            mChannelAdapter.remove(item);
+            int target = clampPosition(position, mChannelAdapter.getItemCount());
+            if (target == RecyclerView.NO_POSITION) {
+                requestFocusLater(mBinding.group);
+            } else {
+                mGroup.setPosition(target);
+                mBinding.channel.setSelectedPosition(target);
+                if (restoreFocus) requestFocusLater(mBinding.channel);
+            }
+        }
+        Group keep = getKeep();
+        if (keep != null) keep.getChannel().remove(item);
         Keep.delete(item.getName());
     }
 
@@ -815,6 +884,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.number.setText(mChannel.getNumber());
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setVisibility(mChannel.getLineVisible());
+        restoreControlFocusIfHidden(mBinding.control.action.line);
         syncJetStreamControl();
     }
 
@@ -852,12 +922,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public int getGroupPosition() {
-        return mBinding.group.getSelectedPosition();
+        return clampPosition(mBinding.group.getSelectedPosition(), mGroupAdapter.getItemCount());
     }
 
     @Override
+    @Nullable
     public Group getGroup(int position) {
-        return mGroupAdapter.get(position);
+        int safePosition = clampPosition(position, mGroupAdapter.getItemCount());
+        return safePosition == RecyclerView.NO_POSITION ? null : mGroupAdapter.get(safePosition);
     }
 
     @Override
@@ -899,14 +971,19 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void renderGroupSelection(Group group) {
+        int position = mGroupAdapter.indexOf(group);
+        if (position == -1) return;
         mGroup = group;
-        mBinding.group.setSelectedPosition(mGroupAdapter.indexOf(group));
+        mBinding.group.setSelectedPosition(position);
     }
 
     @Override
     public void renderGroupChannels(Group group) {
         mChannelAdapter.addAll(setWidth(group).getChannel());
-        mBinding.channel.setSelectedPosition(Math.max(group.getPosition(), 0));
+        int position = clampPosition(group.getPosition(), mChannelAdapter.getItemCount());
+        if (position == RecyclerView.NO_POSITION) return;
+        group.setPosition(position);
+        mBinding.channel.setSelectedPosition(position);
     }
 
     @Override
@@ -935,7 +1012,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void resetAdapter() {
+        boolean restoreFocus = mBinding.recycler.hasFocus() || mBinding.epgData.hasFocus() || mBinding.channel.hasFocus() || mBinding.group.hasFocus();
         mBinding.control.action.line.setVisibility(View.GONE);
+        restoreControlFocusIfHidden(mBinding.control.action.line);
         mBinding.widget.title.setText("");
         mBinding.widget.play.setText("");
         mEpgDataAdapter.clear();
@@ -945,6 +1024,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mChannel = null;
         mGroup = null;
         syncJetStreamControl();
+        if (restoreFocus) requestFocusLater(mBinding.video);
     }
 
     @Override
@@ -1023,6 +1103,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
+        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
         syncJetStreamControl();
     }
 
@@ -1148,7 +1229,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.jetstream : getJetStreamFocus(mFocus2);
+        return canRequestFocus(mFocus2) ? getJetStreamFocus(mFocus2) : mBinding.control.jetstream;
     }
 
     @Override

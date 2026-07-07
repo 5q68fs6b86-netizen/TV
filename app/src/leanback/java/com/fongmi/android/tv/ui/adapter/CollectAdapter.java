@@ -31,6 +31,7 @@ public class CollectAdapter extends RecyclerView.Adapter<CollectAdapter.ViewHold
     }
 
     public Collect get(int position) {
+        if (position < 0 || position >= mItems.size()) return Collect.all();
         return mItems.get(position);
     }
 

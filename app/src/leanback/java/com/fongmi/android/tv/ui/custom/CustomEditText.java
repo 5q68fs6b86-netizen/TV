@@ -26,7 +26,8 @@ public class CustomEditText extends TextInputEditText {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (consumeVerticalKey(keyCode, event)) return true;
         View next = findNextFocus(event);
-        return next != null ? next.requestFocus() : super.onKeyDown(keyCode, event);
+        if (next != null && next != this && next.isShown() && next.isEnabled() && next.requestFocus()) return true;
+        return super.onKeyDown(keyCode, event);
     }
 
     private boolean consumeVerticalKey(int keyCode, KeyEvent event) {

@@ -43,7 +43,14 @@ public class ParseAdapter extends RecyclerView.Adapter<ParseAdapter.ViewHolder> 
         Parse item = mItems.get(position);
         holder.binding.text.setText(item.getName());
         holder.binding.text.setSelected(item.isSelected());
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

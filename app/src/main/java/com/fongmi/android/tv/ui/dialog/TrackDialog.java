@@ -92,11 +92,12 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
         binding.recycler.setAdapter(adapter.addAll(getTrack()));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
         binding.title.setText(ResUtil.getStringArray(R.array.select_track)[type - 1]);
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
+        focusRecycler(adapter.getSelected());
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
         binding.offset.setVisibility(hasText() || hasAudio() ? View.VISIBLE : View.GONE);
         binding.choose.setVisibility(hasChoose() ? View.VISIBLE : View.GONE);
         binding.subtitle.setVisibility(hasText() ? View.VISIBLE : View.GONE);
+        focusInitialView();
     }
 
     @Override
@@ -120,6 +121,37 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
         Listener listener = (Listener) requireActivity();
         App.post(listener::onSubtitleClick, 100);
         dismiss();
+    }
+
+    private void focusRecycler(int position) {
+        int count = adapter.getItemCount();
+        if (count == 0) return;
+        int target = Math.max(0, Math.min(position, count - 1));
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(target));
+    }
+
+    private void focusInitialView() {
+        if (adapter.getItemCount() > 0) return;
+        View target = binding.choose;
+        if (target.getVisibility() != View.VISIBLE) target = binding.offset;
+        if (target.getVisibility() != View.VISIBLE) target = binding.subtitle;
+        if (target.getVisibility() != View.VISIBLE) return;
+        View focusTarget = target;
+        focusTarget.post(() -> {
+            if (focusTarget.isShown() && focusTarget.isEnabled()) focusTarget.requestFocus();
+        });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (adapter.getItemCount() == 0 && !hasVisibleAction()) dismiss();
+    }
+
+    private boolean hasVisibleAction() {
+        return binding.choose.getVisibility() == View.VISIBLE
+                || binding.offset.getVisibility() == View.VISIBLE
+                || binding.subtitle.getVisibility() == View.VISIBLE;
     }
 
     private List<Track> getTrack() {

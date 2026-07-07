@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
@@ -51,7 +52,22 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
+        mAdapter.setItems(Keep.getVod(), () -> {
+            mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
+            requestFocus(0);
+        });
+    }
+
+    private void requestFocus(int position) {
+        mBinding.recycler.post(() -> {
+            if (position < 0 || position >= mAdapter.getItemCount()) return;
+            mBinding.recycler.scrollToPosition(position);
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+                if (holder != null && holder.itemView.isShown() && holder.itemView.isEnabled()) holder.itemView.requestFocus();
+                else if (mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+            }, 50);
+        });
     }
 
     private void loadConfig(Config config, Keep item) {
@@ -83,8 +99,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemDelete(Keep item) {
+        int position = mAdapter.getItems().indexOf(item);
         mAdapter.remove(item.delete(), () -> {
             if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
+            else requestFocus(Math.min(Math.max(position, 0), mAdapter.getItemCount() - 1));
         });
     }
 

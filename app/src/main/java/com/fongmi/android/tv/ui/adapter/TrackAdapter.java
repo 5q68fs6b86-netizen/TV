@@ -44,6 +44,10 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.ViewHolder> 
         return mItems.size();
     }
 
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -69,7 +73,9 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.ViewHolder> 
 
         @Override
         public void onClick(View view) {
-            listener.onItemClick(mItems.get(getLayoutPosition()).toggle());
+            int position = getBindingAdapterPosition();
+            if (!isValidPosition(position)) return;
+            listener.onItemClick(mItems.get(position).toggle());
         }
     }
 }

@@ -52,6 +52,9 @@ public class PreloadDialog extends BaseAlertDialog {
         binding.slider.setStepSize(getStep());
         binding.slider.setValue(getValue());
         binding.slider.setLabelFormatter(value -> format(Math.round(value)));
+        binding.slider.post(() -> {
+            if (binding.slider.isShown() && binding.slider.isEnabled()) binding.slider.requestFocus();
+        });
     }
 
     @Override

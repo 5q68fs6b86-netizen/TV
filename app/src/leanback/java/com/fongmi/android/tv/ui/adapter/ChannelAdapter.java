@@ -42,7 +42,12 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     }
 
     public Channel get(int position) {
+        if (position < 0 || position >= mItems.size()) return new Channel();
         return mItems.get(position);
+    }
+
+    public int indexOf(Channel item) {
+        return mItems.indexOf(item);
     }
 
     public void setSelected(Channel selected) {
@@ -68,9 +73,22 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         holder.binding.name.setText(item.getShow());
         holder.binding.number.setText(item.getNumber());
         holder.binding.getRoot().setSelected(item.isSelected());
-        holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
-        holder.binding.getRoot().setOnLongClickListener(v -> mListener.onLongClick(item));
+        holder.binding.getRoot().setRightListener(() -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.showEpg(mItems.get(adapterPosition));
+        });
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
+        holder.binding.getRoot().setOnLongClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            return isValidPosition(adapterPosition) && mListener.onLongClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     @Override

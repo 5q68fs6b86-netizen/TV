@@ -30,6 +30,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
     }
 
     public void add(int position, Group item) {
+        if (position < 0 || position > mItems.size()) position = mItems.size();
         mItems.add(position, item);
         notifyItemInserted(position);
     }
@@ -40,6 +41,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
     }
 
     public Group get(int position) {
+        if (position < 0 || position >= mItems.size()) return new Group("");
         return mItems.get(position);
     }
 
@@ -66,7 +68,14 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Group item = mItems.get(position);
         holder.binding.name.setText(item.getName());
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

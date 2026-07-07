@@ -41,10 +41,7 @@ class JetStreamDialogScrollView @JvmOverloads constructor(
     init {
         setFillViewport(true)
         overScrollMode = View.OVER_SCROLL_NEVER
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(28) }
-        )
+        background = jetStreamDialogBackground(cornerRadii = FloatArray(8) { jetStreamDp(28) })
         elevation = jetStreamDp(12)
         clipToOutline = true
     }
@@ -63,10 +60,7 @@ class JetStreamSheetSurfaceLayout @JvmOverloads constructor(
 
         clipChildren = edge == SHEET_EDGE_RIGHT
         clipToPadding = edge == SHEET_EDGE_RIGHT
-        background = jetStreamOverlayBackground(
-            orientation = if (edge == SHEET_EDGE_RIGHT) GradientDrawable.Orientation.LEFT_RIGHT else GradientDrawable.Orientation.BOTTOM_TOP,
-            cornerRadii = if (edge == SHEET_EDGE_RIGHT) rightSheetCornerRadii() else bottomSheetCornerRadii()
-        )
+        background = jetStreamDialogBackground(cornerRadii = if (edge == SHEET_EDGE_RIGHT) rightSheetCornerRadii() else bottomSheetCornerRadii())
         elevation = jetStreamDp(10)
         clipToOutline = true
     }
@@ -94,10 +88,7 @@ class JetStreamDialogSurfaceLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(28) }
-        )
+        background = jetStreamDialogBackground(cornerRadii = FloatArray(8) { jetStreamDp(28) })
         elevation = jetStreamDp(12)
         clipToOutline = true
     }
@@ -112,10 +103,7 @@ class JetStreamDialogRelativeLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(28) }
-        )
+        background = jetStreamDialogBackground(cornerRadii = FloatArray(8) { jetStreamDp(28) })
         elevation = jetStreamDp(12)
         clipToOutline = true
     }

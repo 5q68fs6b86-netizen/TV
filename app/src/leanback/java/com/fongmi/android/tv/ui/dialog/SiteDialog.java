@@ -139,7 +139,14 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         if (decoration != null) recycler.removeItemDecoration(decoration);
         recycler.addItemDecoration(decoration = new SpaceItemDecoration(getCount(), 16));
         recycler.setLayoutManager(new GridLayoutManager(requireContext(), getCount()));
-        if (!mode.hasFocus()) recycler.post(() -> recycler.scrollToPosition(VodConfig.getHomeIndex()));
+        if (!mode.hasFocus()) focusRecycler(VodConfig.getHomeIndex());
+    }
+
+    private void focusRecycler(int position) {
+        int count = adapter.getItemCount();
+        if (count == 0) return;
+        int target = Math.max(0, Math.min(position, count - 1));
+        recycler.post(() -> recycler.scrollToPosition(target));
     }
 
     private void setType(int type) {

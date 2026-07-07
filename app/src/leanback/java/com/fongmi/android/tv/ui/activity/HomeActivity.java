@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -247,14 +248,104 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setToolbarVisible(true);
         mBinding.title.setSelected(true);
         App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
+        if (!mBinding.title.hasFocus()) requestRecyclerFocus();
+    }
+
+    private void requestRecyclerFocus() {
+        mBinding.recycler.post(() -> {
+            if (canRequestFocus(mBinding.recycler) && mBinding.recycler.requestFocus()) return;
+            if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+        });
+    }
+
+    private void requestHistoryFocus(int position) {
+        int historyIndex = getHistoryIndex();
+        if (position == RecyclerView.NO_POSITION || historyIndex < 0 || historyIndex >= mAdapter.size()) {
+            requestRecyclerFocus();
+            return;
+        }
+        mBinding.recycler.post(() -> {
+            if (!canRequestFocus(mBinding.recycler)) {
+                requestRecyclerFocus();
+                return;
+            }
+            mBinding.recycler.setSelectedPosition(historyIndex);
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView row = findHistoryRecycler(historyIndex);
+                if (row == null) {
+                    requestRecyclerFocus();
+                    return;
+                }
+                if (row instanceof HorizontalGridView) ((HorizontalGridView) row).setSelectedPosition(position);
+                else row.scrollToPosition(position);
+                row.postDelayed(() -> {
+                    if (requestItemFocus(row, position)) return;
+                    if (canRequestFocus(row) && row.requestFocus()) return;
+                    requestRecyclerFocus();
+                }, 50);
+            }, 50);
+        });
+    }
+
+    private int getSelectedHistoryPosition(int historyIndex) {
+        if (historyIndex < 0 || mBinding.recycler.getSelectedPosition() != historyIndex || !mBinding.recycler.hasFocus()) return RecyclerView.NO_POSITION;
+        RecyclerView row = findHistoryRecycler(historyIndex);
+        if (row instanceof HorizontalGridView) return ((HorizontalGridView) row).getSelectedPosition();
+        return 0;
+    }
+
+    private int clampHistoryPosition(int position) {
+        if (mHistoryAdapter.size() == 0) return RecyclerView.NO_POSITION;
+        if (position < 0) return 0;
+        return Math.min(position, mHistoryAdapter.size() - 1);
+    }
+
+    private RecyclerView findHistoryRecycler(int historyIndex) {
+        RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(historyIndex);
+        return holder == null ? null : findChildRecycler(holder.itemView);
+    }
+
+    private RecyclerView findChildRecycler(View view) {
+        if (view instanceof RecyclerView && view != mBinding.recycler) return (RecyclerView) view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            RecyclerView recycler = findChildRecycler(group.getChildAt(i));
+            if (recycler != null) return recycler;
+        }
+        return null;
+    }
+
+    private boolean requestItemFocus(RecyclerView recycler, int position) {
+        RecyclerView.ViewHolder holder = recycler.findViewHolderForAdapterPosition(position);
+        View target = holder == null ? null : findFocusable(holder.itemView);
+        return target != null && target.requestFocus();
+    }
+
+    private View findFocusable(View view) {
+        if (!canRequestFocus(view)) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private void setToolbarVisible(boolean visible) {
         if (mToolbarVisible == visible && mBinding.toolbar.getVisibility() == View.VISIBLE) return;
         mToolbarVisible = visible;
         if (visible) JetStreamAnimator.show(mBinding.toolbar, 0, -16, JetStreamAnimator.FOCUS_DURATION);
-        else JetStreamAnimator.hide(mBinding.toolbar, 0, -16, View.GONE, JetStreamAnimator.FOCUS_DURATION);
+        else {
+            if (mBinding.toolbar.hasFocus()) requestRecyclerFocus();
+            JetStreamAnimator.hide(mBinding.toolbar, 0, -16, View.GONE, JetStreamAnimator.FOCUS_DURATION);
+        }
     }
 
     private void getVideo() {
@@ -343,10 +434,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         int historyIndex = getHistoryIndex();
         int recommendIndex = getRecommendIndex();
         boolean exist = recommendIndex - historyIndex == 2;
+        int selectedHistoryPosition = getSelectedHistoryPosition(historyIndex);
         if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this, getHomeSpec(Style.rect())));
         if ((items.isEmpty() && exist) || (renew && exist)) mAdapter.removeItems(historyIndex, 1);
         if ((!items.isEmpty() && !exist) || (renew && exist)) mAdapter.add(historyIndex, new ListRow(mHistoryAdapter));
         mHistoryAdapter.setItems(items, new BaseDiffCallback<History>());
+        if (selectedHistoryPosition == RecyclerView.NO_POSITION) return;
+        if (mHistoryAdapter.size() == 0) requestRecyclerFocus();
+        else requestHistoryFocus(clampHistoryPosition(selectedHistoryPosition));
     }
 
     private void setHistoryDelete(boolean delete) {
@@ -359,6 +454,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         History.delete(VodConfig.getCid());
         mPresenter.setDelete(false);
         mHistoryAdapter.clear();
+        requestRecyclerFocus();
     }
 
     private int getHistoryIndex() {
@@ -478,10 +574,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemDelete(History item) {
+        int position = mHistoryAdapter.indexOf(item);
         mHistoryAdapter.remove(item.delete());
-        if (mHistoryAdapter.size() > 0) return;
+        if (mHistoryAdapter.size() > 0) {
+            requestHistoryFocus(clampHistoryPosition(position));
+            return;
+        }
         mAdapter.removeItems(getHistoryIndex(), 1);
         mPresenter.setDelete(false);
+        requestRecyclerFocus();
     }
 
     @Override
@@ -511,7 +612,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (KeyUtil.isMenuKey(event)) showDialog();
         if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) {
             View child = mBinding.recycler.getChildAt(0);
-            if (child != null) return child.requestFocus();
+            if (canRequestFocus(child) && child.requestFocus()) return true;
+            requestRecyclerFocus();
+            return true;
         }
         return super.dispatchKeyEvent(event);
     }
@@ -534,8 +637,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             showContent();
         } else if (mPresenter.isDelete()) {
             setHistoryDelete(false);
-        } else if (mBinding.recycler.getSelectedPosition() != 0) {
+        } else if (mBinding.recycler.getSelectedPosition() > 0) {
             mBinding.recycler.scrollToPosition(0);
+            requestRecyclerFocus();
         } else {
             if (PlaybackService.isRunning()) moveTaskToBack(true);
             else super.onBackInvoked();

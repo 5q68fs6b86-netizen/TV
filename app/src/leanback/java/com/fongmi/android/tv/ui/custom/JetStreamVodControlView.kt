@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
@@ -54,6 +55,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
@@ -131,6 +134,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var infoPosition by mutableStateOf("")
     private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
+    private var controlFocused by mutableStateOf(false)
     private val commandGroups = mutableStateListOf(
         CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
         CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, "Captions", true, CAPTION_COMMANDS),
@@ -147,6 +151,11 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     override fun Content() {
         JetStreamControls()
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        controlFocused = gainFocus
     }
 
     fun setListener(listener: Listener?) {
@@ -231,6 +240,18 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     fun showGroup(group: String?) {
         activeGroup = group
+    }
+
+    private fun triggerCommand(key: String, longClick: Boolean) {
+        if (!canTriggerCommand(key)) return
+        if (longClick) listener?.onCommandLongClick(key) else listener?.onCommand(key)
+    }
+
+    private fun canTriggerCommand(key: String): Boolean {
+        val group = activeGroup ?: return false
+        val groupState = commandGroups.firstOrNull { it.key == group && it.visible && key in it.commandKeys } ?: return false
+        val command = commands[key] ?: return false
+        return groupState.commandKeys.contains(key) && command.visible && command.label.isNotEmpty()
     }
 
     @Composable
@@ -500,6 +521,10 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     @Composable
     private fun SeekerRow(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
+        val playFocusRequester = remember { FocusRequester() }
+        LaunchedEffect(controlPanelVisible, controlFocused) {
+            if (controlPanelVisible && controlFocused) runCatching { playFocusRequester.requestFocus() }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -509,7 +534,8 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 isPlaying = isPlaying,
                 enabled = true,
                 selected = false,
-                contentDescription = "Play/Pause"
+                contentDescription = "Play/Pause",
+                focusRequester = playFocusRequester
             ) {
                 listener?.onPlayPause()
             }
@@ -544,8 +570,8 @@ class JetStreamVodControlView @JvmOverloads constructor(
             visibleCommands.forEach { (key, state) ->
                 CommandChip(
                     state = state,
-                    onClick = { listener?.onCommand(key) },
-                    onLongClick = { listener?.onCommandLongClick(key) }
+                    onClick = { triggerCommand(key, false) },
+                    onLongClick = { triggerCommand(key, true) }
                 )
             }
         }
@@ -610,6 +636,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         enabled: Boolean,
         selected: Boolean,
         contentDescription: String,
+        focusRequester: FocusRequester? = null,
         onClick: () -> Unit
     ) {
         val colorScheme = MaterialTheme.colorScheme
@@ -647,6 +674,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(CircleShape)
                 .background(background)
+                .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
                 .clickable(
                     enabled = enabled,
                     interactionSource = interactionSource,

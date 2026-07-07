@@ -48,7 +48,14 @@ public class LiveDialog extends BaseAlertDialog implements LiveAdapter.OnClickLi
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(LiveConfig.getHomeIndex()));
+        focusRecycler(LiveConfig.getHomeIndex());
+    }
+
+    private void focusRecycler(int position) {
+        int count = adapter.getItemCount();
+        if (count == 0) return;
+        int target = Math.max(0, Math.min(position, count - 1));
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(target));
     }
 
     @Override

@@ -33,6 +33,7 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
     }
 
     public void remove(int position) {
+        if (position < 0 || position >= mItems.size()) return;
         mItems.remove(position);
         notifyItemRemoved(position);
     }
@@ -43,6 +44,7 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
     }
 
     public Vod get(int position) {
+        if (position < 0 || position >= mItems.size()) return new Vod();
         return mItems.get(position);
     }
 
@@ -69,7 +71,10 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
         holder.binding.name.setText(item.getName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.remark.setText(item.getRemarks());
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition >= 0 && adapterPosition < mItems.size()) mListener.onItemClick(mItems.get(adapterPosition));
+        });
     }
 
     public interface OnClickListener {

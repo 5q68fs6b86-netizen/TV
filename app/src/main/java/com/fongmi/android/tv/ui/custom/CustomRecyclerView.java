@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -85,14 +86,38 @@ public class CustomRecyclerView extends RecyclerView {
     }
 
     private void focus(int position) {
-        ViewHolder holder = findViewHolderForLayoutPosition(position);
-        if (holder != null) holder.itemView.requestFocus();
+        Adapter<?> adapter = getAdapter();
+        if (adapter == null || position < 0 || position >= adapter.getItemCount()) return;
+        if (!isShown() || !isEnabled()) return;
+        ViewHolder holder = findViewHolderForAdapterPosition(position);
+        if (holder == null) {
+            requestFocus();
+            return;
+        }
+        View target = findFocusable(holder.itemView);
+        if (target != null && target.requestFocus()) return;
+        requestFocus();
+    }
+
+    private View findFocusable(View view) {
+        if (!view.isShown() || !view.isEnabled()) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
     }
 
     @Override
     public void scrollToPosition(int position) {
-        super.scrollToPosition(position);
-        postDelayed(() -> focus(position), 50);
+        Adapter<?> adapter = getAdapter();
+        if (adapter == null || adapter.getItemCount() == 0) return;
+        int target = Math.max(0, Math.min(position, adapter.getItemCount() - 1));
+        super.scrollToPosition(target);
+        postDelayed(() -> focus(target), 50);
     }
 
     @Override

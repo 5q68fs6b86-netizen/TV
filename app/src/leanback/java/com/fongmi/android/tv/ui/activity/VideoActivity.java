@@ -329,7 +329,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
             @Override
             public void onFocusVideo() {
-                mBinding.video.requestFocus();
+                requestFocus(mBinding.video, null);
             }
 
             @Override
@@ -437,12 +437,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void focusFirstMediaList() {
         for (int id : Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick)) {
             View view = findViewById(id);
-            if (view != null && view.getVisibility() == View.VISIBLE) {
-                view.requestFocus();
+            if (canRequestFocus(view)) {
+                requestFocus(view, mBinding.video);
                 return;
             }
         }
-        mBinding.video.requestFocus();
+        requestFocus(mBinding.video, null);
     }
 
     private void setVideoView() {
@@ -599,7 +599,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public void requestSearch(List<Site> sites, String keyword) {
         mQuickItems.clear();
         mBinding.quick.setItems(new ArrayList<>(), -1);
-        mBinding.quick.setVisibility(View.GONE);
+        setRowVisibility(mBinding.quick, false);
         mViewModel.searchContent(sites, keyword, true);
     }
 
@@ -672,7 +672,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public void renderFlags(List<Flag> items) {
         mFlagItems = items;
-        mBinding.flag.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        setRowVisibility(mBinding.flag, !items.isEmpty());
         List<String> texts = new ArrayList<>();
         int selected = -1;
         for (int i = 0; i < items.size(); i++) {
@@ -731,7 +731,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         List<String> texts = new ArrayList<>();
         for (Vod item : items) texts.add(item.getName());
         mBinding.quick.setItems(texts, -1);
-        mBinding.quick.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        setRowVisibility(mBinding.quick, !items.isEmpty());
     }
 
     @Override
@@ -863,7 +863,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void setEpisodeAdapter(List<Episode> items) {
         mEpisodeItems = items;
-        mBinding.episode.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        setRowVisibility(mBinding.episode, !items.isEmpty());
         List<String> texts = new ArrayList<>();
         int selected = -1;
         for (int i = 0; i < items.size(); i++) {
@@ -878,7 +878,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setQualityVisible(boolean visible) {
-        mBinding.quality.setVisibility(visible ? View.VISIBLE : View.GONE);
+        setRowVisibility(mBinding.quality, visible);
         setR2Callback();
     }
 
@@ -886,7 +886,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         List<String> items = new ArrayList<>();
         items.add(getString(R.string.play_reverse));
         items.add(getString(mHistory.getRevPlayText()));
-        mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE);
+        setRowVisibility(mBinding.array, size > 1);
         if (mHistory.isRevSort()) for (int i = size; i > 0; i -= 20) items.add(i + "-" + Math.max(i - 19, 1));
         else for (int i = 0; i < size; i += 20) items.add((i + 1) + "-" + Math.min(i + 20, size));
         mArrayItems = items;
@@ -920,7 +920,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void enterFullscreen() {
         mFocus1 = getCurrentFocus();
-        mBinding.video.requestFocus();
+        if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
         JetStreamAnimator.reset(mBinding.video);
         mBinding.video.setForeground(null);
         mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
@@ -942,7 +942,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setFullscreen(false);
         updateFullscreenViews();
         applyWindowVideoStyle();
-        getFocus1().requestFocus();
+        requestFocus(getFocus1(), mBinding.video);
         mFocus2 = null;
         hideInfo();
     }
@@ -965,7 +965,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             if (isFullscreen()) return;
             applyWindowVideoStyle();
             restoreWindowVideoVisibility();
-            mBinding.video.requestFocus();
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
             mBinding.video.refreshDrawableState();
             mBinding.video.postInvalidateOnAnimation();
         });
@@ -982,6 +982,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         int visibility = isFullscreen() ? View.GONE : View.VISIBLE;
         mBinding.detail.setVisibility(visibility);
         mBinding.scroll.setVisibility(visibility);
+        updateFocus();
     }
 
     private void onContent() {
@@ -1064,7 +1065,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onParse() {
         ParseDialog.create().show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onReplay() {
@@ -1127,7 +1128,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onChoose() {
         PlayerEngineDialog.show(this, mBinding.control.action.player, player(), mBinding.widget.title.getText());
-        hideControl();
+        hideControl(false);
     }
 
     private void onDecode() {
@@ -1137,22 +1138,22 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onTrack(View view) {
         TrackDialog.create().type(Integer.parseInt(view.getTag().toString())).player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onEdition() {
         EditionDialog.create().player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onChapter() {
         ChapterDialog.create().player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onDanmaku() {
         DanmakuDialog.create().player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onToggle() {
@@ -1202,16 +1203,22 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         syncJetStreamControl();
         setJetStreamOverlayVisible(true);
         View focus = getJetStreamFocus(view);
-        focus.requestFocus();
+        requestFocus(focus, mBinding.control.jetstream);
         setR1Callback();
     }
 
     private void hideControl() {
+        hideControl(true);
+    }
+
+    private void hideControl(boolean restoreFocus) {
+        boolean restoreVideoFocus = restoreFocus && mBinding.control.getRoot().hasFocus();
         mBinding.control.jetstream.setControlsVisible(false);
         mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
         if (isFullscreen() && service() != null && !player().isPlaying() && isPaused()) showInfo();
         else updateJetStreamVisibility();
+        if (restoreVideoFocus) requestFocus(mBinding.video, null);
     }
 
     private void showJetStreamInfo(boolean top, boolean center, String action, CharSequence position, CharSequence duration) {
@@ -1240,6 +1247,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
+    private void setRowVisibility(View row, boolean visible) {
+        if (!visible && row.hasFocus()) requestFocus(mBinding.video, null);
+        row.setVisibility(visible ? View.VISIBLE : View.GONE);
+        updateFocus();
+    }
+
+    private void restoreControlFocusIfHidden(View... views) {
+        for (View view : views) {
+            if (view.hasFocus() && !canRequestFocus(view)) {
+                requestFocus(mBinding.control.jetstream, mBinding.video);
+                return;
+            }
+        }
+    }
+
     private boolean isJetStreamControlVisible() {
         return mBinding.control.jetstream.isControlsVisible();
     }
@@ -1253,8 +1275,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getJetStreamFocus(View view) {
-        if (view == null || view.getVisibility() != View.VISIBLE || isLegacyControlAction(view)) return mBinding.control.jetstream;
+        if (!canRequestFocus(view) || isLegacyControlAction(view)) return mBinding.control.jetstream;
         return view;
+    }
+
+    private void requestFocus(View target, View fallback) {
+        if (target == null) return;
+        target.post(() -> {
+            if (canRequestFocus(target) && target.requestFocus()) return;
+            if (fallback == null || fallback == target) return;
+            if (canRequestFocus(fallback)) fallback.requestFocus();
+        });
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private boolean isLegacyControlAction(View view) {
@@ -1388,10 +1423,15 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void updateFocus() {
+        if (isFullscreen()) {
+            mBinding.video.setNextFocusDownId(R.id.video);
+            mBinding.detail.setNextFocusDownId(R.id.video);
+            return;
+        }
         List<View> rows = new ArrayList<>();
         for (int id : Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick)) {
             View row = findViewById(id);
-            if (row != null && row.getVisibility() == View.VISIBLE) rows.add(row);
+            if (row != null && row.getVisibility() == View.VISIBLE && mBinding.scroll.getVisibility() == View.VISIBLE) rows.add(row);
         }
         int first = rows.isEmpty() ? R.id.video : rows.get(0).getId();
         mBinding.video.setNextFocusDownId(first);
@@ -1518,7 +1558,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setPartAdapter() {
         mPartItems = PartUtil.split(mHistory.getVodName());
         mBinding.part.setItems(mPartItems, -1);
-        mBinding.part.setVisibility(mPartItems.isEmpty() ? View.GONE : View.VISIBLE);
+        setRowVisibility(mBinding.part, !mPartItems.isEmpty());
         setR2Callback();
     }
 
@@ -1709,11 +1749,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
+        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         syncJetStreamControl();
     }
 
     private void setMediaOptionVisible() {
         PlaybackAction.setMediaOptions(player(), mBinding.control.action.edition, mBinding.control.action.chapter);
+        restoreControlFocusIfHidden(mBinding.control.action.edition, mBinding.control.action.chapter);
         syncJetStreamControl();
     }
 
@@ -1775,11 +1817,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getFocus1() {
-        return mFocus1 == null || mFocus1.getVisibility() != View.VISIBLE ? mBinding.video : mFocus1;
+        return canRequestFocus(mFocus1) ? mFocus1 : mBinding.video;
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE || isLegacyControlAction(mFocus2) ? mBinding.control.jetstream : mFocus2;
+        return !canRequestFocus(mFocus2) || isLegacyControlAction(mFocus2) ? mBinding.control.jetstream : mFocus2;
     }
 
     @Override

@@ -48,6 +48,10 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
         return getItemCount();
     }
 
+    public int indexOf(File item) {
+        return mItems.indexOf(item);
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();
@@ -63,8 +67,18 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File item = mItems.get(position);
         holder.binding.text.setText(item.getName());
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item));
-        holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onItemClick(mItems.get(adapterPosition));
+        });
+        holder.binding.delete.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onDeleteClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

@@ -39,6 +39,9 @@ public class PassDialog extends BaseBottomSheetDialog {
     protected void initEvent() {
         binding.positive.setOnClickListener(this::onPass);
         binding.pass.setOnEditorActionListener(this::onDone);
+        binding.pass.post(() -> {
+            if (binding.pass.isShown() && binding.pass.isEnabled()) binding.pass.requestFocus();
+        });
     }
 
     private void onPass(View view) {

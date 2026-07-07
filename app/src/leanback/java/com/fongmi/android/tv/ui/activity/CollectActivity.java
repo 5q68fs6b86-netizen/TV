@@ -48,7 +48,9 @@ public class CollectActivity extends BaseActivity {
         activity.startActivity(intent);
     }
 
+    @Nullable
     private CollectFragment getFragment() {
+        if (mBinding.pager.getAdapter() == null || mAdapter.getItemCount() == 0) return null;
         return (CollectFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, 0);
     }
 
@@ -85,8 +87,10 @@ public class CollectActivity extends BaseActivity {
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
-                mBinding.recycler.requestFocus();
+                int safePosition = clampPosition(position);
+                if (safePosition == RecyclerView.NO_POSITION) return;
+                mBinding.recycler.setSelectedPosition(safePosition);
+                requestRecyclerFocus();
             }
         });
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
@@ -104,7 +108,7 @@ public class CollectActivity extends BaseActivity {
         mBinding.recycler.setClipChildren(false);
         mBinding.recycler.setClipToPadding(false);
         mBinding.recycler.setClipToOutline(false);
-        mBinding.recycler.setPadding(0, 0, ResUtil.dp2px(16), 0);
+        mBinding.recycler.setPadding(ResUtil.dp2px(8), 0, ResUtil.dp2px(16), 0);
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(mAdapter = new CollectAdapter());
@@ -114,7 +118,9 @@ public class CollectActivity extends BaseActivity {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.getSearch().observe(this, result -> {
             if (result.getList().isEmpty()) return;
-            getFragment().addVideo(result.getList());
+            CollectFragment fragment = getFragment();
+            if (fragment == null) return;
+            fragment.addVideo(result.getList());
             mAdapter.add(Collect.create(result.getList()));
             mBinding.pager.getAdapter().notifyDataSetChanged();
         });
@@ -139,6 +145,7 @@ public class CollectActivity extends BaseActivity {
     private void search() {
         if (mSites.isEmpty()) return;
         mAdapter.add(Collect.all());
+        requestRecyclerFocus();
         mBinding.pager.getAdapter().notifyDataSetChanged();
         mViewModel.searchContent(mSites, getKeyword(), false);
     }
@@ -153,9 +160,23 @@ public class CollectActivity extends BaseActivity {
     private final Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            mBinding.pager.setCurrentItem(mBinding.recycler.getSelectedPosition());
+            int position = clampPosition(mBinding.recycler.getSelectedPosition());
+            if (position != RecyclerView.NO_POSITION) mBinding.pager.setCurrentItem(position);
         }
     };
+
+    private int clampPosition(int position) {
+        int size = mAdapter.getItemCount();
+        if (size <= 0) return RecyclerView.NO_POSITION;
+        if (position < 0) return 0;
+        return Math.min(position, size - 1);
+    }
+
+    private void requestRecyclerFocus() {
+        mBinding.recycler.post(() -> {
+            if (mAdapter.getItemCount() > 0 && mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+        });
+    }
 
     @Override
     protected void onBackInvoked() {
@@ -172,7 +193,9 @@ public class CollectActivity extends BaseActivity {
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            return CollectFragment.newInstance(getKeyword(), mAdapter.get(position));
+            int safePosition = clampPosition(position);
+            Collect collect = safePosition == RecyclerView.NO_POSITION ? Collect.all() : mAdapter.get(safePosition);
+            return CollectFragment.newInstance(getKeyword(), collect);
         }
 
         @Override

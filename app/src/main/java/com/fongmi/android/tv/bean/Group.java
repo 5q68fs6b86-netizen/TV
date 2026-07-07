@@ -151,8 +151,12 @@ public class Group {
         return channel;
     }
 
+    @Nullable
     public Channel current() {
-        return getChannel().get(getPosition()).group(this);
+        if (isEmpty()) return null;
+        int position = Math.max(0, Math.min(getPosition(), getChannel().size() - 1));
+        setPosition(position);
+        return getChannel().get(position).group(this);
     }
 
     public Group trans() {

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
+import com.fongmi.android.tv.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
@@ -30,6 +31,10 @@ public class QRCode {
 
     public static Bitmap getLightBitmap(String content, int size, int margin) {
         return getBitmap(content, size, margin, LIGHT_FOREGROUND, LIGHT_BACKGROUND);
+    }
+
+    public static Bitmap getJetStreamBitmap(String content, int size, int margin) {
+        return getBitmap(content, size, margin, FOREGROUND, ResUtil.getColor(R.color.jetstream_surface));
     }
 
     private static Bitmap getBitmap(String content, int size, int margin, int foreground, int background) {

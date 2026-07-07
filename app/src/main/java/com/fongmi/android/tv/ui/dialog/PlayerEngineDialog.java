@@ -54,7 +54,10 @@ public final class PlayerEngineDialog extends BaseBottomSheetDialog {
     @Override
     protected void initView() {
         setSelected();
-        getSelectedView().requestFocus();
+        View selected = getSelectedView();
+        selected.post(() -> {
+            if (selected.isShown() && selected.isEnabled()) selected.requestFocus();
+        });
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.ActivityFileBinding;
@@ -22,7 +23,7 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     private File dir;
 
     private boolean isRoot() {
-        return Path.root().equals(dir);
+        return dir == null || Path.root().equals(dir);
     }
 
     @Override
@@ -47,9 +48,21 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     private void update(File dir) {
-        mBinding.recycler.setSelectedPosition(0);
-        mAdapter.addAll(Path.list(this.dir = dir));
+        mAdapter.addAll(Path.list(this.dir = dir == null ? Path.root() : dir));
         mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
+        if (mAdapter.getItemCount() > 0) requestFocus(0);
+    }
+
+    private void requestFocus(int position) {
+        mBinding.recycler.post(() -> {
+            if (position < 0 || position >= mAdapter.getItemCount()) return;
+            mBinding.recycler.setSelectedPosition(position);
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+                if (holder != null && holder.itemView.isShown() && holder.itemView.isEnabled()) holder.itemView.requestFocus();
+                else if (mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+            }, 50);
+        });
     }
 
     @Override

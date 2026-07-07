@@ -37,6 +37,7 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
     }
 
     public Flag get(int position) {
+        if (position < 0 || position >= mItems.size()) return new Flag();
         return mItems.get(position);
     }
 
@@ -71,7 +72,14 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
         holder.binding.text.setText(item.getShow());
         holder.binding.text.setSelected(item.isSelected());
         holder.binding.text.setNextFocusDownId(nextFocusDown);
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) mListener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

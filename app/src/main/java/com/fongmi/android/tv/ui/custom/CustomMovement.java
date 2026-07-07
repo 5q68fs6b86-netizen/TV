@@ -58,8 +58,9 @@ public class CustomMovement extends ScrollingMovementMethod {
 
     private boolean findFocus(TextView widget, int direction) {
         View view = widget.focusSearch(direction);
-        if (view == null) return false;
-        view.requestFocus();
+        if (view == null || view == widget) return false;
+        if (!view.isShown() || !view.isEnabled()) return false;
+        if (!view.requestFocus()) return false;
         return true;
     }
 
@@ -79,14 +80,12 @@ public class CustomMovement extends ScrollingMovementMethod {
 
     @Override
     protected boolean left(TextView widget, Spannable buffer) {
-        action(UP, widget, buffer);
-        return true;
+        return action(UP, widget, buffer) || super.left(widget, buffer);
     }
 
     @Override
     protected boolean right(TextView widget, Spannable buffer) {
-        action(DOWN, widget, buffer);
-        return true;
+        return action(DOWN, widget, buffer) || super.right(widget, buffer);
     }
 
     private boolean action(int what, TextView widget, Spannable buffer) {

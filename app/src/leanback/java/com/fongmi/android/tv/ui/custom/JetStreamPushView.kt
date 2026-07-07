@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.custom
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.util.AttributeSet
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -44,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -78,12 +81,13 @@ class JetStreamPushView @JvmOverloads constructor(
     private var addressText by mutableStateOf("")
     private var qrImage by mutableStateOf<Bitmap?>(null)
     private var copied by mutableStateOf(false)
+    private var contentFocused by mutableStateOf(false)
     private var listener: Listener? = null
     private val hideCopied = Runnable { copied = false }
 
     init {
-        isFocusable = false
-        isFocusableInTouchMode = false
+        isFocusable = true
+        isFocusableInTouchMode = true
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
 
@@ -108,6 +112,11 @@ class JetStreamPushView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         removeCallbacks(hideCopied)
         super.onDetachedFromWindow()
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        contentFocused = gainFocus
     }
 
     @Composable
@@ -162,6 +171,10 @@ class JetStreamPushView @JvmOverloads constructor(
 
     @Composable
     private fun PushInfoPanel(modifier: Modifier) {
+        val primaryFocusRequester = remember { FocusRequester() }
+        LaunchedEffect(contentFocused) {
+            if (contentFocused) runCatching { primaryFocusRequester.requestFocus() }
+        }
         Column(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(40.dp)
@@ -169,7 +182,7 @@ class JetStreamPushView @JvmOverloads constructor(
             PushHeader()
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 AddressBlock()
-                PushClipboardButton()
+                PushClipboardButton(primaryFocusRequester)
             }
             HintRow()
         }
@@ -310,7 +323,7 @@ class JetStreamPushView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun PushClipboardButton() {
+    private fun PushClipboardButton(focusRequester: FocusRequester? = null) {
         val colorScheme = MaterialTheme.colorScheme
         var pushed by remember { mutableStateOf(false) }
         val interactionSource = remember { MutableInteractionSource() }
@@ -356,6 +369,7 @@ class JetStreamPushView @JvmOverloads constructor(
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(CircleShape)
                 .background(background)
+                .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,

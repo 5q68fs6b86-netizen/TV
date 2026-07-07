@@ -96,6 +96,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     private var listener: Listener? = null
     private var selectedSectionKey by mutableStateOf(SECTION_SOURCE)
+    private var focusedRowKey by mutableStateOf<String?>(null)
     private var initialFocusRequest by mutableIntStateOf(0)
     private val rowValues = mutableStateMapOf<String, String>()
     private val rowVisible = mutableStateMapOf<String, Boolean>()
@@ -122,7 +123,17 @@ class JetStreamSettingView @JvmOverloads constructor(
     }
 
     fun setRowVisible(key: String, visible: Boolean) {
+        val restoreFocus = !visible && isRowVisible(key) && focusedRowKey == key && hasFocus()
         rowVisible[key] = visible
+        if (restoreFocus) {
+            focusedRowKey = null
+            post {
+                if (isShown && isEnabled) {
+                    requestFocus()
+                    initialFocusRequest += 1
+                }
+            }
+        }
     }
 
     fun showSection(sectionKey: String) {
@@ -131,6 +142,28 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     fun requestInitialFocus() {
         initialFocusRequest += 1
+        post {
+            if (isShown && isEnabled) {
+                requestFocus()
+                initialFocusRequest += 1
+            }
+        }
+    }
+
+    private fun selectSection(key: String) {
+        if (sections().any { it.key == key && it.rows.any { row -> isRowVisible(row.key) } }) selectedSectionKey = key
+    }
+
+    private fun triggerSettingAction(key: String, longClick: Boolean) {
+        if (!isActionAvailable(key)) return
+        if (longClick) listener?.onSettingLongAction(key) else listener?.onSettingAction(key)
+    }
+
+    private fun isActionAvailable(key: String): Boolean {
+        sections().flatMap { it.rows }.filter { isRowVisible(it.key) }.forEach { row ->
+            if (row.key == key || row.actions.any { action -> action.key == key }) return true
+        }
+        return false
     }
 
     @Composable
@@ -150,7 +183,7 @@ class JetStreamSettingView @JvmOverloads constructor(
             listState.scrollToItem(0)
         }
         LaunchedEffect(initialFocusRequest, selectedSection?.key, selectedRows.firstOrNull()?.key) {
-            if (initialFocusRequest > 0 && selectedRows.isNotEmpty()) firstRowFocusRequester.requestFocus()
+            if (initialFocusRequest > 0 && selectedRows.isNotEmpty() && hasFocus()) runCatching { firstRowFocusRequester.requestFocus() }
         }
 
         JetStreamPageScrim(modifier = Modifier.fillMaxSize()) {
@@ -218,13 +251,13 @@ class JetStreamSettingView @JvmOverloads constructor(
             Spacer(Modifier.height(JetStreamSpacing.ExtraLarge))
             Column(verticalArrangement = Arrangement.spacedBy(JetStreamSpacing.IconPadding)) {
                 sections.forEach { section ->
-                    SectionButton(
-                        section = section,
-                        selected = section.key == selectedKey,
-                        onClick = { selectedSectionKey = section.key }
-                    )
-                }
-            }
+	                    SectionButton(
+	                        section = section,
+	                        selected = section.key == selectedKey,
+	                        onClick = { selectSection(section.key) }
+	                    )
+	                }
+	            }
         }
     }
 
@@ -350,6 +383,9 @@ class JetStreamSettingView @JvmOverloads constructor(
         )
         val value = rowValues[row.key].orEmpty()
         val requesterModifier = focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
+        LaunchedEffect(focused) {
+            if (focused) focusedRowKey = row.key
+        }
 
         Row(
             modifier = Modifier
@@ -362,8 +398,8 @@ class JetStreamSettingView @JvmOverloads constructor(
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = { listener?.onSettingAction(row.key) },
-                    onLongClick = { listener?.onSettingLongAction(row.key) }
+                    onClick = { triggerSettingAction(row.key, false) },
+                    onLongClick = { triggerSettingAction(row.key, true) }
                 )
                 .padding(horizontal = JetStreamSpacing.CardPadding),
             verticalAlignment = Alignment.CenterVertically
@@ -398,7 +434,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    row.actions.forEach { ActionChip(it) }
+                    row.actions.forEach { ActionChip(row.key, it) }
                 }
             } else if (value.isNotEmpty()) {
                 Text(
@@ -415,7 +451,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun ActionChip(action: ActionSpec) {
+    private fun ActionChip(rowKey: String, action: ActionSpec) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
         val scale by animateFloatAsState(
@@ -433,6 +469,9 @@ class JetStreamSettingView @JvmOverloads constructor(
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipContent"
         )
+        LaunchedEffect(focused) {
+            if (focused) focusedRowKey = rowKey
+        }
         Row(
             modifier = Modifier
                 .height(38.dp)
@@ -442,8 +481,8 @@ class JetStreamSettingView @JvmOverloads constructor(
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = { listener?.onSettingAction(action.key) },
-                    onLongClick = { listener?.onSettingLongAction(action.key) }
+                    onClick = { triggerSettingAction(action.key, false) },
+                    onLongClick = { triggerSettingAction(action.key, true) }
                 )
                 .padding(start = JetStreamSpacing.IconPadding, end = JetStreamSpacing.ChipHorizontalPadding),
             verticalAlignment = Alignment.CenterVertically

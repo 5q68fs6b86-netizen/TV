@@ -19,6 +19,13 @@ public class CustomViewPager extends ViewPager {
 
     @Override
     public void setCurrentItem(int item) {
-        super.setCurrentItem(item, false);
+        setCurrentItem(item, false);
+    }
+
+    @Override
+    public void setCurrentItem(int item, boolean smoothScroll) {
+        if (getAdapter() == null || getAdapter().getCount() == 0) return;
+        int target = Math.max(0, Math.min(item, getAdapter().getCount() - 1));
+        super.setCurrentItem(target, false);
     }
 }

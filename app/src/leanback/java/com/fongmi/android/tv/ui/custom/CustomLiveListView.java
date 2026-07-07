@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.leanback.widget.VerticalGridView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.utils.KeyUtil;
 
@@ -32,21 +33,25 @@ public class CustomLiveListView extends VerticalGridView {
     }
 
     private boolean onKeyDown() {
-        if (getSelectedPosition() != getAdapter().getItemCount() - 1) return false;
+        RecyclerView.Adapter<?> adapter = getAdapter();
+        if (adapter == null || adapter.getItemCount() == 0) return false;
+        if (getSelectedPosition() != adapter.getItemCount() - 1) return false;
         setSelectedPosition(0);
         return true;
     }
 
     private boolean onKeyUp() {
+        RecyclerView.Adapter<?> adapter = getAdapter();
+        if (adapter == null || adapter.getItemCount() == 0) return false;
         if (getSelectedPosition() != 0) return false;
-        setSelectedPosition(getAdapter().getItemCount() - 1);
+        setSelectedPosition(adapter.getItemCount() - 1);
         return true;
     }
 
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
-        if (getVisibility() == View.GONE || event.getAction() != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event);
-        if (getVisibility() == View.VISIBLE && listener != null) listener.setUITimer();
+        if (!isShown() || event.getAction() != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event);
+        if (listener != null) listener.setUITimer();
         if (KeyUtil.isDownKey(event)) return onKeyDown();
         if (KeyUtil.isUpKey(event)) return onKeyUp();
         return super.dispatchKeyEvent(event);

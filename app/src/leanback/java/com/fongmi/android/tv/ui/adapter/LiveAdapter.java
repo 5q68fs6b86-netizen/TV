@@ -61,11 +61,33 @@ public class LiveAdapter extends RecyclerView.Adapter<LiveAdapter.ViewHolder> {
         holder.binding.pass.setImageResource(item.getPassIcon());
         holder.binding.boot.setVisibility(action ? View.VISIBLE : View.GONE);
         holder.binding.pass.setVisibility(action ? View.VISIBLE : View.GONE);
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item));
-        holder.binding.boot.setOnClickListener(v -> listener.onBootClick(position, item));
-        holder.binding.pass.setOnClickListener(v -> listener.onPassClick(position, item));
-        holder.binding.boot.setOnLongClickListener(v -> listener.onBootLongClick(item));
-        holder.binding.pass.setOnLongClickListener(v -> listener.onPassLongClick(item));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (!isValidPosition(adapterPosition)) return;
+            listener.onItemClick(mItems.get(adapterPosition));
+        });
+        holder.binding.boot.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (!isValidPosition(adapterPosition)) return;
+            listener.onBootClick(adapterPosition, mItems.get(adapterPosition));
+        });
+        holder.binding.pass.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (!isValidPosition(adapterPosition)) return;
+            listener.onPassClick(adapterPosition, mItems.get(adapterPosition));
+        });
+        holder.binding.boot.setOnLongClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            return isValidPosition(adapterPosition) && listener.onBootLongClick(mItems.get(adapterPosition));
+        });
+        holder.binding.pass.setOnLongClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            return isValidPosition(adapterPosition) && listener.onPassLongClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

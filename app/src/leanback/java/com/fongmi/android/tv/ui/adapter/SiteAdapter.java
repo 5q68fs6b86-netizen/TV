@@ -88,9 +88,19 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         holder.check.setChecked(getChecked(item));
         holder.text.setSelected(item.isSelected());
         holder.check.setVisibility(type == 0 ? View.GONE : View.VISIBLE);
-        holder.itemView.setOnLongClickListener(v -> setLongListener(item));
-        holder.itemView.setOnClickListener(v -> setListener(item, position));
+        holder.itemView.setOnLongClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            return isValidPosition(adapterPosition) && setLongListener(mItems.get(adapterPosition));
+        });
+        holder.itemView.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) setListener(mItems.get(adapterPosition), adapterPosition);
+        });
         holder.text.setGravity(Setting.getSiteMode() == 0 ? Gravity.CENTER : Gravity.START);
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     private boolean getChecked(Site item) {

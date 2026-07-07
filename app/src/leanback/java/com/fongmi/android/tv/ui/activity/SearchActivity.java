@@ -93,7 +93,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
             @Override
             public void onResults(String result) {
                 if (!result.isEmpty()) setKeyword(result);
-                mBinding.keyword.requestFocus();
+                requestKeywordFocus();
             }
         });
     }
@@ -148,7 +148,11 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private void setAdapter(String result, boolean save) {
         if (!save && empty()) return;
         if (save) Setting.putHot(result);
-        mWordAdapter.setItems(Word.objectFrom(result).getData());
+        View current = getCurrentFocus();
+        View item = current == null ? null : mBinding.wordRecycler.findContainingItemView(current);
+        boolean restoreFocus = current == mBinding.wordRecycler || item != null;
+        int position = item == null ? 0 : mBinding.wordRecycler.getChildAdapterPosition(item);
+        mWordAdapter.setItems(Word.objectFrom(result).getData(), () -> restoreWordFocus(restoreFocus, position));
     }
 
     @Override
@@ -158,9 +162,17 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     @Override
-    public void onDataChanged(int size) {
+    public void onDataChanged(int size, int deletedPosition) {
         mBinding.recordLayout.setVisibility(size == 0 ? View.GONE : View.VISIBLE);
-        if (size == 0) focusFirst(mBinding.wordRecycler);
+        if (deletedPosition == RecyclerView.NO_POSITION) {
+            if (size == 0 && !focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+            return;
+        }
+        if (size == 0) {
+            if (!focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+            return;
+        }
+        restoreRecordFocus(Math.max(0, Math.min(deletedPosition, size - 1)));
     }
 
     @Override
@@ -191,6 +203,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     private boolean findFocus(KeyEvent event) {
         View current = getCurrentFocus();
+        if (current == null) return false;
         if (current == mBinding.keyword) return handleKeywordKey(event);
         View inKeyboard = mBinding.keyboard.findContainingItemView(current);
         View inWord = mBinding.wordRecycler.findContainingItemView(current);
@@ -259,7 +272,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     private boolean handleKeyboardKey(KeyEvent event, View item) {
         if (KeyUtil.isUpKey(event) && isFirstRow(mBinding.keyboard, item)) {
-            mBinding.keyword.requestFocus();
+            requestKeywordFocus();
             return true;
         }
         if (KeyUtil.isLeftKey(event) && isFirstInRow(mBinding.keyboard, item)) return true;
@@ -274,9 +287,10 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
                 View child = findNearestInLastRow(mBinding.recordRecycler, item.getLeft());
                 if (child != null) {
                     mBinding.scroll.smoothScrollTo(0, 0);
-                    child.requestFocus();
+                    if (!canRequestFocus(child) || !child.requestFocus()) focusFirst(mBinding.recordRecycler);
                     return true;
                 }
+                if (focusFirst(mBinding.recordRecycler)) return true;
             }
             return true;
         }
@@ -291,10 +305,61 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     private boolean focusFirst(RecyclerView rv) {
+        if (!canRequestFocus(rv)) return false;
         View child = rv.getChildAt(0);
-        if (child == null) return false;
-        child.requestFocus();
+        if (canRequestFocus(child) && child.requestFocus()) return true;
+        RecyclerView.Adapter<?> adapter = rv.getAdapter();
+        if (adapter == null || adapter.getItemCount() == 0) return false;
+        rv.scrollToPosition(0);
+        rv.post(() -> {
+            View target = rv.getChildAt(0);
+            if (canRequestFocus(target) && target.requestFocus()) return;
+            if (canRequestFocus(rv)) rv.requestFocus();
+        });
         return true;
+    }
+
+    private void restoreWordFocus(boolean restore, int position) {
+        if (!restore) return;
+        if (mWordAdapter.getItemCount() == 0) {
+            requestKeywordFocus();
+            return;
+        }
+        int target = position == RecyclerView.NO_POSITION ? 0 : Math.max(0, Math.min(position, mWordAdapter.getItemCount() - 1));
+        mBinding.wordRecycler.scrollToPosition(target);
+        mBinding.wordRecycler.postDelayed(() -> {
+            RecyclerView.ViewHolder holder = mBinding.wordRecycler.findViewHolderForAdapterPosition(target);
+            if (holder != null && canRequestFocus(holder.itemView) && holder.itemView.requestFocus()) return;
+            if (!focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+        }, 50);
+    }
+
+    private void restoreRecordFocus(int position) {
+        if (mRecordAdapter.getItemCount() == 0) {
+            if (!focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+            return;
+        }
+        if (!canRequestFocus(mBinding.recordRecycler)) {
+            if (!focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+            return;
+        }
+        int target = Math.max(0, Math.min(position, mRecordAdapter.getItemCount() - 1));
+        mBinding.recordRecycler.scrollToPosition(target);
+        mBinding.recordRecycler.postDelayed(() -> {
+            RecyclerView.ViewHolder holder = mBinding.recordRecycler.findViewHolderForAdapterPosition(target);
+            if (holder != null && canRequestFocus(holder.itemView) && holder.itemView.requestFocus()) return;
+            if (!focusFirst(mBinding.recordRecycler) && !focusFirst(mBinding.wordRecycler)) requestKeywordFocus();
+        }, 50);
+    }
+
+    private void requestKeywordFocus() {
+        mBinding.keyword.post(() -> {
+            if (canRequestFocus(mBinding.keyword)) mBinding.keyword.requestFocus();
+        });
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     @Override
@@ -307,7 +372,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     protected void onResume() {
         super.onResume();
         mBinding.mic.setFocusable(true);
-        mBinding.keyword.requestFocus();
+        requestKeywordFocus();
     }
 
     @Override

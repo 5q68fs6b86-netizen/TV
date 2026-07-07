@@ -169,7 +169,9 @@ public final class SubtitleDialog {
 
         @Override
         protected void initView() {
-            binding.large.requestFocus();
+            binding.large.post(() -> {
+                if (binding.large.isShown() && binding.large.isEnabled()) binding.large.requestFocus();
+            });
         }
 
         @Override

@@ -165,7 +165,7 @@ public final class DanmakuSearchDialog {
                 return true;
             });
             binding.keyword.setOnKeyListener((view, keyCode, event) -> {
-                if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && binding.recycler.getVisibility() == VISIBLE) return binding.recycler.requestFocus();
+                if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event)) return focusFirstResult();
                 return false;
             });
         }
@@ -225,7 +225,13 @@ public final class DanmakuSearchDialog {
         private void onSuccess(List<Danmaku> items) {
             adapter.addAll(items);
             hideProgress(items.isEmpty());
-            binding.recycler.requestFocus();
+            binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
+        }
+
+        private boolean focusFirstResult() {
+            if (binding.recycler.getVisibility() != VISIBLE || adapter.getItemCount() == 0) return false;
+            binding.recycler.scrollToPosition(0);
+            return true;
         }
 
         private void onError(Exception e) {

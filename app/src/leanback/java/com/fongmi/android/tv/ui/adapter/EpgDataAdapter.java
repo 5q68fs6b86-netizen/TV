@@ -34,6 +34,7 @@ public class EpgDataAdapter extends RecyclerView.Adapter<EpgDataAdapter.ViewHold
     }
 
     public EpgData get(int position) {
+        if (position < 0 || position >= mItems.size()) return new EpgData();
         return mItems.get(position);
     }
 
@@ -61,8 +62,15 @@ public class EpgDataAdapter extends RecyclerView.Adapter<EpgDataAdapter.ViewHold
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setLeftListener(mListener::hideEpg);
         holder.binding.getRoot().setOnClickListener(v -> {
-            if (!item.isFuture()) mListener.onItemClick(item);
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (!isValidPosition(adapterPosition)) return;
+            EpgData data = mItems.get(adapterPosition);
+            if (!data.isFuture()) mListener.onItemClick(data);
         });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public interface OnClickListener {

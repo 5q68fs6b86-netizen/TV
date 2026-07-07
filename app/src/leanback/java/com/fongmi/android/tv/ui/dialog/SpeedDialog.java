@@ -32,6 +32,9 @@ public class SpeedDialog extends BaseAlertDialog {
     protected void initView() {
         binding.title.setText(R.string.player_speed);
         binding.slider.setValue(PlayerSetting.getSpeed());
+        binding.slider.post(() -> {
+            if (binding.slider.isShown() && binding.slider.isEnabled()) binding.slider.requestFocus();
+        });
     }
 
     @Override

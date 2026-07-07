@@ -30,7 +30,10 @@ final class OffsetPanel {
         setupOffset(binding.textSlider, binding.textValue, player.getTextOffsetMs(), player::setTextOffsetMs);
         binding.reset.setOnClickListener(this::onReset);
         getSection().setVisibility(View.VISIBLE);
-        getSlider().requestFocus();
+        Slider slider = getSlider();
+        slider.post(() -> {
+            if (slider.isShown() && slider.isEnabled()) slider.requestFocus();
+        });
     }
 
     private ViewGroup getSection() {

@@ -23,14 +23,14 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     public RecordAdapter(OnClickListener listener) {
         this.listener = listener;
         this.mItems = getItems();
-        this.listener.onDataChanged(mItems.size());
+        this.listener.onDataChanged(mItems.size(), RecyclerView.NO_POSITION);
     }
 
     public interface OnClickListener {
 
         void onItemClick(String text);
 
-        void onDataChanged(int size);
+        void onDataChanged(int size, int deletedPosition);
     }
 
     private List<String> getItems() {
@@ -47,7 +47,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     public void add(String item) {
         checkToAdd(item);
         notifyDataSetChanged();
-        listener.onDataChanged(getItemCount());
+        listener.onDataChanged(getItemCount(), RecyclerView.NO_POSITION);
     }
 
     @Override
@@ -63,9 +63,15 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String text = mItems.get(position);
-        holder.binding.text.setText(text);
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(text));
+        holder.binding.text.setText(mItems.get(position));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
@@ -80,9 +86,11 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
 
         @Override
         public boolean onLongClick(View v) {
-            mItems.remove(getLayoutPosition());
-            notifyItemRemoved(getLayoutPosition());
-            listener.onDataChanged(getItemCount());
+            int position = getBindingAdapterPosition();
+            if (!isValidPosition(position)) return true;
+            mItems.remove(position);
+            notifyItemRemoved(position);
+            listener.onDataChanged(getItemCount(), position);
             Setting.putKeyword(App.gson().toJson(mItems));
             return true;
         }

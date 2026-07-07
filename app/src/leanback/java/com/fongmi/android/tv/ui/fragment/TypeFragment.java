@@ -231,12 +231,17 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void showFilter() {
         List<ListRow> rows = new ArrayList<>();
         for (Filter filter : mFilters) rows.add(getRow(filter));
-        mBinding.recycler.postDelayed(() -> mBinding.recycler.scrollToPosition(0), 48);
+        mBinding.recycler.postDelayed(() -> {
+            mBinding.recycler.scrollToPosition(0);
+            requestRecyclerFocus();
+        }, 48);
         mAdapter.addAll(0, rows);
     }
 
     private void hideFilter() {
+        boolean restoreFocus = mBinding.recycler.hasFocus() && mBinding.recycler.getSelectedPosition() < mFilters.size();
         mAdapter.removeItems(0, mFilters.size());
+        if (restoreFocus) requestRecyclerFocus();
     }
 
     public void toggleFilter(boolean visible) {
@@ -249,7 +254,9 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void checkFilter() {
         int adapterSize = mAdapter.size();
         int filterSize = filterVisible ? mFilters.size() : 0;
+        boolean restoreFocus = mBinding.recycler.hasFocus() && mBinding.recycler.getSelectedPosition() >= filterSize;
         if (adapterSize > filterSize) mAdapter.removeItems(filterSize, mAdapter.size() - filterSize);
+        if (restoreFocus) requestRecyclerFocus();
         if (adapterSize == 0) mBinding.progressLayout.showProgress();
         else mBinding.swipeLayout.setRefreshing(true);
     }
@@ -292,8 +299,14 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         } else {
             if (headerVisible) mBinding.recycler.showHeader();
             else mBinding.recycler.hideHeader();
-            mBinding.recycler.requestFocus();
+            requestRecyclerFocus();
         }
+    }
+
+    private void requestRecyclerFocus() {
+        mBinding.recycler.post(() -> {
+            if (mAdapter.size() > 0 && mBinding.recycler.isShown() && mBinding.recycler.isEnabled()) mBinding.recycler.requestFocus();
+        });
     }
 
     @Override

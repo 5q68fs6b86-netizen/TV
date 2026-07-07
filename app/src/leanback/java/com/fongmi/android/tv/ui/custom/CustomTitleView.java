@@ -41,17 +41,19 @@ public class CustomTitleView extends MaterialTextView {
 
     public void setListener(Listener listener) {
         this.listener = listener;
-        setOnClickListener(v -> listener.showDialog());
+        setOnClickListener(v -> {
+            if (this.listener != null) this.listener.showDialog();
+        });
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return !getHome().isEmpty() && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown));
+        return listener != null && KeyUtil.isActionDown(event) && !getHome().isEmpty() && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown));
     }
 
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        if (focused) startAnimation(flicker);
+        if (focused && flicker != null) startAnimation(flicker);
         else clearAnimation();
     }
 
@@ -63,12 +65,14 @@ public class CustomTitleView extends MaterialTextView {
     }
 
     private void onKeyDown(KeyEvent event) {
-        if (KeyUtil.isActionDown(event) && KeyUtil.isUpKey(event)) onKeyUp();
-        else if (KeyUtil.isActionDown(event) && KeyUtil.isLeftKey(event)) listener.setSite(getSite(false));
-        else if (KeyUtil.isActionDown(event) && KeyUtil.isRightKey(event)) listener.setSite(getSite(true));
+        if (listener == null) return;
+        if (KeyUtil.isUpKey(event)) onKeyUp();
+        else if (KeyUtil.isLeftKey(event)) listener.setSite(getSite(false));
+        else if (KeyUtil.isRightKey(event)) listener.setSite(getSite(true));
     }
 
     private void onKeyUp() {
+        if (listener == null) return;
         App.post(() -> coolDown = false, 3000);
         listener.onRefresh();
         coolDown = true;

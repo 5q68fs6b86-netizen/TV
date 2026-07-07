@@ -34,12 +34,13 @@ class LiveNavigationPolicy {
         for (int i = 0; i < count; i++) {
             position = wrap(position + delta, count);
             Group target = host.getGroup(position);
+            if (target == null || target.isEmpty()) continue;
             if (target.equals(current)) return;
             if (target.skip()) continue;
+            target.setPosition(delta > 0 ? 0 : target.getChannel().size() - 1);
             state.setGroup(target);
             host.renderGroupSelection(target);
             host.renderGroupChannels(target);
-            target.setPosition(delta > 0 ? 0 : target.getChannel().size() - 1);
             return;
         }
     }

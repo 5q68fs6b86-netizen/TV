@@ -60,7 +60,15 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     public void hideHeader() {
-        if (views != null) for (View view : views) view.setVisibility(View.GONE);
+        if (views == null) return;
+        boolean restoreFocus = false;
+        for (View view : views) {
+            restoreFocus |= view.hasFocus();
+            view.setVisibility(View.GONE);
+        }
+        if (restoreFocus) post(() -> {
+            if (isShown() && isEnabled()) requestFocus();
+        });
     }
 
     public void showHeader() {
@@ -68,7 +76,7 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     public boolean isHeaderVisible() {
-        if (views != null) for (View view : views) if (view.getId() == R.id.recycler && view.getVisibility() == View.VISIBLE) return true;
+        if (views != null) for (View view : views) if (view.getId() == R.id.recycler && view.isShown()) return true;
         return false;
     }
 
@@ -82,9 +90,16 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     public boolean moveToTop() {
-        if (views == null || getSelectedPosition() == 0 || getAdapter() == null || getAdapter().getItemCount() == 0) return false;
-        for (View view : views) if (view.getId() == R.id.recycler) view.requestFocus();
+        if (views == null || getSelectedPosition() <= 0 || getAdapter() == null || getAdapter().getItemCount() == 0) return false;
         scrollToPosition(0);
+        post(() -> {
+            boolean focused = false;
+            for (View view : views) {
+                if (view.getId() == R.id.recycler && view.isShown() && view.isEnabled()) focused = view.requestFocus();
+                if (focused) return;
+            }
+            if (isShown() && isEnabled()) requestFocus();
+        });
         showHeader();
         return true;
     }

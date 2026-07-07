@@ -56,6 +56,9 @@ public class UpdateDialog extends BaseAlertDialog {
     protected void initView() {
         binding.version.setText(title);
         binding.desc.setText(desc);
+        binding.confirm.post(() -> {
+            if (binding.confirm.isShown() && binding.confirm.isEnabled()) binding.confirm.requestFocus();
+        });
     }
 
     @Override

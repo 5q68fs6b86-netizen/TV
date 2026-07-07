@@ -102,7 +102,7 @@ public class CustomMic extends AppCompatImageView {
     private void startListening() {
         try {
             mRecognizer.startListening(getIntent());
-            requestFocus();
+            if (isShown() && isEnabled()) requestFocus();
             updateUI(true);
         } catch (Exception ignored) {
         }

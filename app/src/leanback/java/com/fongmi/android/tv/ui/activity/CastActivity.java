@@ -260,7 +260,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     private void onChoose() {
         PlayerEngineDialog.show(this, mBinding.control.action.player, player(), mBinding.widget.title.getText());
-        hideControl();
+        hideControl(false);
     }
 
     private void onDecode() {
@@ -272,7 +272,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     private void onTrack(View view) {
         TrackDialog.create().type(Integer.parseInt(view.getTag().toString())).player(player()).show(this);
-        hideControl();
+        hideControl(false);
     }
 
     private void onToggle() {
@@ -321,16 +321,25 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         syncJetStreamControl();
         mBinding.control.jetstream.setControlsVisible(true);
         setJetStreamOverlayVisible(true);
-        App.post(() -> mBinding.control.jetstream.requestFocus(), 25);
+        App.post(() -> {
+            if (canRequestFocus(mBinding.control.jetstream) && mBinding.control.jetstream.requestFocus()) return;
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
+        }, 25);
         setR1Callback();
     }
 
     private void hideControl() {
+        hideControl(true);
+    }
+
+    private void hideControl(boolean restoreFocus) {
+        boolean restoreVideoFocus = restoreFocus && mBinding.control.getRoot().hasFocus();
         mBinding.control.jetstream.setControlsVisible(false);
         mBinding.control.jetstream.showGroup(null);
         App.removeCallbacks(mR1);
         if (service() != null && !player().isPlaying() && isPaused()) showInfo();
         else updateJetStreamVisibility();
+        if (restoreVideoFocus) requestVideoFocusLater();
     }
 
     private void hideCenter() {
@@ -361,6 +370,32 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
             }
         } else {
             JetStreamAnimator.hide(root, 0, 0, View.GONE, JetStreamAnimator.EXIT_DURATION);
+        }
+    }
+
+    private void requestVideoFocusLater() {
+        mBinding.video.post(() -> {
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
+        });
+    }
+
+    private void requestControlFocusLater() {
+        mBinding.control.jetstream.post(() -> {
+            if (canRequestFocus(mBinding.control.jetstream) && mBinding.control.jetstream.requestFocus()) return;
+            if (canRequestFocus(mBinding.video)) mBinding.video.requestFocus();
+        });
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
+    }
+
+    private void restoreControlFocusIfHidden(View... views) {
+        for (View view : views) {
+            if (view.hasFocus() && !canRequestFocus(view)) {
+                requestControlFocusLater();
+                return;
+            }
         }
     }
 
@@ -466,6 +501,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.control.action.text.setVisibility(player().haveTrack(C.TRACK_TYPE_TEXT) || player().isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.action.audio.setVisibility(player().haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(player().haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
+        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         syncJetStreamControl();
     }
 

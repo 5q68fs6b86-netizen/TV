@@ -52,7 +52,14 @@ public class DohAdapter extends RecyclerView.Adapter<DohAdapter.ViewHolder> {
         Doh item = mItems.get(position);
         holder.binding.text.setText(item.getName());
         holder.binding.text.setSelected(select == position);
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item));
+        holder.binding.text.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (isValidPosition(adapterPosition)) listener.onItemClick(mItems.get(adapterPosition));
+        });
+    }
+
+    private boolean isValidPosition(int position) {
+        return position >= 0 && position < mItems.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
