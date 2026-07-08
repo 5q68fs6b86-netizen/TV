@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -67,7 +68,7 @@ public class CustomVerticalGridView extends VerticalGridView {
             view.setVisibility(View.GONE);
         }
         if (restoreFocus) post(() -> {
-            if (isShown() && isEnabled()) requestFocus();
+            requestSelfFocus();
         });
     }
 
@@ -91,16 +92,41 @@ public class CustomVerticalGridView extends VerticalGridView {
 
     public boolean moveToTop() {
         if (views == null || getSelectedPosition() <= 0 || getAdapter() == null || getAdapter().getItemCount() == 0) return false;
+        boolean restoreFocus = hasFocus();
         scrollToPosition(0);
+        if (!restoreFocus) {
+            showHeader();
+            return true;
+        }
         post(() -> {
             boolean focused = false;
             for (View view : views) {
-                if (view.getId() == R.id.recycler && view.isShown() && view.isEnabled()) focused = view.requestFocus();
+                if (view.getId() == R.id.recycler) {
+                    View focus = findFocusable(view);
+                    focused = focus != null && focus.requestFocus();
+                }
                 if (focused) return;
             }
-            if (isShown() && isEnabled()) requestFocus();
+            requestSelfFocus();
         });
         showHeader();
         return true;
+    }
+
+    private void requestSelfFocus() {
+        View focus = findFocusable(this);
+        if (focus != null && focus.requestFocus()) return;
+        if (isShown() && isEnabled()) requestFocus();
+    }
+
+    private View findFocusable(View view) {
+        if (view == null || !view.isShown() || !view.isEnabled()) return null;
+        if (view instanceof ViewGroup group) {
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View target = findFocusable(group.getChildAt(i));
+                if (target != null) return target;
+            }
+        }
+        return view.isFocusable() ? view : null;
     }
 }

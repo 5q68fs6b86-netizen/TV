@@ -94,6 +94,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Result mResult;
     private Clock mClock;
     private boolean mToolbarVisible = true;
+    private boolean mRestoreRefreshFocus;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -190,9 +191,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.getResult().observe(this, result -> {
+            boolean restoreFocus = mRestoreRefreshFocus && mBinding.recycler.hasFocus();
+            mRestoreRefreshFocus = false;
             mAdapter.remove("progress");
             addVideo(mResult = result);
             Cache.clear().put(result);
+            if (restoreFocus) requestRecyclerFocus(getRecommendIndex());
         });
     }
 
@@ -252,9 +256,26 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void requestRecyclerFocus() {
+        requestRecyclerFocus(RecyclerView.NO_POSITION);
+    }
+
+    private void requestRecyclerFocus(int position) {
         mBinding.recycler.post(() -> {
-            if (canRequestFocus(mBinding.recycler) && mBinding.recycler.requestFocus()) return;
-            if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+            if (mAdapter.size() <= 0 || !canRequestFocus(mBinding.recycler)) {
+                if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+                return;
+            }
+            int target = position == RecyclerView.NO_POSITION ? mBinding.recycler.getSelectedPosition() : position;
+            target = Math.max(0, Math.min(target, mAdapter.size() - 1));
+            mBinding.recycler.setSelectedPosition(target);
+            int focusTarget = target;
+            mBinding.recycler.postDelayed(() -> {
+                RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(focusTarget);
+                View focus = holder == null ? null : findFocusable(holder.itemView);
+                if (focus != null && focus.requestFocus()) return;
+                if (canRequestFocus(mBinding.recycler) && mBinding.recycler.requestFocus()) return;
+                if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+            }, 50);
         });
     }
 
@@ -350,13 +371,23 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void getVideo() {
         mResult = Result.empty();
+        mRestoreRefreshFocus = isRefreshRemovingFocusedRow();
         removeFeatured();
         int index = getRecommendIndex();
         boolean gone = mAdapter.indexOf("progress") == -1;
         boolean hasItem = gone && mAdapter.size() > index;
         if (hasItem) mAdapter.removeItems(index, mAdapter.size() - index);
         if (gone) mAdapter.add("progress");
+        if (mRestoreRefreshFocus) requestRecyclerFocus(index);
         mViewModel.homeContent();
+    }
+
+    private boolean isRefreshRemovingFocusedRow() {
+        if (!mBinding.recycler.hasFocus()) return false;
+        int position = mBinding.recycler.getSelectedPosition();
+        if (position < 0 || position >= mAdapter.size()) return true;
+        Object item = mAdapter.get(position);
+        return item instanceof FeaturedVodRow || position >= getRecommendIndex();
     }
 
     private void addVideo(Result result) {
@@ -612,7 +643,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (KeyUtil.isMenuKey(event)) showDialog();
         if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) {
             View child = mBinding.recycler.getChildAt(0);
-            if (canRequestFocus(child) && child.requestFocus()) return true;
+            View focus = findFocusable(child);
+            if (focus != null && focus.requestFocus()) return true;
             requestRecyclerFocus();
             return true;
         }

@@ -72,6 +72,7 @@ public class UpdateDialog extends BaseAlertDialog {
     }
 
     private void onConfirm(View view) {
+        if (binding.confirm.hasFocus() && binding.cancel.isShown() && binding.cancel.isEnabled()) binding.cancel.requestFocus();
         listener.onConfirm(view);
     }
 

@@ -390,13 +390,17 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         return view != null && view.isShown() && view.isEnabled();
     }
 
-    private void restoreControlFocusIfHidden(View... views) {
+    private boolean hasFocus(View... views) {
         for (View view : views) {
-            if (view.hasFocus() && !canRequestFocus(view)) {
-                requestControlFocusLater();
-                return;
-            }
+            if (view != null && view.hasFocus()) return true;
         }
+        return false;
+    }
+
+    private void restoreControlFocusIfHidden(boolean restoreFocus, View... views) {
+        if (!restoreFocus) return;
+        for (View view : views) if (canRequestFocus(view) && view.hasFocus()) return;
+        requestControlFocusLater();
     }
 
     private boolean isJetStreamControlVisible() {
@@ -455,6 +459,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_CAPTIONS, R.drawable.msr_closed_caption, getString(R.string.play_subtitle), true, "subtitle", "text", "audio", "video");
         mBinding.control.jetstream.setCommandGroup(JetStreamVodControlView.GROUP_SETTINGS, R.drawable.msr_settings, getString(R.string.setting_section_playback), true, "speed", "scale", "player", "decode");
         syncJetStreamCommands();
+        updateActionFocusBoundary(mBinding.control.action.getRoot());
     }
 
     private void syncJetStreamCommands() {
@@ -498,10 +503,11 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void setTrackVisible() {
+        boolean restoreFocus = hasFocus(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         mBinding.control.action.text.setVisibility(player().haveTrack(C.TRACK_TYPE_TEXT) || player().isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.action.audio.setVisibility(player().haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(player().haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
-        restoreControlFocusIfHidden(mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
+        restoreControlFocusIfHidden(restoreFocus, mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
         syncJetStreamControl();
     }
 

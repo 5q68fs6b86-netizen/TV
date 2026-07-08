@@ -96,6 +96,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     private var listener: Listener? = null
     private var selectedSectionKey by mutableStateOf(SECTION_SOURCE)
+    private var focusedSectionKey by mutableStateOf<String?>(null)
     private var focusedRowKey by mutableStateOf<String?>(null)
     private var initialFocusRequest by mutableIntStateOf(0)
     private val rowValues = mutableStateMapOf<String, String>()
@@ -125,7 +126,9 @@ class JetStreamSettingView @JvmOverloads constructor(
     fun setRowVisible(key: String, visible: Boolean) {
         val restoreFocus = !visible && isRowVisible(key) && focusedRowKey == key && hasFocus()
         rowVisible[key] = visible
-        if (restoreFocus) {
+        val restoreSectionFocus = !visible && focusedSectionKey?.let { !isSectionVisible(it) } == true && hasFocus()
+        if (restoreFocus || restoreSectionFocus) {
+            focusedSectionKey = null
             focusedRowKey = null
             post {
                 if (isShown && isEnabled) {
@@ -330,6 +333,9 @@ class JetStreamSettingView @JvmOverloads constructor(
             animationSpec = JetStreamAnimations.ColorTween,
             label = "sectionText"
         )
+        LaunchedEffect(focused) {
+            if (focused) focusedSectionKey = section.key
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -506,6 +512,10 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     private fun isRowVisible(key: String): Boolean {
         return rowVisible[key] ?: true
+    }
+
+    private fun isSectionVisible(key: String): Boolean {
+        return sections().firstOrNull { it.key == key }?.rows?.any { isRowVisible(it.key) } == true
     }
 
     private fun sections(): List<SectionSpec> {

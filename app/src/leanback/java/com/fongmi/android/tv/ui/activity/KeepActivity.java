@@ -101,8 +101,12 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     public void onItemDelete(Keep item) {
         int position = mAdapter.getItems().indexOf(item);
         mAdapter.remove(item.delete(), () -> {
-            if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
-            else requestFocus(Math.min(Math.max(position, 0), mAdapter.getItemCount() - 1));
+            if (mAdapter.getItemCount() == 0) {
+                mAdapter.setDelete(false);
+                mBinding.progressLayout.showContent(true, 0);
+            } else {
+                requestFocus(Math.min(Math.max(position, 0), mAdapter.getItemCount() - 1));
+            }
         });
     }
 

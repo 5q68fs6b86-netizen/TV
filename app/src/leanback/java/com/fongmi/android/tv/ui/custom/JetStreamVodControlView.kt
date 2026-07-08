@@ -135,6 +135,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
     private var controlFocused by mutableStateOf(false)
+    private var primaryFocusRequest by mutableLongStateOf(0L)
     private val commandGroups = mutableStateListOf(
         CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
         CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, "Captions", true, CAPTION_COMMANDS),
@@ -229,17 +230,18 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     fun setCommand(key: String, label: CharSequence?, visible: Boolean, selected: Boolean) {
         commands[key] = CommandState(label?.toString().orEmpty(), visible, selected)
+        validateActiveGroup()
     }
 
     fun setCommandGroup(key: String, @DrawableRes icon: Int, label: CharSequence?, visible: Boolean, vararg commandKeys: String) {
         val group = CommandGroupState(key, icon, label?.toString().orEmpty(), visible, commandKeys.toList())
         val index = commandGroups.indexOfFirst { it.key == key }
         if (index >= 0) commandGroups[index] = group else commandGroups.add(group)
-        if (!visible && activeGroup == key) activeGroup = null
+        if (activeGroup == key) validateActiveGroup()
     }
 
     fun showGroup(group: String?) {
-        activeGroup = group
+        activeGroup = group?.takeIf { hasVisibleCommands(it) }
     }
 
     private fun triggerCommand(key: String, longClick: Boolean) {
@@ -484,7 +486,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                         listener?.onRepeat()
                     }
                 }
-                commandGroups.filter { it.visible }.forEach { group ->
+                commandGroups.filter { hasVisibleCommands(it.key) }.forEach { group ->
                     ControlIcon(group.icon, isPlaying, true, activeGroup == group.key, group.label) {
                         toggleGroup(group.key)
                     }
@@ -522,7 +524,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun SeekerRow(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
         val playFocusRequester = remember { FocusRequester() }
-        LaunchedEffect(controlPanelVisible, controlFocused) {
+        LaunchedEffect(controlPanelVisible, controlFocused, primaryFocusRequest) {
             if (controlPanelVisible && controlFocused) runCatching { playFocusRequester.requestFocus() }
         }
         Row(
@@ -795,7 +797,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     private fun toggleGroup(group: String) {
-        activeGroup = if (activeGroup == group) null else group
+        activeGroup = if (activeGroup == group || !hasVisibleCommands(group)) null else group
         listener?.onShowControls()
     }
 
@@ -804,7 +806,21 @@ class JetStreamVodControlView @JvmOverloads constructor(
         if (index < 0) return
         val group = commandGroups[index]
         commandGroups[index] = group.copy(visible = visible)
-        if (!visible && activeGroup == key) activeGroup = null
+        if (activeGroup == key) validateActiveGroup()
+    }
+
+    private fun validateActiveGroup() {
+        val group = activeGroup ?: return
+        if (hasVisibleCommands(group)) return
+        activeGroup = null
+        primaryFocusRequest++
+    }
+
+    private fun hasVisibleCommands(group: String): Boolean {
+        val groupState = commandGroups.firstOrNull { it.key == group && it.visible } ?: return false
+        return groupState.commandKeys.any { key ->
+            commands[key]?.let { it.visible && it.label.isNotEmpty() } == true
+        }
     }
 
     private fun subtitleText(): String {

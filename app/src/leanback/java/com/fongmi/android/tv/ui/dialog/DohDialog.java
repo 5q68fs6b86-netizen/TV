@@ -49,10 +49,7 @@ public class DohDialog extends BaseAlertDialog implements DohAdapter.OnClickList
     }
 
     private void focusRecycler(int position) {
-        int count = adapter.getItemCount();
-        if (count == 0) return;
-        int target = Math.max(0, Math.min(position, count - 1));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(target));
+        DialogFocus.requestRecyclerFocus(binding.recycler, position, adapter.getItemCount());
     }
 
     @Override
