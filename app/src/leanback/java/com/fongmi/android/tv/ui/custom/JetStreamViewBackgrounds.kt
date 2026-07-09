@@ -3,8 +3,8 @@ package com.fongmi.android.tv.ui.custom
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import androidx.annotation.ColorRes
-import androidx.core.content.ContextCompat
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamPalette
 
 internal fun View.jetStreamDialogBackground(cornerRadii: FloatArray): GradientDrawable {
     return jetStreamSolidBackground(R.color.jetstream_surface, cornerRadii)
@@ -17,12 +17,12 @@ internal fun View.jetStreamOverlayBackground(
     return GradientDrawable(
         orientation,
         intArrayOf(
-            ContextCompat.getColor(context, R.color.jetstream_overlay_surface),
-            ContextCompat.getColor(context, R.color.jetstream_overlay_surface_light)
+            jetStreamColor(R.color.jetstream_overlay_surface),
+            jetStreamColor(R.color.jetstream_overlay_surface_light)
         )
     ).apply {
         this.cornerRadii = cornerRadii
-        setStroke(jetStreamDpInt(1), ContextCompat.getColor(context, R.color.jetstream_outline_variant))
+        setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
     }
 }
 
@@ -32,10 +32,16 @@ private fun View.jetStreamSolidBackground(
 ): GradientDrawable {
     return GradientDrawable().apply {
         this.cornerRadii = cornerRadii
-        setColor(ContextCompat.getColor(context, colorRes))
-        setStroke(jetStreamDpInt(1), ContextCompat.getColor(context, R.color.jetstream_outline_variant))
+        setColor(jetStreamColor(colorRes))
+        setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
     }
 }
+
+internal fun View.jetStreamColor(@ColorRes colorRes: Int): Int {
+    return JetStreamPalette.resolveColor(context, colorRes)
+}
+
+internal fun View.jetStreamColorStateList(@ColorRes colorRes: Int) = JetStreamPalette.resolveColorStateList(context, colorRes)
 
 internal fun View.jetStreamDp(value: Int): Float {
     return value * resources.displayMetrics.density

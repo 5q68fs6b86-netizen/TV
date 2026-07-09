@@ -15,7 +15,9 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
+import com.fongmi.android.tv.ui.theme.JetStreamThemeController;
 import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
@@ -92,6 +94,17 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSubscribe(Object o) {
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onThemeEvent(RefreshEvent event) {
+        if (event.getType() != RefreshEvent.Type.THEME) return;
+        JetStreamThemeController.refresh();
+        onThemeChanged();
+    }
+
+    protected void onThemeChanged() {
+        if (!isFinishing() && !isDestroyed()) recreate();
     }
 
     @Override

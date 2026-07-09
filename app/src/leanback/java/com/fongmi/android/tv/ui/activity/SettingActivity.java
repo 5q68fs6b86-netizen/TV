@@ -47,7 +47,7 @@ import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
-import com.fongmi.android.tv.ui.theme.JetStreamThemeController;
+import com.fongmi.android.tv.ui.theme.JetStreamPalette;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
@@ -194,6 +194,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
         setThemeText();
+        mBinding.settingView.refreshThemeSelection();
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
         setMpvLogText();
         setQuickJsLogText();
@@ -231,6 +232,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Override
     public void onSettingAction(String key) {
+        Integer themeColor = JetStreamSettingView.parseThemeColorAction(key);
+        if (themeColor != null) {
+            setThemeColor(themeColor);
+            return;
+        }
         switch (key) {
             case JetStreamSettingView.KEY_VOD -> onVod();
             case JetStreamSettingView.KEY_LIVE -> onLive();
@@ -271,7 +277,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_DETAIL_FILTER -> setDetailFilter();
             case JetStreamSettingView.KEY_FLAG_FILTER -> setFlagFilter();
             case JetStreamSettingView.KEY_DOH -> setDoh();
-            case JetStreamSettingView.KEY_THEME_COLOR -> setThemeColor();
+            case JetStreamSettingView.KEY_THEME_COLOR -> {
+            }
             case JetStreamSettingView.KEY_SIZE -> setSize();
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
             case JetStreamSettingView.KEY_RESTORE -> onRestore();
@@ -605,15 +612,14 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void setThemeText() {
-        int resId = Setting.getThemeColor() == Setting.THEME_BILIBILI_PINK ? R.string.theme_bilibili_pink : R.string.setting_default;
-        setRowValue(JetStreamSettingView.KEY_THEME_COLOR, getString(resId));
+        setRowValue(JetStreamSettingView.KEY_THEME_COLOR, getString(JetStreamPalette.currentLabelRes()));
     }
 
-    private void setThemeColor() {
-        int color = Setting.getThemeColor() == Setting.THEME_BILIBILI_PINK ? Setting.THEME_DEFAULT : Setting.THEME_BILIBILI_PINK;
+    private void setThemeColor(int color) {
+        if (Setting.getThemeColor() == color) return;
         Setting.putThemeColor(color);
         setThemeText();
-        JetStreamThemeController.refresh();
+        mBinding.settingView.refreshThemeSelection();
         RefreshEvent.theme();
     }
 
@@ -778,5 +784,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         refreshPreloadRows();
         refreshDanmakuRows();
         refreshAppRows();
+    }
+
+    @Override
+    protected void onThemeChanged() {
+        if (mBinding == null) return;
+        setThemeText();
+        mBinding.settingView.refreshThemeSelection();
     }
 }

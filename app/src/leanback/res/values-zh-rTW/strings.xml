@@ -31,7 +31,13 @@
     <string name="setting_home">首頁</string>
     <string name="setting_history">歷史</string>
     <string name="setting_default">預設</string>
+    <string name="theme_star_blue">星際藍</string>
+    <string name="theme_follow_wallpaper">跟隨壁紙</string>
     <string name="theme_bilibili_pink">B站粉</string>
+    <string name="theme_emerald_green">翡翠綠</string>
+    <string name="theme_amber_gold">琥珀金</string>
+    <string name="theme_obsidian_purple">曜石紫</string>
+    <string name="theme_flame_red">赤焰紅</string>
     <string name="setting_refresh">刷新</string>
     <string name="setting_clear">清理</string>
 

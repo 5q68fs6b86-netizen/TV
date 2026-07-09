@@ -6,7 +6,6 @@ import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.widget.LinearLayoutCompat
-import androidx.core.content.ContextCompat
 import com.fongmi.android.tv.R
 
 class JetStreamLiveSidebarLayout @JvmOverloads constructor(
@@ -72,7 +71,7 @@ private fun View.jetStreamLiveItemBackground(): StateListDrawable {
 private fun View.jetStreamLiveItemDrawable(colorRes: Int, strokeColorRes: Int, strokeWidthDp: Int): GradientDrawable {
     return GradientDrawable().apply {
         cornerRadius = jetStreamDp(18)
-        setColor(ContextCompat.getColor(context, colorRes))
-        setStroke(jetStreamDpInt(strokeWidthDp), ContextCompat.getColor(context, strokeColorRes))
+        setColor(jetStreamColor(colorRes))
+        setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(strokeColorRes))
     }
 }
