@@ -2,12 +2,15 @@ package com.fongmi.android.tv.ui.theme
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.setting.Setting
 
 /**
  * JetStream Material Design 3 Color Scheme
@@ -54,6 +57,26 @@ object JetStreamColors {
     val Background = Color(0xFF11131A)
     val OnBackground = Color(0xFFE3E2E6)
 
+}
+
+object BilibiliPinkColors {
+    val Pink1 = Color(0xFFFF6699)
+    val Pink2 = Color(0xFFFFECF1)
+    val Pink3 = Color(0xFFFF8CB0)
+    val Pink4 = Color(0xFFE84B85)
+    val Pink5 = Color(0xFFFFB3CA)
+}
+
+object JetStreamThemeController {
+    private val refreshToken = mutableIntStateOf(0)
+
+    val version: Int
+        get() = refreshToken.intValue
+
+    @JvmStatic
+    fun refresh() {
+        refreshToken.intValue += 1
+    }
 }
 
 /**
@@ -199,6 +222,44 @@ private val JetStreamColorScheme = darkColorScheme(
     outlineVariant = JetStreamColors.OutlineVariant
 )
 
+private val BilibiliPinkColorScheme = darkColorScheme(
+    primary = BilibiliPinkColors.Pink1,
+    onPrimary = BilibiliPinkColors.Pink2,
+    primaryContainer = BilibiliPinkColors.Pink2,
+    onPrimaryContainer = BilibiliPinkColors.Pink4,
+
+    secondary = BilibiliPinkColors.Pink3,
+    onSecondary = BilibiliPinkColors.Pink2,
+    secondaryContainer = BilibiliPinkColors.Pink4,
+    onSecondaryContainer = BilibiliPinkColors.Pink2,
+
+    tertiary = BilibiliPinkColors.Pink5,
+    onTertiary = BilibiliPinkColors.Pink4,
+    tertiaryContainer = BilibiliPinkColors.Pink5,
+    onTertiaryContainer = BilibiliPinkColors.Pink4,
+
+    error = JetStreamColors.Error,
+    onError = JetStreamColors.OnError,
+    errorContainer = JetStreamColors.ErrorContainer,
+    onErrorContainer = JetStreamColors.OnErrorContainer,
+
+    background = JetStreamColors.Background,
+    onBackground = JetStreamColors.OnBackground,
+
+    surface = JetStreamColors.Surface,
+    onSurface = JetStreamColors.OnSurface,
+    onSurfaceVariant = JetStreamColors.OnSurfaceVariant,
+    surfaceVariant = JetStreamColors.SurfaceContainer,
+
+    outline = JetStreamColors.Outline,
+    outlineVariant = JetStreamColors.OutlineVariant
+)
+
+private fun getJetStreamColorScheme() = when (Setting.getThemeColor()) {
+    Setting.THEME_BILIBILI_PINK -> BilibiliPinkColorScheme
+    else -> JetStreamColorScheme
+}
+
 /**
  * JetStream Theme Composable
  * 应用主题的组合函数
@@ -207,8 +268,9 @@ private val JetStreamColorScheme = darkColorScheme(
 fun JetStreamTheme(
     content: @Composable () -> Unit
 ) {
+    val colorScheme = remember(JetStreamThemeController.version) { getJetStreamColorScheme() }
     MaterialTheme(
-        colorScheme = JetStreamColorScheme,
+        colorScheme = colorScheme,
         typography = JetStreamTypography,
         content = content
     )

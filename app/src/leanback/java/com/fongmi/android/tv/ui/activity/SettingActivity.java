@@ -47,6 +47,7 @@ import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
+import com.fongmi.android.tv.ui.theme.JetStreamThemeController;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
@@ -192,6 +193,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_DETAIL_FILTER, getStatus(Setting.getDetailFilter()));
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
+        setThemeText();
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
         setMpvLogText();
         setQuickJsLogText();
@@ -269,6 +271,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_DETAIL_FILTER -> setDetailFilter();
             case JetStreamSettingView.KEY_FLAG_FILTER -> setFlagFilter();
             case JetStreamSettingView.KEY_DOH -> setDoh();
+            case JetStreamSettingView.KEY_THEME_COLOR -> setThemeColor();
             case JetStreamSettingView.KEY_SIZE -> setSize();
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
             case JetStreamSettingView.KEY_RESTORE -> onRestore();
@@ -599,6 +602,19 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             Setting.putFlagFilter(value);
             setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(value));
         });
+    }
+
+    private void setThemeText() {
+        int resId = Setting.getThemeColor() == Setting.THEME_BILIBILI_PINK ? R.string.theme_bilibili_pink : R.string.setting_default;
+        setRowValue(JetStreamSettingView.KEY_THEME_COLOR, getString(resId));
+    }
+
+    private void setThemeColor() {
+        int color = Setting.getThemeColor() == Setting.THEME_BILIBILI_PINK ? Setting.THEME_DEFAULT : Setting.THEME_BILIBILI_PINK;
+        Setting.putThemeColor(color);
+        setThemeText();
+        JetStreamThemeController.refresh();
+        RefreshEvent.theme();
     }
 
     private void setTextFilter(int title, String value, Consumer<String> callback) {

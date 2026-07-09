@@ -6,6 +6,9 @@ import com.github.catvod.utils.Prefers;
 
 public class Setting {
 
+    public static final int THEME_DEFAULT = -1;
+    public static final int THEME_BILIBILI_PINK = 0xFFFF6699;
+
     private static final int MIN_WALL = 0;
     private static final int MAX_WALL = 4;
     private static final int MIN_WALL_TYPE = 0;
@@ -84,7 +87,7 @@ public class Setting {
     }
 
     public static int getThemeColor() {
-        return Prefers.getInt("theme_color", -1);
+        return Prefers.getInt("theme_color", THEME_DEFAULT);
     }
 
     public static void putThemeColor(int color) {

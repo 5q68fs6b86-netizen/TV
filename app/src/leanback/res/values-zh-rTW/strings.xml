@@ -31,6 +31,7 @@
     <string name="setting_home">首頁</string>
     <string name="setting_history">歷史</string>
     <string name="setting_default">預設</string>
+    <string name="theme_bilibili_pink">B站粉</string>
     <string name="setting_refresh">刷新</string>
     <string name="setting_clear">清理</string>
 

@@ -608,6 +608,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_DETAIL_FILTER, context.getString(R.string.setting_detail_filter)),
                     RowSpec(KEY_FLAG_FILTER, context.getString(R.string.setting_flag_filter)),
                     RowSpec(KEY_DOH, context.getString(R.string.setting_doh)),
+                    RowSpec(KEY_THEME_COLOR, context.getString(R.string.setting_theme_color)),
                     RowSpec(KEY_SIZE, context.getString(R.string.setting_size)),
                     RowSpec(KEY_BACKUP, context.getString(R.string.setting_backup)),
                     RowSpec(KEY_RESTORE, context.getString(R.string.setting_restore)),
@@ -672,6 +673,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_DETAIL_FILTER = "detail_filter"
         const val KEY_FLAG_FILTER = "flag_filter"
         const val KEY_DOH = "doh"
+        const val KEY_THEME_COLOR = "theme_color"
         const val KEY_SIZE = "size"
         const val KEY_BACKUP = "backup"
         const val KEY_RESTORE = "restore"
