@@ -42,6 +42,10 @@ public class VodPresenter extends Presenter {
 
         void onItemClick(Vod item);
 
+        default void onItemClick(Vod item, android.view.View poster) {
+            onItemClick(item);
+        }
+
         boolean onLongClick(Vod item);
     }
 

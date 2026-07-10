@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.Observer;
@@ -103,6 +104,8 @@ import java.util.Objects;
 
 public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, CustomKeyDownVod.Listener, TrackDialog.Listener, ParseDialog.Listener, Clock.Callback {
 
+    private static final String HERO_TRANSITION = "jetstream_hero";
+
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
     private Observer<Result> mObserveDetail;
@@ -174,14 +177,30 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic) {
-        start(activity, key, id, name, pic, null);
+        start(activity, key, id, name, pic, null, false, false, null);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark) {
-        start(activity, key, id, name, pic, mark, false, false);
+        start(activity, key, id, name, pic, mark, false, false, null);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, View poster) {
+        start(activity, key, id, name, pic, null, false, false, poster);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark, View poster) {
+        start(activity, key, id, name, pic, mark, false, false, poster);
+    }
+
+    public static void collect(Activity activity, String key, String id, String name, String pic, View poster) {
+        start(activity, key, id, name, pic, null, true, false, poster);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect, boolean cast) {
+        start(activity, key, id, name, pic, mark, collect, cast, null);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect, boolean cast, View poster) {
         Intent intent = new Intent(activity, VideoActivity.class);
         intent.putExtra("collect", collect);
         intent.putExtra("cast", cast);
@@ -190,7 +209,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         intent.putExtra("pic", pic);
         intent.putExtra("key", key);
         intent.putExtra("id", id);
-        activity.startActivity(intent);
+        if (poster != null) {
+            poster.setTransitionName(HERO_TRANSITION);
+            activity.startActivity(intent, ActivityOptionsCompat.makeSceneTransitionAnimation(activity, poster, HERO_TRANSITION).toBundle());
+            poster.post(() -> poster.setTransitionName(null));
+        } else {
+            activity.startActivity(intent);
+        }
     }
 
     private boolean isCast() {
@@ -933,6 +958,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagSelectedPos);
         mKeyDown.setFull(true);
+        mBinding.control.jetstream.setFullscreen(true);
         setFullscreen(true);
         updateFullscreenViews();
         mFocus2 = null;
@@ -943,6 +969,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setLayoutParams(mFrameParams);
         mKeyDown.setFull(false);
+        mBinding.control.jetstream.setFullscreen(false);
         setFullscreen(false);
         updateFullscreenViews();
         applyWindowVideoStyle();

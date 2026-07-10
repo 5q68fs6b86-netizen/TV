@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -128,9 +129,14 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
 
     @Override
     public void onItemClick(Vod item) {
+        onItemClick(item, null);
+    }
+
+    @Override
+    public void onItemClick(Vod item, View poster) {
         requireActivity().setResult(Activity.RESULT_OK);
         if (item.isFolder()) VodActivity.start(requireActivity(), item.getSiteKey(), Result.folder(item));
-        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getId(), item.getName(), item.getPic());
+        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getId(), item.getName(), item.getPic(), poster);
     }
 
     @Override

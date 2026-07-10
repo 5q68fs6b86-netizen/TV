@@ -20,6 +20,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -38,6 +39,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -137,6 +139,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
     private var controlFocused by mutableStateOf(false)
+    private var fullscreenState by mutableStateOf(false)
     private var primaryFocusRequest by mutableLongStateOf(0L)
     private val commandGroups = mutableStateListOf(
         CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
@@ -198,6 +201,10 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
     fun setControlsVisible(visible: Boolean) {
         controlPanelVisible = visible
+    }
+
+    fun setFullscreen(value: Boolean) {
+        fullscreenState = value
     }
 
     fun isControlsVisible(): Boolean {
@@ -307,6 +314,78 @@ class JetStreamVodControlView @JvmOverloads constructor(
                         InfoOverlay()
                     }
                 }
+                AnimatedVisibility(
+                    visible = fullscreenState && !polledPlaying && !controlPanelVisible && !isInfoVisible() && durationMs > 0,
+                    enter = fadeIn(tween(JetStreamAnimations.DurationPanel)) + slideInVertically(
+                        animationSpec = tween(JetStreamAnimations.DurationPanel),
+                        initialOffsetY = { it / 3 }
+                    ),
+                    exit = fadeOut(tween(JetStreamAnimations.DurationExit)),
+                    modifier = Modifier.align(Alignment.BottomStart)
+                ) {
+                    PauseCard(positionMs, durationMs)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun PauseCard(positionMs: Long, durationMs: Long) {
+        val colorScheme = MaterialTheme.colorScheme
+        val subtitle = subtitleText()
+        Row(
+            modifier = Modifier
+                .padding(start = 48.dp, bottom = 40.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(colorScheme.surface.copy(alpha = 0.88f))
+                .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+                .padding(horizontal = 24.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.msr_pause),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = colorScheme.onPrimaryContainer
+                )
+            }
+            Spacer(Modifier.width(18.dp))
+            Column {
+                Text(
+                    text = mediaTitle,
+                    color = colorScheme.onSurface,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 460.dp)
+                )
+                if (subtitle.isNotEmpty()) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        text = subtitle,
+                        color = colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 460.dp)
+                    )
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
+                    color = colorScheme.primary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
             }
         }
     }

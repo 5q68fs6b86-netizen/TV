@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -90,7 +91,8 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
                                     scaleY = drift
                                 },
                             contentScale = ContentScale.Crop,
-                            alpha = 0.26f
+                            alpha = 0.26f,
+                            filterQuality = FilterQuality.High
                         )
                     }
                 }

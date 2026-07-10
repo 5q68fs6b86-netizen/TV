@@ -270,6 +270,11 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     public void onItemClick(Vod item) {
+        onItemClick(item, null);
+    }
+
+    @Override
+    public void onItemClick(Vod item, View poster) {
         if (item.isAction()) {
             mViewModel.action(getKey(), item.getAction());
         } else if (item.isFolder()) {
@@ -277,7 +282,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
             headerVisible = mBinding.recycler.isHeaderVisible();
         } else {
             if (getSite().isIndex()) CollectActivity.start(requireActivity(), item.getName());
-            else VideoActivity.start(requireActivity(), getKey(), item.getId(), item.getName(), item.getPic(), isFolder() ? item.getName() : null);
+            else VideoActivity.start(requireActivity(), getKey(), item.getId(), item.getName(), item.getPic(), isFolder() ? item.getName() : null, poster);
         }
     }
 
