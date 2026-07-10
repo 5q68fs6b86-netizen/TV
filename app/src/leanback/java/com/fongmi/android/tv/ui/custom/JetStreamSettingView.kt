@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,7 +92,8 @@ class JetStreamSettingView @JvmOverloads constructor(
     private data class RowSpec(
         val key: String,
         val label: String,
-        val actions: List<ActionSpec> = emptyList()
+        val actions: List<ActionSpec> = emptyList(),
+        val toggle: Boolean = false
     )
 
     private data class ActionSpec(
@@ -400,6 +403,7 @@ class JetStreamSettingView @JvmOverloads constructor(
             label = "rowValue"
         )
         val value = rowValues[row.key].orEmpty()
+        val onText = context.getString(R.string.setting_on)
         val requesterModifier = focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
         LaunchedEffect(focused) {
             if (focused) focusedRowKey = row.key
@@ -446,7 +450,20 @@ class JetStreamSettingView @JvmOverloads constructor(
                     )
                 }
             }
-            if (row.actions.isNotEmpty()) {
+            if (row.toggle) {
+                Switch(
+                    checked = value == onText,
+                    onCheckedChange = null,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = if (focused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = Color.Transparent,
+                        uncheckedBorderColor = if (focused) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.outline
+                    )
+                )
+            } else if (row.actions.isNotEmpty()) {
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -628,33 +645,33 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_RENDER, context.getString(R.string.player_render)),
                     RowSpec(KEY_SCALE, context.getString(R.string.player_scale)),
                     RowSpec(KEY_SPEED, context.getString(R.string.player_speed)),
-                    RowSpec(KEY_SEEK_ACCELERATE, context.getString(R.string.setting_seek_accelerate)),
+                    RowSpec(KEY_SEEK_ACCELERATE, context.getString(R.string.setting_seek_accelerate), toggle = true),
                     RowSpec(KEY_CAPTION, context.getString(R.string.player_caption)),
-                    RowSpec(KEY_BACKGROUND, context.getString(R.string.player_background)),
+                    RowSpec(KEY_BACKGROUND, context.getString(R.string.player_background), toggle = true),
                     RowSpec(KEY_UA, context.getString(R.string.player_ua)),
                     RowSpec(KEY_MPV_CONF, context.getString(R.string.player_mpv_conf)),
                     RowSpec(KEY_MPV_ANIME4K, context.getString(R.string.player_mpv_anime4k)),
-                    RowSpec(KEY_MPV_GPU_NEXT, context.getString(R.string.player_mpv_gpu_next)),
-                    RowSpec(KEY_MPV_VULKAN, context.getString(R.string.player_mpv_vulkan)),
-                    RowSpec(KEY_ADBLOCK, context.getString(R.string.player_adblock))
+                    RowSpec(KEY_MPV_GPU_NEXT, context.getString(R.string.player_mpv_gpu_next), toggle = true),
+                    RowSpec(KEY_MPV_VULKAN, context.getString(R.string.player_mpv_vulkan), toggle = true),
+                    RowSpec(KEY_ADBLOCK, context.getString(R.string.player_adblock), toggle = true)
                 )
             ),
             SectionSpec(
                 key = SECTION_DECODE,
                 label = context.getString(R.string.setting_section_decode),
                 rows = listOf(
-                    RowSpec(KEY_TUNNEL, context.getString(R.string.player_tunnel)),
-                    RowSpec(KEY_AUDIO_PASS_THROUGH, context.getString(R.string.player_audio_pass_through)),
-                    RowSpec(KEY_AUDIO_PREFER, context.getString(R.string.player_audio_decode)),
-                    RowSpec(KEY_VIDEO_PREFER, context.getString(R.string.player_video_decode)),
-                    RowSpec(KEY_AAC, context.getString(R.string.player_aac_track))
+                    RowSpec(KEY_TUNNEL, context.getString(R.string.player_tunnel), toggle = true),
+                    RowSpec(KEY_AUDIO_PASS_THROUGH, context.getString(R.string.player_audio_pass_through), toggle = true),
+                    RowSpec(KEY_AUDIO_PREFER, context.getString(R.string.player_audio_decode), toggle = true),
+                    RowSpec(KEY_VIDEO_PREFER, context.getString(R.string.player_video_decode), toggle = true),
+                    RowSpec(KEY_AAC, context.getString(R.string.player_aac_track), toggle = true)
                 )
             ),
             SectionSpec(
                 key = SECTION_PRELOAD,
                 label = context.getString(R.string.setting_section_preload),
                 rows = listOf(
-                    RowSpec(KEY_PRELOAD, context.getString(R.string.player_preload)),
+                    RowSpec(KEY_PRELOAD, context.getString(R.string.player_preload), toggle = true),
                     RowSpec(KEY_PRELOAD_THREADS, context.getString(R.string.player_preload_threads)),
                     RowSpec(KEY_PRELOAD_SIZE, context.getString(R.string.player_preload_size)),
                     RowSpec(KEY_PRELOAD_TIME, context.getString(R.string.player_preload_time))
@@ -664,18 +681,18 @@ class JetStreamSettingView @JvmOverloads constructor(
                 key = SECTION_DANMAKU,
                 label = context.getString(R.string.setting_section_danmaku),
                 rows = listOf(
-                    RowSpec(KEY_DANMAKU_LOAD, context.getString(R.string.danmaku_load)),
+                    RowSpec(KEY_DANMAKU_LOAD, context.getString(R.string.danmaku_load), toggle = true),
                     RowSpec(KEY_DANMAKU_API, context.getString(R.string.danmaku_api)),
                     RowSpec(KEY_DANMAKU_LOGVAR_API, context.getString(R.string.danmaku_logvar_api)),
-                    RowSpec(KEY_DANMAKU_AUTO, context.getString(R.string.danmaku_auto_load)),
-                    RowSpec(KEY_DANMAKU_SPIDER, context.getString(R.string.danmaku_spider_first))
+                    RowSpec(KEY_DANMAKU_AUTO, context.getString(R.string.danmaku_auto_load), toggle = true),
+                    RowSpec(KEY_DANMAKU_SPIDER, context.getString(R.string.danmaku_spider_first), toggle = true)
                 )
             ),
             SectionSpec(
                 key = SECTION_APP,
                 label = context.getString(R.string.setting_section_app),
                 rows = listOf(
-                    RowSpec(KEY_INCOGNITO, context.getString(R.string.setting_incognito)),
+                    RowSpec(KEY_INCOGNITO, context.getString(R.string.setting_incognito), toggle = true),
                     RowSpec(KEY_DETAIL_FILTER, context.getString(R.string.setting_detail_filter)),
                     RowSpec(KEY_FLAG_FILTER, context.getString(R.string.setting_flag_filter)),
                     RowSpec(KEY_DOH, context.getString(R.string.setting_doh)),
