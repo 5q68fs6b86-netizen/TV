@@ -23,7 +23,6 @@
             android:clipToOutline="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:foreground="@drawable/selector_video"
             android:nextFocusLeft="@id/video"
             android:nextFocusRight="@id/detail"
             android:nextFocusUp="@id/video"

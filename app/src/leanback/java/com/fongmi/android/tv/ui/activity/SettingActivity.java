@@ -36,6 +36,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.PreloadSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.custom.JetStreamDialogDecor;
 import com.fongmi.android.tv.ui.custom.JetStreamSettingView;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
@@ -47,6 +48,7 @@ import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
+import com.fongmi.android.tv.ui.theme.JetStreamPalette;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
@@ -192,6 +194,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_DETAIL_FILTER, getStatus(Setting.getDetailFilter()));
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
+        setThemeText();
+        mBinding.settingView.refreshThemeSelection();
         setRowValue(JetStreamSettingView.KEY_SIZE, size[PlayerSetting.getSize()]);
         setMpvLogText();
         setQuickJsLogText();
@@ -229,6 +233,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Override
     public void onSettingAction(String key) {
+        Integer themeColor = JetStreamSettingView.parseThemeColorAction(key);
+        if (themeColor != null) {
+            setThemeColor(themeColor);
+            return;
+        }
         switch (key) {
             case JetStreamSettingView.KEY_VOD -> onVod();
             case JetStreamSettingView.KEY_LIVE -> onLive();
@@ -269,6 +278,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_DETAIL_FILTER -> setDetailFilter();
             case JetStreamSettingView.KEY_FLAG_FILTER -> setFlagFilter();
             case JetStreamSettingView.KEY_DOH -> setDoh();
+            case JetStreamSettingView.KEY_THEME_COLOR -> {
+            }
             case JetStreamSettingView.KEY_SIZE -> setSize();
             case JetStreamSettingView.KEY_BACKUP -> onBackup();
             case JetStreamSettingView.KEY_RESTORE -> onRestore();
@@ -601,6 +612,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         });
     }
 
+    private void setThemeText() {
+        setRowValue(JetStreamSettingView.KEY_THEME_COLOR, getString(JetStreamPalette.currentLabelRes()));
+    }
+
+    private void setThemeColor(int color) {
+        if (Setting.getThemeColor() == color) return;
+        Setting.putThemeColor(color);
+        setThemeText();
+        mBinding.settingView.refreshThemeSelection();
+        RefreshEvent.theme();
+    }
+
     private void setTextFilter(int title, String value, Consumer<String> callback) {
         EditText input = new EditText(this);
         int padding = ResUtil.dp2px(24);
@@ -610,7 +633,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         input.setPadding(padding, 0, padding, 0);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
-        new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+        JetStreamDialogDecor.tintButtons(new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show());
     }
 
     private void setApiUrl(int title, String value, Consumer<String> callback) {
@@ -627,7 +650,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
         container.setPadding(0, ResUtil.dp2px(8), 0, 0);
         container.addView(input, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
-        new MaterialAlertDialogBuilder(this).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+        JetStreamDialogDecor.tintButtons(new MaterialAlertDialogBuilder(this).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show());
     }
 
     private void setSize() {
@@ -762,5 +785,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         refreshPreloadRows();
         refreshDanmakuRows();
         refreshAppRows();
+    }
+
+    @Override
+    protected void onThemeChanged() {
+        if (mBinding == null) return;
+        setThemeText();
+        mBinding.settingView.refreshThemeSelection();
     }
 }

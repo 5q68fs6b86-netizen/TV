@@ -14,7 +14,9 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.databinding.ViewProgressBinding;
+import com.fongmi.android.tv.ui.custom.OverlayToast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class Notify {
@@ -75,6 +77,10 @@ public class Notify {
     }
 
     private void makeText(String text) {
+        if ("leanback".equals(BuildConfig.FLAVOR_mode) && App.activity() != null) {
+            App.post(() -> OverlayToast.show(App.activity(), text));
+            return;
+        }
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(App.get(), text, Toast.LENGTH_LONG);
         mToast.show();

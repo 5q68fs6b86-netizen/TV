@@ -18,6 +18,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.ui.theme.JetStreamPalette;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -137,10 +138,10 @@ public class CustomMic extends AppCompatImageView {
         mListen = listening;
         if (listening) {
             startAnimation(ResUtil.getAnim(R.anim.flicker));
-            setColorFilter(ResUtil.getColor(R.color.jetstream_error), PorterDuff.Mode.SRC_IN);
+            setColorFilter(JetStreamPalette.resolveColor(getContext(), R.color.jetstream_error), PorterDuff.Mode.SRC_IN);
         } else {
             clearAnimation();
-            setColorFilter(ResUtil.getColor(R.color.jetstream_on_surface), PorterDuff.Mode.SRC_IN);
+            setColorFilter(JetStreamPalette.resolveColor(getContext(), R.color.jetstream_on_surface), PorterDuff.Mode.SRC_IN);
         }
     }
 

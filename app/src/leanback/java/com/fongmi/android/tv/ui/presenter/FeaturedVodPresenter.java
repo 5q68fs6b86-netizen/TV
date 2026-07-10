@@ -19,6 +19,7 @@ import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
 import com.fongmi.android.tv.ui.custom.JetStreamFeaturedIndicatorDotView;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
+import com.fongmi.android.tv.ui.theme.JetStreamAmbient;
 import com.fongmi.android.tv.utils.FeaturedPosterCache;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -165,27 +166,27 @@ public class FeaturedVodPresenter extends Presenter {
             String cached = posterCache.get(item);
             if (!TextUtils.isEmpty(cached)) {
                 artworkCache.put(key, cached);
-                ImgUtil.load(item.getName(), cached, target);
+                loadArtwork(item, cached, target);
                 return;
             }
             cached = artworkCache.get(key);
             if (!TextUtils.isEmpty(cached)) {
-                ImgUtil.load(item.getName(), cached, target);
+                loadArtwork(item, cached, target);
                 return;
             }
-            ImgUtil.load(item.getName(), item.getPic(), target);
+            loadArtwork(item, item.getPic(), target);
             if (TextUtils.isEmpty(item.getName()) || artworkMissing.contains(key)) return;
             TmdbLogoHelper.findPoster(BuildConfig.TMDB_API_KEY, item.getName(), item.getYear(), item.getTypeName(), new TmdbLogoHelper.ImageCallback() {
                 @Override
                 public void onFound(@NonNull String imageUrl) {
                     if (!posterCache.isCurrent(requestSignature)) return;
                     artworkCache.put(key, imageUrl);
-                    if (isArtworkRequestActive(key)) ImgUtil.load(item.getName(), imageUrl, front);
+                    if (isArtworkRequestActive(key)) loadArtwork(item, imageUrl, front);
                     posterCache.put(requestSignature, item, imageUrl, new FeaturedPosterCache.Callback() {
                         @Override
                         public void success(@NonNull String cachedUrl) {
                             artworkCache.put(key, cachedUrl);
-                            if (isArtworkRequestActive(key)) ImgUtil.load(item.getName(), cachedUrl, front);
+                            if (isArtworkRequestActive(key)) loadArtwork(item, cachedUrl, front);
                         }
 
                         @Override
@@ -204,6 +205,11 @@ public class FeaturedVodPresenter extends Presenter {
                     artworkMissing.add(key);
                 }
             });
+        }
+
+        private void loadArtwork(Vod item, String url, ShapeableImageView target) {
+            ImgUtil.load(item.getName(), url, target);
+            JetStreamAmbient.push(url);
         }
 
         private boolean isArtworkRequestActive(String key) {

@@ -2,7 +2,6 @@ package com.fongmi.android.tv.ui.custom
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.Typeface
@@ -15,12 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
-import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.NestedScrollView
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamPalette
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.checkbox.MaterialCheckBox
@@ -31,6 +31,21 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textview.MaterialTextView
+
+/**
+ * 给系统 MaterialAlertDialog 的按钮着当前主题色。
+ * 主题的 colorPrimary 是静态资源，无法随调色板运行时变化，弹出后手动补色。
+ */
+object JetStreamDialogDecor {
+
+    @JvmStatic
+    fun tintButtons(dialog: AlertDialog) {
+        val color = JetStreamPalette.primaryInt()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(color)
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(color)
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(color)
+    }
+}
 
 class JetStreamDialogScrollView @JvmOverloads constructor(
     context: Context,
@@ -306,7 +321,7 @@ class JetStreamCheckBox @JvmOverloads constructor(
         typedArray.recycle()
 
         if (!hasButtonTint) {
-            buttonTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.jetstream_control_text))
+            buttonTintList = jetStreamColorStateList(R.color.jetstream_control_text)
         }
         JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
@@ -320,9 +335,9 @@ class JetStreamCircularProgressIndicator @JvmOverloads constructor(
 
     init {
         isIndeterminate = true
-        setIndicatorColor(ContextCompat.getColor(context, R.color.jetstream_primary))
+        setIndicatorColor(jetStreamColor(R.color.jetstream_primary))
         setIndicatorSize(resources.getDimensionPixelSize(R.dimen.progress_indicator_size))
-        setTrackColor(ContextCompat.getColor(context, R.color.jetstream_outline_variant))
+        setTrackColor(jetStreamColor(R.color.jetstream_outline_variant))
         setTrackCornerRadius(resources.getDimensionPixelSize(R.dimen.progress_indicator_corner_radius))
         setTrackThickness(resources.getDimensionPixelSize(R.dimen.progress_indicator_track_thickness))
     }
@@ -336,7 +351,7 @@ class JetStreamSmallCircularProgressIndicator @JvmOverloads constructor(
 
     init {
         isIndeterminate = true
-        setIndicatorColor(ContextCompat.getColor(context, R.color.jetstream_primary))
+        setIndicatorColor(jetStreamColor(R.color.jetstream_primary))
         setIndicatorSize(jetStreamDpInt(32))
         setTrackThickness(jetStreamDpInt(2))
     }
@@ -498,8 +513,9 @@ private fun TextView.applyJetStreamDialogInputSurface(
 
     includeFontPadding = true
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
-    setHintTextColor(ContextCompat.getColor(context, R.color.jetstream_list_supporting_text))
-    setTextColor(ContextCompat.getColor(context, R.color.jetstream_list_title_text))
+    setHintTextColor(jetStreamColorStateList(R.color.jetstream_list_supporting_text))
+    setTextColor(jetStreamColorStateList(R.color.jetstream_list_title_text))
+    applyJetStreamTypeface()
     background = StateListDrawable().apply {
         addState(intArrayOf(android.R.attr.state_focused), jetStreamDialogInputDrawable(R.color.jetstream_primary_container, R.color.jetstream_primary, 2))
         addState(intArrayOf(), jetStreamDialogInputDrawable(R.color.jetstream_surface_container_high, R.color.jetstream_outline_variant, 1))
@@ -519,9 +535,10 @@ private fun MaterialTextView.applyJetStreamDialogTextDefaults(
     val hasTextAppearance = typedArray.hasValue(2)
     typedArray.recycle()
 
-    if (!hasTextColor) setTextColor(ContextCompat.getColor(context, defaultTextColorRes))
+    if (!hasTextColor) setTextColor(jetStreamColorStateList(defaultTextColorRes))
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     includeFontPadding = false
+    applyJetStreamTypeface()
 }
 
 private fun View.applyJetStreamSubtitleIconSurface() {
@@ -537,13 +554,8 @@ private fun View.applyJetStreamSubtitleIconSurface() {
 
 private fun AppCompatImageView.applyJetStreamControlIconTint() {
     if (ImageViewCompat.getImageTintList(this) == null) {
-        ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(ContextCompat.getColor(context, R.color.jetstream_control_text)))
+        ImageViewCompat.setImageTintList(this, jetStreamColorStateList(R.color.jetstream_control_text))
     }
-}
-
-private fun View.jetStreamColorStateList(colorRes: Int): ColorStateList {
-    return ContextCompat.getColorStateList(context, colorRes)
-        ?: ColorStateList.valueOf(ContextCompat.getColor(context, colorRes))
 }
 
 private fun MaterialButton.applyJetStreamDialogButtonSurface() {
@@ -555,6 +567,7 @@ private fun MaterialButton.applyJetStreamDialogButtonSurface() {
     strokeColor = jetStreamColorStateList(R.color.jetstream_control_outline)
     strokeWidth = jetStreamDpInt(1)
     shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(22)).build()
+    applyJetStreamTypeface()
 }
 
 private fun Chip.applyJetStreamFilterChipSurface() {
@@ -567,6 +580,7 @@ private fun Chip.applyJetStreamFilterChipSurface() {
     chipStrokeWidth = jetStreamDp(1)
     rippleColor = jetStreamColorStateList(R.color.jetstream_scrim_medium)
     shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(22)).build()
+    applyJetStreamTypeface()
 }
 
 private fun LinearLayoutCompat.applyJetStreamDialogSectionSurface() {
@@ -656,9 +670,9 @@ private fun LinearLayoutCompat.applyJetStreamSheetChipRowSurface() {
 private fun View.jetStreamSettingControlRowDrawable(colorRes: Int, strokeColorRes: Int, strokeWidthDp: Int): GradientDrawable {
     return GradientDrawable().apply {
         cornerRadius = jetStreamDp(18)
-        setColor(ContextCompat.getColor(context, colorRes))
+        setColor(jetStreamColor(colorRes))
         if (strokeWidthDp > 0) {
-            setStroke(jetStreamDpInt(strokeWidthDp), ContextCompat.getColor(context, strokeColorRes))
+            setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(strokeColorRes))
         } else {
             setStroke(0, Color.TRANSPARENT)
         }
@@ -668,29 +682,29 @@ private fun View.jetStreamSettingControlRowDrawable(colorRes: Int, strokeColorRe
 private fun View.jetStreamSheetToolbarDrawable(): GradientDrawable {
     return GradientDrawable().apply {
         cornerRadius = jetStreamDp(24)
-        setColor(ContextCompat.getColor(context, R.color.jetstream_scrim_light))
+        setColor(jetStreamColor(R.color.jetstream_scrim_light))
     }
 }
 
 private fun View.jetStreamDialogRowDrawable(): GradientDrawable {
     return GradientDrawable().apply {
         cornerRadius = jetStreamDp(24)
-        setColor(ContextCompat.getColor(context, R.color.jetstream_scrim_light))
+        setColor(jetStreamColor(R.color.jetstream_scrim_light))
     }
 }
 
 private fun View.jetStreamDialogInputDrawable(colorRes: Int, strokeColorRes: Int, strokeWidthDp: Int): GradientDrawable {
     return GradientDrawable().apply {
         cornerRadius = jetStreamDp(20)
-        setColor(ContextCompat.getColor(context, colorRes))
-        setStroke(jetStreamDpInt(strokeWidthDp), ContextCompat.getColor(context, strokeColorRes))
+        setColor(jetStreamColor(colorRes))
+        setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(strokeColorRes))
     }
 }
 
 private fun View.jetStreamSubtitleIconDrawable(colorRes: Int, strokeColorRes: Int, strokeWidthDp: Int): GradientDrawable {
     return GradientDrawable().apply {
         shape = GradientDrawable.OVAL
-        setColor(ContextCompat.getColor(context, colorRes))
-        setStroke(jetStreamDpInt(strokeWidthDp), ContextCompat.getColor(context, strokeColorRes))
+        setColor(jetStreamColor(colorRes))
+        setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(strokeColorRes))
     }
 }

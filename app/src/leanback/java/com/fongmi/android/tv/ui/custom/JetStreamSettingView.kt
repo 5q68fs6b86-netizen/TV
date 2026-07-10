@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -57,7 +58,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.setting.Setting
 import com.fongmi.android.tv.ui.components.JetStreamPageScrim
+import com.fongmi.android.tv.ui.theme.JetStreamPalette
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
@@ -91,7 +94,9 @@ class JetStreamSettingView @JvmOverloads constructor(
     private data class ActionSpec(
         val key: String,
         val label: String,
-        @param:DrawableRes val icon: Int
+        @param:DrawableRes val icon: Int? = null,
+        val swatch: Int? = null,
+        val selected: Boolean = false
     )
 
     private var listener: Listener? = null
@@ -99,6 +104,7 @@ class JetStreamSettingView @JvmOverloads constructor(
     private var focusedSectionKey by mutableStateOf<String?>(null)
     private var focusedRowKey by mutableStateOf<String?>(null)
     private var initialFocusRequest by mutableIntStateOf(0)
+    private var themeRefreshToken by mutableIntStateOf(0)
     private val rowValues = mutableStateMapOf<String, String>()
     private val rowVisible = mutableStateMapOf<String, Boolean>()
 
@@ -139,6 +145,10 @@ class JetStreamSettingView @JvmOverloads constructor(
         }
     }
 
+    fun refreshThemeSelection() {
+        themeRefreshToken += 1
+    }
+
     fun showSection(sectionKey: String) {
         selectedSectionKey = sectionKey
     }
@@ -171,7 +181,7 @@ class JetStreamSettingView @JvmOverloads constructor(
 
     @Composable
     private fun SettingsSurface() {
-        val sections = sections()
+        val sections = sections(themeRefreshToken)
         val visibleSections = sections.filter { section -> section.rows.any { isRowVisible(it.key) } }
         val selectedSection = visibleSections.firstOrNull { it.key == selectedSectionKey } ?: visibleSections.firstOrNull()
         val selectedRows = selectedSection?.rows.orEmpty().filter { isRowVisible(it.key) }
@@ -460,20 +470,34 @@ class JetStreamSettingView @JvmOverloads constructor(
     private fun ActionChip(rowKey: String, action: ActionSpec) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
+        val selected = action.selected
         val scale by animateFloatAsState(
             if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
             animationSpec = JetStreamAnimations.ScaleSpring,
             label = "chipScale"
         )
         val background by animateColorAsState(
-            targetValue = if (focused) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+            targetValue = when {
+                focused -> MaterialTheme.colorScheme.primaryContainer
+                selected -> MaterialTheme.colorScheme.secondaryContainer
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipBackground"
         )
         val contentColor by animateColorAsState(
-            targetValue = if (focused) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            targetValue = when {
+                focused -> MaterialTheme.colorScheme.onPrimaryContainer
+                selected -> MaterialTheme.colorScheme.onSecondaryContainer
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
             animationSpec = JetStreamAnimations.ColorTween,
             label = "chipContent"
+        )
+        val outlineColor by animateColorAsState(
+            targetValue = if (focused || selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "chipOutline"
         )
         LaunchedEffect(focused) {
             if (focused) focusedRowKey = rowKey
@@ -484,6 +508,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(RoundedCornerShape(19.dp))
                 .background(background)
+                .border(JetStreamBorders.Thin, outlineColor, RoundedCornerShape(19.dp))
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -493,12 +518,22 @@ class JetStreamSettingView @JvmOverloads constructor(
                 .padding(start = JetStreamSpacing.IconPadding, end = JetStreamSpacing.ChipHorizontalPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = action.icon),
-                contentDescription = action.label,
-                modifier = Modifier.size(19.dp),
-                tint = contentColor
-            )
+            if (action.swatch != null) {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(Color(action.swatch.toLong() and 0xFFFFFFFF))
+                        .border(1.dp, contentColor.copy(alpha = 0.48f), CircleShape)
+                )
+            } else if (action.icon != null) {
+                Icon(
+                    painter = painterResource(id = action.icon),
+                    contentDescription = action.label,
+                    modifier = Modifier.size(19.dp),
+                    tint = contentColor
+                )
+            }
             Spacer(Modifier.width(7.dp))
             Text(
                 text = action.label,
@@ -507,6 +542,15 @@ class JetStreamSettingView @JvmOverloads constructor(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (selected) {
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.msr_check),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = contentColor
+                )
+            }
         }
     }
 
@@ -518,7 +562,20 @@ class JetStreamSettingView @JvmOverloads constructor(
         return sections().firstOrNull { it.key == key }?.rows?.any { isRowVisible(it.key) } == true
     }
 
-    private fun sections(): List<SectionSpec> {
+    private fun themeActions(): List<ActionSpec> {
+        val selected = Setting.getThemeColor()
+        return JetStreamPalette.presets().map { palette ->
+            ActionSpec(
+                key = themeColorAction(palette.value),
+                label = context.getString(palette.labelRes),
+                swatch = palette.swatch,
+                selected = palette.value == selected
+            )
+        }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun sections(themeRefresh: Int = themeRefreshToken): List<SectionSpec> {
         return listOf(
             SectionSpec(
                 key = SECTION_SOURCE,
@@ -608,6 +665,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_DETAIL_FILTER, context.getString(R.string.setting_detail_filter)),
                     RowSpec(KEY_FLAG_FILTER, context.getString(R.string.setting_flag_filter)),
                     RowSpec(KEY_DOH, context.getString(R.string.setting_doh)),
+                    RowSpec(KEY_THEME_COLOR, context.getString(R.string.setting_theme_color), actions = themeActions()),
                     RowSpec(KEY_SIZE, context.getString(R.string.setting_size)),
                     RowSpec(KEY_BACKUP, context.getString(R.string.setting_backup)),
                     RowSpec(KEY_RESTORE, context.getString(R.string.setting_restore)),
@@ -672,6 +730,7 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_DETAIL_FILTER = "detail_filter"
         const val KEY_FLAG_FILTER = "flag_filter"
         const val KEY_DOH = "doh"
+        const val KEY_THEME_COLOR = "theme_color"
         const val KEY_SIZE = "size"
         const val KEY_BACKUP = "backup"
         const val KEY_RESTORE = "restore"
@@ -681,5 +740,17 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_QUICKJS_LOG = "quickjs_log"
         const val KEY_QUICKJS_LOG_EXPORT = "quickjs_log_export"
         const val KEY_VERSION = "version"
+        private const val KEY_THEME_COLOR_PREFIX = "theme_color:"
+
+        @JvmStatic
+        fun themeColorAction(value: Int): String {
+            return "$KEY_THEME_COLOR_PREFIX$value"
+        }
+
+        @JvmStatic
+        fun parseThemeColorAction(key: String): Int? {
+            if (!key.startsWith(KEY_THEME_COLOR_PREFIX)) return null
+            return key.substring(KEY_THEME_COLOR_PREFIX.length).toIntOrNull()
+        }
     }
 }

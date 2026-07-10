@@ -1,8 +1,11 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.graphics.Color
+import android.os.Build
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import com.fongmi.android.tv.ui.theme.JetStreamPalette
 
 object JetStreamAnimator {
 
@@ -31,6 +34,11 @@ object JetStreamAnimator {
     fun animateFocus(view: View, focused: Boolean, scale: Float = FOCUS_SCALE_CARD, elevationDp: Int = 12, duration: Long = FOCUS_DURATION) {
         view.animate().cancel()
         view.isSelected = focused
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val shadowColor = if (focused) JetStreamPalette.shadowColor() else Color.TRANSPARENT
+            view.outlineAmbientShadowColor = shadowColor
+            view.outlineSpotShadowColor = shadowColor
+        }
         view.animate()
             .scaleX(if (focused) scale else 1f)
             .scaleY(if (focused) scale else 1f)

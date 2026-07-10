@@ -165,6 +165,9 @@ fun JetStreamPageScrim(
 
 /**
  * 径向渐变遮罩 - 从中心向外
+ *
+ * 位置支持两种方式：绝对像素（center/radius）或按画布尺寸的比例
+ * （centerFraction/radiusFraction）。优先使用比例，以适配不同分辨率。
  */
 @Composable
 fun JetStreamRadialScrim(
@@ -172,12 +175,23 @@ fun JetStreamRadialScrim(
     centerColor: Color = Color.Transparent,
     edgeColor: Color? = null,
     center: Offset? = null,
-    radius: Float? = null
+    radius: Float? = null,
+    centerFraction: Offset? = null,
+    radiusFraction: Float? = null
 ) {
     val resolvedEdgeColor = edgeColor ?: MaterialTheme.colorScheme.background.copy(alpha = 0.60f)
     Canvas(modifier = modifier.fillMaxSize()) {
-        val centerOffset = center ?: Offset(size.width / 2f, size.height / 2f)
-        val resolvedRadius = radius ?: maxOf(size.width, size.height) / 1.5f
+        val maxDimension = maxOf(size.width, size.height)
+        val centerOffset = when {
+            centerFraction != null -> Offset(size.width * centerFraction.x, size.height * centerFraction.y)
+            center != null -> center
+            else -> Offset(size.width / 2f, size.height / 2f)
+        }
+        val resolvedRadius = when {
+            radiusFraction != null -> maxDimension * radiusFraction
+            radius != null -> radius
+            else -> maxDimension / 1.5f
+        }
 
         drawCircle(
             brush = Brush.radialGradient(

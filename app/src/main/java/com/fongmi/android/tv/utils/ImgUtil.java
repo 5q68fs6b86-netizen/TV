@@ -19,8 +19,10 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -38,6 +40,8 @@ import jahirfiquitiva.libs.textdrawable.TextDrawable;
 public class ImgUtil {
 
     private static final Set<String> failed = Collections.synchronizedSet(new HashSet<>());
+
+    private static final DrawableCrossFadeFactory CROSS_FADE = new DrawableCrossFadeFactory.Builder(260).setCrossFadeEnabled(true).build();
 
     public static void logo(ImageView view) {
         try {
@@ -72,7 +76,7 @@ public class ImgUtil {
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
         else try {
-            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).listener(getListener(text, url, view, vod));
+            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).transition(DrawableTransitionOptions.withCrossFade(CROSS_FADE)).listener(getListener(text, url, view, vod));
             if (vod) builder.centerCrop().into(view);
             else builder.fitCenter().into(view);
         } catch (Throwable e) {

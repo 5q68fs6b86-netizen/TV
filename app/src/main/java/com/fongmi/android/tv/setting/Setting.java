@@ -6,6 +6,14 @@ import com.github.catvod.utils.Prefers;
 
 public class Setting {
 
+    public static final int THEME_DEFAULT = -1;
+    public static final int THEME_FOLLOW_WALLPAPER = 0;
+    public static final int THEME_BILIBILI_PINK = 0xFFFF6699;
+    public static final int THEME_EMERALD_GREEN = 0xFF00A870;
+    public static final int THEME_AMBER_GOLD = 0xFFFFB020;
+    public static final int THEME_OBSIDIAN_PURPLE = 0xFF8E5CFF;
+    public static final int THEME_FLAME_RED = 0xFFFF5A3D;
+
     private static final int MIN_WALL = 0;
     private static final int MAX_WALL = 4;
     private static final int MIN_WALL_TYPE = 0;
@@ -84,7 +92,7 @@ public class Setting {
     }
 
     public static int getThemeColor() {
-        return Prefers.getInt("theme_color", -1);
+        return Prefers.getInt("theme_color", THEME_DEFAULT);
     }
 
     public static void putThemeColor(int color) {
@@ -101,8 +109,8 @@ public class Setting {
 
     public static int getDynamicColor() {
         int color = getThemeColor();
-        if (color == -1) return 0;
-        return color != 0 ? color : getWallColor();
+        if (color == THEME_DEFAULT) return 0;
+        return color != THEME_FOLLOW_WALLPAPER ? color : getWallColor();
     }
 
     public static int getSiteMode() {

@@ -31,6 +31,13 @@
     <string name="setting_home">Home</string>
     <string name="setting_history">History</string>
     <string name="setting_default">Default</string>
+    <string name="theme_star_blue">Star Blue</string>
+    <string name="theme_follow_wallpaper">Follow Wallpaper</string>
+    <string name="theme_bilibili_pink">Bilibili Pink</string>
+    <string name="theme_emerald_green">Emerald Green</string>
+    <string name="theme_amber_gold">Amber Gold</string>
+    <string name="theme_obsidian_purple">Obsidian Purple</string>
+    <string name="theme_flame_red">Flame Red</string>
     <string name="setting_refresh">Refresh</string>
     <string name="setting_clear">Clear</string>
 

@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,6 +16,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -688,12 +690,21 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(id = icon),
-                contentDescription = contentDescription,
-                modifier = Modifier.size(24.dp),
-                tint = contentColor
-            )
+            AnimatedContent(
+                targetState = icon,
+                transitionSpec = {
+                    (scaleIn(initialScale = 0.7f, animationSpec = tween(220)) + fadeIn(tween(220)))
+                        .togetherWith(scaleOut(targetScale = 0.7f, animationSpec = tween(180)) + fadeOut(tween(180)))
+                },
+                label = "iconMorph"
+            ) { targetIcon ->
+                Icon(
+                    painter = painterResource(id = targetIcon),
+                    contentDescription = contentDescription,
+                    modifier = Modifier.size(24.dp),
+                    tint = contentColor
+                )
+            }
             if (selected) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawCircle(
