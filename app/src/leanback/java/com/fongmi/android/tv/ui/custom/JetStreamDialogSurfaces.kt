@@ -14,11 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.NestedScrollView
 import com.fongmi.android.tv.R
+import com.fongmi.android.tv.ui.theme.JetStreamPalette
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.checkbox.MaterialCheckBox
@@ -29,6 +31,21 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textview.MaterialTextView
+
+/**
+ * 给系统 MaterialAlertDialog 的按钮着当前主题色。
+ * 主题的 colorPrimary 是静态资源，无法随调色板运行时变化，弹出后手动补色。
+ */
+object JetStreamDialogDecor {
+
+    @JvmStatic
+    fun tintButtons(dialog: AlertDialog) {
+        val color = JetStreamPalette.primaryInt()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(color)
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(color)
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(color)
+    }
+}
 
 class JetStreamDialogScrollView @JvmOverloads constructor(
     context: Context,
@@ -498,6 +515,7 @@ private fun TextView.applyJetStreamDialogInputSurface(
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     setHintTextColor(jetStreamColorStateList(R.color.jetstream_list_supporting_text))
     setTextColor(jetStreamColorStateList(R.color.jetstream_list_title_text))
+    applyJetStreamTypeface()
     background = StateListDrawable().apply {
         addState(intArrayOf(android.R.attr.state_focused), jetStreamDialogInputDrawable(R.color.jetstream_primary_container, R.color.jetstream_primary, 2))
         addState(intArrayOf(), jetStreamDialogInputDrawable(R.color.jetstream_surface_container_high, R.color.jetstream_outline_variant, 1))
@@ -520,6 +538,7 @@ private fun MaterialTextView.applyJetStreamDialogTextDefaults(
     if (!hasTextColor) setTextColor(jetStreamColorStateList(defaultTextColorRes))
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     includeFontPadding = false
+    applyJetStreamTypeface()
 }
 
 private fun View.applyJetStreamSubtitleIconSurface() {
@@ -548,6 +567,7 @@ private fun MaterialButton.applyJetStreamDialogButtonSurface() {
     strokeColor = jetStreamColorStateList(R.color.jetstream_control_outline)
     strokeWidth = jetStreamDpInt(1)
     shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(22)).build()
+    applyJetStreamTypeface()
 }
 
 private fun Chip.applyJetStreamFilterChipSurface() {
@@ -560,6 +580,7 @@ private fun Chip.applyJetStreamFilterChipSurface() {
     chipStrokeWidth = jetStreamDp(1)
     rippleColor = jetStreamColorStateList(R.color.jetstream_scrim_medium)
     shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(22)).build()
+    applyJetStreamTypeface()
 }
 
 private fun LinearLayoutCompat.applyJetStreamDialogSectionSurface() {

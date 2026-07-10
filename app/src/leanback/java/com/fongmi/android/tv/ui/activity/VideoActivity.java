@@ -59,8 +59,10 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.custom.JetStreamChipRow;
+import com.fongmi.android.tv.ui.custom.JetStreamVideoDecor;
 import com.fongmi.android.tv.ui.custom.JetStreamVodControlView;
 import com.fongmi.android.tv.ui.custom.JetStreamVodDetailView;
+import com.fongmi.android.tv.ui.theme.JetStreamAmbient;
 import com.fongmi.android.tv.ui.dialog.ChapterDialog;
 import com.fongmi.android.tv.ui.dialog.ContentDialog;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
@@ -937,7 +939,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void exitFullscreen() {
-        mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
+        mBinding.video.setForeground(JetStreamVideoDecor.windowForeground(mBinding.video));
         mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setLayoutParams(mFrameParams);
         mKeyDown.setFull(false);
@@ -952,7 +954,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void applyWindowVideoStyle() {
         if (isFullscreen()) return;
         mBinding.player.setRender(PlayerSetting.RENDER_TEXTURE);
-        mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
+        mBinding.video.setForeground(JetStreamVideoDecor.windowForeground(mBinding.video));
         mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setClipToOutline(true);
         mBinding.video.post(() -> {
@@ -1549,6 +1551,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setArtwork() {
+        JetStreamAmbient.push(mHistory.getVodPic());
         ImgUtil.load(this, mHistory.getVodPic(), new CustomTarget<>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {

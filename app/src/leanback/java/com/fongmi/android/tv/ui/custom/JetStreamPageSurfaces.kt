@@ -19,6 +19,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.ImageView.ScaleType
 import android.widget.RelativeLayout
 import androidx.appcompat.widget.AppCompatImageView
@@ -280,6 +281,7 @@ class JetStreamHomeTitleView @JvmOverloads constructor(
         includeFontPadding = false
         setTextColor(jetStreamColor(R.color.jetstream_on_surface_variant))
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        applyJetStreamTypeface()
     }
 }
 
@@ -290,10 +292,11 @@ class JetStreamMetadataPillView @JvmOverloads constructor(
 ) : MaterialTextView(context, attrs, defStyleAttr) {
 
     init {
-        background = jetStreamOverlayBackground(
-            orientation = GradientDrawable.Orientation.TL_BR,
-            cornerRadii = FloatArray(8) { jetStreamDp(12) }
-        )
+        background = GradientDrawable().apply {
+            cornerRadius = jetStreamDp(12)
+            setColor(jetStreamColor(R.color.jetstream_overlay_surface))
+            setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
+        }
         gravity = Gravity.CENTER
         minHeight = jetStreamDpInt(24)
         applyJetStreamLabelText(
@@ -302,6 +305,7 @@ class JetStreamMetadataPillView @JvmOverloads constructor(
             defaultTextColorRes = R.color.jetstream_on_surface,
             defaultTextSizeSp = 12f
         )
+        applyJetStreamTextShadow()
         setPadding(jetStreamDpInt(8), jetStreamDpInt(4), jetStreamDpInt(8), jetStreamDpInt(4))
     }
 }
@@ -319,6 +323,13 @@ class JetStreamHeroActionLayout @JvmOverloads constructor(
         }
         elevation = jetStreamDp(6)
         clipToOutline = true
+    }
+
+    override fun onViewAdded(child: View?) {
+        super.onViewAdded(child)
+        if (child is ImageView && ImageViewCompat.getImageTintList(child) == null) {
+            ImageViewCompat.setImageTintList(child, ColorStateList.valueOf(jetStreamColor(R.color.jetstream_on_primary)))
+        }
     }
 }
 
@@ -584,6 +595,29 @@ class JetStreamRoundTypeView @JvmOverloads constructor(
     init {
         applyJetStreamRoundItemSurface(attrs, 0)
         JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
+    }
+}
+
+class JetStreamRoundChipLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamChipBackground(28)
+        if (hasNoPadding()) setPadding(jetStreamDpInt(14), jetStreamDpInt(8), jetStreamDpInt(14), jetStreamDpInt(8))
+    }
+}
+
+class JetStreamRoundChipImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AppCompatImageView(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamChipBackground(28)
     }
 }
 
@@ -916,6 +950,7 @@ class JetStreamSearchInputView @JvmOverloads constructor(
         setHintTextColor(jetStreamColorStateList(R.color.jetstream_list_supporting_text))
         setTextColor(jetStreamColorStateList(R.color.jetstream_list_title_text))
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+        applyJetStreamTypeface()
         if (hasNoPadding()) setPadding(jetStreamDpInt(10), 0, jetStreamDpInt(10), 0)
     }
 }
@@ -1116,6 +1151,7 @@ private fun MaterialTextView.applyJetStreamBodyText(
     if (!hasLetterSpacing) letterSpacing = 0.02f
     if (!hasLineSpacingExtra) setLineSpacing(jetStreamDp(6), 1f)
     includeFontPadding = false
+    applyJetStreamTypeface()
 }
 
 @SuppressLint("ResourceType")
@@ -1137,6 +1173,7 @@ private fun MaterialTextView.applyJetStreamLabelText(
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     if (defaultTextStyle != null && !hasTextStyle) setTypeface(typeface, defaultTextStyle)
     includeFontPadding = false
+    applyJetStreamTypeface()
 }
 
 @SuppressLint("ResourceType")
@@ -1152,6 +1189,7 @@ private fun MaterialTextView.applyJetStreamVodTitleText(attrs: AttributeSet?, de
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
     if (!hasTextStyle) setTypeface(typeface, Typeface.BOLD)
     includeFontPadding = false
+    applyJetStreamTypeface()
 }
 
 private fun MaterialTextView.applyJetStreamChipTextSurface(
@@ -1200,6 +1238,7 @@ private fun MaterialTextView.applyJetStreamControlTextDefaults(attrs: AttributeS
 
     if (!hasTextColor) setTextColor(jetStreamColorStateList(R.color.jetstream_control_text))
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
+    applyJetStreamTypeface()
 }
 
 private fun MaterialTextView.applyJetStreamTextShadow() {
@@ -1345,6 +1384,24 @@ private fun View.jetStreamFocusDrawable(cornerRadiusDp: Int, strokeWidthDp: Int)
         cornerRadius = jetStreamDp(cornerRadiusDp)
         setColor(Color.TRANSPARENT)
         setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(R.color.jetstream_primary))
+    }
+}
+
+object JetStreamVideoDecor {
+
+    @JvmStatic
+    fun windowForeground(view: View): StateListDrawable {
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_focused), view.jetStreamVideoWindowFocusDrawable())
+        }
+    }
+}
+
+private fun View.jetStreamVideoWindowFocusDrawable(): GradientDrawable {
+    return GradientDrawable().apply {
+        cornerRadius = jetStreamDp(28)
+        setColor(Color.TRANSPARENT)
+        setStroke((jetStreamDp(3) / 2f).toInt().coerceAtLeast(1), jetStreamColor(R.color.jetstream_primary))
     }
 }
 

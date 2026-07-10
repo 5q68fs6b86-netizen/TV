@@ -1,8 +1,12 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.content.Context
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.core.content.res.ResourcesCompat
 import com.fongmi.android.tv.R
 import com.fongmi.android.tv.ui.theme.JetStreamPalette
 
@@ -49,4 +53,22 @@ internal fun View.jetStreamDp(value: Int): Float {
 
 internal fun View.jetStreamDpInt(value: Int): Int {
     return jetStreamDp(value).toInt()
+}
+
+private var jetStreamTypefaceCache: Typeface? = null
+
+internal fun jetStreamTypeface(context: Context): Typeface? {
+    if (jetStreamTypefaceCache == null) {
+        jetStreamTypefaceCache = runCatching { ResourcesCompat.getFont(context, R.font.misans) }.getOrNull()
+    }
+    return jetStreamTypefaceCache
+}
+
+/**
+ * 应用品牌字体，保留当前字重/斜体样式。在文本样式辅助函数末尾调用。
+ */
+internal fun TextView.applyJetStreamTypeface() {
+    val family = jetStreamTypeface(context) ?: return
+    val style = typeface?.style ?: Typeface.NORMAL
+    if (style == Typeface.NORMAL) typeface = family else setTypeface(family, style)
 }

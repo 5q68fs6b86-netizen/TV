@@ -7,8 +7,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.fongmi.android.tv.R
 
 /**
  * JetStream Material Design 3 Color Scheme
@@ -70,24 +73,36 @@ object JetStreamThemeController {
 }
 
 /**
+ * JetStream 品牌字体：MiSans（子集化，常用字覆盖，罕见字回退系统字体）
+ */
+val JetStreamFontFamily = FontFamily(
+    Font(R.font.misans_regular, FontWeight.Normal),
+    Font(R.font.misans_medium, FontWeight.Medium),
+    Font(R.font.misans_semibold, FontWeight.SemiBold)
+)
+
+/**
  * JetStream Typography
  * 统一的文字排版样式
  */
 val JetStreamTypography = Typography(
     // Display styles - 大标题
     displayLarge = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 45.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 36.sp,
         lineHeight = 44.sp,
@@ -96,18 +111,21 @@ val JetStreamTypography = Typography(
 
     // Headline styles - 标题
     headlineLarge = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
         lineHeight = 32.sp,
@@ -116,18 +134,21 @@ val JetStreamTypography = Typography(
 
     // Title styles - 副标题
     titleLarge = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
@@ -136,18 +157,21 @@ val JetStreamTypography = Typography(
 
     // Body styles - 正文
     bodyLarge = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
@@ -156,18 +180,21 @@ val JetStreamTypography = Typography(
 
     // Label styles - 标签
     labelLarge = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
+        fontFamily = JetStreamFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp,

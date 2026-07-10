@@ -267,6 +267,7 @@ private fun MaterialTextView.applyJetStreamPlaybackTextDefaults(
     if (!hasTextColor) setTextColor(jetStreamColorStateList(defaultTextColorRes))
     if (!hasTextSize && !hasTextAppearance) setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp)
     if (defaultLetterSpacing != null && !hasLetterSpacing) letterSpacing = defaultLetterSpacing
+    applyJetStreamTypeface()
 }
 
 private fun MaterialTextView.applyJetStreamPlaybackTextShadow() {

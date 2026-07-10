@@ -36,6 +36,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.PreloadSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.custom.JetStreamDialogDecor;
 import com.fongmi.android.tv.ui.custom.JetStreamSettingView;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
@@ -632,7 +633,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         input.setPadding(padding, 0, padding, 0);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
-        new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+        JetStreamDialogDecor.tintButtons(new MaterialAlertDialogBuilder(this).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show());
     }
 
     private void setApiUrl(int title, String value, Consumer<String> callback) {
@@ -649,7 +650,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
         container.setPadding(0, ResUtil.dp2px(8), 0, 0);
         container.addView(input, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
-        new MaterialAlertDialogBuilder(this).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+        JetStreamDialogDecor.tintButtons(new MaterialAlertDialogBuilder(this).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show());
     }
 
     private void setSize() {
