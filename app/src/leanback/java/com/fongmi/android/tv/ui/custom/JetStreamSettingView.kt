@@ -48,6 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.AbstractComposeView
@@ -519,11 +521,22 @@ class JetStreamSettingView @JvmOverloads constructor(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (action.swatch != null) {
+                val swatchColor = Color(action.swatch.toLong() and 0xFFFFFFFF)
                 Box(
                     modifier = Modifier
                         .size(18.dp)
                         .clip(CircleShape)
-                        .background(Color(action.swatch.toLong() and 0xFFFFFFFF))
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    lightenColor(swatchColor, 0.28f),
+                                    swatchColor,
+                                    darkenColor(swatchColor, 0.32f)
+                                ),
+                                center = Offset(5.4f, 5.4f),
+                                radius = 22f
+                            )
+                        )
                         .border(1.dp, contentColor.copy(alpha = 0.48f), CircleShape)
                 )
             } else if (action.icon != null) {
@@ -754,3 +767,17 @@ class JetStreamSettingView @JvmOverloads constructor(
         }
     }
 }
+
+private fun lightenColor(color: Color, fraction: Float): Color = Color(
+    red = color.red + (1f - color.red) * fraction,
+    green = color.green + (1f - color.green) * fraction,
+    blue = color.blue + (1f - color.blue) * fraction,
+    alpha = color.alpha
+)
+
+private fun darkenColor(color: Color, fraction: Float): Color = Color(
+    red = color.red * (1f - fraction),
+    green = color.green * (1f - fraction),
+    blue = color.blue * (1f - fraction),
+    alpha = color.alpha
+)

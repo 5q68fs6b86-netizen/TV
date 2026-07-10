@@ -23,6 +23,7 @@
             android:clipToOutline="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
+            android:transitionName="jetstream_hero"
             android:nextFocusLeft="@id/video"
             android:nextFocusRight="@id/detail"
             android:nextFocusUp="@id/video"
