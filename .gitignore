@@ -13,4 +13,5 @@ lib-*.aar
 /Release
 /docs
 .codex-apk-work
-.codex.kotlin/
+.codex
+.kotlin/

@@ -846,14 +846,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
                         Key.DirectionLeft -> {
                             selected = true
-                            seekProgress = (seekProgress - 0.10f).coerceAtLeast(0f)
+                            seekProgress = (seekProgress - seekStepFraction(event)).coerceAtLeast(0f)
                             listener?.onShowControls()
                             true
                         }
 
                         Key.DirectionRight -> {
                             selected = true
-                            seekProgress = (seekProgress + 0.10f).coerceAtMost(1f)
+                            seekProgress = (seekProgress + seekStepFraction(event)).coerceAtMost(1f)
                             listener?.onShowControls()
                             true
                         }
@@ -889,6 +889,13 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private fun toggleGroup(group: String) {
         activeGroup = if (activeGroup == group || !hasVisibleCommands(group)) null else group
         listener?.onShowControls()
+    }
+
+    /**
+     * 进度条步进：单击 1% 精调，按住连发升到 4% 快扫。
+     */
+    private fun seekStepFraction(event: androidx.compose.ui.input.key.KeyEvent): Float {
+        return if (event.nativeKeyEvent.repeatCount < 5) 0.01f else 0.04f
     }
 
     private fun setCommandGroupVisibility(key: String, visible: Boolean) {

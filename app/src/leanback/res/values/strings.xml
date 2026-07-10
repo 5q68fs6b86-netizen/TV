@@ -31,6 +31,7 @@
     <string name="setting_home">Home</string>
     <string name="setting_history">History</string>
     <string name="setting_default">Default</string>
+    <string name="setting_seek_accelerate">Seek Acceleration</string>
     <string name="theme_star_blue">Star Blue</string>
     <string name="theme_follow_wallpaper">Follow Wallpaper</string>
     <string name="theme_bilibili_pink">Bilibili Pink</string>

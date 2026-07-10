@@ -153,6 +153,14 @@ public class Setting {
         Prefers.put("adblock", adblock);
     }
 
+    public static boolean isSeekAccelerate() {
+        return Prefers.getBoolean("seek_accelerate", true);
+    }
+
+    public static void putSeekAccelerate(boolean value) {
+        Prefers.put("seek_accelerate", value);
+    }
+
     public static boolean isZhuyin() {
         return Prefers.getBoolean("zhuyin");
     }
