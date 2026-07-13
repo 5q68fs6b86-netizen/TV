@@ -34,8 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEventType
@@ -210,7 +208,6 @@ class JetStreamChipRow @JvmOverloads constructor(
     override fun Content() {
         JetStreamTheme {
             val listState = rememberLazyListState()
-            val focusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
 
             LaunchedEffect(focusedIndex) {
                 if (focusedIndex in 0 until items.size) {
@@ -230,21 +227,13 @@ class JetStreamChipRow @JvmOverloads constructor(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 itemsIndexed(items) { index, text ->
-                    val requester = focusRequesters.getOrPut(index) { FocusRequester() }
                     Chip(
                         text = text,
                         focused = rowFocused && index == focusedIndex,
                         selected = index == selectedIndex,
-                        focusRequester = requester,
                         onClick = { clickChip(index) },
                         onLongClick = longClickListener?.let { { longClickChip(index) } }
                     )
-
-                    LaunchedEffect(rowFocused, focusedIndex) {
-                        if (rowFocused && index == focusedIndex) {
-                            runCatching { requester.requestFocus() }
-                        }
-                    }
                 }
             }
         }
@@ -256,7 +245,6 @@ class JetStreamChipRow @JvmOverloads constructor(
         text: String,
         focused: Boolean,
         selected: Boolean,
-        focusRequester: FocusRequester,
         onClick: () -> Unit,
         onLongClick: (() -> Unit)?
     ) {
@@ -300,7 +288,6 @@ class JetStreamChipRow @JvmOverloads constructor(
                     if (focused) Modifier.border(JetStreamBorders.Medium, border, JetStreamShapes.Chip)
                     else Modifier
                 )
-                .focusRequester(focusRequester)
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,

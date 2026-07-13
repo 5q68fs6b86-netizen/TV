@@ -653,7 +653,25 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             requestRecyclerFocus();
             return true;
         }
+        if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event) && isFeaturedFocused() && moveFocusBelowFeatured()) return true;
         return super.dispatchKeyEvent(event);
+    }
+
+    private boolean isFeaturedFocused() {
+        if (!mBinding.recycler.hasFocus()) return false;
+        int position = mBinding.recycler.getSelectedPosition();
+        return position >= 0 && position < mAdapter.size() && mAdapter.get(position) instanceof FeaturedVodRow;
+    }
+
+    private boolean moveFocusBelowFeatured() {
+        int position = mBinding.recycler.getSelectedPosition();
+        for (int i = position + 1; i < mAdapter.size(); i++) {
+            Object item = mAdapter.get(i);
+            if (item instanceof Integer || item instanceof String) continue;
+            requestRecyclerFocus(i);
+            return true;
+        }
+        return false;
     }
 
     @Override
