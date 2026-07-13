@@ -14,3 +14,4 @@ lib-*.aar
 /docs
 .codex-apk-work
 .codex
+.kotlin/

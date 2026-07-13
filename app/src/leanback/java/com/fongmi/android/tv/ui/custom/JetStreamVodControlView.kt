@@ -14,17 +14,16 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +40,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -61,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
@@ -82,7 +82,6 @@ import com.fongmi.android.tv.ui.components.JetStreamControlScrim
 import com.fongmi.android.tv.ui.components.JetStreamInfoScrim
 import com.fongmi.android.tv.ui.theme.JetStreamTheme
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
-import com.fongmi.android.tv.ui.theme.JetStreamSpacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToLong
@@ -141,6 +140,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var controlFocused by mutableStateOf(false)
     private var fullscreenState by mutableStateOf(false)
     private var primaryFocusRequest by mutableLongStateOf(0L)
+    private var settingsCloseFocus by mutableLongStateOf(0L)
     private val commandGroups = mutableStateListOf(
         CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
         CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, "Captions", true, CAPTION_COMMANDS),
@@ -325,6 +325,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 ) {
                     PauseCard(positionMs, durationMs)
                 }
+                SettingsDrawer()
             }
         }
     }
@@ -406,7 +407,6 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 positionMs = positionMs,
                 durationMs = durationMs
             )
-            MorePanel()
         }
     }
 
@@ -605,8 +605,11 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun SeekerRow(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
         val playFocusRequester = remember { FocusRequester() }
-        LaunchedEffect(controlPanelVisible, controlFocused, primaryFocusRequest) {
-            if (controlPanelVisible && controlFocused) runCatching { playFocusRequester.requestFocus() }
+        LaunchedEffect(controlPanelVisible, controlFocused, primaryFocusRequest, activeGroup) {
+            if (controlPanelVisible && controlFocused && activeGroup == null) runCatching { playFocusRequester.requestFocus() }
+        }
+        LaunchedEffect(settingsCloseFocus) {
+            if (settingsCloseFocus > 0L) runCatching { playFocusRequester.requestFocus() }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -634,81 +637,150 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun MorePanel() {
-        val group = activeGroup ?: return
-        val groupState = commandGroups.firstOrNull { it.key == group && it.visible } ?: return
-        val visibleCommands = groupState.commandKeys.mapNotNull { key ->
+    private fun BoxScope.SettingsDrawer() {
+        val group = activeGroup
+        val groupState = commandGroups.firstOrNull { it.key == group && it.visible }
+        val visibleCommands = groupState?.commandKeys?.mapNotNull { key ->
             commands[key]?.takeIf { it.visible && it.label.isNotEmpty() }?.let { key to it }
-        }
-        if (visibleCommands.isEmpty()) return
+        }.orEmpty()
+        val open = group != null && visibleCommands.isNotEmpty()
+        val drawerFocus = remember { FocusRequester() }
+        var focusedIndex by remember(group) { mutableStateOf(0) }
 
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+        LaunchedEffect(group, visibleCommands.size) {
+            if (open) {
+                val selected = visibleCommands.indexOfFirst { it.second.selected }
+                focusedIndex = (if (selected >= 0) selected else 0).coerceIn(0, visibleCommands.lastIndex.coerceAtLeast(0))
+                runCatching { drawerFocus.requestFocus() }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = open,
+            enter = fadeIn(tween(JetStreamAnimations.DurationPanel)) + slideInHorizontally(
+                animationSpec = tween(JetStreamAnimations.DurationPanel),
+                initialOffsetX = { it }
+            ),
+            exit = fadeOut(tween(JetStreamAnimations.DurationExit)) + slideOutHorizontally(
+                animationSpec = tween(JetStreamAnimations.DurationExit),
+                targetOffsetX = { it }
+            ),
+            modifier = Modifier.align(Alignment.CenterEnd)
         ) {
-            visibleCommands.forEach { (key, state) ->
-                CommandChip(
-                    state = state,
-                    onClick = { triggerCommand(key, false) },
-                    onLongClick = { triggerCommand(key, true) }
+            val colorScheme = MaterialTheme.colorScheme
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(328.dp)
+                    .padding(vertical = 28.dp, horizontal = 28.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(colorScheme.surface.copy(alpha = 0.94f))
+                    .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(28.dp))
+                    .focusRequester(drawerFocus)
+                    .onPreviewKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        when (event.key) {
+                            Key.DirectionUp -> {
+                                if (visibleCommands.isNotEmpty()) focusedIndex = (focusedIndex - 1).coerceAtLeast(0)
+                                true
+                            }
+                            Key.DirectionDown -> {
+                                if (visibleCommands.isNotEmpty()) focusedIndex = (focusedIndex + 1).coerceAtMost(visibleCommands.lastIndex)
+                                true
+                            }
+                            Key.DirectionCenter, Key.Enter -> {
+                                visibleCommands.getOrNull(focusedIndex)?.let { triggerCommand(it.first, false) }
+                                true
+                            }
+                            Key.DirectionLeft, Key.Back -> {
+                                closeSettingsDrawer()
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+                    .focusable()
+                    .padding(vertical = 18.dp)
+            ) {
+                Text(
+                    text = groupTitle(group),
+                    color = colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                 )
+                Spacer(Modifier.height(6.dp))
+                visibleCommands.forEachIndexed { index, item ->
+                    SettingRow(
+                        label = item.second.label,
+                        selected = item.second.selected,
+                        focused = index == focusedIndex
+                    )
+                }
             }
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun CommandChip(state: CommandState, onClick: () -> Unit, onLongClick: () -> Unit) {
+    private fun SettingRow(label: String, selected: Boolean, focused: Boolean) {
         val colorScheme = MaterialTheme.colorScheme
-        val interactionSource = remember { MutableInteractionSource() }
-        val focused by interactionSource.collectIsFocusedAsState()
-        val scale by animateFloatAsState(
-            if (focused) JetStreamAnimations.FocusScaleMedium else 1.0f,
-            animationSpec = JetStreamAnimations.ScaleSpring,
-            label = "chipScale"
+        val background by animateColorAsState(
+            targetValue = when {
+                focused -> colorScheme.primaryContainer
+                selected -> colorScheme.secondaryContainer
+                else -> Color.Transparent
+            },
+            animationSpec = JetStreamAnimations.ColorTween,
+            label = "settingRowBackground"
         )
         val contentColor by animateColorAsState(
             targetValue = when {
-                state.selected || focused -> colorScheme.onSurface
+                focused -> colorScheme.onPrimaryContainer
+                selected -> colorScheme.onSecondaryContainer
                 else -> colorScheme.onSurfaceVariant
             },
             animationSpec = JetStreamAnimations.ColorTween,
-            label = "chipContent"
+            label = "settingRowContent"
         )
-        Box(
+        Row(
             modifier = Modifier
-                .height(36.dp)
-                .graphicsLayer(scaleX = scale, scaleY = scale)
-                .combinedClickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = {
-                        listener?.onShowControls()
-                        onClick()
-                    },
-                    onLongClick = {
-                        listener?.onShowControls()
-                        onLongClick()
-                    }
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 3.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(background)
+                .then(
+                    if (focused) Modifier.border(1.5.dp, colorScheme.primary, RoundedCornerShape(14.dp))
+                    else Modifier
                 )
-                .padding(horizontal = JetStreamSpacing.ButtonHorizontalPadding),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = state.label,
+                text = label,
                 color = contentColor,
-                fontSize = 14.sp,
-                fontWeight = if (state.selected || focused) FontWeight.SemiBold else FontWeight.Medium,
+                fontSize = 15.sp,
+                fontWeight = if (focused || selected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
         }
-        LaunchedEffect(focused) {
-            if (focused) listener?.onShowControls()
+    }
+
+    private fun closeSettingsDrawer() {
+        activeGroup = null
+        settingsCloseFocus++
+        listener?.onShowControls()
+    }
+
+    private fun groupTitle(group: String?): String {
+        return when (group) {
+            GROUP_PLAYLIST -> "播放列表"
+            GROUP_CAPTIONS -> "字幕 · 音轨"
+            GROUP_SETTINGS -> "设置"
+            else -> ""
         }
     }
 
@@ -846,14 +918,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
                         Key.DirectionLeft -> {
                             selected = true
-                            seekProgress = (seekProgress - 0.10f).coerceAtLeast(0f)
+                            seekProgress = (seekProgress - seekStepFraction(event)).coerceAtLeast(0f)
                             listener?.onShowControls()
                             true
                         }
 
                         Key.DirectionRight -> {
                             selected = true
-                            seekProgress = (seekProgress + 0.10f).coerceAtMost(1f)
+                            seekProgress = (seekProgress + seekStepFraction(event)).coerceAtMost(1f)
                             listener?.onShowControls()
                             true
                         }
@@ -889,6 +961,13 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private fun toggleGroup(group: String) {
         activeGroup = if (activeGroup == group || !hasVisibleCommands(group)) null else group
         listener?.onShowControls()
+    }
+
+    /**
+     * 进度条步进：单击 1% 精调，按住连发升到 4% 快扫。
+     */
+    private fun seekStepFraction(event: androidx.compose.ui.input.key.KeyEvent): Float {
+        return if (event.nativeKeyEvent.repeatCount < 5) 0.01f else 0.04f
     }
 
     private fun setCommandGroupVisibility(key: String, visible: Boolean) {

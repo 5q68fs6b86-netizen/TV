@@ -145,6 +145,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_MPV_GPU_NEXT, Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
         setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
         setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
+        setRowValue(JetStreamSettingView.KEY_SEEK_ACCELERATE, Setting.getSwitch(Setting.isSeekAccelerate()));
         setRowVisible(JetStreamSettingView.KEY_MPV_CONF, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_ANIME4K, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_GPU_NEXT, !exo);
@@ -260,6 +261,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_MPV_GPU_NEXT -> setMpvGpuNext();
             case JetStreamSettingView.KEY_MPV_VULKAN -> setMpvVulkan();
             case JetStreamSettingView.KEY_ADBLOCK -> setAdblock();
+            case JetStreamSettingView.KEY_SEEK_ACCELERATE -> setSeekAccelerate();
             case JetStreamSettingView.KEY_TUNNEL -> setTunnel();
             case JetStreamSettingView.KEY_AUDIO_PASS_THROUGH -> setAudioPassThrough();
             case JetStreamSettingView.KEY_AUDIO_PREFER -> setAudioPrefer();
@@ -489,6 +491,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setAdblock() {
         Setting.putAdblock(!Setting.isAdblock());
         setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
+    }
+
+    private void setSeekAccelerate() {
+        Setting.putSeekAccelerate(!Setting.isSeekAccelerate());
+        setRowValue(JetStreamSettingView.KEY_SEEK_ACCELERATE, Setting.getSwitch(Setting.isSeekAccelerate()));
     }
 
     private void setTunnel() {

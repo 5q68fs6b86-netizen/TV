@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.utils.KeyUtil;
 
 public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
@@ -48,9 +49,9 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
 
     private void check(KeyEvent event) {
         if (KeyUtil.isActionDown(event) && KeyUtil.isLeftKey(event)) {
-            listener.onSeeking(subTime());
+            listener.onSeeking(subTime(event));
         } else if (KeyUtil.isActionDown(event) && KeyUtil.isRightKey(event)) {
-            listener.onSeeking(addTime());
+            listener.onSeeking(addTime(event));
         } else if (KeyUtil.isActionUp(event) && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
             App.post(() -> listener.onSeekEnd(holdTime), 250);
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isUpKey(event)) {
@@ -78,12 +79,24 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         return true;
     }
 
-    private long addTime() {
-        return holdTime = holdTime + Constant.INTERVAL_SEEK;
+    private long addTime(KeyEvent event) {
+        return holdTime = holdTime + seekStep(event);
     }
 
-    private long subTime() {
-        return holdTime = holdTime - Constant.INTERVAL_SEEK;
+    private long subTime(KeyEvent event) {
+        return holdTime = holdTime - seekStep(event);
+    }
+
+    /**
+     * 长按加速：按住方向键时步长逐级放大（10s → 20s → 30s），点按保持 10s 精调。
+     * 可在 设置→播放 中关闭，关闭后恒为 10s。
+     */
+    private long seekStep(KeyEvent event) {
+        if (!Setting.isSeekAccelerate()) return Constant.INTERVAL_SEEK;
+        int repeat = event.getRepeatCount();
+        if (repeat < 5) return Constant.INTERVAL_SEEK;
+        if (repeat < 25) return Constant.INTERVAL_SEEK * 2;
+        return Constant.INTERVAL_SEEK * 3;
     }
 
     public void reset() {
