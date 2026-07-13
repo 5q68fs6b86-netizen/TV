@@ -44,6 +44,7 @@ class JetStreamSheetHeaderView @JvmOverloads constructor(
         typedArray.recycle()
         isFocusable = false
         isFocusableInTouchMode = false
+        descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
 

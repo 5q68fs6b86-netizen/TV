@@ -498,6 +498,27 @@ class JetStreamDialogListRecyclerView @JvmOverloads constructor(
             clipToOutline = false
         }
     }
+
+    override fun focusSearch(focused: View?, direction: Int): View? {
+        val result = super.focusSearch(focused, direction)
+        if (direction == View.FOCUS_UP && focused != null && nextFocusUpId != View.NO_ID) {
+            val movedWithin = result != null && result !== focused && isDescendant(result)
+            if (!movedWithin) {
+                val target = rootView?.findViewById<View>(nextFocusUpId)
+                if (target != null && target.isFocusable && target.isShown && target.isEnabled) return target
+            }
+        }
+        return result
+    }
+
+    private fun isDescendant(view: View): Boolean {
+        var parent: android.view.ViewParent? = view.parent
+        while (parent != null) {
+            if (parent === this) return true
+            parent = parent.parent
+        }
+        return false
+    }
 }
 
 @SuppressLint("ResourceType")

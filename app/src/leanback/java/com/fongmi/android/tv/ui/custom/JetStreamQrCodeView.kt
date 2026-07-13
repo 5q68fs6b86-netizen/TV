@@ -40,6 +40,7 @@ class JetStreamQrCodeView @JvmOverloads constructor(
     init {
         isFocusable = false
         isFocusableInTouchMode = false
+        descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
 

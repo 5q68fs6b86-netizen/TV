@@ -41,6 +41,7 @@ class JetStreamPageBackgroundView @JvmOverloads constructor(
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
         isFocusable = false
         isFocusableInTouchMode = false
+        descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
