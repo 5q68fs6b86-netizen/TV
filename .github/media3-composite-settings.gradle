@@ -28,6 +28,9 @@ project(modulePrefix + 'lib-datasource-rtmp').projectDir = new File(media3RootDi
 include modulePrefix + 'lib-decoder'
 project(modulePrefix + 'lib-decoder').projectDir = new File(media3RootDir, 'libraries/decoder')
 
+include modulePrefix + 'lib-decoder-av3a'
+project(modulePrefix + 'lib-decoder-av3a').projectDir = new File(media3RootDir, 'libraries/decoder_av3a')
+
 include modulePrefix + 'lib-exoplayer'
 project(modulePrefix + 'lib-exoplayer').projectDir = new File(media3RootDir, 'libraries/exoplayer')
 

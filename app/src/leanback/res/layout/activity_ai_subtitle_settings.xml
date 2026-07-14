@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.fongmi.android.tv.ui.custom.JetStreamPageBackgroundView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingTop="36dp"
+        android:paddingEnd="48dp"
+        android:paddingBottom="32dp">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamPageHeaderView
+            android:layout_width="match_parent"
+            android:layout_height="108dp"
+            app:jetStreamEyebrow="AI SUBTITLE"
+            app:jetStreamSubtitle="实时语音识别字幕与简体中文翻译"
+            app:jetStreamTitle="AI 字幕设置" />
+
+        <com.fongmi.android.tv.ui.custom.JetStreamPageContentScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="20dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="24dp">
+
+                <!-- ================= 分区A 实时语音字幕 ================= -->
+                <com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamLargeLabelTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="实时语音字幕"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="启用播放音频识别字幕" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSwitch
+                            android:id="@+id/enabledSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="识别语种（模型由语种自动确定）" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                        android:id="@+id/languageInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:id="@+id/languageStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        tools:text="德语语言包：已安装" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                            android:id="@+id/download"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:nextFocusRight="@id/delete"
+                            android:text="下载语言包" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                            android:id="@+id/delete"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/download"
+                            android:text="删除语言包" />
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+                </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
+
+                <!-- ================= 分区B 字幕翻译 ================= -->
+                <com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamLargeLabelTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="简体中文字幕翻译"
+                        android:textStyle="bold" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="默认翻译无需部署；MTranServer 与大模型为可选增强项。" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="翻译后端" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                        android:id="@+id/providerInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="字幕显示" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                        android:id="@+id/modeInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <!-- MTranServer -->
+                    <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
+                        android:id="@+id/mtranGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="MTranServer 地址" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
+                            android:id="@+id/mtranUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="MTranServer 地址"
+                            android:inputType="textUri"
+                            android:singleLine="true" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="访问 Token（可选）" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
+                            android:id="@+id/mtranToken"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="访问 Token（可选）"
+                            android:inputType="textPassword"
+                            android:singleLine="true" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:id="@+id/mtranTokenHelper"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                            android:id="@+id/mtranTokenPush"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="手机推送 Token" />
+                    </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+
+                    <!-- OpenAI 兼容大模型 -->
+                    <com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout
+                        android:id="@+id/llmGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="OpenAI 兼容服务地址" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
+                            android:id="@+id/baseUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="OpenAI 兼容服务地址"
+                            android:inputType="textUri"
+                            android:singleLine="true" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="翻译模型（可输入自定义模型名）" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                            android:id="@+id/modelInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="API Key" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamDialogEditText
+                            android:id="@+id/apiKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="API Key"
+                            android:inputType="textPassword"
+                            android:singleLine="true" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                            android:id="@+id/apiKeyHelper"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone" />
+
+                        <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                            android:id="@+id/apiKeyPush"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="手机推送 API Key" />
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="启用模型思考（默认关闭）" />
+
+                            <com.fongmi.android.tv.ui.custom.JetStreamSwitch
+                                android:id="@+id/thinkingSwitch"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="启用跨字幕上下文（默认关闭）" />
+
+                            <com.fongmi.android.tv.ui.custom.JetStreamSwitch
+                                android:id="@+id/contextSwitch"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+                    </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                        android:id="@+id/testBackend"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="一键检测当前翻译配置与延时" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                        android:id="@+id/testResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_horizontal" />
+
+                    <com.fongmi.android.tv.ui.custom.JetStreamPrimaryButtonTextView
+                        android:id="@+id/save"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:minHeight="54dp"
+                        android:text="保存并应用" />
+                </com.fongmi.android.tv.ui.custom.JetStreamPagePanelLayout>
+            </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+        </com.fongmi.android.tv.ui.custom.JetStreamPageContentScrollView>
+    </com.fongmi.android.tv.ui.custom.JetStreamPageContentLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamPageRootLayout>

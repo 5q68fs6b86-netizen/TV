@@ -190,6 +190,18 @@
     <string name="player_mpv_vulkan">vulkan</string>
     <string name="player_mpv_conf_import_success">Imported mpv.conf</string>
     <string name="player_ua">User-Agent</string>
+    <string name="player_av3a">AV3A audio decoding</string>
+    <string name="player_dv7">Dolby Vision (HEVC fallback)</string>
+    <string name="player_ai_subtitle">Live speech subtitles &amp; translation</string>
+    <string name="ai_subtitle_on">Subtitle translation: On</string>
+    <string name="ai_subtitle_off">Subtitle translation: Off</string>
+    <string name="ai_subtitle_language">Source: %1$s</string>
+    <string name="ai_subtitle_choose_language">Current source language</string>
+    <string name="ai_subtitle_model_missing">The %1$s language pack is not installed. Download it before enabling subtitles.</string>
+    <string name="ai_subtitle_starting">Subtitle translation service is starting…</string>
+    <string name="ai_subtitle_memory_blocked">This device does not meet the safe memory requirement for the %1$s language pack.</string>
+    <string name="ai_subtitle_go_download">Download</string>
+    <string name="ai_secret_push_info">Open %1$s on your phone, select Settings, paste the value and tap Confirm.</string>
 
     <!-- Danmaku -->
     <string name="danmaku_load">Danmaku load</string>

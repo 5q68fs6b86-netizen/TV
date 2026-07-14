@@ -192,4 +192,20 @@ public class PlayerSetting {
     public static void putPreferAAC(boolean preferAAC) {
         Prefers.put("prefer_aac", preferAAC);
     }
+
+    public static boolean isAv3a() {
+        return Prefers.getBoolean("av3a");
+    }
+
+    public static void putAv3a(boolean av3a) {
+        Prefers.put("av3a", av3a);
+    }
+
+    public static boolean isDv7HevcFallback() {
+        return Prefers.getBoolean("dv7_hevc");
+    }
+
+    public static void putDv7HevcFallback(boolean dv7HevcFallback) {
+        Prefers.put("dv7_hevc", dv7HevcFallback);
+    }
 }

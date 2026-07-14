@@ -98,6 +98,10 @@ android {
         disable 'ExpiredTargetSdkVersion'
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
     compileOptions {
         coreLibraryDesugaringEnabled = true
         sourceCompatibility JavaVersion.VERSION_21
@@ -118,6 +122,7 @@ androidComponents {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
+    implementation files('libs/sherpa-onnx-v1.13.4.jar')
     implementation project(':catvod')
     implementation project(':chaquo')
     implementation project(':quickjs')
@@ -125,6 +130,7 @@ dependencies {
     implementation libs.coroutines.android
     implementation libs.lifecycle.service
     implementation libs.bundles.media3
+    implementation "androidx.media3:media3-decoder-av3a:1.10.1"
     implementation libs.palette
     implementation libs.recyclerview
     implementation libs.room.runtime
@@ -157,6 +163,8 @@ dependencies {
     annotationProcessor libs.eventbus.annotation.processor
     annotationProcessor libs.glide.compiler
     testImplementation libs.junit
+    testImplementation "com.squareup.okhttp3:mockwebserver:5.4.0"
+    testImplementation "org.json:json:20250517"
     androidTestImplementation libs.junit
     androidTestImplementation 'androidx.test:runner:1.6.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

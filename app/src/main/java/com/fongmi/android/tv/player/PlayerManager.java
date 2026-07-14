@@ -386,6 +386,14 @@ public class PlayerManager implements ParseCallback {
         startCurrent(getPosition());
     }
 
+    /** Rebuilds the renderer/AudioSink so the AI PCM tap and lookahead buffer change immediately. */
+    public void rebuildAudioPipeline() {
+        if (engine == null || spec == null || player == null) return;
+        long position = isLive() ? C.TIME_UNSET : getPosition();
+        setPlayer(engine.rebuild());
+        startCurrent(position);
+    }
+
     private void handleDecodeError(PlaybackException e) {
         if (++retry > 1) {
             callback.onError(engine.getErrorMessage(e));
@@ -567,8 +575,8 @@ public class PlayerManager implements ParseCallback {
 
         @Override
         public void onTracksChanged(@NonNull Tracks tracks) {
-            if (tracks.isEmpty() || initTrack) return;
-            setTrack(Track.find(getKey()));
+            if (tracks.isEmpty()) return;
+            if (!initTrack) setTrack(Track.find(getKey()));
             callback.onTracksChanged();
             initTrack = true;
         }

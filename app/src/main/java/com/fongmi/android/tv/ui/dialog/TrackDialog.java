@@ -42,6 +42,7 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
     private final TrackAdapter adapter;
     private DialogTrackBinding binding;
     private PlayerManager player;
+    private boolean selectionHandled;
     private int type;
 
     public static TrackDialog create() {
@@ -174,7 +175,16 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
 
     @Override
     public void onItemClick(Track item) {
-        player.setTrack(Arrays.asList(item.key(player.getKey()).save()));
+        // Selecting an already active audio or video track must be idempotent. Toggling it off
+        // creates an empty TrackSelectionOverride, tears down the decoder/renderer and can race
+        // with a second remote click while the bottom sheet is closing. Text tracks intentionally
+        // keep their toggle-off behavior so users can disable subtitles.
+        if (selectionHandled) return;
+        selectionHandled = true;
+        boolean isAudioOrVideo = item.getType() == C.TRACK_TYPE_AUDIO || item.getType() == C.TRACK_TYPE_VIDEO;
+        if (!(isAudioOrVideo && item.isSelected())) {
+            player.setTrack(Arrays.asList(item.toggle().key(player.getKey()).save()));
+        }
         dismiss();
     }
 

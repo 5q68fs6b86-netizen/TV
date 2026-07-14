@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.ai.subtitle.AiSubtitleSettingsActivity;
 import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
 import com.fongmi.android.tv.impl.SpeedListener;
 import com.fongmi.android.tv.impl.UaListener;
@@ -77,6 +78,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         mBinding.adblock.setOnClickListener(this::setAdblock);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.decode.setOnClickListener(this::onDecode);
+        mBinding.aiSubtitle.setOnClickListener(v -> AiSubtitleSettingsActivity.start(requireContext()));
         mBinding.ua.setOnClickListener(this::onUa);
     }
 
