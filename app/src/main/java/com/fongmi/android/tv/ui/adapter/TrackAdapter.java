@@ -74,8 +74,9 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.ViewHolder> 
         @Override
         public void onClick(View view) {
             int position = getBindingAdapterPosition();
-            if (!isValidPosition(position)) return;
-            listener.onItemClick(mItems.get(position).toggle());
+            if (!isValidPosition(position) || !view.isEnabled()) return;
+            view.setEnabled(false);
+            listener.onItemClick(mItems.get(position));
         }
     }
 }

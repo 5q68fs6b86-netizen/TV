@@ -33,6 +33,7 @@ import androidx.media3.ui.TimeBar;
 import androidx.media3.ui.danmaku.DanmakuConfig;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.ai.subtitle.AiSubtitleRuntime;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.player.media.PlaySpec;
@@ -80,6 +81,11 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     protected PlayerManager player() {
         return mService.player();
+    }
+
+    public void reloadAiSubtitleAudioPipeline() {
+        if (mService == null || !isOwner() || player().isReleased()) return;
+        player().rebuildAudioPipeline();
     }
 
     protected boolean isRedirect() {
@@ -423,6 +429,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     private void configurePlayerView() {
         PlayerView playerView = getPlayerView();
+        AiSubtitleRuntime.get().attachPlayerView(playerView);
         playerView.setRender(PlayerSetting.getRender());
         playerView.setDanmakuOkHttpClient(OkHttp.player());
         playerView.setDanmakuEnabled(DanmakuSetting.isShow());
@@ -462,6 +469,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     private void detach() {
+        AiSubtitleRuntime.get().detachPlayerView(getPlayerView());
         releaseController();
         releaseBinding();
     }
@@ -496,7 +504,10 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
         @Override
         public void onTracksChanged() {
-            if (isOwner()) PlaybackActivity.this.onTracksChanged();
+            if (isOwner()) {
+                AiSubtitleRuntime.get().onTracksChanged(player().getCurrentTracks());
+                PlaybackActivity.this.onTracksChanged();
+            }
         }
 
         @Override
@@ -552,6 +563,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     @Override
     public void onEvents(@NonNull Player player, @NonNull Player.Events events) {
         if (events.containsAny(Player.EVENT_TIMELINE_CHANGED, Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) updateKeyIncrement();
+        if (events.contains(Player.EVENT_POSITION_DISCONTINUITY)) AiSubtitleRuntime.get().onPlaybackPositionDiscontinuity();
     }
 
     @Override

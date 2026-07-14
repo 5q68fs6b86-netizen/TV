@@ -83,6 +83,9 @@ public class ControlDialog extends BaseBottomSheetDialog implements ParseAdapter
         binding.decode.setText(parent.control.action.decode.getText());
         binding.ending.setText(parent.control.action.ending.getText());
         binding.opening.setText(parent.control.action.opening.getText());
+        binding.aiSubtitle.setText(parent.control.action.aiSubtitle.getText());
+        binding.aiSubtitle.setSelected(parent.control.action.aiSubtitle.isSelected());
+        binding.aiLanguage.setText(parent.control.action.aiLanguage.getText());
         binding.repeat.setSelected(parent.control.action.repeat.isSelected());
         binding.timer.setSelected(Timer.get().isRunning());
         setMediaOptionVisible();
@@ -100,6 +103,8 @@ public class ControlDialog extends BaseBottomSheetDialog implements ParseAdapter
         binding.text.setOnClickListener(v -> dismiss(parent.control.action.text));
         binding.audio.setOnClickListener(v -> dismiss(parent.control.action.audio));
         binding.video.setOnClickListener(v -> dismiss(parent.control.action.video));
+        binding.aiSubtitle.setOnClickListener(this::onAiSubtitle);
+        binding.aiLanguage.setOnClickListener(v -> dismiss(parent.control.action.aiLanguage));
         binding.player.setOnClickListener(v -> dismiss(parent.control.action.player));
         binding.danmaku.setOnClickListener(v -> dismiss(parent.control.action.danmaku));
         binding.edition.setOnClickListener(v -> dismiss(parent.control.action.edition));
@@ -116,6 +121,13 @@ public class ControlDialog extends BaseBottomSheetDialog implements ParseAdapter
     private void onTimer(View view) {
         TimerDialog.create().show(getActivity());
         dismiss();
+    }
+
+    private void onAiSubtitle(View view) {
+        parent.control.action.aiSubtitle.performClick();
+        binding.aiSubtitle.setText(parent.control.action.aiSubtitle.getText());
+        binding.aiSubtitle.setSelected(parent.control.action.aiSubtitle.isSelected());
+        binding.aiLanguage.setText(parent.control.action.aiLanguage.getText());
     }
 
     private void setSpeed(@NonNull Slider slider, float value, boolean fromUser) {
@@ -181,7 +193,7 @@ public class ControlDialog extends BaseBottomSheetDialog implements ParseAdapter
         binding.text.setVisibility(parent.control.action.text.getVisibility());
         binding.audio.setVisibility(parent.control.action.audio.getVisibility());
         binding.video.setVisibility(parent.control.action.video.getVisibility());
-        binding.track.setVisibility(binding.text.getVisibility() == View.GONE && binding.audio.getVisibility() == View.GONE && binding.video.getVisibility() == View.GONE ? View.GONE : View.VISIBLE);
+        binding.track.setVisibility(View.VISIBLE);
     }
 
     public void setMediaOptionVisible() {

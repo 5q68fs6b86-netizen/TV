@@ -649,6 +649,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_CAPTION, context.getString(R.string.player_caption)),
                     RowSpec(KEY_BACKGROUND, context.getString(R.string.player_background), toggle = true),
                     RowSpec(KEY_UA, context.getString(R.string.player_ua)),
+                    RowSpec(KEY_AI_SUBTITLE, context.getString(R.string.player_ai_subtitle)),
                     RowSpec(KEY_MPV_CONF, context.getString(R.string.player_mpv_conf)),
                     RowSpec(KEY_MPV_ANIME4K, context.getString(R.string.player_mpv_anime4k)),
                     RowSpec(KEY_MPV_GPU_NEXT, context.getString(R.string.player_mpv_gpu_next), toggle = true),
@@ -664,7 +665,9 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_AUDIO_PASS_THROUGH, context.getString(R.string.player_audio_pass_through), toggle = true),
                     RowSpec(KEY_AUDIO_PREFER, context.getString(R.string.player_audio_decode), toggle = true),
                     RowSpec(KEY_VIDEO_PREFER, context.getString(R.string.player_video_decode), toggle = true),
-                    RowSpec(KEY_AAC, context.getString(R.string.player_aac_track), toggle = true)
+                    RowSpec(KEY_AAC, context.getString(R.string.player_aac_track), toggle = true),
+                    RowSpec(KEY_AV3A, context.getString(R.string.player_av3a), toggle = true),
+                    RowSpec(KEY_DV7, context.getString(R.string.player_dv7), toggle = true)
                 )
             ),
             SectionSpec(
@@ -735,6 +738,9 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_CAPTION = "caption"
         const val KEY_BACKGROUND = "background"
         const val KEY_UA = "ua"
+        const val KEY_AI_SUBTITLE = "ai_subtitle"
+        const val KEY_AV3A = "av3a"
+        const val KEY_DV7 = "dv7_hevc"
         const val KEY_MPV_CONF = "mpv_conf"
         const val KEY_MPV_ANIME4K = "mpv_anime4k"
         const val KEY_MPV_GPU_NEXT = "mpv_gpu_next"

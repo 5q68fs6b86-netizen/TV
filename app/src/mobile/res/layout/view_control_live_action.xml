@@ -72,6 +72,16 @@
             android:text="@string/play_track_video" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/aiSubtitle"
+            style="@style/Control"
+            android:text="@string/ai_subtitle_off" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/aiLanguage"
+            style="@style/Control"
+            android:text="@string/ai_subtitle_language" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/invert"
             style="@style/Control"
             android:text="@string/play_invert" />

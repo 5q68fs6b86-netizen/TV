@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 1 bridge: links cleanly against this project's resources (the fork's leanback
+  variant referenced @drawable/selector_button, which does not exist here). The leanback
+  AI-subtitle surfaces are rebuilt in the JetStream style in Phase 2, which supersedes
+  these styles entirely.
+-->
+<resources>
+    <style name="AiSubtitleTonalButton" parent="Widget.Material3.Button.TonalButton">
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="AiSubtitlePrimaryButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="AiSubtitleDropdownItem" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:background">@color/ai_dropdown_item_background</item>
+        <item name="android:textColor">@color/ai_dropdown_item_text</item>
+    </style>
+</resources>

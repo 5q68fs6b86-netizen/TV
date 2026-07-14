@@ -82,6 +82,10 @@
             android:process=":error_activity"
             android:theme="@style/Theme.Crash" />
 
+        <activity
+            android:name=".ai.subtitle.AiSubtitleSettingsActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".receiver.ActionReceiver"
             android:exported="false">

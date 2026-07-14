@@ -189,6 +189,18 @@
     <string name="player_mpv_vulkan">vulkan</string>
     <string name="player_mpv_conf_import_success">已匯入 mpv.conf</string>
     <string name="player_ua">User-Agent</string>
+    <string name="player_av3a">AV3A 音訊解碼</string>
+    <string name="player_dv7">杜比視界(HEVC 回退)</string>
+    <string name="player_ai_subtitle">即時語音字幕與翻譯</string>
+    <string name="ai_subtitle_on">字幕翻譯：開</string>
+    <string name="ai_subtitle_off">字幕翻譯：關</string>
+    <string name="ai_subtitle_language">來源語種：%1$s</string>
+    <string name="ai_subtitle_choose_language">選擇目前直播源語種</string>
+    <string name="ai_subtitle_model_missing">尚未下載「%1$s」語言包，請先下載後再開啟字幕翻譯。</string>
+    <string name="ai_subtitle_starting">字幕翻譯服務正在啟動中…</string>
+    <string name="ai_subtitle_memory_blocked">裝置記憶體不滿足「%1$s」語言包的安全運行門檻。</string>
+    <string name="ai_subtitle_go_download">去下載</string>
+    <string name="ai_secret_push_info">請在手機開啟 %1$s\n選擇「設定」，貼上內容後點確定。</string>
 
     <!-- Danmaku -->
     <string name="danmaku_load">彈幕載入</string>

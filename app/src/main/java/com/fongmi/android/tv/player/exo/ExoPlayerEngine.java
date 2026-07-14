@@ -1,11 +1,14 @@
 package com.fongmi.android.tv.player.exo;
 
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.C;
+import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import com.fongmi.android.tv.player.engine.PlayerEngine;
+import com.fongmi.android.tv.ai.subtitle.AiSubtitleRuntime;
 import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
 
@@ -40,6 +43,7 @@ public class ExoPlayerEngine implements PlayerEngine {
 
     @Override
     public void release() {
+        AiSubtitleRuntime.get().stopSession();
         preCache.release();
         player.release();
     }
@@ -60,11 +64,13 @@ public class ExoPlayerEngine implements PlayerEngine {
     @Override
     public void start(PlaySpec spec, long startPositionMs) {
         this.spec = spec;
+        AiSubtitleRuntime.get().startSession(player);
         startInternal(startPositionMs);
     }
 
     @Override
     public void stop() {
+        AiSubtitleRuntime.get().stopSession();
         preCache.stop();
         player.stop();
     }
@@ -96,7 +102,8 @@ public class ExoPlayerEngine implements PlayerEngine {
 
     private void startInternal(long position) {
         MediaItem item = MediaItemFactory.from(spec, decode);
-        player.setMediaItem(item, position);
+        if (position == C.TIME_UNSET) player.setMediaItem(item);
+        else player.setMediaItem(item, position);
         preCache.start(player, item);
         player.prepare();
         player.play();
@@ -109,8 +116,11 @@ public class ExoPlayerEngine implements PlayerEngine {
     }
 
     private ErrorAction retryFormat(int errorCode) {
-        spec.setFormat(ExoUtil.getMimeType(errorCode));
-        startInternal(player.getCurrentPosition());
+        String format = ExoUtil.getMimeType(errorCode);
+        spec.setFormat(format);
+        // An extension-less HLS URL may first be opened as progressive media.  Reusing that
+        // attempt's synthetic/end position pins a live playlist at its trailing edge forever.
+        startInternal(MimeTypes.APPLICATION_M3U8.equals(format) ? C.TIME_UNSET : player.getCurrentPosition());
         return ErrorAction.RECOVERED;
     }
 }

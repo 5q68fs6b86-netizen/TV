@@ -38,6 +38,7 @@ import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.JetStreamDialogDecor;
 import com.fongmi.android.tv.ui.custom.JetStreamSettingView;
+import com.fongmi.android.tv.ai.subtitle.AiSubtitleSettingsActivity;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
@@ -161,6 +162,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_AUDIO_PREFER, Setting.getSwitch(PlayerSetting.isAudioPrefer()));
         setRowValue(JetStreamSettingView.KEY_VIDEO_PREFER, Setting.getSwitch(PlayerSetting.isVideoPrefer()));
         setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
+        setRowValue(JetStreamSettingView.KEY_AV3A, Setting.getSwitch(PlayerSetting.isAv3a()));
+        setRowValue(JetStreamSettingView.KEY_DV7, Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
         setRowVisible(JetStreamSettingView.KEY_TUNNEL, visible);
         setRowVisible(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, visible);
         setRowVisible(JetStreamSettingView.KEY_AUDIO_PREFER, visible);
@@ -256,6 +259,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_CAPTION -> setCaption();
             case JetStreamSettingView.KEY_BACKGROUND -> onBackground();
             case JetStreamSettingView.KEY_UA -> onUa();
+            case JetStreamSettingView.KEY_AI_SUBTITLE -> AiSubtitleSettingsActivity.start(this);
             case JetStreamSettingView.KEY_MPV_CONF -> onMpvConf();
             case JetStreamSettingView.KEY_MPV_ANIME4K -> setMpvAnime4K();
             case JetStreamSettingView.KEY_MPV_GPU_NEXT -> setMpvGpuNext();
@@ -267,6 +271,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_AUDIO_PREFER -> setAudioPrefer();
             case JetStreamSettingView.KEY_VIDEO_PREFER -> setVideoPrefer();
             case JetStreamSettingView.KEY_AAC -> setAAC();
+            case JetStreamSettingView.KEY_AV3A -> setAv3a();
+            case JetStreamSettingView.KEY_DV7 -> setDv7();
             case JetStreamSettingView.KEY_PRELOAD -> setPreload();
             case JetStreamSettingView.KEY_PRELOAD_THREADS -> PreloadDialog.show(this, PreloadDialog.THREADS);
             case JetStreamSettingView.KEY_PRELOAD_SIZE -> PreloadDialog.show(this, PreloadDialog.SIZE);
@@ -523,6 +529,16 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setAAC() {
         PlayerSetting.putPreferAAC(!PlayerSetting.isPreferAAC());
         setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
+    }
+
+    private void setAv3a() {
+        PlayerSetting.putAv3a(!PlayerSetting.isAv3a());
+        setRowValue(JetStreamSettingView.KEY_AV3A, Setting.getSwitch(PlayerSetting.isAv3a()));
+    }
+
+    private void setDv7() {
+        PlayerSetting.putDv7HevcFallback(!PlayerSetting.isDv7HevcFallback());
+        setRowValue(JetStreamSettingView.KEY_DV7, Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
     }
 
     private void setPreload() {

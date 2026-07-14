@@ -57,6 +57,16 @@ public class TrackUtil {
         TrackSelectionParameters.Builder builder = player.getTrackSelectionParameters().buildUpon();
         mediaGroupMapByType.forEach((type, mediaGroup) -> {
             Integer selectedIndex = selectedIndexMapByType.get(type);
+            if ((type == C.TRACK_TYPE_AUDIO || type == C.TRACK_TYPE_VIDEO)
+                    && selectedIndex == null) {
+                // Audio/video rows persisted by older builds may contain selected=false after the
+                // user clicked the already-active track. Do not restore that as an empty override,
+                // which disables the renderer. There is no "none" entry in those dialogs, so fall
+                // back to normal track selection instead.
+                builder.clearOverridesOfType(type);
+                builder.setTrackTypeDisabled(type, false);
+                return;
+            }
             List<Integer> indices = selectedIndex != null ? List.of(selectedIndex) : List.of();
             builder.setOverrideForType(new TrackSelectionOverride(mediaGroup, indices));
         });

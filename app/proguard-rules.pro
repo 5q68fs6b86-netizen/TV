@@ -3,6 +3,9 @@
 -keep class com.fongmi.quickjs.method.** { *; }
 -keep class com.fongmi.android.tv.bean.** { *; }
 
+# sherpa-onnx Java methods are JNI entry points and their names/signatures must remain stable.
+-keep class com.k2fsa.sherpa.onnx.** { *; }
+
 # Gson
 -keep class com.google.gson.** { *; }
 
