@@ -894,16 +894,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void applyHttpHeaderFields(List<String> fields) {
-        boolean changed = tryCommand("change-list", "http-header-fields", "clr");
-        if (changed) {
-            for (String field : fields) {
-                if (tryCommand("change-list", "http-header-fields", "append", field)) continue;
-                changed = false;
-                break;
-            }
-        }
-        if (!changed) {
-            MpvLogCollector.logError("MpvPlayer", "逐条设置请求头失败，回退到兼容模式");
+        // NOTE: "change-list http-header-fields clr" is only supported in mpv 0.36+.
+        // The bundled android mpv build does not support it, and the failed clr command
+        // can leave mpv in a bad state before loadfile runs, causing the first play
+        // to hang forever in STATE_BUFFERING with no MPV_EVENT_FILE_LOADED.
+        // Use setOptionString directly — it applies before the next loadfile.
+        if (fields.isEmpty()) {
+            setOptionString("http-header-fields", "");
+        } else {
             setOptionString("http-header-fields", String.join(",", fields));
         }
     }
