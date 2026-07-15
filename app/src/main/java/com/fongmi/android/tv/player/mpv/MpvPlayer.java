@@ -894,28 +894,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void applyHttpHeaderFields(List<String> fields) {
-        boolean changed = tryCommand("change-list", "http-header-fields", "clr");
-        if (changed) {
-            for (String field : fields) {
-                if (tryCommand("change-list", "http-header-fields", "append", field)) continue;
-                changed = false;
-                break;
-            }
-        }
-        if (!changed) {
-            MpvLogCollector.logError("MpvPlayer", "逐条设置请求头失败，回退到兼容模式");
-            setOptionString("http-header-fields", String.join(",", fields));
-        }
-    }
-
-    private boolean tryCommand(String... args) {
-        try {
-            MPVLib.INSTANCE.command(args);
-            return true;
-        } catch (RuntimeException e) {
-            MpvLogCollector.logError("MpvPlayer", "MPV命令失败: " + String.join(" ", args) + ", error=" + e.getMessage());
-            return false;
-        }
+        // change-list needs: change-list <name> <operation> <value>
+        // Old code used ("change-list", "http-header-fields", "clr") without a value slot.
+        // mpv logged "required argument value not set" but did not throw, so tryCommand
+        // returned true. With empty extra headers the append loop was skipped and the
+        // setOptionString fallback never ran, leaving http-header-fields uncleared before
+        // loadfile and first play stuck in STATE_BUFFERING without FILE_LOADED.
+        // Set the option string directly (empty clears) so every play path applies cleanly.
+        setOptionString("http-header-fields", fields.isEmpty() ? "" : String.join(",", fields));
     }
 
     private void setOptionString(String name, String value) {
