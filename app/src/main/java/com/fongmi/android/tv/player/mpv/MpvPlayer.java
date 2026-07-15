@@ -894,26 +894,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void applyHttpHeaderFields(List<String> fields) {
-        // NOTE: "change-list http-header-fields clr" is only supported in mpv 0.36+.
-        // The bundled android mpv build does not support it, and the failed clr command
-        // can leave mpv in a bad state before loadfile runs, causing the first play
-        // to hang forever in STATE_BUFFERING with no MPV_EVENT_FILE_LOADED.
-        // Use setOptionString directly — it applies before the next loadfile.
-        if (fields.isEmpty()) {
-            setOptionString("http-header-fields", "");
-        } else {
-            setOptionString("http-header-fields", String.join(",", fields));
-        }
-    }
-
-    private boolean tryCommand(String... args) {
-        try {
-            MPVLib.INSTANCE.command(args);
-            return true;
-        } catch (RuntimeException e) {
-            MpvLogCollector.logError("MpvPlayer", "MPV命令失败: " + String.join(" ", args) + ", error=" + e.getMessage());
-            return false;
-        }
+        // change-list needs: change-list <name> <operation> <value>
+        // Old code used ("change-list", "http-header-fields", "clr") without a value slot.
+        // mpv logged "required argument value not set" but did not throw, so tryCommand
+        // returned true. With empty extra headers the append loop was skipped and the
+        // setOptionString fallback never ran, leaving http-header-fields uncleared before
+        // loadfile and first play stuck in STATE_BUFFERING without FILE_LOADED.
+        // Set the option string directly (empty clears) so every play path applies cleanly.
+        setOptionString("http-header-fields", fields.isEmpty() ? "" : String.join(",", fields));
     }
 
     private void setOptionString(String name, String value) {
