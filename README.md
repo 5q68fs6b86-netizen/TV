@@ -1,5 +1,9 @@
 # TV
 
+<p align="center">
+  <img src="other/image/logo.svg" width="128" alt="TV Logo">
+</p>
+
 简体中文 | [English](README.en.md)
 
 基于 [FongMi/TV](https://github.com/FongMi/TV) 和 [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader) 的 Android 影音应用，支持 **Android TV 大屏** 和 **Android 手机** 两种使用场景，并通过外部配置扩展点播、直播、解析、弹幕、字幕和爬虫能力。
