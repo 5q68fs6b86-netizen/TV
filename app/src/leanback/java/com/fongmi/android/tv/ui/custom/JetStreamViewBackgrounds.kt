@@ -18,6 +18,23 @@ internal fun View.jetStreamOverlayBackground(
     orientation: GradientDrawable.Orientation,
     cornerRadii: FloatArray
 ): GradientDrawable {
+    return jetStreamOverlayBackground(orientation).apply {
+        this.cornerRadii = cornerRadii
+    }
+}
+
+internal fun View.jetStreamOverlayBackground(
+    orientation: GradientDrawable.Orientation,
+    cornerRadius: Float
+): GradientDrawable {
+    return jetStreamOverlayBackground(orientation).apply {
+        this.cornerRadius = cornerRadius
+    }
+}
+
+private fun View.jetStreamOverlayBackground(
+    orientation: GradientDrawable.Orientation
+): GradientDrawable {
     return GradientDrawable(
         orientation,
         intArrayOf(
@@ -25,7 +42,6 @@ internal fun View.jetStreamOverlayBackground(
             jetStreamColor(R.color.jetstream_overlay_surface_light)
         )
     ).apply {
-        this.cornerRadii = cornerRadii
         setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
     }
 }

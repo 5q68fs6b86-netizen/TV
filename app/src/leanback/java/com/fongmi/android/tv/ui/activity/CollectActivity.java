@@ -104,7 +104,7 @@ public class CollectActivity extends BaseActivity {
     private void setRecyclerView() {
         mBinding.recyclerPanel.setClipChildren(false);
         mBinding.recyclerPanel.setClipToPadding(false);
-        mBinding.recyclerPanel.setClipToOutline(false);
+        mBinding.recyclerPanel.setClipToOutline(true);
         mBinding.recycler.setClipChildren(false);
         mBinding.recycler.setClipToPadding(false);
         mBinding.recycler.setClipToOutline(false);
