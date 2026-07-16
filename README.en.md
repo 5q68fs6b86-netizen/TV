@@ -1,5 +1,9 @@
 # TV
 
+<p align="center">
+  <img src="other/image/logo.svg" width="128" alt="TV Logo">
+</p>
+
 [简体中文](README.md) | English
 
 An Android media app based on [FongMi/TV](https://github.com/FongMi/TV) and [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader). It supports both **Android TV** and **Android phones**, and can extend VOD, live TV, parsers, danmaku, subtitles, and spiders through external configuration.

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 160 160" role="img" aria-label="TV logo">
+  <rect width="160" height="160" fill="#F3EFE7"/>
+  <path fill="#24221F" d="M31 27h68l30 30v76H61l-30-30V27Z"/>
+  <path fill="#F3EFE7" d="M54 51h34l18 18v40H72L54 91V51Z"/>
+  <path fill="#C75B3F" d="M99 27h30v30L99 27Z"/>
+  <path fill="#C75B3F" d="M31 103h30v30l-30-30Z"/>
+</svg>
