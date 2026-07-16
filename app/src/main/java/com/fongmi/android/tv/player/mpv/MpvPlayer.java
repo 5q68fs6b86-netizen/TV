@@ -887,29 +887,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 fields.add(key + ": " + value);
             }
         }
-        setOptionString("user-agent", userAgent);
-        setOptionString("referrer", referrer);
+        MPVLib.INSTANCE.setPropertyString("user-agent", userAgent);
+        MPVLib.INSTANCE.setPropertyString("referrer", referrer);
         applyHttpHeaderFields(fields);
         MpvLogCollector.log("MpvPlayer", "请求头: User-Agent=" + !TextUtils.isEmpty(userAgent) + ", Referer=" + !TextUtils.isEmpty(referrer) + ", extra=" + fields.size());
     }
 
     private void applyHttpHeaderFields(List<String> fields) {
-        // change-list needs: change-list <name> <operation> <value>
-        // Old code used ("change-list", "http-header-fields", "clr") without a value slot.
-        // mpv logged "required argument value not set" but did not throw, so tryCommand
-        // returned true. With empty extra headers the append loop was skipped and the
-        // setOptionString fallback never ran, leaving http-header-fields uncleared before
-        // loadfile and first play stuck in STATE_BUFFERING without FILE_LOADED.
-        // Set the option string directly (empty clears) so every play path applies cleanly.
-        setOptionString("http-header-fields", fields.isEmpty() ? "" : String.join(",", fields));
-    }
-
-    private void setOptionString(String name, String value) {
-        try {
-            MPVLib.INSTANCE.setOptionString(name, value == null ? "" : value);
-        } catch (RuntimeException e) {
-            MpvLogCollector.logError("MpvPlayer", "MPV选项设置失败: " + name + ", error=" + e.getMessage());
-        }
+        if (!command("change-list", "http-header-fields", "clr", "")) return;
+        for (String field : fields) if (!command("change-list", "http-header-fields", "append", field)) return;
     }
 
     private static boolean isReferrerHeader(String key) {

@@ -1,7 +1,14 @@
 package com.fongmi.android.tv.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -9,16 +16,26 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.TextureView;
+import android.view.View;
 
+import androidx.fragment.app.FragmentActivity;
+import androidx.media3.ui.PlayerView;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import is.xyz.mpv.MPVLib;
+import is.xyz.mpv.MPVNode;
 
 @RunWith(AndroidJUnit4.class)
 public class MpvPlaybackTest {
@@ -38,11 +55,42 @@ public class MpvPlaybackTest {
         String url = getArgument(arguments, ARG_URL, ARG_URL_ALT, DEFAULT_URL);
         String expectedSize = getArgument(arguments, ARG_EXPECTED_SIZE, ARG_EXPECTED_SIZE_ALT, "");
         prepareMpvSettings();
+        for (int attempt = 1; attempt <= 2; attempt++) verifyPlaybackAttempt(url, expectedSize, attempt);
+    }
+
+    private void verifyPlaybackAttempt(String url, String expectedSize, int attempt) {
         MpvLogCollector.clear();
-        startPlayback(url);
-        PlaybackResult result = waitForPlayback(expectedSize);
-        Log.i(TAG, "url=" + url + ", lastVideoSize=" + result.lastVideoSize + ", lastLog=" + result.lastLog);
-        if (!result.passed) fail("MPV playback did not reach ready video state. lastVideoSize=" + result.lastVideoSize + ", lastLog=" + result.lastLog);
+        Activity activity = startPlayback(url);
+        try {
+            PlaybackResult result = waitForPlayback(expectedSize);
+            Log.i(TAG, "attempt=" + attempt + ", url=" + url + ", lastVideoSize=" + result.lastVideoSize + ", lastLog=" + result.lastLog);
+            if (!result.passed) fail("MPV playback attempt " + attempt + " did not reach ready video state. lastVideoSize=" + result.lastVideoSize + ", lastLog=" + result.lastLog);
+            if ("leanback".equals(BuildConfig.FLAVOR_mode)) verifyFullscreenSurface(activity);
+            if (attempt == 1) verifyHttpHeaderFieldsContract();
+        } finally {
+            finishActivity(activity);
+        }
+    }
+
+    private void verifyHttpHeaderFieldsContract() {
+        String header = "Accept: video/mp4,video/*";
+        MPVLib.INSTANCE.command("change-list", "http-header-fields", "clr", "");
+        try {
+            MPVLib.INSTANCE.command("change-list", "http-header-fields", "append", header);
+            MPVNode[] fields = getHttpHeaderFields();
+            assertEquals(1, fields.length);
+            assertEquals(header, fields[0].asString());
+        } finally {
+            MPVLib.INSTANCE.command("change-list", "http-header-fields", "clr", "");
+        }
+        assertEquals(0, getHttpHeaderFields().length);
+    }
+
+    private MPVNode[] getHttpHeaderFields() {
+        MPVNode fields = MPVLib.INSTANCE.getPropertyNode("http-header-fields");
+        assertNotNull(fields);
+        assertNotNull(fields.asArray());
+        return fields.asArray();
     }
 
     private String getArgument(Bundle arguments, String key, String altKey, String defaultValue) {
@@ -63,15 +111,68 @@ public class MpvPlaybackTest {
                 .apply();
     }
 
-    private void startPlayback(String url) {
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(context.getPackageName(), context.getPackageName() + ".ui.activity.VideoActivity"));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra("key", "push_agent");
-        intent.putExtra("id", url);
-        intent.putExtra("name", "MPV Test");
-        context.startActivity(intent);
+    private Activity startPlayback(String url) {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        Context context = instrumentation.getTargetContext();
+        String className = context.getPackageName() + ".ui.activity.VideoActivity";
+        Instrumentation.ActivityMonitor monitor = instrumentation.addMonitor(className, null, false);
+        Activity activity;
+        try {
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName(context.getPackageName(), className));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.putExtra("key", "push_agent");
+            intent.putExtra("id", url);
+            intent.putExtra("name", "MPV Test");
+            context.startActivity(intent);
+            activity = instrumentation.waitForMonitorWithTimeout(monitor, TIMEOUT_MS);
+        } finally {
+            instrumentation.removeMonitor(monitor);
+        }
+        assertNotNull("VideoActivity did not start", activity);
+        return activity;
+    }
+
+    private void verifyFullscreenSurface(Activity activity) {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.waitForIdleSync();
+        View initialSurface = getVideoSurfaceView(activity);
+        int detailId = activity.getResources().getIdentifier("detail", "id", activity.getPackageName());
+        assertTrue(initialSurface instanceof TextureView);
+        assertTrue(detailId != 0);
+        assertEquals(View.VISIBLE, getVisibility(activity, detailId));
+        MpvLogCollector.clear();
+        instrumentation.runOnMainSync(() -> activity.findViewById(R.id.video).performClick());
+        instrumentation.waitForIdleSync();
+        assertEquals(View.GONE, getVisibility(activity, detailId));
+        assertSame(initialSurface, getVideoSurfaceView(activity));
+        instrumentation.runOnMainSync(() -> ((FragmentActivity) activity).getOnBackPressedDispatcher().onBackPressed());
+        instrumentation.waitForIdleSync();
+        assertFalse(activity.isFinishing());
+        assertEquals(View.VISIBLE, getVisibility(activity, detailId));
+        assertSame(initialSurface, getVideoSurfaceView(activity));
+        for (String log : MpvLogCollector.getLogs()) assertFalse("Fullscreen switched MPV Surface: " + log, log.contains("=== 分离 Surface ==="));
+    }
+
+    private View getVideoSurfaceView(Activity activity) {
+        AtomicReference<View> surface = new AtomicReference<>();
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            PlayerView playerView = activity.findViewById(R.id.player);
+            surface.set(playerView.getVideoSurfaceView());
+        });
+        return surface.get();
+    }
+
+    private int getVisibility(Activity activity, int id) {
+        AtomicReference<Integer> visibility = new AtomicReference<>();
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> visibility.set(activity.findViewById(id).getVisibility()));
+        return visibility.get();
+    }
+
+    private void finishActivity(Activity activity) {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(activity::finish);
+        instrumentation.waitForIdleSync();
     }
 
     private PlaybackResult waitForPlayback(String expectedSize) {
