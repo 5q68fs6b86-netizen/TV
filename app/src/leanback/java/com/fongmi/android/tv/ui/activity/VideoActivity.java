@@ -957,7 +957,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setForeground(null);
         mBinding.video.setBackgroundColor(android.graphics.Color.BLACK);
         mBinding.video.setClipToOutline(false);
-        mBinding.player.setRender(PlayerSetting.getRender());
+        mBinding.player.setRender(getPlaybackRender());
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagSelectedPos);
         mKeyDown.setFull(true);
@@ -992,6 +992,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             mBinding.video.invalidateOutline();
             mBinding.video.postInvalidateOnAnimation();
         });
+    }
+
+    @Override
+    protected int getPlaybackRender() {
+        boolean mpv = service() == null ? PlayerSetting.isMpv() : player().getEngine() == PlayerSetting.ENGINE_MPV;
+        return mpv ? PlayerSetting.RENDER_TEXTURE : super.getPlaybackRender();
     }
 
     private void restoreWindowVideoFocus() {

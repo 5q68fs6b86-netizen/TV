@@ -133,6 +133,10 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     protected abstract String getPlaybackKey();
 
+    protected int getPlaybackRender() {
+        return PlayerSetting.getRender();
+    }
+
     protected boolean isOwner() {
         String key = getPlaybackKey();
         return key == null || (mService != null && key.equals(player().getKey()));
@@ -421,8 +425,9 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     private void setRender(String reason) {
-        MpvLogCollector.log("PlaybackActivity", "setRender: reason=" + reason + ", render=" + PlayerSetting.getRender());
-        getPlayerView().setRender(PlayerSetting.getRender());
+        int render = getPlaybackRender();
+        MpvLogCollector.log("PlaybackActivity", "setRender: reason=" + reason + ", render=" + render);
+        getPlayerView().setRender(render);
         detachSurface("setRender");
         attachSurface("setRender");
     }
@@ -430,7 +435,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     private void configurePlayerView() {
         PlayerView playerView = getPlayerView();
         AiSubtitleRuntime.get().attachPlayerView(playerView);
-        playerView.setRender(PlayerSetting.getRender());
+        playerView.setRender(getPlaybackRender());
         playerView.setDanmakuOkHttpClient(OkHttp.player());
         playerView.setDanmakuEnabled(DanmakuSetting.isShow());
         playerView.setDanmakuConfig(DanmakuSetting.getConfig());
