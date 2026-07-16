@@ -1104,7 +1104,7 @@ private fun View.applyJetStreamPagePanelSurface() {
     }
     background = jetStreamOverlayBackground(
         orientation = GradientDrawable.Orientation.TL_BR,
-        cornerRadii = FloatArray(8) { jetStreamDp(28) }
+        cornerRadius = jetStreamDp(28)
     )
     elevation = jetStreamDp(8)
     clipToOutline = true
