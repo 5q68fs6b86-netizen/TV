@@ -63,6 +63,8 @@ public class JarLoader {
 
     private void invokeInit(DexClassLoader loader) {
         try {
+            // re-assert toast filter before spider init (promo toast often fires here)
+            com.fongmi.android.tv.utils.ToastFilter.install();
             Class<?> clz = loader.loadClass("com.github.catvod.spider.Init");
             Method method = clz.getMethod("init", Context.class);
             method.invoke(clz, App.get());

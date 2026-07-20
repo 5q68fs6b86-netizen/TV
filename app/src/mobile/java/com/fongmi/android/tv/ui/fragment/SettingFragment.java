@@ -292,6 +292,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setToastFilterKeys(View view) {
         setTextFilter(R.string.setting_toast_filter_keys, Setting.getToastFilterRaw(), value -> {
             Setting.putToastFilterRaw(value);
+            if (!value.isEmpty() && !Setting.isToastFilter()) {
+                Setting.putToastFilter(true);
+                mBinding.toastFilterText.setText(Setting.getSwitch(true));
+            }
             mBinding.toastFilterKeysText.setText(getFilterStatus(value));
         });
     }

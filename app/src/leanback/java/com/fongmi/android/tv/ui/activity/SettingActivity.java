@@ -649,6 +649,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setToastFilterKeys() {
         setTextFilter(R.string.setting_toast_filter_keys, Setting.getToastFilterRaw(), value -> {
             Setting.putToastFilterRaw(value);
+            if (!value.isEmpty() && !Setting.isToastFilter()) {
+                Setting.putToastFilter(true);
+                setRowValue(JetStreamSettingView.KEY_TOAST_FILTER, Setting.getSwitch(true));
+                setRowVisible(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, true);
+            }
             setRowValue(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, getStatus(value));
         });
     }

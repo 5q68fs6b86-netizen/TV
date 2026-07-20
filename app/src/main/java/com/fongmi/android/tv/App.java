@@ -77,6 +77,8 @@ public class App extends Application implements Application.ActivityLifecycleCal
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         Init.set(base);
+        // earliest possible: hidden-api exempt + schedule sService hook
+        ToastFilter.install();
     }
 
     @Override
