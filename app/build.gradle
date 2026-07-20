@@ -66,6 +66,13 @@ android {
         viewBinding = true
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+
     signingConfigs {
         release {
             storeFile localProps['storeFile'] ? file(localProps['storeFile']) : null
