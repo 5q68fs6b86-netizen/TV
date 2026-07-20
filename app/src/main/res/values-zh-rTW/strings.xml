@@ -136,6 +136,8 @@
     <string name="setting_danmaku">彈幕設定</string>
     <string name="setting_detail_filter">詳情文字過濾</string>
     <string name="setting_flag_filter">線路文字過濾</string>
+    <string name="setting_toast_filter">Toast 關鍵詞過濾</string>
+    <string name="setting_toast_filter_keys">Toast 過濾關鍵詞</string>
     <string name="setting_text_filter_hint">每行一條：文字 表示刪除，文字=&gt;新文字 表示替換，/正則/=&gt;新文字 表示正則替換。</string>
     <string name="setting_incognito">無痕模式</string>
     <string name="setting_theme_color">主題色彩</string>

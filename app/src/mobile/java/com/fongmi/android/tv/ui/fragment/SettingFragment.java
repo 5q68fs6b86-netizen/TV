@@ -108,6 +108,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.flagFilterText.setText(getFilterStatus(Setting.getFlagFilter()));
         mBinding.detailFilterText.setText(getFilterStatus(Setting.getDetailFilter()));
+        mBinding.toastFilterText.setText(Setting.getSwitch(Setting.isToastFilter()));
+        mBinding.toastFilterKeysText.setText(getFilterStatus(Setting.getToastFilterRaw()));
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
@@ -136,6 +138,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.flagFilter.setOnClickListener(this::setFlagFilter);
         mBinding.detailFilter.setOnClickListener(this::setDetailFilter);
+        mBinding.toastFilter.setOnClickListener(this::setToastFilter);
+        mBinding.toastFilterKeys.setOnClickListener(this::setToastFilterKeys);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
@@ -277,6 +281,18 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         setTextFilter(R.string.setting_flag_filter, Setting.getFlagFilter(), value -> {
             Setting.putFlagFilter(value);
             mBinding.flagFilterText.setText(getFilterStatus(value));
+        });
+    }
+
+    private void setToastFilter(View view) {
+        Setting.putToastFilter(!Setting.isToastFilter());
+        mBinding.toastFilterText.setText(Setting.getSwitch(Setting.isToastFilter()));
+    }
+
+    private void setToastFilterKeys(View view) {
+        setTextFilter(R.string.setting_toast_filter_keys, Setting.getToastFilterRaw(), value -> {
+            Setting.putToastFilterRaw(value);
+            mBinding.toastFilterKeysText.setText(getFilterStatus(value));
         });
     }
 

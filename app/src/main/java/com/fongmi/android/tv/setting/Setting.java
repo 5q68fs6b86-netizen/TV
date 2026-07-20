@@ -168,4 +168,36 @@ public class Setting {
     public static void putZhuyin(boolean zhuyin) {
         Prefers.put("zhuyin", zhuyin);
     }
+
+    /** Master switch for toast keyword filter. Default off until user fills keywords. */
+    public static boolean isToastFilter() {
+        return Prefers.getBoolean("toast_filter", false);
+    }
+
+    public static void putToastFilter(boolean enable) {
+        Prefers.put("toast_filter", enable);
+    }
+
+    /**
+     * Keywords for toast filter, one per line or separated by {@code |} / {@code ,} / newline.
+     * Empty by default — user fills in settings; nothing brand-specific is shipped in code.
+     */
+    public static String getToastFilterRaw() {
+        return Prefers.getString("toast_filter_keys", "");
+    }
+
+    public static void putToastFilterRaw(String value) {
+        Prefers.put("toast_filter_keys", value == null ? "" : value);
+    }
+
+    public static java.util.List<String> getToastFilterKeywords() {
+        String raw = getToastFilterRaw();
+        java.util.ArrayList<String> list = new java.util.ArrayList<>();
+        if (raw == null || raw.isEmpty()) return list;
+        for (String part : raw.split("[\\n\\r|,，、]+")) {
+            String key = part.trim();
+            if (!key.isEmpty()) list.add(key);
+        }
+        return list;
+    }
 }
