@@ -5,9 +5,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fongmi.android.tv.setting.Setting;
@@ -133,8 +130,9 @@ public final class ToastFilter {
             public void beforeCall(Pine.CallFrame frame) {
                 try {
                     Toast toast = (Toast) frame.thisObject;
+                    // Only use text captured from makeText hooks — no Toast private field reflection
+                    // (targetSdk 37 lint forbids BlockedPrivateApi like mText/mNextView).
                     CharSequence text = recall(toast);
-                    if (TextUtils.isEmpty(text)) text = readToastText(toast);
                     if (shouldBlock(text)) {
                         Log.i(TAG, "show blocked: " + text);
                         frame.setResult(null); // skip original show
@@ -158,43 +156,5 @@ public final class ToastFilter {
         synchronized (TEXTS) {
             return TEXTS.get(toast);
         }
-    }
-
-    private static CharSequence readToastText(Toast toast) {
-        try {
-            Method getText = Toast.class.getMethod("getText");
-            Object v = getText.invoke(toast);
-            if (v instanceof CharSequence cs && !TextUtils.isEmpty(cs)) return cs;
-        } catch (Throwable ignored) {
-        }
-        try {
-            java.lang.reflect.Field f = Toast.class.getDeclaredField("mNextView");
-            f.setAccessible(true);
-            Object v = f.get(toast);
-            if (v instanceof View view) return findText(view);
-        } catch (Throwable ignored) {
-        }
-        try {
-            java.lang.reflect.Field f = Toast.class.getDeclaredField("mText");
-            f.setAccessible(true);
-            Object v = f.get(toast);
-            if (v instanceof CharSequence cs) return cs;
-        } catch (Throwable ignored) {
-        }
-        return null;
-    }
-
-    private static CharSequence findText(View view) {
-        if (view instanceof TextView tv) {
-            CharSequence t = tv.getText();
-            if (!TextUtils.isEmpty(t)) return t;
-        }
-        if (view instanceof ViewGroup group) {
-            for (int i = 0; i < group.getChildCount(); i++) {
-                CharSequence t = findText(group.getChildAt(i));
-                if (!TextUtils.isEmpty(t)) return t;
-            }
-        }
-        return null;
     }
 }
