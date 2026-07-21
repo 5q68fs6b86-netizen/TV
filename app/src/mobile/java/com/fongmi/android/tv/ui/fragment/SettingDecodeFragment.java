@@ -38,6 +38,8 @@ public class SettingDecodeFragment extends BaseFragment {
         mBinding.audioPrefer.setOnClickListener(this::setAudioPrefer);
         mBinding.videoPrefer.setOnClickListener(this::setVideoPrefer);
         mBinding.audioPassThrough.setOnClickListener(this::setAudioPassThrough);
+        mBinding.dolby.setOnClickListener(this::setDolby);
+        mBinding.dv7.setOnClickListener(this::setDv7);
     }
 
     private void refresh() {
@@ -46,6 +48,8 @@ public class SettingDecodeFragment extends BaseFragment {
         mBinding.audioPreferText.setText(Setting.getSwitch(PlayerSetting.isAudioPrefer()));
         mBinding.videoPreferText.setText(Setting.getSwitch(PlayerSetting.isVideoPrefer()));
         mBinding.audioPassThroughText.setText(Setting.getSwitch(PlayerSetting.isAudioPassThrough()));
+        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+        mBinding.dv7Text.setText(Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
     }
 
     private void setTunnel(View view) {
@@ -72,6 +76,16 @@ public class SettingDecodeFragment extends BaseFragment {
     private void setAAC(View view) {
         PlayerSetting.putPreferAAC(!PlayerSetting.isPreferAAC());
         mBinding.aacText.setText(Setting.getSwitch(PlayerSetting.isPreferAAC()));
+    }
+
+    private void setDolby(View view) {
+        PlayerSetting.putDolbyEnabled(!PlayerSetting.isDolbyEnabled());
+        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+    }
+
+    private void setDv7(View view) {
+        PlayerSetting.putDv7HevcFallback(!PlayerSetting.isDv7HevcFallback());
+        mBinding.dv7Text.setText(Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
     }
 
     @Override

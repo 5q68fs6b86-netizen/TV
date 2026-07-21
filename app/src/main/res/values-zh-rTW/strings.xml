@@ -192,7 +192,9 @@
     <string name="player_mpv_conf_import_success">已匯入 mpv.conf</string>
     <string name="player_ua">User-Agent</string>
     <string name="player_av3a">AV3A 音訊解碼</string>
+    <string name="player_dolby">杜比視界</string>
     <string name="player_dv7">杜比視界(HEVC 回退)</string>
+    <string name="player_mpv_hdr">HDR（自動）</string>
     <string name="player_ai_subtitle">即時語音字幕與翻譯</string>
     <string name="ai_subtitle_on">字幕翻譯：開</string>
     <string name="ai_subtitle_off">字幕翻譯：關</string>
@@ -297,6 +299,12 @@
         <item>高質 A</item>
         <item>高質 B</item>
         <item>高質 C</item>
+    </string-array>
+
+    <string-array name="select_mpv_hdr">
+        <item>自動</item>
+        <item>開</item>
+        <item>關</item>
     </string-array>
 
     <string-array name="select_track">
