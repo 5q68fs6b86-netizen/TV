@@ -216,12 +216,39 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     protected ListenableFuture<?> handleRelease() {
         if (closed) return Futures.immediateVoidFuture();
         closed = true;
-        MPVLib.removeObserver(this);
-        MPVLib.removeLogObserver(this);
-        clearVideoOutputInternal(null);
+        MpvLogCollector.log("MpvPlayer", "handleRelease: stop + destroy");
         try {
-            MPVLib.INSTANCE.destroy();
-        } catch (RuntimeException ignored) {
+            MPVLib.removeObserver(this);
+            MPVLib.removeLogObserver(this);
+        } catch (Throwable ignored) {
+        }
+        try {
+            clearVideoOutputInternal(null);
+        } catch (Throwable ignored) {
+        }
+        // Never call destroy() on the application looper: the JNI event thread may
+        // be blocked posting callbacks back to main, which deadlocks exit/rebuild.
+        try {
+            command("quit");
+        } catch (Throwable ignored) {
+        }
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        Thread t = new Thread(() -> {
+            try {
+                MPVLib.INSTANCE.destroy();
+            } catch (Throwable e) {
+                MpvLogCollector.logError("MpvPlayer", "destroy 异常: " + e.getMessage());
+            } finally {
+                done.countDown();
+            }
+        }, "mpv-destroy");
+        t.start();
+        try {
+            if (!done.await(3, java.util.concurrent.TimeUnit.SECONDS)) {
+                MpvLogCollector.logError("MpvPlayer", "destroy 超时 3s, 放弃等待以免卡死退出");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         return Futures.immediateVoidFuture();
     }
@@ -394,10 +421,14 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void initialize() {
+        MpvLogCollector.log("MpvPlayer", "initialize 开始 decode=" + (decode == PlayerEngine.HARD ? "硬解" : "软解")
+                + " vulkan=" + PlayerSetting.isMpvVulkan()
+                + " hdr=" + PlayerSetting.getMpvHdr());
         File configDir = Path.mpv();
         File cacheDir = Path.mpvCache();
         MpvAssets.ensure(context, configDir);
         MPVLib.INSTANCE.create(context);
+        MpvLogCollector.log("MpvPlayer", "MPVLib.create 完成");
         MPVLib.addLogObserver(this);
         MPVLib.INSTANCE.setOptionString("config", "yes");
         MPVLib.INSTANCE.setOptionString("config-dir", configDir.getAbsolutePath());
@@ -425,6 +456,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.init();
+        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + getVo());
         MpvAnime4K.apply(configDir);
         MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
         MPVLib.INSTANCE.setOptionString("force-window", "no");
