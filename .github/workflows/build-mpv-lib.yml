@@ -77,10 +77,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: mpvlib/buildscripts/prefix
-          key: mpvlib-prefix-${{ inputs.mpv_ref }}-${{ inputs.mpvlib_android_ref }}-${{ inputs.arches }}
+          # Bump suffix when prefix layout patches change (avoids half-broken cache).
+          key: mpvlib-prefix-v2-${{ inputs.mpv_ref }}-${{ inputs.mpvlib_android_ref }}-${{ inputs.arches }}
           restore-keys: |
-            mpvlib-prefix-${{ inputs.mpv_ref }}-
-            mpvlib-prefix-
+            mpvlib-prefix-v2-${{ inputs.mpv_ref }}-
 
       - name: Patch download-deps to use wobuhui666/mpv
         working-directory: mpvlib
@@ -202,25 +202,11 @@ jobs:
           find buildscripts -type f -name '*.sh' -exec chmod +x {} +
           chmod +x buildscripts/download.sh buildscripts/buildall.sh || true
           cd buildscripts
-          # Build each arch's mpv stack, then package AAR once with -n or final buildall
+          # Do NOT pre-create prefix/* — buildall setup_prefix creates flat
+          # usr/local symlinks; a half-made prefix breaks pkg-config (dav1d etc.).
+          # vulkan.pc is injected by the patched libplacebo.sh when $prefix_dir is live.
           for arch in ${{ inputs.arches }}; do
             echo "===== building mpv for $arch ====="
-            # Pre-create prefix + vulkan.pc so early deps (libplacebo) find vulkan
-            case "$arch" in
-              arm64) pref=prefix/arm64 ;;
-              armv7l) pref=prefix/armv7l ;;
-              x86_64) pref=prefix/x86_64 ;;
-              x86) pref=prefix/x86 ;;
-              *) pref="prefix/$arch" ;;
-            esac
-            mkdir -p "$pref/lib/pkgconfig"
-            cat >"$pref/lib/pkgconfig/vulkan.pc" <<'END'
-          Name: Vulkan
-          Description:
-          Version: 1.3.275
-          Libs: -lvulkan
-          Cflags:
-          END
             ./buildall.sh --arch "$arch" mpv
           done
           # Final step builds the Android library AAR (JNI libplayer + package)
