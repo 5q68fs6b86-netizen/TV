@@ -193,49 +193,38 @@ app/build/outputs/apk/leanbackArmeabi_v7a/release/leanback-armeabi_v7a.apk 42693
 本机 NDK/交叉编译跑不动时，用仓库工作流：
 
 - Workflow: `.github/workflows/build-mpv-lib.yml`（`workflow_dispatch`）
-- libmpv 源: `https://github.com/wobuhui666/mpv`（默认 ref `fongmi`）
-- 构建树: `https://github.com/wobuhui666/mpv-android`（默认 ref `fongmi`）
+- **同源构建树**: `https://github.com/marlboro-advance/mpvlibAndroid`（默认 ref `library`）  
+  —— 带 TV 需要的扩展 JNI（`getPropertyNode` / `commandNode` / thumbnail 等）
+- **libmpv 内核**: `https://github.com/wobuhui666/mpv`（默认 ref `fongmi`，vulkan/HDR）
 - 产物: Release `mpv-lib-v{version}` + artifact `mpv-android-lib-v{version}`
 
-### 混合嫁接策略（必读）
+### 为何必须同源
 
-公开 `mpv-android@fongmi` 的 JNI **没有** TV 依赖的扩展方法
-（`getPropertyNode` / `setPropertyNode` / `commandNode` /
-`grabThumbnailFast` / `clearThumbnailCache` / `setThumbnailJavaVM`）。
-若只替换 `.so` 而保留旧 `classes.jar`，会在运行时 `UnsatisfiedLinkError`，
-被 `PlayerEngineFactory.createMpv()` 静默吞掉并回退 Exo。
-
-因此工作流采用 **hybrid graft**：
-
-| 组件 | 来源 |
+| 版本 | 说明 |
 |------|------|
-| `libmpv.so` + FFmpeg 栈 | 新编 `wobuhui666/mpv@fongmi`（vulkan/HDR） |
-| `libplayer.so` | 已知可用 base AAR（默认 v0.0.3） |
-| `classes.jar` / assets / manifest | 同上 base AAR |
+| v0.0.3 | 已知可用（`mpvlibAndroid` 系），无新内核 |
+| v0.0.4 | **坏**：公开 `mpv-android@fongmi` 编的 libplayer 缺 6 个 JNI |
+| v0.0.5 | **坏 hybrid**：新 libmpv + 旧 libplayer，符号对得上但 ABI/事件语义不兼容 → 黑屏/退出卡 |
+| v0.0.6+ | **同源**：`mpvlibAndroid` 同时出 classes.jar + libplayer + libmpv（mpv 源换成 wobuhui666） |
 
-工作流会校验：base `libplayer` 的 6 个扩展 JNI 符号存在；
-旧 `libplayer` 需要的 `mpv_*` 符号在新 `libmpv` 中全部导出。
-
-本地替换（优先用 Release，避免把 45MB+ AAR 推进 git）：
+本地替换：
 
 ```bash
-# 推荐 hybrid 产物（修了 JNI 失配 + 新 libmpv）
-curl -L -o app/libs/mpv-android-lib-v0.0.5.aar \
-  https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.5/mpv-android-lib-v0.0.5.aar
-rm -f app/libs/mpv-android-lib-v0.0.3.aar app/libs/mpv-android-lib-v0.0.4.aar
-
-# 仅需可用 MPV、不要新内核时可用 v0.0.3
-# curl -L -o app/libs/mpv-android-lib-v0.0.3.aar \
-#   https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.3/mpv-android-lib-v0.0.3.aar
+curl -L -o app/libs/mpv-android-lib-v0.0.6.aar \
+  https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.6/mpv-android-lib-v0.0.6.aar
+rm -f app/libs/mpv-android-lib-v0.0.3.aar app/libs/mpv-android-lib-v0.0.4.aar app/libs/mpv-android-lib-v0.0.5.aar
 ```
 
-注意：`mpv-lib-v0.0.4` 是错误产物（新 libplayer 缺扩展 JNI），**不要使用**。
+Java 侧已对接：
 
-Java 侧已对接（无需等新 AAR 即可合入）：
+- 软硬解热切：`setPropertyString("hwdec")` + Surface rebind + `loadfile replace`
+- Vulkan：`gpu-context=androidvk`（需同源 AAR 内核支持）
+- HDR：`target-colorspace-hint`
+- 杜比总开关：`hwdec-codecs` 控制 dvhe/dvh1
 
-- 软硬解热切：`MpvPlayer.setDecode` 用 `setPropertyString("hwdec")` + `loadfile replace`，成功时 `return false` 跳过重建
-- Vulkan：`gpu-context=androidvk`（开启 vulkan 时）
-- HDR：`target-colorspace-hint` + 设置项「自动/开/关」
-- 杜比总开关：`PlayerSetting.isDolbyEnabled()`，MPV `hwdec-codecs` 控制 dvhe/dvh1
+### media3 / 双 workflow 与 APK 体积
 
-新 hybrid AAR 补齐内核：Vulkan interop 直通、Android colorspace hints，同时保持扩展 JNI 可用。
+`main.yml` 与 `build-release.yml` **构建步骤相同**（都 `MEDIA3_SOURCE_DIR` + 同一 composite），只差触发条件（后者多 `push: sync/fongmi-20260628`）。  
+同 commit 出现 ~80MB / ~135MB 两档，**不是这两份 yml 内容分叉导致**。  
+`dev` 分支另有一份旧 `main.yml`（无 Media3 composite、flavor 名不同），与当前 `sync` 线无关。  
+当前 composite **未** include `lib-decoder-ffmpeg`；体积差更可能来自 CI 缓存/产物打包差异，需拆 APK `lib/` 才能钉死。
