@@ -1,7 +1,24 @@
 name: Build mpv-android-lib AAR
 
 # Rebuild native mpv AAR for app/libs using wobuhui666/mpv (fongmi branch).
-# Local machines that cannot run NDK builds should use this workflow and download the artifact.
+#
+# CRITICAL: TV app's Java bindings (classes.jar) and JNI bridge (libplayer.so)
+# require an extended surface (getPropertyNode / setPropertyNode / commandNode /
+# grabThumbnailFast / clearThumbnailCache / setThumbnailJavaVM) that is NOT
+# present in public wobuhui666/mpv-android@fongmi or FongMi/mpv-android@fongmi
+# sources. Those live only in the original proprietary-extended v0.0.3 AAR.
+#
+# Strategy (hybrid graft):
+#   - Build new libmpv.so + FFmpeg stack from wobuhui666/mpv@fongmi
+#     (vulkan / HDR / mediacodec pass-through).
+#   - Keep classes.jar + assets + manifest from a known-good base AAR (v0.0.3).
+#   - Keep libplayer.so from the same base AAR (matches classes.jar JNI surface).
+#   - Swap all other .so files with the newly built ones.
+#   - Verify: ABI symbols that old libplayer needs are exported by new libmpv;
+#     final libplayer.so still exports the 6 extended JNI methods.
+#
+# Local machines that cannot run NDK builds should use this workflow and download
+# the release asset (not the ephemeral Actions artifact).
 
 on:
   workflow_dispatch:
@@ -11,16 +28,24 @@ on:
         required: true
         default: "fongmi"
       mpv_android_ref:
-        description: "wobuhui666/mpv-android ref"
+        description: "wobuhui666/mpv-android ref (build scripts + native deps)"
         required: true
         default: "fongmi"
       aar_version:
-        description: "Output AAR version suffix (e.g. 0.0.4)"
+        description: "Output AAR version suffix (e.g. 0.0.5)"
         required: true
-        default: "0.0.4"
+        default: "0.0.5"
+      base_aar_url:
+        description: "Known-good base AAR URL (provides classes.jar + libplayer.so)"
+        required: true
+        default: "https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.3/mpv-android-lib-v0.0.3.aar"
+      publish_release:
+        description: "Also publish a GitHub Release (true/false)"
+        required: true
+        default: "true"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -58,7 +83,7 @@ jobs:
       - name: Install host packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf pkgconf libtool ninja-build cmake python3-pip gperf nasm yasm
+          sudo apt-get install -y autoconf pkgconf libtool ninja-build cmake python3-pip gperf nasm yasm binutils
           sudo pip3 install --break-system-packages meson || sudo pip3 install meson
 
       - name: Download SDK/NDK + deps (use wobuhui666/mpv)
@@ -86,91 +111,189 @@ jobs:
         id: libs
         working-directory: mpv-android
         run: |
-          set -e
+          set -euo pipefail
           echo "Produced libs:"
-          find app -type d -name 'arm64-v8a' -o -type d -name 'armeabi-v7a' 2>/dev/null | head
-          find app -name 'libmpv.so' 2>/dev/null | head
-          # Common output locations in mpv-android builds
+          find app -name 'libmpv.so' 2>/dev/null | head -20 || true
           for d in \
             app/src/main/libs \
             app/src/main/jniLibs \
             app/build/intermediates/merged_native_libs \
             app/build/intermediates/stripped_native_libs
           do
-            if [ -d "$d" ]; then echo "DIR $d"; find "$d" -name 'libmpv.so' | head; fi
+            if [ -d "$d" ]; then
+              echo "DIR $d"
+              find "$d" -name 'libmpv.so' | head || true
+            fi
           done
-          # Prefer app/src/main/libs if present (FongMi workflow uploads this)
           if [ -d app/src/main/libs ]; then
             echo "libs_root=app/src/main/libs" >>"$GITHUB_OUTPUT"
           elif [ -d app/src/main/jniLibs ]; then
             echo "libs_root=app/src/main/jniLibs" >>"$GITHUB_OUTPUT"
           else
-            # fallback: first directory containing libmpv.so
             root=$(find app -name 'libmpv.so' | head -1 | xargs -r dirname | xargs -r dirname)
             echo "libs_root=$root" >>"$GITHUB_OUTPUT"
           fi
-          echo "Resolved libs_root=$(cat $GITHUB_OUTPUT | grep libs_root)"
+          echo "Resolved libs_root=$(grep libs_root "$GITHUB_OUTPUT")"
 
-      - name: Checkout TV base AAR (Java bindings / assets)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ github.ref }}
-          path: tv
-          sparse-checkout: |
-            app/libs
-          sparse-checkout-cone-mode: false
-          fetch-depth: 1
+      - name: Download known-good base AAR
+        env:
+          BASE_AAR_URL: ${{ inputs.base_aar_url }}
+        run: |
+          set -euo pipefail
+          curl -fL --retry 5 -o "$GITHUB_WORKSPACE/base.aar" "$BASE_AAR_URL"
+          ls -lh "$GITHUB_WORKSPACE/base.aar"
+          unzip -l "$GITHUB_WORKSPACE/base.aar" | head -40
 
-      - name: Package AAR for TV app/libs
+      - name: Package hybrid AAR (new libmpv + old libplayer/classes.jar)
         env:
           AAR_VERSION: ${{ inputs.aar_version }}
         run: |
           set -euo pipefail
           LIBS_ROOT="mpv-android/${{ steps.libs.outputs.libs_root }}"
-          # steps.libs.outputs may already be relative to mpv-android
           if [ ! -d "$LIBS_ROOT" ]; then
             LIBS_ROOT="${{ steps.libs.outputs.libs_root }}"
             if [ -d "mpv-android/$LIBS_ROOT" ]; then LIBS_ROOT="mpv-android/$LIBS_ROOT"; fi
           fi
           test -d "$LIBS_ROOT"
-          BASE_AAR=$(ls tv/app/libs/mpv-android-lib-*.aar | head -1)
-          test -f "$BASE_AAR"
+          echo "Using LIBS_ROOT=$LIBS_ROOT"
+          find "$LIBS_ROOT" -name 'libmpv.so' || true
+
           STAGE="$GITHUB_WORKSPACE/aar-stage"
-          rm -rf "$STAGE"
-          mkdir -p "$STAGE"
-          unzip -q "$BASE_AAR" -d "$STAGE"
-          # Replace native libs; keep classes.jar / assets / manifest from base AAR
-          rm -rf "$STAGE/jni"
-          mkdir -p "$STAGE/jni"
+          BASE_STAGE="$GITHUB_WORKSPACE/base-stage"
+          rm -rf "$STAGE" "$BASE_STAGE"
+          mkdir -p "$STAGE" "$BASE_STAGE"
+          unzip -q "$GITHUB_WORKSPACE/base.aar" -d "$BASE_STAGE"
+          unzip -q "$GITHUB_WORKSPACE/base.aar" -d "$STAGE"
+
+          # Required surface from base AAR — must survive packaging.
+          test -f "$STAGE/classes.jar"
+          test -f "$STAGE/jni/arm64-v8a/libplayer.so"
+
+          # Snapshot base libplayer.so per ABI (JNI bridge matching classes.jar).
+          declare -A BASE_PLAYER
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            if [ -d "$LIBS_ROOT/$abi" ]; then
-              mkdir -p "$STAGE/jni/$abi"
-              cp -a "$LIBS_ROOT/$abi/." "$STAGE/jni/$abi/"
+            if [ -f "$BASE_STAGE/jni/$abi/libplayer.so" ]; then
+              BASE_PLAYER[$abi]="$BASE_STAGE/jni/$abi/libplayer.so"
             fi
           done
-          if [ ! -d "$STAGE/jni/arm64-v8a" ] && [ -d "$LIBS_ROOT/arm64" ]; then
-            mkdir -p "$STAGE/jni/arm64-v8a"
-            cp -a "$LIBS_ROOT/arm64/." "$STAGE/jni/arm64-v8a/"
-          fi
-          if [ ! -d "$STAGE/jni/armeabi-v7a" ] && [ -d "$LIBS_ROOT/armv7l" ]; then
-            mkdir -p "$STAGE/jni/armeabi-v7a"
-            cp -a "$LIBS_ROOT/armv7l/." "$STAGE/jni/armeabi-v7a/"
-          fi
+          test -n "${BASE_PLAYER[arm64-v8a]:-}"
+
+          # Verify base libplayer exports the extended JNI surface.
+          REQUIRED_JNI=(
+            Java_is_xyz_mpv_MPVLib_getPropertyNode
+            Java_is_xyz_mpv_MPVLib_setPropertyNode
+            Java_is_xyz_mpv_MPVLib_commandNode
+            Java_is_xyz_mpv_MPVLib_grabThumbnailFast
+            Java_is_xyz_mpv_MPVLib_clearThumbnailCache
+            Java_is_xyz_mpv_MPVLib_setThumbnailJavaVM
+          )
+          base_exports=$(nm -D "${BASE_PLAYER[arm64-v8a]}" | awk '/ T /{print $3}')
+          for sym in "${REQUIRED_JNI[@]}"; do
+            echo "$base_exports" | grep -qx "$sym" || {
+              echo "FATAL: base libplayer.so missing required JNI export: $sym"
+              exit 1
+            }
+          done
+          echo "Base libplayer.so JNI surface OK (${#REQUIRED_JNI[@]} extended methods present)."
+
+          # Replace native libs with newly built ones, then restore base libplayer.so.
+          rm -rf "$STAGE/jni"
+          mkdir -p "$STAGE/jni"
+
+          copy_abi() {
+            local src_abi="$1" dst_abi="$2"
+            local src=""
+            if [ -d "$LIBS_ROOT/$src_abi" ]; then
+              src="$LIBS_ROOT/$src_abi"
+            elif [ -d "$LIBS_ROOT/$dst_abi" ]; then
+              src="$LIBS_ROOT/$dst_abi"
+            fi
+            if [ -z "$src" ]; then
+              echo "WARN: no new libs for $src_abi / $dst_abi"
+              return 1
+            fi
+            mkdir -p "$STAGE/jni/$dst_abi"
+            cp -a "$src/." "$STAGE/jni/$dst_abi/"
+            # Graft base libplayer.so over any newly built (incomplete) one.
+            if [ -n "${BASE_PLAYER[$dst_abi]:-}" ]; then
+              cp -a "${BASE_PLAYER[$dst_abi]}" "$STAGE/jni/$dst_abi/libplayer.so"
+              echo "Grafted base libplayer.so -> jni/$dst_abi/"
+            fi
+            test -f "$STAGE/jni/$dst_abi/libmpv.so"
+            test -f "$STAGE/jni/$dst_abi/libplayer.so"
+            return 0
+          }
+
+          copy_abi arm64-v8a arm64-v8a || copy_abi arm64 arm64-v8a
+          copy_abi armeabi-v7a armeabi-v7a || copy_abi armv7l armeabi-v7a
+
+          # Optional ABIs: only if both new libs and base player exist.
+          for pair in "x86_64:x86_64" "x86:x86"; do
+            src="${pair%%:*}"; dst="${pair##*:}"
+            if [ -d "$LIBS_ROOT/$src" ] || [ -d "$LIBS_ROOT/$dst" ]; then
+              copy_abi "$src" "$dst" || true
+            fi
+          done
+
           test -f "$STAGE/jni/arm64-v8a/libmpv.so"
+          test -f "$STAGE/jni/arm64-v8a/libplayer.so"
           test -f "$STAGE/classes.jar"
+
+          # ABI check: every mpv_* undefined symbol in grafted libplayer must exist in new libmpv.
+          needed=$(nm -D -u "$STAGE/jni/arm64-v8a/libplayer.so" | awk '/ U /{print $2}' | grep '^mpv_' || true)
+          defined=$(nm -D "$STAGE/jni/arm64-v8a/libmpv.so" | awk '/ T /{print $3}')
+          missing=0
+          while IFS= read -r sym; do
+            [ -z "$sym" ] && continue
+            if ! echo "$defined" | grep -qx "$sym"; then
+              echo "FATAL: new libmpv.so missing symbol required by grafted libplayer.so: $sym"
+              missing=1
+            fi
+          done <<< "$needed"
+          [ "$missing" -eq 0 ] || exit 1
+          echo "Symbol ABI check OK (grafted libplayer <-> new libmpv)."
+
+          # Final JNI surface check on packaged libplayer.
+          final_exports=$(nm -D "$STAGE/jni/arm64-v8a/libplayer.so" | awk '/ T /{print $3}')
+          for sym in "${REQUIRED_JNI[@]}"; do
+            echo "$final_exports" | grep -qx "$sym" || {
+              echo "FATAL: packaged libplayer.so missing $sym after graft"
+              exit 1
+            }
+          done
+          echo "Packaged libplayer.so JNI surface OK."
+
+          # Optional: confirm new libmpv links vulkan (feature marker).
+          if readelf -d "$STAGE/jni/arm64-v8a/libmpv.so" | grep -q 'libvulkan.so'; then
+            echo "New libmpv.so depends on libvulkan.so (vulkan path present)."
+          else
+            echo "WARN: new libmpv.so does not list libvulkan.so — vulkan may be unavailable."
+          fi
+
           OUT="$GITHUB_WORKSPACE/mpv-android-lib-v${AAR_VERSION}.aar"
           (cd "$STAGE" && jar cf "$OUT" .)
           ls -lh "$OUT"
-          cat >"$GITHUB_WORKSPACE/INSTALL_MPV_AAR.txt" <<EOF
-          Replace in TV repo:
-            app/libs/mpv-android-lib-v0.0.3.aar
-          with:
-            mpv-android-lib-v${AAR_VERSION}.aar
-          Source: wobuhui666/mpv@${{ inputs.mpv_ref }}
-          Build tree: wobuhui666/mpv-android@${{ inputs.mpv_android_ref }}
-          Base Java bindings: ${BASE_AAR}
-          EOF
+
+          {
+            echo "Hybrid AAR packaging notes"
+            echo "=========================="
+            echo "Output: mpv-android-lib-v${AAR_VERSION}.aar"
+            echo "libmpv / FFmpeg / deps: rebuilt from wobuhui666/mpv@${{ inputs.mpv_ref }}"
+            echo "Build tree: wobuhui666/mpv-android@${{ inputs.mpv_android_ref }}"
+            echo "classes.jar + libplayer.so: grafted from base AAR"
+            echo "Base AAR URL: ${{ inputs.base_aar_url }}"
+            echo ""
+            echo "Why graft?"
+            echo "  Public mpv-android@fongmi JNI does not export getPropertyNode /"
+            echo "  setPropertyNode / commandNode / grabThumbnailFast / clearThumbnailCache /"
+            echo "  setThumbnailJavaVM, but TV's MpvPlayer.java requires them. Rebuilding"
+            echo "  libplayer from public sources breaks MPV engine init (UnsatisfiedLinkError"
+            echo "  -> silent Exo fallback). Grafting preserves the extended bridge while"
+            echo "  still shipping the new vulkan/HDR-capable libmpv core."
+            echo ""
+            echo "arm64-v8a contents:"
+            ls -lh "$STAGE/jni/arm64-v8a/"
+          } >"$GITHUB_WORKSPACE/INSTALL_MPV_AAR.txt"
 
       - name: Upload AAR artifact
         uses: actions/upload-artifact@v4
@@ -181,3 +304,21 @@ jobs:
             INSTALL_MPV_AAR.txt
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release
+        if: ${{ inputs.publish_release == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AAR_VERSION: ${{ inputs.aar_version }}
+        run: |
+          set -euo pipefail
+          TAG="mpv-lib-v${AAR_VERSION}"
+          AAR="mpv-android-lib-v${AAR_VERSION}.aar"
+          NOTES=$(cat INSTALL_MPV_AAR.txt)
+          # Delete existing tag/release if re-running same version.
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" "$AAR" INSTALL_MPV_AAR.txt \
+            --title "mpv-android-lib v${AAR_VERSION} (hybrid graft)" \
+            --notes "$NOTES" \
+            --latest=false
+          echo "Published https://github.com/${{ github.repository }}/releases/tag/$TAG"
