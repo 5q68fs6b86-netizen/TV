@@ -197,14 +197,15 @@ app/build/outputs/apk/leanbackArmeabi_v7a/release/leanback-armeabi_v7a.apk 42693
 - 构建树: `https://github.com/wobuhui666/mpv-android`（默认 ref `fongmi`）
 - 产物: artifact `mpv-android-lib-v{version}`，内含 `mpv-android-lib-v{version}.aar`
 
-本地替换：
+本地替换（优先用 Release，避免把 45MB AAR 推进 git）：
 
 ```bash
-# 下载 artifact 后
-cp mpv-android-lib-v0.0.4.aar app/libs/
-# 可删除旧版，或保留并由 fileTree 同时扫到时注意只留一个 mpv aar
+# 已发布: https://github.com/5q68fs6b86-netizen/TV/releases/tag/mpv-lib-v0.0.4
+curl -L -o app/libs/mpv-android-lib-v0.0.4.aar   https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.4/mpv-android-lib-v0.0.4.aar
 rm -f app/libs/mpv-android-lib-v0.0.3.aar
 ```
+
+或从 Actions artifact `mpv-android-lib-v0.0.4` 下载后同样替换。
 
 Java 侧已对接（无需等新 AAR 即可合入）：
 
