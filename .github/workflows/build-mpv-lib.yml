@@ -140,6 +140,7 @@ jobs:
           IN_CI: "1"
         run: |
           set -euo pipefail
+          find buildscripts -type f -name '*.sh' -exec chmod +x {} +
           # Prefer project's download.sh (pulls NDK/SDK + deps)
           cd buildscripts
           ./download.sh
@@ -147,6 +148,7 @@ jobs:
           if [ -d deps/mpv ]; then
             git -C deps/mpv remote -v || true
             git -C deps/mpv log -1 --oneline || true
+            git -C deps/mpv rev-parse HEAD || true
           fi
 
       - name: Build native + AAR
@@ -156,6 +158,9 @@ jobs:
         run: |
           set -euo pipefail
           unset ANDROID_SDK_ROOT || true
+          # download.sh / git checkout can drop +x on scripts
+          find buildscripts -type f -name '*.sh' -exec chmod +x {} +
+          chmod +x buildscripts/download.sh buildscripts/buildall.sh || true
           cd buildscripts
           # Build each arch's mpv stack, then package AAR once with -n or final buildall
           for arch in ${{ inputs.arches }}; do
