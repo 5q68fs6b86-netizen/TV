@@ -187,12 +187,13 @@ jobs:
             Java_is_xyz_mpv_MPVLib_clearThumbnailCache
             Java_is_xyz_mpv_MPVLib_setThumbnailJavaVM
           )
-          base_exports=$(nm -D "${BASE_PLAYER[arm64-v8a]}" | awk '/ T /{print $3}')
+          nm -D "${BASE_PLAYER[arm64-v8a]}" >"$GITHUB_WORKSPACE/nm-base-libplayer.txt"
           for sym in "${REQUIRED_JNI[@]}"; do
-            echo "$base_exports" | grep -qx "$sym" || {
+            if ! grep -qE "[[:space:]]T[[:space:]]+${sym}(@@|\$)" "$GITHUB_WORKSPACE/nm-base-libplayer.txt"; then
               echo "FATAL: base libplayer.so missing required JNI export: $sym"
+              head -40 "$GITHUB_WORKSPACE/nm-base-libplayer.txt" || true
               exit 1
-            }
+            fi
           done
           echo "Base libplayer.so JNI surface OK (${#REQUIRED_JNI[@]} extended methods present)."
 
@@ -240,26 +241,46 @@ jobs:
           test -f "$STAGE/classes.jar"
 
           # ABI check: every mpv_* undefined symbol in grafted libplayer must exist in new libmpv.
-          needed=$(nm -D -u "$STAGE/jni/arm64-v8a/libplayer.so" | awk '/ U /{print $2}' | grep '^mpv_' || true)
-          defined=$(nm -D "$STAGE/jni/arm64-v8a/libmpv.so" | awk '/ T /{print $3}')
+          # Use files + grep -F (not pipeline field parsing): nm field layout varies by binutils.
+          PLAYER_SO="$STAGE/jni/arm64-v8a/libplayer.so"
+          MPV_SO="$STAGE/jni/arm64-v8a/libmpv.so"
+          nm -D "$MPV_SO" >"$GITHUB_WORKSPACE/nm-libmpv.txt"
+          nm -D -u "$PLAYER_SO" >"$GITHUB_WORKSPACE/nm-libplayer-undef.txt"
+          echo "Sample libmpv exports:"
+          grep -E '[[:space:]]T[[:space:]]+mpv_' "$GITHUB_WORKSPACE/nm-libmpv.txt" | head -20 || true
+          echo "libmpv T-symbol count: $(grep -cE '[[:space:]]T[[:space:]]' "$GITHUB_WORKSPACE/nm-libmpv.txt" || true)"
           missing=0
-          while IFS= read -r sym; do
-            [ -z "$sym" ] && continue
-            if ! echo "$defined" | grep -qx "$sym"; then
-              echo "FATAL: new libmpv.so missing symbol required by grafted libplayer.so: $sym"
-              missing=1
+          while IFS= read -r line; do
+            # nm -D -u lines look like: "                 U mpv_command" or "U mpv_command"
+            sym=$(echo "$line" | awk '{print $NF}')
+            case "$sym" in
+              mpv_*) ;;
+              *) continue ;;
+            esac
+            # Match global text symbol; allow optional @@VERSION suffix.
+            if ! grep -qE "[[:space:]]T[[:space:]]+${sym}(@@|\$)" "$GITHUB_WORKSPACE/nm-libmpv.txt"; then
+              # Also accept any defined dynamic symbol (D/B/R/T/W) just in case.
+              if ! grep -qE "[[:space:]][TDBRW][[:space:]]+${sym}(@@|\$)" "$GITHUB_WORKSPACE/nm-libmpv.txt"; then
+                echo "FATAL: new libmpv.so missing symbol required by grafted libplayer.so: $sym"
+                missing=1
+              fi
             fi
-          done <<< "$needed"
-          [ "$missing" -eq 0 ] || exit 1
+          done <"$GITHUB_WORKSPACE/nm-libplayer-undef.txt"
+          if [ "$missing" -ne 0 ]; then
+            echo "--- first 40 lines of nm -D libmpv.so ---"
+            head -40 "$GITHUB_WORKSPACE/nm-libmpv.txt" || true
+            exit 1
+          fi
           echo "Symbol ABI check OK (grafted libplayer <-> new libmpv)."
 
           # Final JNI surface check on packaged libplayer.
-          final_exports=$(nm -D "$STAGE/jni/arm64-v8a/libplayer.so" | awk '/ T /{print $3}')
+          nm -D "$PLAYER_SO" >"$GITHUB_WORKSPACE/nm-libplayer.txt"
           for sym in "${REQUIRED_JNI[@]}"; do
-            echo "$final_exports" | grep -qx "$sym" || {
+            if ! grep -qE "[[:space:]]T[[:space:]]+${sym}(@@|\$)" "$GITHUB_WORKSPACE/nm-libplayer.txt"; then
               echo "FATAL: packaged libplayer.so missing $sym after graft"
+              head -40 "$GITHUB_WORKSPACE/nm-libplayer.txt" || true
               exit 1
-            }
+            fi
           done
           echo "Packaged libplayer.so JNI surface OK."
 
