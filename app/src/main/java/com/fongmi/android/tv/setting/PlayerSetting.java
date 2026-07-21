@@ -59,6 +59,19 @@ public class PlayerSetting {
         Prefers.put("mpv_vulkan", vulkan);
     }
 
+    /** MPV HDR: 0=auto, 1=on, 2=off. Default auto. */
+    public static final int MPV_HDR_AUTO = 0;
+    public static final int MPV_HDR_ON = 1;
+    public static final int MPV_HDR_OFF = 2;
+
+    public static int getMpvHdr() {
+        return Math.clamp(Prefers.getInt("mpv_hdr", MPV_HDR_AUTO), MPV_HDR_AUTO, MPV_HDR_OFF);
+    }
+
+    public static void putMpvHdr(int mode) {
+        Prefers.put("mpv_hdr", Math.clamp(mode, MPV_HDR_AUTO, MPV_HDR_OFF));
+    }
+
     public static int getMpvAnime4K() {
         return Math.clamp(Prefers.getInt("mpv_anime4k", MPV_ANIME4K_OFF), MIN_MPV_ANIME4K, MAX_MPV_ANIME4K);
     }
@@ -207,5 +220,14 @@ public class PlayerSetting {
 
     public static void putDv7HevcFallback(boolean dv7HevcFallback) {
         Prefers.put("dv7_hevc", dv7HevcFallback);
+    }
+
+    /** Master switch for Dolby Vision. Default on. Independent of {@link #isDv7HevcFallback()}. */
+    public static boolean isDolbyEnabled() {
+        return Prefers.getBoolean("dolby", true);
+    }
+
+    public static void putDolbyEnabled(boolean enabled) {
+        Prefers.put("dolby", enabled);
     }
 }

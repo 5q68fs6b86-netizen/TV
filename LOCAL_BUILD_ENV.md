@@ -187,3 +187,30 @@ app/build/outputs/apk/leanbackArmeabi_v7a/release/leanback-armeabi_v7a.apk 42693
 - Java 编译会提示 source/target 8 在 JDK 21 下已过时。
 - 部分 native so 无法 strip，会按原样打包。
 - `sdkmanager --version` 可能提示 `platforms;android-37.0` 位于 `android-37` 的目录名不一致，这是为兼容 AGP 查找 `android-37` 创建链接导致的；已验证不影响本地 release 构建。
+
+## 重编 mpv-android-lib AAR（GitHub Actions）
+
+本机 NDK/交叉编译跑不动时，用仓库工作流：
+
+- Workflow: `.github/workflows/build-mpv-lib.yml`（`workflow_dispatch`）
+- libmpv 源: `https://github.com/wobuhui666/mpv`（默认 ref `fongmi`）
+- 构建树: `https://github.com/wobuhui666/mpv-android`（默认 ref `fongmi`）
+- 产物: artifact `mpv-android-lib-v{version}`，内含 `mpv-android-lib-v{version}.aar`
+
+本地替换：
+
+```bash
+# 下载 artifact 后
+cp mpv-android-lib-v0.0.4.aar app/libs/
+# 可删除旧版，或保留并由 fileTree 同时扫到时注意只留一个 mpv aar
+rm -f app/libs/mpv-android-lib-v0.0.3.aar
+```
+
+Java 侧已对接（无需等新 AAR 即可合入）：
+
+- 软硬解热切：`MpvPlayer.setDecode` 用 `setPropertyString("hwdec")` + `loadfile replace`，成功时 `return false` 跳过重建
+- Vulkan：`gpu-context=androidvk`（开启 vulkan 时）
+- HDR：`target-colorspace-hint` + 设置项「自动/开/关」
+- 杜比总开关：`PlayerSetting.isDolbyEnabled()`，MPV `hwdec-codecs` 控制 dvhe/dvh1
+
+新 AAR 主要补齐内核：Vulkan interop 直通、Android colorspace hints。

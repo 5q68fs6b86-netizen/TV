@@ -118,7 +118,9 @@ public class ExoUtil {
             }
         };
         int extensionMode = audioPrefer || videoPrefer ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : renderMode;
-        return factory.setEnableDecoderFallback(true).setEnableDv7HevcFallback(PlayerSetting.isDv7HevcFallback()).setExtensionRendererMode(extensionMode);
+        // Dolby master-off forces Profile-7 HEVC fallback so DV is not kept as primary path.
+        boolean dv7 = PlayerSetting.isDv7HevcFallback() || !PlayerSetting.isDolbyEnabled();
+        return factory.setEnableDecoderFallback(true).setEnableDv7HevcFallback(dv7).setExtensionRendererMode(extensionMode);
     }
 
     private static AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioOutputPlaybackParams) {

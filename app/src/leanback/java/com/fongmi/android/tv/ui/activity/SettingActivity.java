@@ -145,12 +145,14 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_MPV_ANIME4K, mpvAnime4K[PlayerSetting.getMpvAnime4K()]);
         setRowValue(JetStreamSettingView.KEY_MPV_GPU_NEXT, Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
         setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
+        setRowValue(JetStreamSettingView.KEY_MPV_HDR, ResUtil.getStringArray(R.array.select_mpv_hdr)[PlayerSetting.getMpvHdr()]);
         setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
         setRowValue(JetStreamSettingView.KEY_SEEK_ACCELERATE, Setting.getSwitch(Setting.isSeekAccelerate()));
         setRowVisible(JetStreamSettingView.KEY_MPV_CONF, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_ANIME4K, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_GPU_NEXT, !exo);
         setRowVisible(JetStreamSettingView.KEY_MPV_VULKAN, !exo);
+        setRowVisible(JetStreamSettingView.KEY_MPV_HDR, !exo);
         setRowVisible(JetStreamSettingView.KEY_ADBLOCK, exo);
         setRowVisible(JetStreamSettingView.KEY_CAPTION, PlayerSetting.hasCaption());
     }
@@ -163,12 +165,17 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_VIDEO_PREFER, Setting.getSwitch(PlayerSetting.isVideoPrefer()));
         setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
         setRowValue(JetStreamSettingView.KEY_AV3A, Setting.getSwitch(PlayerSetting.isAv3a()));
+        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
         setRowValue(JetStreamSettingView.KEY_DV7, Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
         setRowVisible(JetStreamSettingView.KEY_TUNNEL, visible);
         setRowVisible(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, visible);
         setRowVisible(JetStreamSettingView.KEY_AUDIO_PREFER, visible);
         setRowVisible(JetStreamSettingView.KEY_VIDEO_PREFER, visible);
         setRowVisible(JetStreamSettingView.KEY_AAC, visible);
+        // Dolby master switch applies to both engines; keep visible under MPV too.
+        setRowVisible(JetStreamSettingView.KEY_DOLBY, true);
+        setRowVisible(JetStreamSettingView.KEY_DV7, visible);
+        setRowVisible(JetStreamSettingView.KEY_AV3A, visible);
     }
 
     private void refreshPreloadRows() {
@@ -267,6 +274,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_MPV_ANIME4K -> setMpvAnime4K();
             case JetStreamSettingView.KEY_MPV_GPU_NEXT -> setMpvGpuNext();
             case JetStreamSettingView.KEY_MPV_VULKAN -> setMpvVulkan();
+            case JetStreamSettingView.KEY_MPV_HDR -> setMpvHdr();
             case JetStreamSettingView.KEY_ADBLOCK -> setAdblock();
             case JetStreamSettingView.KEY_SEEK_ACCELERATE -> setSeekAccelerate();
             case JetStreamSettingView.KEY_TUNNEL -> setTunnel();
@@ -275,6 +283,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_VIDEO_PREFER -> setVideoPrefer();
             case JetStreamSettingView.KEY_AAC -> setAAC();
             case JetStreamSettingView.KEY_AV3A -> setAv3a();
+            case JetStreamSettingView.KEY_DOLBY -> setDolby();
             case JetStreamSettingView.KEY_DV7 -> setDv7();
             case JetStreamSettingView.KEY_PRELOAD -> setPreload();
             case JetStreamSettingView.KEY_PRELOAD_THREADS -> PreloadDialog.show(this, PreloadDialog.THREADS);
@@ -499,6 +508,13 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_MPV_VULKAN, Setting.getSwitch(PlayerSetting.isMpvVulkan()));
     }
 
+    private void setMpvHdr() {
+        String[] modes = ResUtil.getStringArray(R.array.select_mpv_hdr);
+        int index = (PlayerSetting.getMpvHdr() + 1) % modes.length;
+        PlayerSetting.putMpvHdr(index);
+        setRowValue(JetStreamSettingView.KEY_MPV_HDR, modes[index]);
+    }
+
     private void setAdblock() {
         Setting.putAdblock(!Setting.isAdblock());
         setRowValue(JetStreamSettingView.KEY_ADBLOCK, Setting.getSwitch(Setting.isAdblock()));
@@ -539,6 +555,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setAv3a() {
         PlayerSetting.putAv3a(!PlayerSetting.isAv3a());
         setRowValue(JetStreamSettingView.KEY_AV3A, Setting.getSwitch(PlayerSetting.isAv3a()));
+    }
+
+    private void setDolby() {
+        PlayerSetting.putDolbyEnabled(!PlayerSetting.isDolbyEnabled());
+        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
     }
 
     private void setDv7() {

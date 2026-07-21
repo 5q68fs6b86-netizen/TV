@@ -73,8 +73,13 @@ public class MpvPlayerEngine implements PlayerEngine {
     @Override
     public boolean setDecode(int decode) {
         this.decode = decode;
-        player.setDecode(decode);
-        return true;
+        // false = hot path, PlayerManager skips rebuild; true = rebuild required
+        return player.setDecode(decode);
+    }
+
+    /** Re-apply Dolby codec policy. {@code true} means caller should rebuild. */
+    public boolean applyDolbySetting() {
+        return player.applyDolbySetting();
     }
 
     @Override

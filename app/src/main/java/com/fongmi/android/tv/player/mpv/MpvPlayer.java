@@ -134,10 +134,19 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     void setSubtitleStyle() {
     }
 
+    /**
+     * Applies soft/hard decode preference.
+     *
+     * @return {@code true} if the player instance must be rebuilt; {@code false} if hot-switched
+     */
     boolean setDecode(int decode) {
         this.decode = decode;
-        runOnApplicationThread(() -> applyDecode(decode));
-        return true;
+        // Hot path must run on the application looper (PlayerManager toggles from UI).
+        if (Looper.myLooper() != getApplicationLooper()) {
+            MpvLogCollector.logError("MpvPlayer", "setDecode 非主线程调用, 回退重建");
+            return true;
+        }
+        return !applyDecodeHot(decode);
     }
 
     boolean isLive() {
@@ -397,11 +406,16 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
         MPVLib.INSTANCE.setOptionString("profile", "fast");
         MPVLib.INSTANCE.setOptionString("vo", getVo());
-        MPVLib.INSTANCE.setOptionString("gpu-context", "android");
         MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
-        if (PlayerSetting.isMpvVulkan()) MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
+        if (PlayerSetting.isMpvVulkan()) {
+            MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
+            MPVLib.INSTANCE.setOptionString("gpu-context", "androidvk");
+        } else {
+            MPVLib.INSTANCE.setOptionString("gpu-context", "android");
+        }
+        applyHdrOptions();
         applyDecode(decode);
-        MPVLib.INSTANCE.setOptionString("hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1");
+        applyHwdecCodecs();
         MPVLib.INSTANCE.setOptionString("ao", "audiotrack,opensles");
         MPVLib.INSTANCE.setOptionString("audio-set-media-role", "yes");
         MPVLib.INSTANCE.setOptionString("tls-verify", "yes");
@@ -903,7 +917,94 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void applyDecode(int decode) {
-        MPVLib.INSTANCE.setOptionString("hwdec", decode == PlayerEngine.HARD ? HWDEC : "no");
+        String mode = decodeMode(decode);
+        MPVLib.INSTANCE.setOptionString("hwdec", mode);
+        try {
+            MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+        } catch (Throwable ignored) {
+            // Property writes can fail before init/runtime is ready; option still covers next load.
+        }
+    }
+
+    /**
+     * Hot-apply decode mode without recreating the MPV instance.
+     *
+     * @return {@code true} if applied; {@code false} if caller should rebuild the player
+     */
+    private boolean applyDecodeHot(int decode) {
+        if (closed) return false;
+        String mode = decodeMode(decode);
+        try {
+            MPVLib.INSTANCE.setOptionString("hwdec", mode);
+            MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+            if (mediaItem != null && mediaItem.localConfiguration != null && !TextUtils.isEmpty(mediaItem.localConfiguration.uri.toString())
+                    && (fileLoaded || playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING)) {
+                long pos = Math.max(0, positionMs);
+                String url = mediaItem.localConfiguration.uri.toString();
+                MpvLogCollector.log("MpvPlayer", "热切解码: mode=" + mode + ", pos=" + pos + "ms");
+                // Re-open the current file so the new hwdec takes effect on the active decoder.
+                loadUrl(url, pos);
+            } else {
+                MpvLogCollector.log("MpvPlayer", "设置解码(未在播/未加载): mode=" + mode);
+            }
+            String hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
+            MpvLogCollector.log("MpvPlayer", "hwdec property=" + hwdec);
+            return true;
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "热切解码失败, 将重建实例: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static String decodeMode(int decode) {
+        return decode == PlayerEngine.HARD ? HWDEC : "no";
+    }
+
+    private void applyHdrOptions() {
+        // Requires libmpv with Android target-colorspace-hint support (wobuhui666/mpv fongmi).
+        // Unknown options are ignored by mpv; safe on older AARs.
+        int mode = PlayerSetting.getMpvHdr();
+        String hint = switch (mode) {
+            case PlayerSetting.MPV_HDR_ON -> "yes";
+            case PlayerSetting.MPV_HDR_OFF -> "no";
+            default -> "auto";
+        };
+        try {
+            MPVLib.INSTANCE.setOptionString("target-colorspace-hint", hint);
+            MpvLogCollector.log("MpvPlayer", "target-colorspace-hint=" + hint);
+        } catch (Throwable e) {
+            MpvLogCollector.log("MpvPlayer", "HDR option not applied: " + e.getMessage());
+        }
+    }
+
+    private static final String HWDEC_CODECS_BASE = "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1";
+    private static final String HWDEC_CODECS_DOLBY = HWDEC_CODECS_BASE + ",dvhe,dvh1";
+
+    private void applyHwdecCodecs() {
+        String codecs = PlayerSetting.isDolbyEnabled() ? HWDEC_CODECS_DOLBY : HWDEC_CODECS_BASE;
+        MPVLib.INSTANCE.setOptionString("hwdec-codecs", codecs);
+        try {
+            MPVLib.INSTANCE.setPropertyString("hwdec-codecs", codecs);
+        } catch (Throwable ignored) {
+        }
+        MpvLogCollector.log("MpvPlayer", "hwdec-codecs=" + codecs);
+    }
+
+    /** Re-apply Dolby codec allow-list; returns true if player rebuild is required. */
+    boolean applyDolbySetting() {
+        if (closed) return true;
+        if (Looper.myLooper() != getApplicationLooper()) return true;
+        try {
+            applyHwdecCodecs();
+            if (mediaItem != null && mediaItem.localConfiguration != null
+                    && (fileLoaded || playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING)) {
+                loadUrl(mediaItem.localConfiguration.uri.toString(), Math.max(0, positionMs));
+            }
+            return false;
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "应用杜比设置失败: " + e.getMessage());
+            return true;
+        }
     }
 
     private void setVideoOutputInternal(Object output) {

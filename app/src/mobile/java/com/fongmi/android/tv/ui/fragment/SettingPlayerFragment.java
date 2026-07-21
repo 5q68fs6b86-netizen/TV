@@ -37,6 +37,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
     private String[] scale;
     private String[] engine;
     private String[] mpvAnime4K;
+    private String[] mpvHdr;
 
     public static SettingPlayerFragment newInstance() {
         return new SettingPlayerFragment();
@@ -57,6 +58,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         mBinding.mpvAnime4KText.setText((mpvAnime4K = ResUtil.getStringArray(R.array.select_mpv_anime4k))[PlayerSetting.getMpvAnime4K()]);
         mBinding.mpvVulkanText.setText(Setting.getSwitch(PlayerSetting.isMpvVulkan()));
         mBinding.mpvGpuNextText.setText(Setting.getSwitch(PlayerSetting.isMpvGpuNext()));
+        mBinding.mpvHdrText.setText((mpvHdr = ResUtil.getStringArray(R.array.select_mpv_hdr))[PlayerSetting.getMpvHdr()]);
         mBinding.scaleText.setText((scale = ResUtil.getStringArray(R.array.select_scale))[PlayerSetting.getScale()]);
         mBinding.captionText.setText((caption = ResUtil.getStringArray(R.array.select_caption))[PlayerSetting.isCaption() ? 1 : 0]);
         mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
@@ -69,6 +71,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         mBinding.mpvAnime4K.setOnClickListener(this::onMpvAnime4K);
         mBinding.mpvGpuNext.setOnClickListener(this::setMpvGpuNext);
         mBinding.mpvVulkan.setOnClickListener(this::setMpvVulkan);
+        mBinding.mpvHdr.setOnClickListener(this::onMpvHdr);
         mBinding.render.setOnClickListener(this::setRender);
         mBinding.scale.setOnClickListener(this::onScale);
         mBinding.caption.setOnClickListener(this::setCaption);
@@ -88,6 +91,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         mBinding.mpvAnime4K.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvVulkan.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.mpvHdr.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.decode.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.adblock.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.caption.setVisibility(PlayerSetting.hasCaption() ? View.VISIBLE : View.GONE);
@@ -120,6 +124,15 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
     private void setMpvVulkan(View view) {
         PlayerSetting.putMpvVulkan(!PlayerSetting.isMpvVulkan());
         mBinding.mpvVulkanText.setText(Setting.getSwitch(PlayerSetting.isMpvVulkan()));
+    }
+
+    private void onMpvHdr(View view) {
+        if (mpvHdr == null) mpvHdr = ResUtil.getStringArray(R.array.select_mpv_hdr);
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_hdr).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(mpvHdr, PlayerSetting.getMpvHdr(), (dialog, which) -> {
+            mBinding.mpvHdrText.setText(mpvHdr[which]);
+            PlayerSetting.putMpvHdr(which);
+            dialog.dismiss();
+        }).show();
     }
 
     private void setRender(View view) {
