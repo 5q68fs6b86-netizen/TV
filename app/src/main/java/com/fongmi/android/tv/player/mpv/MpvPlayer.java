@@ -971,13 +971,24 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         try {
             MPVLib.INSTANCE.setOptionString("hwdec", mode);
             MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+            // Soft path (no) cannot keep a mediacodec surface-bound decoder. Force VO rebind
+            // so the next loadfile paints into the current Surface again (avoids black frame
+            // with a moving progress bar).
+            rebindVideoOutputForDecodeSwitch(mode);
             if (mediaItem != null && mediaItem.localConfiguration != null && !TextUtils.isEmpty(mediaItem.localConfiguration.uri.toString())
                     && (fileLoaded || playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING)) {
                 long pos = Math.max(0, positionMs);
                 String url = mediaItem.localConfiguration.uri.toString();
                 MpvLogCollector.log("MpvPlayer", "热切解码: mode=" + mode + ", pos=" + pos + "ms");
+                // Reset first-frame gate so UI waits for a real frame after re-open.
+                fileLoaded = false;
+                renderedFirstFrame = false;
+                newlyRenderedFirstFrame = false;
+                loading = true;
+                playbackState = Player.STATE_BUFFERING;
                 // Re-open the current file so the new hwdec takes effect on the active decoder.
                 loadUrl(url, pos);
+                invalidateState();
             } else {
                 MpvLogCollector.log("MpvPlayer", "设置解码(未在播/未加载): mode=" + mode);
             }
@@ -987,6 +998,32 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         } catch (Throwable e) {
             MpvLogCollector.logError("MpvPlayer", "热切解码失败, 将重建实例: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Re-attach the current Surface and restore vo after an hwdec change.
+     * Hard→soft especially needs this: mediacodec zero-copy path holds the Surface;
+     * soft decode must re-own it via gpu/android context.
+     */
+    private void rebindVideoOutputForDecodeSwitch(String mode) {
+        if (attachedSurface == null || !attachedSurface.isValid()) {
+            MpvLogCollector.log("MpvPlayer", "热切解码 rebind 跳过: 无有效 Surface, mode=" + mode);
+            return;
+        }
+        try {
+            // Drop current VO binding so the next attach is clean.
+            try {
+                MPVLib.INSTANCE.setPropertyString("vo", "null");
+            } catch (Throwable ignored) {
+            }
+            MPVLib.INSTANCE.detachSurface();
+            MPVLib.INSTANCE.attachSurface(attachedSurface);
+            MPVLib.INSTANCE.setOptionString("force-window", "yes");
+            MPVLib.INSTANCE.setPropertyString("vo", getVo());
+            MpvLogCollector.log("MpvPlayer", "热切解码 rebind Surface+vo=" + getVo() + ", mode=" + mode);
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "热切解码 rebind 失败: " + e.getMessage());
         }
     }
 
