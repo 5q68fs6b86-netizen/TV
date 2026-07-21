@@ -33,7 +33,9 @@ public final class PlayerEngineFactory {
 
     private static PlayerEngine createMpv(int decode, Player.Listener listener) {
         try {
-            return new MpvPlayerEngine(decode, listener);
+            PlayerEngine engine = new MpvPlayerEngine(decode, listener);
+            MpvLogCollector.log("PlayerEngineFactory", "MPV 引擎创建成功");
+            return engine;
         } catch (Throwable e) {
             // Never silent: UnsatisfiedLinkError / native init failures used to fall back to Exo
             // with no signal, so settings still said MPV while Exo was actually playing.
