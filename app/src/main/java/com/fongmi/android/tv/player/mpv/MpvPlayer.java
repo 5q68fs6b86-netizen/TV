@@ -744,7 +744,9 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     private void readTracks() {
         try {
             readTracks(MPVLib.INSTANCE.getPropertyNode("track-list"));
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
+            // JNI UnsatisfiedLinkError is Error, not RuntimeException — must not escape.
+            MpvLogCollector.logError("MpvPlayer", "读取 track-list 失败: " + e.getMessage());
             tracks = Tracks.EMPTY;
             trackIdsByGroupId.clear();
         }
