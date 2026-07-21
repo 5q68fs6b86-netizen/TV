@@ -137,6 +137,8 @@
     <string name="setting_danmaku">Danmaku setting</string>
     <string name="setting_detail_filter">Detail text filter</string>
     <string name="setting_flag_filter">Flag text filter</string>
+    <string name="setting_toast_filter">Toast keyword filter</string>
+    <string name="setting_toast_filter_keys">Toast filter keywords</string>
     <string name="setting_text_filter_hint">One rule per line: text deletes it, text=&gt;new replaces it, /regex/=&gt;new uses regex.</string>
     <string name="setting_incognito">Incognito mode</string>
     <string name="setting_theme_color">Theme color</string>

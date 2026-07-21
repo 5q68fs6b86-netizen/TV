@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.utils.ToastFilter;
 import com.google.android.material.textview.MaterialTextView;
 
 /**
@@ -28,6 +29,7 @@ public class OverlayToast {
     private static final Runnable hide = OverlayToast::hide;
 
     public static void show(Activity activity, String text) {
+        if (ToastFilter.shouldBlock(text)) return;
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
         MaterialTextView view = current;

@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ToastFilter;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
 import com.google.gson.Gson;
@@ -76,11 +77,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         Init.set(base);
+        // earliest possible: hidden-api exempt + schedule sService hook
+        ToastFilter.install();
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        ToastFilter.install();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
     }

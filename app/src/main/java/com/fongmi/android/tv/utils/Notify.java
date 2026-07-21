@@ -77,6 +77,7 @@ public class Notify {
     }
 
     private void makeText(String text) {
+        if (ToastFilter.shouldBlock(text)) return;
         if ("leanback".equals(BuildConfig.FLAVOR_mode) && App.activity() != null) {
             App.post(() -> OverlayToast.show(App.activity(), text));
             return;

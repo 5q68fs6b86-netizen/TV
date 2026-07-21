@@ -197,6 +197,9 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_INCOGNITO, Setting.getSwitch(Setting.isIncognito()));
         setRowValue(JetStreamSettingView.KEY_DETAIL_FILTER, getStatus(Setting.getDetailFilter()));
         setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(Setting.getFlagFilter()));
+        setRowValue(JetStreamSettingView.KEY_TOAST_FILTER, Setting.getSwitch(Setting.isToastFilter()));
+        setRowValue(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, getStatus(Setting.getToastFilterRaw()));
+        setRowVisible(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, Setting.isToastFilter());
         setRowValue(JetStreamSettingView.KEY_DOH, doh.length == 0 ? "" : doh[getDohIndex()]);
         setThemeText();
         mBinding.settingView.refreshThemeSelection();
@@ -285,6 +288,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_INCOGNITO -> setIncognito();
             case JetStreamSettingView.KEY_DETAIL_FILTER -> setDetailFilter();
             case JetStreamSettingView.KEY_FLAG_FILTER -> setFlagFilter();
+            case JetStreamSettingView.KEY_TOAST_FILTER -> setToastFilter();
+            case JetStreamSettingView.KEY_TOAST_FILTER_KEYS -> setToastFilterKeys();
             case JetStreamSettingView.KEY_DOH -> setDoh();
             case JetStreamSettingView.KEY_THEME_COLOR -> {
             }
@@ -632,6 +637,24 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setTextFilter(R.string.setting_flag_filter, Setting.getFlagFilter(), value -> {
             Setting.putFlagFilter(value);
             setRowValue(JetStreamSettingView.KEY_FLAG_FILTER, getStatus(value));
+        });
+    }
+
+    private void setToastFilter() {
+        Setting.putToastFilter(!Setting.isToastFilter());
+        setRowValue(JetStreamSettingView.KEY_TOAST_FILTER, Setting.getSwitch(Setting.isToastFilter()));
+        setRowVisible(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, Setting.isToastFilter());
+    }
+
+    private void setToastFilterKeys() {
+        setTextFilter(R.string.setting_toast_filter_keys, Setting.getToastFilterRaw(), value -> {
+            Setting.putToastFilterRaw(value);
+            if (!value.isEmpty() && !Setting.isToastFilter()) {
+                Setting.putToastFilter(true);
+                setRowValue(JetStreamSettingView.KEY_TOAST_FILTER, Setting.getSwitch(true));
+                setRowVisible(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, true);
+            }
+            setRowValue(JetStreamSettingView.KEY_TOAST_FILTER_KEYS, getStatus(value));
         });
     }
 
