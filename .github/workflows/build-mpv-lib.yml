@@ -331,15 +331,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           AAR_VERSION: ${{ inputs.aar_version }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           TAG="mpv-lib-v${AAR_VERSION}"
           AAR="mpv-android-lib-v${AAR_VERSION}.aar"
           NOTES=$(cat INSTALL_MPV_AAR.txt)
-          # Delete existing tag/release if re-running same version.
-          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          # Workspace is not a git checkout of the TV repo (only mpv-android + base AAR),
+          # so always pass --repo explicitly for gh release.
+          gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" "$AAR" INSTALL_MPV_AAR.txt \
+            --repo "$REPO" \
             --title "mpv-android-lib v${AAR_VERSION} (hybrid graft)" \
             --notes "$NOTES" \
             --latest=false
-          echo "Published https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          echo "Published https://github.com/${REPO}/releases/tag/$TAG"
