@@ -151,6 +151,46 @@ jobs:
             git -C deps/mpv rev-parse HEAD || true
           fi
 
+      - name: Patch libplacebo for Android vulkan.pc stub
+        working-directory: mpvlib
+        run: |
+          set -euo pipefail
+          # libplacebo configures with -Dvk-proc-addr=enabled and needs vulkan.pc
+          # before mpv.sh would normally create it. Inject the same stub mpv.sh uses.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("buildscripts/scripts/libplacebo.sh")
+          text = p.read_text()
+          stub = r'''
+          # Android provides Vulkan, but no pkgconfig file (injected for libplacebo)
+          mkdir -p "$prefix_dir"/lib/pkgconfig
+          cat >"$prefix_dir"/lib/pkgconfig/vulkan.pc <<"END"
+          Name: Vulkan
+          Description:
+          Version: 1.3.275
+          Libs: -lvulkan
+          Cflags:
+          END
+          '''
+          needle = "unset CC CXX"
+          if "vulkan.pc" not in text:
+              if needle not in text:
+                  raise SystemExit("libplacebo.sh layout unexpected")
+              text = text.replace(needle, needle + "\n" + stub, 1)
+              p.write_text(text)
+              print("patched libplacebo.sh with vulkan.pc stub")
+          else:
+              print("libplacebo.sh already has vulkan.pc")
+          # Android NDK has no linkable libvulkan in the meson sysroot for this
+          # prefix layout; load symbols at runtime instead of link-time.
+          text = p.read_text()
+          text2 = text.replace("-Dvk-proc-addr=enabled", "-Dvk-proc-addr=disabled")
+          if text2 != text:
+              p.write_text(text2)
+              print("set vk-proc-addr=disabled (Android cross)")
+          print(p.read_text())
+          PY
+
       - name: Build native + AAR
         working-directory: mpvlib
         env:
@@ -165,6 +205,22 @@ jobs:
           # Build each arch's mpv stack, then package AAR once with -n or final buildall
           for arch in ${{ inputs.arches }}; do
             echo "===== building mpv for $arch ====="
+            # Pre-create prefix + vulkan.pc so early deps (libplacebo) find vulkan
+            case "$arch" in
+              arm64) pref=prefix/arm64 ;;
+              armv7l) pref=prefix/armv7l ;;
+              x86_64) pref=prefix/x86_64 ;;
+              x86) pref=prefix/x86 ;;
+              *) pref="prefix/$arch" ;;
+            esac
+            mkdir -p "$pref/lib/pkgconfig"
+            cat >"$pref/lib/pkgconfig/vulkan.pc" <<'END'
+          Name: Vulkan
+          Description:
+          Version: 1.3.275
+          Libs: -lvulkan
+          Cflags:
+          END
             ./buildall.sh --arch "$arch" mpv
           done
           # Final step builds the Android library AAR (JNI libplayer + package)
