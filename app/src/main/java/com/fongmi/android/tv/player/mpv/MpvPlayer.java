@@ -228,28 +228,27 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         }
         // Never call destroy() on the application looper: the JNI event thread may
         // be blocked posting callbacks back to main, which deadlocks exit/rebuild.
+        // Also do not block this future — PlayerManager.ensureEngine used to wait on
+        // release before binding Exo; a long destroy made the engine switch look like
+        // a play error and kicked VodFallbackPolicy into empty search/detail.
+        try {
+            command("stop");
+        } catch (Throwable ignored) {
+        }
         try {
             command("quit");
         } catch (Throwable ignored) {
         }
-        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
         Thread t = new Thread(() -> {
             try {
                 MPVLib.INSTANCE.destroy();
+                MpvLogCollector.log("MpvPlayer", "destroy 完成");
             } catch (Throwable e) {
                 MpvLogCollector.logError("MpvPlayer", "destroy 异常: " + e.getMessage());
-            } finally {
-                done.countDown();
             }
         }, "mpv-destroy");
+        t.setDaemon(true);
         t.start();
-        try {
-            if (!done.await(3, java.util.concurrent.TimeUnit.SECONDS)) {
-                MpvLogCollector.logError("MpvPlayer", "destroy 超时 3s, 放弃等待以免卡死退出");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
         return Futures.immediateVoidFuture();
     }
 
