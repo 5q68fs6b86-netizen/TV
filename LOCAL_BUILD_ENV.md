@@ -195,17 +195,41 @@ app/build/outputs/apk/leanbackArmeabi_v7a/release/leanback-armeabi_v7a.apk 42693
 - Workflow: `.github/workflows/build-mpv-lib.yml`（`workflow_dispatch`）
 - libmpv 源: `https://github.com/wobuhui666/mpv`（默认 ref `fongmi`）
 - 构建树: `https://github.com/wobuhui666/mpv-android`（默认 ref `fongmi`）
-- 产物: artifact `mpv-android-lib-v{version}`，内含 `mpv-android-lib-v{version}.aar`
+- 产物: Release `mpv-lib-v{version}` + artifact `mpv-android-lib-v{version}`
 
-本地替换（优先用 Release，避免把 45MB AAR 推进 git）：
+### 混合嫁接策略（必读）
+
+公开 `mpv-android@fongmi` 的 JNI **没有** TV 依赖的扩展方法
+（`getPropertyNode` / `setPropertyNode` / `commandNode` /
+`grabThumbnailFast` / `clearThumbnailCache` / `setThumbnailJavaVM`）。
+若只替换 `.so` 而保留旧 `classes.jar`，会在运行时 `UnsatisfiedLinkError`，
+被 `PlayerEngineFactory.createMpv()` 静默吞掉并回退 Exo。
+
+因此工作流采用 **hybrid graft**：
+
+| 组件 | 来源 |
+|------|------|
+| `libmpv.so` + FFmpeg 栈 | 新编 `wobuhui666/mpv@fongmi`（vulkan/HDR） |
+| `libplayer.so` | 已知可用 base AAR（默认 v0.0.3） |
+| `classes.jar` / assets / manifest | 同上 base AAR |
+
+工作流会校验：base `libplayer` 的 6 个扩展 JNI 符号存在；
+旧 `libplayer` 需要的 `mpv_*` 符号在新 `libmpv` 中全部导出。
+
+本地替换（优先用 Release，避免把 45MB+ AAR 推进 git）：
 
 ```bash
-# 已发布: https://github.com/5q68fs6b86-netizen/TV/releases/tag/mpv-lib-v0.0.4
-curl -L -o app/libs/mpv-android-lib-v0.0.4.aar   https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.4/mpv-android-lib-v0.0.4.aar
-rm -f app/libs/mpv-android-lib-v0.0.3.aar
+# 推荐 hybrid 产物（修了 JNI 失配 + 新 libmpv）
+curl -L -o app/libs/mpv-android-lib-v0.0.5.aar \
+  https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.5/mpv-android-lib-v0.0.5.aar
+rm -f app/libs/mpv-android-lib-v0.0.3.aar app/libs/mpv-android-lib-v0.0.4.aar
+
+# 仅需可用 MPV、不要新内核时可用 v0.0.3
+# curl -L -o app/libs/mpv-android-lib-v0.0.3.aar \
+#   https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.3/mpv-android-lib-v0.0.3.aar
 ```
 
-或从 Actions artifact `mpv-android-lib-v0.0.4` 下载后同样替换。
+注意：`mpv-lib-v0.0.4` 是错误产物（新 libplayer 缺扩展 JNI），**不要使用**。
 
 Java 侧已对接（无需等新 AAR 即可合入）：
 
@@ -214,4 +238,4 @@ Java 侧已对接（无需等新 AAR 即可合入）：
 - HDR：`target-colorspace-hint` + 设置项「自动/开/关」
 - 杜比总开关：`PlayerSetting.isDolbyEnabled()`，MPV `hwdec-codecs` 控制 dvhe/dvh1
 
-新 AAR 主要补齐内核：Vulkan interop 直通、Android colorspace hints。
+新 hybrid AAR 补齐内核：Vulkan interop 直通、Android colorspace hints，同时保持扩展 JNI 可用。
