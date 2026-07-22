@@ -436,11 +436,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
         MPVLib.INSTANCE.setOptionString("profile", "fast");
         MPVLib.INSTANCE.setOptionString("vo", getVo());
-        MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
+        // Match FongMi: vulkan only sets gpu-api + androidvk; do NOT force vo=gpu-next.
+        // opengl-es is for the GL path; keep it off when vulkan is selected.
         if (PlayerSetting.isMpvVulkan()) {
             MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
             MPVLib.INSTANCE.setOptionString("gpu-context", "androidvk");
         } else {
+            MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
             MPVLib.INSTANCE.setOptionString("gpu-context", "android");
         }
         applyHdrOptions();
@@ -455,7 +457,9 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
         MPVLib.INSTANCE.init();
-        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + getVo());
+        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + getVo()
+                + " vulkan=" + PlayerSetting.isMpvVulkan()
+                + " gpu-next=" + PlayerSetting.isMpvGpuNext());
         MpvAnime4K.apply(configDir);
         MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
         MPVLib.INSTANCE.setOptionString("force-window", "no");
@@ -1340,8 +1344,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         return TextUtils.isEmpty(value) ? null : value;
     }
 
+    /**
+     * Video output driver. gpu-next is opt-in only (same as FongMi/TV MpvUtil).
+     * Vulkan uses gpu-api=vulkan + gpu-context=androidvk and keeps default vo=gpu
+     * unless the user also enables gpu-next.
+     */
     private String getVo() {
-        return PlayerSetting.isMpvGpuNext() || PlayerSetting.isMpvVulkan() ? "gpu-next" : "gpu";
+        return PlayerSetting.isMpvGpuNext() ? "gpu-next" : "gpu";
     }
 
     private static String getString(MPVNode node, String key) {
