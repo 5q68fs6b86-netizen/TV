@@ -1,8 +1,9 @@
 name: Build Test APK
 
 # Signed test APK for feature validation. Uses repo secrets for a disposable test keystore.
-# Pulls mpv-android-lib from release (avoids large binary in git).
-# Use same-source AAR (v0.0.6+): hybrid v0.0.4 causes NoSuchMethodError event(I)V.
+# Signed test APK. By default KEEPS the mpv AAR from the git branch (v0.0.3 works with
+# current MpvPlayer). Optional inject only when mpv_aar_url is non-empty.
+# Do NOT inject hybrid/mismatched AARs — they crash with NoSuchMethodError event(I)V.
 
 on:
   workflow_dispatch:
@@ -12,9 +13,9 @@ on:
         required: true
         default: "feat/mpv-hot-decode-dolby-hdr"
       mpv_aar_url:
-        description: "URL of mpv AAR to inject into app/libs"
-        required: true
-        default: "https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.6/mpv-android-lib-v0.0.6.aar"
+        description: "Optional URL to inject over app/libs mpv AAR (leave empty = use git AAR)"
+        required: false
+        default: ""
       release_tag:
         description: "GitHub release tag to upload APKs"
         required: true
@@ -56,15 +57,32 @@ jobs:
       - name: Limit Media3 composite modules
         run: cp .github/media3-composite-settings.gradle .media3/settings.gradle
 
-      - name: Inject mpv AAR from release
+      - name: Resolve mpv AAR
         run: |
           set -euo pipefail
           mkdir -p app/libs
-          rm -f app/libs/mpv-android-lib-*.aar
-          curl -fL --retry 5 -o app/libs/mpv-android-lib-v0.0.4.aar "${{ inputs.mpv_aar_url }}"
-          ls -lh app/libs/mpv-android-lib-v0.0.4.aar
-          # quick integrity: zip listing
-          unzip -l app/libs/mpv-android-lib-v0.0.4.aar | grep -E 'libmpv.so|classes.jar' | head
+          URL="${{ inputs.mpv_aar_url }}"
+          if [ -n "$URL" ]; then
+            echo "Injecting external AAR from $URL"
+            rm -f app/libs/mpv-android-lib-*.aar
+            curl -fL --retry 5 -o app/libs/mpv-android-lib-injected.aar "$URL"
+          else
+            echo "Using mpv AAR from git tree (no inject)"
+          fi
+          ls -lh app/libs/mpv-android-lib-*.aar
+          AAR=$(ls app/libs/mpv-android-lib-*.aar | head -1)
+          unzip -l "$AAR" | grep -E 'libmpv.so|libplayer.so|classes.jar' | head
+          # Fail fast if classes.jar lacks event(I,MPVNode) while so looks for wrong sig —
+          # extract and javap if possible
+          STAGE=$(mktemp -d)
+          unzip -q "$AAR" classes.jar -d "$STAGE"
+          if command -v javap >/dev/null; then
+            javap -classpath "$STAGE/classes.jar" -public is.xyz.mpv.MPVLib | tee /tmp/mpvlib-public.txt
+            if ! grep -q 'event(int, is.xyz.mpv.MPVNode)' /tmp/mpvlib-public.txt \
+               && ! grep -q 'event(int)' /tmp/mpvlib-public.txt; then
+              echo "WARN: MPVLib.event not found in classes.jar"
+            fi
+          fi
 
       - name: Prepare signing config
         env:
@@ -126,8 +144,9 @@ jobs:
             Test build (disposable keystore, **not** production signing).
 
             - Branch/ref: `${{ inputs.ref }}`
-            - mpv AAR: `${{ inputs.mpv_aar_url }}`
-            - Features: MPV hot soft/hard decode, Dolby master switch, HDR/vulkan options
+            - mpv AAR: `${{ inputs.mpv_aar_url || 'from git (app/libs)' }}`
+            - Features: MPV hot soft/hard decode, Dolby master switch, HDR/vulkan options (Java-side)
+            - Note: stock git AAR is v0.0.3-compatible with MpvPlayer EventObserver
 
             Install the matching ABI APK on a device/emulator for manual verification.
           files: dist/*.apk
