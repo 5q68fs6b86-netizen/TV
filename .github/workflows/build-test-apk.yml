@@ -1,7 +1,8 @@
 name: Build Test APK
 
 # Signed test APK for feature validation. Uses repo secrets for a disposable test keystore.
-# Pulls mpv-android-lib from the mpv-lib-v0.0.4 release (avoids large binary in git).
+# Pulls mpv-android-lib from release (avoids large binary in git).
+# Use same-source AAR (v0.0.6+): hybrid v0.0.4 causes NoSuchMethodError event(I)V.
 
 on:
   workflow_dispatch:
@@ -13,7 +14,7 @@ on:
       mpv_aar_url:
         description: "URL of mpv AAR to inject into app/libs"
         required: true
-        default: "https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.4/mpv-android-lib-v0.0.4.aar"
+        default: "https://github.com/5q68fs6b86-netizen/TV/releases/download/mpv-lib-v0.0.6/mpv-android-lib-v0.0.6.aar"
       release_tag:
         description: "GitHub release tag to upload APKs"
         required: true
