@@ -964,39 +964,55 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     /**
-     * Hot-apply decode mode without recreating the MPV instance.
+     * Hot-apply soft/hard decode without recreating the MPV process.
      *
-     * @return {@code true} if applied; {@code false} if caller should rebuild the player
+     * @return {@code true} if applied; {@code false} if caller must rebuild the player
      */
     private boolean applyDecodeHot(int decode) {
         if (closed) return false;
         String mode = decodeMode(decode);
+        String url = null;
+        if (mediaItem != null && mediaItem.localConfiguration != null) {
+            url = mediaItem.localConfiguration.uri.toString();
+        }
+        boolean wasPlaying = !TextUtils.isEmpty(url)
+                && (fileLoaded || playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING);
+        long pos = Math.max(0, positionMs);
         try {
+            MpvLogCollector.log("MpvPlayer", "热切解码开始: mode=" + mode + ", playing=" + wasPlaying + ", pos=" + pos + "ms");
+            // 1) Stop current demux/decoder so mediacodec releases the Surface (hard→soft).
+            if (wasPlaying) {
+                command("stop");
+            }
+            // 2) Commit hwdec for both next-load option and live property.
             MPVLib.INSTANCE.setOptionString("hwdec", mode);
-            MPVLib.INSTANCE.setPropertyString("hwdec", mode);
-            // Soft path (no) cannot keep a mediacodec surface-bound decoder. Force VO rebind
-            // so the next loadfile paints into the current Surface again (avoids black frame
-            // with a moving progress bar).
-            rebindVideoOutputForDecodeSwitch(mode);
-            if (mediaItem != null && mediaItem.localConfiguration != null && !TextUtils.isEmpty(mediaItem.localConfiguration.uri.toString())
-                    && (fileLoaded || playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING)) {
-                long pos = Math.max(0, positionMs);
-                String url = mediaItem.localConfiguration.uri.toString();
-                MpvLogCollector.log("MpvPlayer", "热切解码: mode=" + mode + ", pos=" + pos + "ms");
-                // Reset first-frame gate so UI waits for a real frame after re-open.
+            if (!command("set", "hwdec", mode)) {
+                MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+            }
+            // 3) Re-own Surface under the new decoder path.
+            if (!rebindVideoOutputForDecodeSwitch(mode)) {
+                MpvLogCollector.logError("MpvPlayer", "热切解码 rebind 失败, 回退重建");
+                return false;
+            }
+            // 4) Re-open current item with headers (proxy/CDN streams need them on every loadfile).
+            if (wasPlaying) {
                 fileLoaded = false;
                 renderedFirstFrame = false;
                 newlyRenderedFirstFrame = false;
                 loading = true;
+                playerError = null;
                 playbackState = Player.STATE_BUFFERING;
-                // Re-open the current file so the new hwdec takes effect on the active decoder.
+                if (spec != null) applyHeaders(spec.getHeaders());
                 loadUrl(url, pos);
                 invalidateState();
-            } else {
-                MpvLogCollector.log("MpvPlayer", "设置解码(未在播/未加载): mode=" + mode);
             }
             String hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
-            MpvLogCollector.log("MpvPlayer", "hwdec property=" + hwdec);
+            MpvLogCollector.log("MpvPlayer", "热切解码完成: hwdec=" + hwdec + " (want " + mode + ")");
+            // Property should reflect the requested mode (allow prefix match for mediacodec list).
+            if (!TextUtils.isEmpty(hwdec) && !"no".equals(mode) && "no".equalsIgnoreCase(hwdec.trim())) {
+                MpvLogCollector.logError("MpvPlayer", "热切后仍为软解, 回退重建");
+                return false;
+            }
             return true;
         } catch (Throwable e) {
             MpvLogCollector.logError("MpvPlayer", "热切解码失败, 将重建实例: " + e.getMessage());
@@ -1006,27 +1022,39 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
 
     /**
      * Re-attach the current Surface and restore vo after an hwdec change.
-     * Hard→soft especially needs this: mediacodec zero-copy path holds the Surface;
-     * soft decode must re-own it via gpu/android context.
+     * Hard→soft needs this: mediacodec zero-copy holds the Surface; soft decode must re-own it.
+     *
+     * @return false if Surface rebind failed while a Surface is required
      */
-    private void rebindVideoOutputForDecodeSwitch(String mode) {
+    private boolean rebindVideoOutputForDecodeSwitch(String mode) {
         if (attachedSurface == null || !attachedSurface.isValid()) {
             MpvLogCollector.log("MpvPlayer", "热切解码 rebind 跳过: 无有效 Surface, mode=" + mode);
-            return;
+            // No surface yet (pre-play toggle) is OK.
+            return true;
         }
         try {
-            // Drop current VO binding so the next attach is clean.
             try {
                 MPVLib.INSTANCE.setPropertyString("vo", "null");
             } catch (Throwable ignored) {
             }
-            MPVLib.INSTANCE.detachSurface();
+            try {
+                MPVLib.INSTANCE.detachSurface();
+            } catch (Throwable ignored) {
+            }
             MPVLib.INSTANCE.attachSurface(attachedSurface);
             MPVLib.INSTANCE.setOptionString("force-window", "yes");
-            MPVLib.INSTANCE.setPropertyString("vo", getVo());
+            if (!command("set", "vo", getVo())) {
+                MPVLib.INSTANCE.setPropertyString("vo", getVo());
+            }
+            if (surfaceSize.getWidth() > 0 && surfaceSize.getHeight() > 0) {
+                MPVLib.INSTANCE.setPropertyString("android-surface-size",
+                        surfaceSize.getWidth() + "x" + surfaceSize.getHeight());
+            }
             MpvLogCollector.log("MpvPlayer", "热切解码 rebind Surface+vo=" + getVo() + ", mode=" + mode);
+            return true;
         } catch (Throwable e) {
             MpvLogCollector.logError("MpvPlayer", "热切解码 rebind 失败: " + e.getMessage());
+            return false;
         }
     }
 
