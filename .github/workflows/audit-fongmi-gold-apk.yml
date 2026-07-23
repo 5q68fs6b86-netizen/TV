@@ -61,10 +61,12 @@ jobs:
           JADX_VER=1.5.1
           curl -fL --retry 5 -o /tmp/jadx.zip \
             "https://github.com/skylot/jadx/releases/download/v${JADX_VER}/jadx-${JADX_VER}.zip"
-          sudo mkdir -p /opt/jadx
-          sudo unzip -q /tmp/jadx.zip -d /opt/jadx
+          # zip root is "jadx/" → extract under /opt so binary is /opt/jadx/bin/jadx
+          sudo rm -rf /opt/jadx
+          sudo unzip -q /tmp/jadx.zip -d /opt
+          test -x /opt/jadx/bin/jadx
           echo "/opt/jadx/bin" >> "$GITHUB_PATH"
-          jadx --version
+          /opt/jadx/bin/jadx --version
 
       - name: Resolve and download source
         id: dl
