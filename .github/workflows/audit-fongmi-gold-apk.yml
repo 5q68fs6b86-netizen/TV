@@ -220,13 +220,30 @@ jobs:
               | head -300 || true
           } | tee "$OUT/string-hits.txt"
 
+          # DEX path-form scan (survives R8 better than plain package dots in some builds)
+          {
+            echo "# DEX strings (classes*.dex)"
+            for dex in "$STAGE"/classes*.dex; do
+              [ -f "$dex" ] || continue
+              echo "## $(basename "$dex")"
+              strings -a -n 8 "$dex" | grep -E 'androidx/media3/mpvplayer|is/xyz/mpv|MpvPlayerConfig|MpvPlayer\$|MPVLib|gpu-api|androidvk|VIDEO_OUTPUT' | sort -u | head -200 || true
+            done
+          } | tee "$OUT/dex-strings.txt"
+
           # Gate signal for gold
           {
             echo "# Gold gate signals"
-            if grep -RIa -q 'androidx.media3.mpvplayer' "$STAGE" 2>/dev/null; then
+            if grep -RIa -q 'androidx.media3.mpvplayer' "$STAGE" 2>/dev/null \
+              || grep -q 'androidx/media3/mpvplayer' "$OUT/dex-strings.txt" 2>/dev/null; then
               echo "HAS_MEDIA3_MPVPLAYER=yes"
             else
               echo "HAS_MEDIA3_MPVPLAYER=no"
+            fi
+            if grep -RIa -q 'is.xyz.mpv' "$STAGE" 2>/dev/null \
+              || grep -q 'is/xyz/mpv' "$OUT/dex-strings.txt" 2>/dev/null; then
+              echo "HAS_IS_XYZ_MPV=yes"
+            else
+              echo "HAS_IS_XYZ_MPV=no"
             fi
             if find "$STAGE" -name 'libplayer.so' | grep -q .; then
               echo "HAS_LIBPLAYER=yes"
@@ -337,7 +354,7 @@ jobs:
           IN=gold-in/input.bin
           JADX_OUT=$(mktemp -d)
           JADX_CMD="${JADX_BIN:-jadx}"
-          # Full APK decompile; then we copy only mpv packages (bounded artifact)
+          # -ds writes sources directly into the given dir (NOT dir/sources/)
           "$JADX_CMD" \
             --show-bad-code \
             --no-res \
@@ -346,17 +363,33 @@ jobs:
             "$IN" \
             2>"$OUT/jadx.stderr.txt" || true
 
+          {
+            echo "# JADX output tree (mpv-related, maxdepth 6)"
+            find "$JADX_OUT" -type f \( -iname '*mpv*' -o -path '*/media3/*' -o -path '*/xyz/*' \) | head -200 || true
+            echo
+            echo "# Any MpvPlayer*.java / MPVLib*.java"
+            find "$JADX_OUT" -type f \( -name 'MpvPlayer*.java' -o -name 'MPVLib*.java' -o -name 'MpvPlayerConfig*.java' \) | sort || true
+          } | tee "$OUT/jadx-tree.txt"
+
           mkdir -p "$OUT/api/jadx"
-          # Copy key packages if present
+          # Prefer exact packages; -ds root is JADX_OUT itself
           for pkg in \
             "androidx/media3/mpvplayer" \
             "is/xyz/mpv"
           do
-            if [ -d "$JADX_OUT/sources/$pkg" ]; then
-              mkdir -p "$OUT/api/jadx/$pkg"
-              cp -a "$JADX_OUT/sources/$pkg/." "$OUT/api/jadx/$pkg/" || true
-            fi
+            for root in "$JADX_OUT" "$JADX_OUT/sources"; do
+              if [ -d "$root/$pkg" ]; then
+                mkdir -p "$OUT/api/jadx/$pkg"
+                cp -a "$root/$pkg/." "$OUT/api/jadx/$pkg/" || true
+              fi
+            done
           done
+          # Fallback: copy any discovered MpvPlayer/MPVLib files by name
+          while IFS= read -r -d '' f; do
+            rel=${f#"$JADX_OUT/"}
+            mkdir -p "$OUT/api/jadx/$(dirname "$rel")"
+            cp "$f" "$OUT/api/jadx/$rel"
+          done < <(find "$JADX_OUT" -type f \( -name 'MpvPlayer*.java' -o -name 'MPVLib*.java' -o -name 'MpvPlayerConfig*.java' \) -print0)
 
           REPORT="$OUT/api/MpvPlayer.api.md"
           {
@@ -366,29 +399,26 @@ jobs:
               echo "## androidx.media3.mpvplayer files"
               find "$OUT/api/jadx/androidx/media3/mpvplayer" -type f | sort
               echo
-              for f in "$OUT/api/jadx/androidx/media3/mpvplayer"/*.java; do
-                [ -f "$f" ] || continue
-                echo "### $(basename "$f")"
+              find "$OUT/api/jadx/androidx/media3/mpvplayer" -name '*.java' | sort | while read -r f; do
+                echo "### ${f#"$OUT/api/jadx/"}"
                 echo '```java'
-                # Prefer public/protected signatures
-                grep -nE '^\s*(public|protected|class |interface |enum |@)' "$f" | head -200 || head -120 "$f"
+                grep -nE '^\s*(public|protected|class |interface |enum |@)' "$f" | head -250 || head -160 "$f"
                 echo '```'
                 echo
               done
             else
               echo "MISSING package androidx.media3.mpvplayer in JADX output"
-              echo "This package is required for gold. See jadx.stderr / string-hits."
+              echo "See jadx-tree.txt / dex-strings.txt (R8 may rename; MpvUtil still needs these symbols at compile time)."
             fi
             echo
-            if [ -d "$OUT/api/jadx/is/xyz/mpv" ]; then
-              echo "## is.xyz.mpv files"
-              find "$OUT/api/jadx/is/xyz/mpv" -type f | sort
+            if [ -d "$OUT/api/jadx/is/xyz/mpv" ] || find "$OUT/api/jadx" -name 'MPVLib*.java' | grep -q .; then
+              echo "## is.xyz.mpv / MPVLib files"
+              find "$OUT/api/jadx" \( -path '*/is/xyz/mpv/*' -o -name 'MPVLib*.java' \) -type f | sort
               echo
-              for f in "$OUT/api/jadx/is/xyz/mpv"/*.java; do
-                [ -f "$f" ] || continue
-                echo "### $(basename "$f")"
+              find "$OUT/api/jadx" \( -path '*/is/xyz/mpv/*' -o -name 'MPVLib*.java' \) -name '*.java' | sort | while read -r f; do
+                echo "### ${f#"$OUT/api/jadx/"}"
                 echo '```java'
-                grep -nE '^\s*(public|protected|class |interface |native |static native)' "$f" | head -200 || head -80 "$f"
+                grep -nE '^\s*(public|protected|class |interface |native |static native)' "$f" | head -200 || head -100 "$f"
                 echo '```'
                 echo
               done
@@ -448,19 +478,34 @@ jobs:
             find gold-out/api -type f 2>/dev/null | sort || echo "(none)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail if not gold (media3.mpvplayer missing)
+      - name: Fail if not gold (media3.mpvplayer / natives missing)
         run: |
           set -euo pipefail
-          if ! grep -q 'HAS_MEDIA3_MPVPLAYER=yes' gold-out/gate-signals.txt; then
-            echo "APK is NOT gold: androidx.media3.mpvplayer not found" >&2
-            echo "Do not proceed to Phase 1 with this package." >&2
-            exit 2
-          fi
+          FAIL=0
           if ! grep -q 'HAS_LIBPLAYER=yes' gold-out/gate-signals.txt; then
-            echo "WARNING: libplayer.so missing — JNI pin incomplete" >&2
+            echo "FAIL: libplayer.so missing" >&2
+            FAIL=1
           fi
           if ! grep -q 'HAS_LIBMPV=yes' gold-out/gate-signals.txt; then
-            echo "WARNING: libmpv.so missing" >&2
+            echo "FAIL: libmpv.so missing" >&2
+            FAIL=1
+          fi
+          if ! grep -q 'HAS_IS_XYZ_MPV=yes' gold-out/gate-signals.txt \
+            && ! grep -q 'Java_is_xyz_mpv' gold-out/api/libplayer.nm.txt 2>/dev/null; then
+            echo "FAIL: is.xyz.mpv / JNI surface missing" >&2
+            FAIL=1
+          fi
+          if ! grep -q 'HAS_MEDIA3_MPVPLAYER=yes' gold-out/gate-signals.txt; then
+            # Soft-fail only if natives are present: R8 may strip package strings from
+            # some scans while the module is still in DEX. Still mark incomplete API.
+            echo "WARN: androidx.media3.mpvplayer string not found — check jadx-tree / dex-strings" >&2
+            echo "GOLD_API_INCOMPLETE=yes" | tee -a gold-out/gate-signals.txt
+            # Hard-fail: without media3 class path we cannot vendor the module.
+            FAIL=1
+          fi
+          if [ "$FAIL" -ne 0 ]; then
+            echo "Do not proceed to Phase 1 until gate is green." >&2
+            exit 2
           fi
 
       - name: Upload audit report
