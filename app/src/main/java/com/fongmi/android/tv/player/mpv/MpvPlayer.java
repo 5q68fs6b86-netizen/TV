@@ -419,19 +419,32 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         });
     }
 
+    /**
+     * Extended-JNI callback (v0.0.3). Gold {@code MPVLib} has no Node overload;
+     * when present we only treat it as a track-list change signal and re-read via strings.
+     */
     @Override
     public void eventProperty(String property, MPVNode value) {
-        if ("track-list".equals(property)) {
-            runOnApplicationThread(() -> {
-                readTracks(value);
-                invalidateState();
-            });
-        }
+        if ("track-list".equals(property)) refreshTracksOnApplicationThread();
     }
 
+    /**
+     * Extended-JNI callback (v0.0.3): {@code event(id, node)}.
+     * Gold public API uses {@code event(id)} + {@code eventEndFile}; keep this for current AAR.
+     */
     @Override
     public void event(int eventId, MPVNode data) {
         runOnApplicationThread(() -> handleEvent(eventId, data));
+    }
+
+    /** Gold-compatible shape if JNI dispatches bare event ids without node payload. */
+    public void event(int eventId) {
+        runOnApplicationThread(() -> handleEvent(eventId, null));
+    }
+
+    /** Gold MPVLib.EventObserver default path for END_FILE with reason/error strings. */
+    public void eventEndFile(int reason, int error, @Nullable String errorString) {
+        runOnApplicationThread(() -> handleEndFile(reason, error, errorString));
     }
 
     @Override
@@ -640,7 +653,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         command("set", "pause", playWhenReady ? "no" : "yes");
     }
 
-    private void handleEvent(int eventId, MPVNode data) {
+    private void handleEvent(int eventId, @Nullable MPVNode data) {
         switch (eventId) {
             case MpvEvent.MPV_EVENT_START_FILE -> {
                 fileLoaded = false;
@@ -673,39 +686,47 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 readRuntimeState();
                 invalidateState();
             }
-            case MpvEvent.MPV_EVENT_END_FILE -> handleEndFile(data);
+            case MpvEvent.MPV_EVENT_END_FILE -> {
+                // Prefer gold-style reason/error ints when node payload is absent.
+                if (data == null) {
+                    handleEndFile(/*reason*/ 0, /*error*/ 0, null);
+                } else {
+                    String reason = nodeString(data, "reason");
+                    String errorMsg = nodeString(data, "error");
+                    int fileError = nodeInt(data, "file_error", 0);
+                    int reasonCode = "error".equals(reason) ? 4 : 0; // MPV_END_FILE_REASON_ERROR=4
+                    handleEndFile(reasonCode, fileError, errorMsg.isEmpty() ? reason : errorMsg);
+                }
+            }
         }
     }
 
-    private void handleEndFile(MPVNode data) {
+    private void handleEndFile(int reason, int error, @Nullable String errorString) {
         loading = false;
         fileLoaded = false;
-        String reason = getString(data, "reason");
-        if ("error".equals(reason)) {
-            // Extract detailed error information from mpv
-            String errorMsg = getString(data, "error");
-            int fileError = getInt(data, "file_error", 0);
+        // MPV_END_FILE_REASON_ERROR = 4 (gold MpvEndFileReason / libmpv)
+        boolean isError = reason == 4 || error != 0
+                || (errorString != null && errorString.toLowerCase(Locale.US).contains("error"));
+        if (isError) {
+            String errorMsg = errorString == null ? "" : errorString;
+            int fileError = error;
 
-            // Log detailed error information for debugging
             MpvLogCollector.logError("MpvPlayer", "=== MPV播放错误详情 ===");
-            MpvLogCollector.logError("MpvPlayer", "错误原因: " + reason);
+            MpvLogCollector.logError("MpvPlayer", "错误原因码: " + reason);
             MpvLogCollector.logError("MpvPlayer", "错误消息: " + errorMsg);
             MpvLogCollector.logError("MpvPlayer", "文件错误码: " + fileError);
             MpvLogCollector.logError("MpvPlayer", "URL: " + (mediaItem != null && mediaItem.localConfiguration != null ? mediaItem.localConfiguration.uri.toString() : "null"));
             MpvLogCollector.logError("MpvPlayer", "Surface已附加: " + (attachedSurface != null));
             MpvLogCollector.logError("MpvPlayer", "Surface有效: " + (attachedSurface != null && attachedSurface.isValid()));
 
-            // Check hwdec status
             String hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
             String hwdecCurrent = MPVLib.INSTANCE.getPropertyString("hwdec-current");
             MpvLogCollector.logError("MpvPlayer", "硬解配置: " + hwdec);
             MpvLogCollector.logError("MpvPlayer", "当前硬解: " + hwdecCurrent);
 
-            // Check video codec
             String videoCodec = MPVLib.INSTANCE.getPropertyString("video-codec");
             MpvLogCollector.logError("MpvPlayer", "视频编码: " + videoCodec);
 
-            // Build detailed error message
             StringBuilder msgBuilder = new StringBuilder("MPV播放失败");
             if (!errorMsg.isEmpty()) {
                 msgBuilder.append(": ").append(errorMsg);
@@ -714,7 +735,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 msgBuilder.append(" (错误码: ").append(fileError).append(")");
             }
 
-            // Determine specific error code based on error content
             int errorCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED;
             String errorLower = errorMsg.toLowerCase(Locale.US);
             if (errorLower.contains("decode") || errorLower.contains("codec")) {
@@ -728,8 +748,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             fail(new PlaybackException(msgBuilder.toString(), null, errorCode));
             return;
         }
-        if ("eof".equals(reason)) playbackState = Player.STATE_ENDED;
-        else if ("stop".equals(reason) && mediaItem == null) playbackState = Player.STATE_IDLE;
+        // MPV_END_FILE_REASON_EOF=0, STOP=2, QUIT=3, REDIRECT=5
+        if (reason == 0) playbackState = Player.STATE_ENDED;
+        else if (reason == 2 && mediaItem == null) playbackState = Player.STATE_IDLE;
+        else if (reason == 3) playbackState = Player.STATE_IDLE;
         invalidateState();
     }
 
@@ -799,83 +821,143 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         invalidateState();
     }
 
+    /**
+     * Read tracks via gold-compatible string properties:
+     * {@code track-list/count} + {@code track-list/N/{type,id,title,lang,...}}.
+     * Does not call {@code getPropertyNode} (absent from gold libplayer).
+     */
     private void readTracks() {
         try {
-            readTracks(MPVLib.INSTANCE.getPropertyNode("track-list"));
+            int count = trackListCount();
+            if (count <= 0) {
+                tracks = Tracks.EMPTY;
+                trackIdsByGroupId.clear();
+                return;
+            }
+            List<Tracks.Group> groups = new ArrayList<>();
+            Map<String, Integer> idsByGroupId = new HashMap<>();
+            for (int i = 0; i < count; i++) {
+                String prefix = "track-list/" + i + "/";
+                int type = toTrackType(propString(prefix + "type", ""));
+                int id = propInt(prefix + "id", C.INDEX_UNSET);
+                if (type == C.TRACK_TYPE_UNKNOWN || id == C.INDEX_UNSET) continue;
+                String groupId = trackGroupId(type, id);
+                TrackGroup group = new TrackGroup(groupId, buildTrackFormat(prefix, type, id));
+                boolean selected = propBoolean(prefix + "selected");
+                groups.add(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{selected}));
+                idsByGroupId.put(groupId, id);
+            }
+            tracks = groups.isEmpty() ? Tracks.EMPTY : new Tracks(groups);
+            trackIdsByGroupId.clear();
+            trackIdsByGroupId.putAll(idsByGroupId);
         } catch (Throwable e) {
-            // JNI UnsatisfiedLinkError is Error, not RuntimeException — must not escape.
             MpvLogCollector.logError("MpvPlayer", "读取 track-list 失败: " + e.getMessage());
             tracks = Tracks.EMPTY;
             trackIdsByGroupId.clear();
         }
     }
 
-    private void readTracks(@Nullable MPVNode node) {
-        MPVNode[] items = node == null ? null : node.asArray();
-        if (items == null || items.length == 0) {
-            tracks = Tracks.EMPTY;
-            trackIdsByGroupId.clear();
-            return;
+    private int trackListCount() {
+        Integer count = MPVLib.INSTANCE.getPropertyInt("track-list/count");
+        if (count != null && count >= 0) return count;
+        // Fallback: probe until type is empty (cap to avoid runaway).
+        for (int i = 0; i < 64; i++) {
+            String type = propString("track-list/" + i + "/type", null);
+            if (type == null) return i;
         }
-        List<Tracks.Group> groups = new ArrayList<>();
-        Map<String, Integer> idsByGroupId = new HashMap<>();
-        for (MPVNode item : items) {
-            int type = toTrackType(getString(item, "type"));
-            int id = getInt(item, "id", C.INDEX_UNSET);
-            if (type == C.TRACK_TYPE_UNKNOWN || id == C.INDEX_UNSET) continue;
-            String groupId = trackGroupId(type, id);
-            TrackGroup group = new TrackGroup(groupId, buildTrackFormat(item, type, id));
-            groups.add(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{getBoolean(item, "selected")}));
-            idsByGroupId.put(groupId, id);
-        }
-        tracks = groups.isEmpty() ? Tracks.EMPTY : new Tracks(groups);
-        trackIdsByGroupId.clear();
-        trackIdsByGroupId.putAll(idsByGroupId);
+        return 64;
     }
 
-    private Format buildTrackFormat(MPVNode item, int type, int id) {
-        String codec = emptyToNull(getString(item, "codec"));
+    private Format buildTrackFormat(String prefix, int type, int id) {
+        String codec = emptyToNull(propString(prefix + "codec", ""));
         Format.Builder builder = new Format.Builder()
                 .setId(Integer.toString(id))
-                .setLabel(buildTrackLabel(item, type, id))
-                .setLanguage(emptyToNull(getString(item, "lang")))
+                .setLabel(buildTrackLabel(prefix, type, id))
+                .setLanguage(emptyToNull(propString(prefix + "lang", "")))
                 .setCodecs(codec)
                 .setSampleMimeType(getSampleMimeType(type, codec))
-                .setSelectionFlags(getSelectionFlags(item));
-        int bitrate = getInt(item, "demux-bitrate", C.LENGTH_UNSET);
+                .setSelectionFlags(trackSelectionFlags(prefix));
+        int bitrate = propInt(prefix + "demux-bitrate", C.LENGTH_UNSET);
         if (bitrate > 0) builder.setAverageBitrate(bitrate);
         if (type == C.TRACK_TYPE_VIDEO) {
-            int width = getInt(item, "demux-w", C.LENGTH_UNSET);
-            int height = getInt(item, "demux-h", C.LENGTH_UNSET);
-            double frameRate = getDouble(item, "demux-fps", 0);
+            int width = propInt(prefix + "demux-w", C.LENGTH_UNSET);
+            int height = propInt(prefix + "demux-h", C.LENGTH_UNSET);
+            double frameRate = propDouble(prefix + "demux-fps", 0);
             if (width > 0) builder.setWidth(width);
             if (height > 0) builder.setHeight(height);
             if (frameRate > 0) builder.setFrameRate((float) frameRate);
         } else if (type == C.TRACK_TYPE_AUDIO) {
-            int channelCount = getInt(item, "demux-channel-count", C.LENGTH_UNSET);
-            int sampleRate = getInt(item, "demux-samplerate", C.RATE_UNSET_INT);
+            int channelCount = propInt(prefix + "demux-channel-count", C.LENGTH_UNSET);
+            int sampleRate = propInt(prefix + "demux-samplerate", C.RATE_UNSET_INT);
             if (channelCount > 0) builder.setChannelCount(channelCount);
             if (sampleRate > 0) builder.setSampleRate(sampleRate);
         }
         return builder.build();
     }
 
-    private String buildTrackLabel(MPVNode item, int type, int id) {
-        String title = getString(item, "title");
+    private String buildTrackLabel(String prefix, int type, int id) {
+        String title = propString(prefix + "title", "");
         if (!TextUtils.isEmpty(title)) return title;
-        String lang = getString(item, "lang");
-        String codec = getString(item, "codec");
-        String prefix = switch (type) {
+        String lang = propString(prefix + "lang", "");
+        String codec = propString(prefix + "codec", "");
+        String trackPrefix = switch (type) {
             case C.TRACK_TYPE_VIDEO -> "Video";
             case C.TRACK_TYPE_AUDIO -> "Audio";
             case C.TRACK_TYPE_TEXT -> "Subtitle";
             default -> "Track";
         };
         List<String> parts = new ArrayList<>();
-        parts.add(prefix + " " + id);
+        parts.add(trackPrefix + " " + id);
         if (!TextUtils.isEmpty(lang)) parts.add(lang);
         if (!TextUtils.isEmpty(codec)) parts.add(codec);
         return String.join(" - ", parts);
+    }
+
+    private static int trackSelectionFlags(String prefix) {
+        int flags = 0;
+        if (propBoolean(prefix + "default")) flags |= C.SELECTION_FLAG_DEFAULT;
+        if (propBoolean(prefix + "forced")) flags |= C.SELECTION_FLAG_FORCED;
+        return flags;
+    }
+
+    private static String propString(String name, @Nullable String fallback) {
+        try {
+            String value = MPVLib.INSTANCE.getPropertyString(name);
+            return value == null ? fallback : value;
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static int propInt(String name, int fallback) {
+        try {
+            Integer value = MPVLib.INSTANCE.getPropertyInt(name);
+            if (value != null) return value;
+            Double d = MPVLib.INSTANCE.getPropertyDouble(name);
+            return d == null ? fallback : (int) Math.round(d);
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static double propDouble(String name, double fallback) {
+        try {
+            Double value = MPVLib.INSTANCE.getPropertyDouble(name);
+            return value == null ? fallback : value;
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static boolean propBoolean(String name) {
+        try {
+            Boolean value = MPVLib.INSTANCE.getPropertyBoolean(name);
+            if (value != null) return value;
+            String s = MPVLib.INSTANCE.getPropertyString(name);
+            return "yes".equalsIgnoreCase(s) || "true".equalsIgnoreCase(s);
+        } catch (Throwable e) {
+            return false;
+        }
     }
 
     private void applyTrackSelectionParameters() {
@@ -934,7 +1016,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.observeProperty("speed", MpvFormat.MPV_FORMAT_DOUBLE);
         MPVLib.INSTANCE.observeProperty("audio-delay", MpvFormat.MPV_FORMAT_DOUBLE);
         MPVLib.INSTANCE.observeProperty("sub-delay", MpvFormat.MPV_FORMAT_DOUBLE);
-        MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NODE);
+        // Prefer flag/none notify; gold has no node format requirement for refresh.
+        // MPV_FORMAT_NONE (0) if present triggers eventProperty(name) only.
+        try {
+            MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NONE);
+        } catch (Throwable e) {
+            MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NODE);
+        }
     }
 
     private void applyHeaders(@Nullable Map<String, String> headers) {
@@ -1291,43 +1379,33 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         };
     }
 
-    private static int getSelectionFlags(MPVNode item) {
-        int flags = 0;
-        if (getBoolean(item, "default")) flags |= C.SELECTION_FLAG_DEFAULT;
-        if (getBoolean(item, "forced")) flags |= C.SELECTION_FLAG_FORCED;
-        return flags;
+    /** Best-effort field read from extended-JNI END_FILE node payload (v0.0.3 only). */
+    private static String nodeString(@Nullable MPVNode node, String key) {
+        if (node == null) return "";
+        try {
+            MPVNode child = node.get(key);
+            String value = child == null ? null : child.asString();
+            return value == null ? "" : value;
+        } catch (Throwable e) {
+            return "";
+        }
     }
 
-    private static int getInt(MPVNode node, String key, int fallback) {
-        MPVNode child = node == null ? null : node.get(key);
-        Long value = child == null ? null : child.asInt();
-        if (value != null) return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
-        Double doubleValue = child == null ? null : child.asDouble();
-        return doubleValue == null ? fallback : (int) Math.round(doubleValue);
-    }
-
-    private static double getDouble(MPVNode node, String key, double fallback) {
-        MPVNode child = node == null ? null : node.get(key);
-        Double value = child == null ? null : child.asDouble();
-        if (value != null) return value;
-        Long intValue = child == null ? null : child.asInt();
-        return intValue == null ? fallback : intValue.doubleValue();
-    }
-
-    private static boolean getBoolean(MPVNode node, String key) {
-        MPVNode child = node == null ? null : node.get(key);
-        Boolean value = child == null ? null : child.asBoolean();
-        return value != null && value;
+    private static int nodeInt(@Nullable MPVNode node, String key, int fallback) {
+        if (node == null) return fallback;
+        try {
+            MPVNode child = node.get(key);
+            Long value = child == null ? null : child.asInt();
+            if (value != null) return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
+            Double d = child == null ? null : child.asDouble();
+            return d == null ? fallback : (int) Math.round(d);
+        } catch (Throwable e) {
+            return fallback;
+        }
     }
 
     private static @Nullable String emptyToNull(String value) {
         return TextUtils.isEmpty(value) ? null : value;
-    }
-
-    private static String getString(MPVNode node, String key) {
-        MPVNode child = node == null ? null : node.get(key);
-        String value = child == null ? null : child.asString();
-        return value == null ? "" : value;
     }
 
     private static long secondsToMs(double seconds, long fallback) {
