@@ -30,11 +30,31 @@
 - Demuxer budget can scale with `PreloadSetting`; default UA from `Setting`/`PlayerHelper`
 - HDR: optional `target-colorspace-hint` only (not product guarantee)
 
+## Phase E — progress
+
+### App (done on this branch)
+
+- Track list via `track-list/count` + `track-list/N/*` string/int properties (**no** `getPropertyNode` at runtime)
+- `observeProperty("track-list", MPV_FORMAT_NONE)` with NODE fallback for old AAR
+- `handleEndFile(reason,error,errorString)` gold-style; node payload only as optional decode of v0.0.3 events
+- Instrumentation header check no longer uses `MPVNode`
+
+Still **compiles against** v0.0.3 `EventObserver` (`event(int, MPVNode)` / `eventProperty(..., MPVNode)`) until a gold classes AAR is the default dependency.
+
+### Native CI (skeleton)
+
+- Workflow: `.github/workflows/build-mpv-fongmi-native.yml`
+- Sources: `FongMi/mpv-android@fongmi` + `FongMi/mpv@fongmi`
+- Gate: `nm` symbol **names** ⊇ `.github/mpv/libplayer.nm.txt`
+- Output: jni AAR + lock snippet artifact (full Kotlin classes packaging TBD)
+
+Default app still loads `app/libs/mpv-android-lib-v0.0.3.aar` until gold AAR is published and swapped.
+
 ## Still open
 
 | Phase | Work |
 |-------|------|
-| E | Drop `MPVNode`/`getPropertyNode`; gold AAR from FongMi/mpv-android+mpv; archive v0.0.3 |
+| E2 | Finish gold AAR with `is.xyz.mpv` classes; swap `app/libs`; archive v0.0.3 |
 | F | Device matrix + instrumentation |
 
 ## Product copy

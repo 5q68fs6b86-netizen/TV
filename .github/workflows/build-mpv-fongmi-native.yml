@@ -1,0 +1,242 @@
+name: Build FongMi mpv-android native (gold path)
+
+# Phase E: same-source libmpv + libplayer from FongMi open trees.
+# Does NOT use marlboro/mpvlibAndroid or hybrid graft.
+# Heavy work on GHA only (VPS must not run this unpack/build).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mpv_android_repo:
+        description: "mpv-android repo (JNI + MPVLib)"
+        required: true
+        default: "FongMi/mpv-android"
+      mpv_android_ref:
+        description: "mpv-android ref"
+        required: true
+        default: "fongmi"
+      mpv_git_url:
+        description: "libmpv git URL (mpv-android CI already defaults FongMi/mpv)"
+        required: true
+        default: "https://github.com/FongMi/mpv"
+      mpv_ref:
+        description: "libmpv ref"
+        required: true
+        default: "fongmi"
+      aar_version:
+        description: "Output version label"
+        required: true
+        default: "gold-0.1.0"
+      publish_release:
+        description: "Publish GitHub Release (true/false)"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout TV (for nm gold file)
+        uses: actions/checkout@v4
+        with:
+          path: tv
+          fetch-depth: 1
+
+      - name: Checkout FongMi mpv-android
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.mpv_android_repo }}
+          ref: ${{ inputs.mpv_android_ref }}
+          path: mpv-android
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Install packages
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y autoconf pkg-config libtool ninja-build cmake \
+            python3-pip gperf nasm yasm binutils zip unzip
+          sudo pip3 install --break-system-packages meson || sudo pip3 install meson
+
+      - name: Export env + pin mpv source
+        working-directory: mpv-android
+        env:
+          MPV_GIT_URL: ${{ inputs.mpv_git_url }}
+          MPV_GIT_REF: ${{ inputs.mpv_ref }}
+        run: |
+          set -euo pipefail
+          find buildscripts -type f -name '*.sh' -exec chmod +x {} +
+          # Ensure CI builds use requested mpv remote/ref (workflow already sets these in upstream).
+          {
+            echo "MPV_GIT_URL=${MPV_GIT_URL}"
+            echo "MPV_GIT_REF=${MPV_GIT_REF}"
+            echo "MPV_ANDROID_ARCHES=armv7l arm64"
+            echo "MPV_ANDROID_NATIVE_ONLY=1"
+          } >> "$GITHUB_ENV"
+          if buildscripts/include/ci.sh export >>"$GITHUB_ENV" 2>/dev/null; then
+            echo "ci export ok"
+          else
+            echo "CACHE_IDENTIFIER=fongmi-mpv-${MPV_GIT_REF}-${{ inputs.mpv_android_ref }}" >>"$GITHUB_ENV"
+          fi
+
+      - name: Cache prefix
+        uses: actions/cache@v4
+        with:
+          path: mpv-android/buildscripts/prefix
+          key: fongmi-mpv-prefix-v1-${{ inputs.mpv_ref }}-${{ inputs.mpv_android_ref }}
+          restore-keys: |
+            fongmi-mpv-prefix-v1-${{ inputs.mpv_ref }}-
+
+      - name: Download / install deps
+        working-directory: mpv-android
+        env:
+          IN_CI: "1"
+          CACHE_MODE: "folder"
+          CACHE_FOLDER: ${{ runner.temp }}/mpv-android-cache
+        run: |
+          set -euo pipefail
+          mkdir -p "$CACHE_FOLDER"
+          buildscripts/include/ci.sh install
+
+      - name: Build native libraries
+        working-directory: mpv-android
+        env:
+          MPV_ANDROID_NATIVE_ONLY: "1"
+          IN_CI: "1"
+        run: |
+          set -euo pipefail
+          buildscripts/include/ci.sh build
+
+      - name: Collect .so and nm gate
+        id: so
+        run: |
+          set -euo pipefail
+          OUT=out/jni
+          mkdir -p "$OUT/arm64-v8a" "$OUT/armeabi-v7a" gold-check
+          # Layout varies: app/src/main/libs or app/build/...
+          mapfile -t SOS < <(find mpv-android -type f \( -name 'libplayer.so' -o -name 'libmpv.so' \) | sort)
+          echo "found so count: ${#SOS[@]}"
+          printf '%s\n' "${SOS[@]}" | tee gold-check/so-paths.txt
+          if [ ${#SOS[@]} -eq 0 ]; then
+            echo "No libplayer/libmpv produced" >&2
+            find mpv-android -name '*.so' | head -50 >&2 || true
+            exit 1
+          fi
+          for f in "${SOS[@]}"; do
+            if [[ "$f" == *arm64* || "$f" == *aarch64* ]]; then
+              abi=arm64-v8a
+            elif [[ "$f" == *armv7* || "$f" == *armeabi* ]]; then
+              abi=armeabi-v7a
+            else
+              # Guess from path parent
+              parent=$(basename "$(dirname "$f")")
+              case "$parent" in
+                arm64-v8a|armeabi-v7a) abi=$parent ;;
+                *) abi=arm64-v8a ;;
+              esac
+            fi
+            cp -v "$f" "$OUT/$abi/"
+          done
+          # Copy companion libs next to player if present in same dirs
+          for d in $(find mpv-android -type d \( -name 'arm64-v8a' -o -name 'armeabi-v7a' -o -name 'arm64' -o -name 'armv7l' \) ); do
+            abi=arm64-v8a
+            [[ "$d" == *v7* || "$d" == *armeabi* ]] && abi=armeabi-v7a
+            for so in "$d"/*.so; do
+              [ -f "$so" ] || continue
+              cp -n "$so" "$OUT/$abi/" 2>/dev/null || true
+            done
+          done
+          ls -laR "$OUT" | tee gold-check/jni-tree.txt
+
+          PLAYER="$OUT/arm64-v8a/libplayer.so"
+          if [ ! -f "$PLAYER" ]; then
+            echo "arm64 libplayer.so missing" >&2
+            exit 1
+          fi
+          nm -D "$PLAYER" | grep 'Java_is_xyz_mpv' | sort | tee gold-check/libplayer.nm.built.txt
+          GOLD=tv/.github/mpv/libplayer.nm.txt
+          # Compare symbol *names* only (addresses differ)
+          awk '/Java_is_xyz_mpv/ {print $NF}' gold-check/libplayer.nm.built.txt | sort -u > gold-check/built.syms
+          awk '/Java_is_xyz_mpv/ {print $NF}' "$GOLD" | sort -u > gold-check/gold.syms
+          echo '--- gold only ---'
+          comm -23 gold-check/gold.syms gold-check/built.syms | tee gold-check/missing-vs-gold.txt || true
+          echo '--- built only ---'
+          comm -13 gold-check/gold.syms gold-check/built.syms | tee gold-check/extra-vs-gold.txt || true
+          if [ -s gold-check/missing-vs-gold.txt ]; then
+            echo "FAIL: built libplayer missing gold JNI symbols" >&2
+            exit 2
+          fi
+          echo "nm gate OK (built ⊇ gold symbol names)"
+          sha256sum "$PLAYER" | tee gold-check/libplayer.sha256.txt
+
+      - name: Package thin AAR (MPVLib sources + jni)
+        run: |
+          set -euo pipefail
+          VER="${{ inputs.aar_version }}"
+          AAR_ROOT=$(mktemp -d)
+          mkdir -p "$AAR_ROOT/jni" "$AAR_ROOT/res"
+          cp -a out/jni/. "$AAR_ROOT/jni/"
+          # Compile MPVLib.kt is heavy without full AGP; ship sources jar + jni for now,
+          # and a placeholder AndroidManifest for AAR consumers that only need natives later.
+          # Prefer packaging prebuilt classes if app module already built them.
+          if [ -d mpv-android/app/build/intermediates/javac ] || [ -d mpv-android/app/build/tmp ]; then
+            find mpv-android/app/build -name 'classes.jar' | head
+          fi
+          # Minimal Android library stub + jni (app already has Kotlin MPVLib when using full AAR from v0.0.3;
+          # this artifact is primarily for native SHA/nm validation and future full packaging.)
+          cat > "$AAR_ROOT/AndroidManifest.xml" <<'XML'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="is.xyz.mpv.native" />
+          XML
+          echo "FongMi mpv-android ${{ inputs.mpv_android_ref }} + mpv ${{ inputs.mpv_ref }}" > "$AAR_ROOT/R.txt"
+          mkdir -p dist
+          (cd "$AAR_ROOT" && zip -r -9 "$GITHUB_WORKSPACE/dist/lib-mpv-fongmi-${VER}-jni.aar" .)
+          ls -lh dist/
+          sha256sum dist/*.aar | tee gold-check/aar.sha256.txt
+
+      - name: Write lock snippet
+        run: |
+          set -euo pipefail
+          cat > gold-check/mpv.lock.snippet.json <<EOF
+          {
+            "mpv_android_repo": "${{ inputs.mpv_android_repo }}",
+            "mpv_android_ref": "${{ inputs.mpv_android_ref }}",
+            "mpv_git": "${{ inputs.mpv_git_url }}",
+            "mpv_ref": "${{ inputs.mpv_ref }}",
+            "aar_version": "${{ inputs.aar_version }}",
+            "aar_sha256": "$(cut -d' ' -f1 gold-check/aar.sha256.txt | head -1)",
+            "libplayer_sha256": "$(cut -d' ' -f1 gold-check/libplayer.sha256.txt | head -1)",
+            "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          cat gold-check/mpv.lock.snippet.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fongmi-mpv-native-${{ inputs.aar_version }}
+          path: |
+            dist/
+            gold-check/
+            out/jni/
+          retention-days: 14
+
+      - name: Publish release (optional)
+        if: ${{ inputs.publish_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mpv-fongmi-${{ inputs.aar_version }}
+          name: FongMi mpv native ${{ inputs.aar_version }}
+          files: dist/*
+          body_path: gold-check/mpv.lock.snippet.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
