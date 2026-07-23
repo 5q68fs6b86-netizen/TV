@@ -61,7 +61,6 @@ import is.xyz.mpv.MPVNode;
 final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, MPVLib.LogObserver {
 
     private static final long LIVE_DURATION_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(1);
-    private static final String HWDEC = "mediacodec,mediacodec-copy";
     private static final int[] SELECTABLE_TRACK_TYPES = {C.TRACK_TYPE_VIDEO, C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_TEXT};
     /** Serializes MPVLib.create/destroy so ensureEngine cannot race a background destroy. */
     private static final Object NATIVE_LOCK = new Object();
@@ -448,46 +447,16 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 + " vulkan=" + PlayerSetting.isMpvVulkan()
                 + " hdr=" + PlayerSetting.getMpvHdr());
         File configDir = Path.mpv();
-        File cacheDir = Path.mpvCache();
-        MpvAssets.ensure(context, configDir);
         createNative(context);
         MpvLogCollector.log("MpvPlayer", "MPVLib.create 完成");
         MPVLib.addLogObserver(this);
-        MPVLib.INSTANCE.setOptionString("config", "yes");
-        MPVLib.INSTANCE.setOptionString("config-dir", configDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("msg-level", "all=warn");
-        MPVLib.INSTANCE.setOptionString("gpu-shader-cache-dir", cacheDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("profile", "fast");
-        MPVLib.INSTANCE.setOptionString("vo", getVo());
-        // Match FongMi: vulkan only sets gpu-api + androidvk; do NOT force vo=gpu-next.
-        // opengl-es is for the GL path; keep it off when vulkan is selected.
-        if (PlayerSetting.isMpvVulkan()) {
-            MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
-            MPVLib.INSTANCE.setOptionString("gpu-context", "androidvk");
-        } else {
-            MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
-            MPVLib.INSTANCE.setOptionString("gpu-context", "android");
-        }
-        applyHdrOptions();
-        applyDecode(decode);
-        applyHwdecCodecs();
-        MPVLib.INSTANCE.setOptionString("ao", "audiotrack,opensles");
-        MPVLib.INSTANCE.setOptionString("audio-set-media-role", "yes");
-        MPVLib.INSTANCE.setOptionString("tls-verify", "yes");
-        MPVLib.INSTANCE.setOptionString("tls-ca-file", new File(context.getFilesDir(), "cacert.pem").getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("input-default-bindings", "yes");
-        MPVLib.INSTANCE.setOptionString("demuxer-lavf-o", "http_persistent=0");
-        MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
-        MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
+        // All pre-init options (config/vo/vulkan/hwdec/tls/…) live in MpvOptions.
+        MpvOptions.applyPreInit(context, decode);
         MPVLib.INSTANCE.init();
-        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + getVo()
+        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + MpvOptions.videoOutputDriver()
                 + " vulkan=" + PlayerSetting.isMpvVulkan()
                 + " gpu-next=" + PlayerSetting.isMpvGpuNext());
-        MpvAnime4K.apply(configDir);
-        MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
-        MPVLib.INSTANCE.setOptionString("force-window", "no");
-        MPVLib.INSTANCE.setOptionString("idle", "once");
+        MpvOptions.applyPostInit(configDir);
         MPVLib.addObserver(this);
         observeProperties();
     }
@@ -589,7 +558,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
         MpvLogCollector.log("MpvPlayer", "解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解"));
 
-        applyDecode(decode);
+        MpvOptions.applyDecode(decode);
         applyHeaders(spec.getHeaders());
         loadUrl(spec.getUrl(), this.positionMs);
         invalidateState();
@@ -1007,16 +976,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         return HttpHeaders.REFERER.equalsIgnoreCase(key) || "Referrer".equalsIgnoreCase(key);
     }
 
-    private void applyDecode(int decode) {
-        String mode = decodeMode(decode);
-        MPVLib.INSTANCE.setOptionString("hwdec", mode);
-        try {
-            MPVLib.INSTANCE.setPropertyString("hwdec", mode);
-        } catch (Throwable ignored) {
-            // Property writes can fail before init/runtime is ready; option still covers next load.
-        }
-    }
-
     /**
      * Hot-apply soft/hard decode without stop/loadfile (FongMi-aligned).
      * Default path only updates hwdec option/property; limited Surface rebind on failure only.
@@ -1025,13 +984,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
      */
     private boolean applyDecodeHot(int decode) {
         if (closed) return false;
-        String mode = decodeMode(decode);
+        String mode = MpvOptions.decodeMode(decode);
         try {
             MpvLogCollector.log("MpvPlayer", "热切解码(无 reload): mode=" + mode);
-            // Commit for next demuxer open and live property — no stop/loadfile.
-            MPVLib.INSTANCE.setOptionString("hwdec", mode);
+            MpvOptions.applyDecode(decode);
             if (!command("set", "hwdec", mode)) {
-                MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+                try {
+                    MPVLib.INSTANCE.setPropertyString("hwdec", mode);
+                } catch (Throwable ignored) {
+                }
             }
             String hwdec = null;
             try {
@@ -1078,40 +1039,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         }
     }
 
-    private static String decodeMode(int decode) {
-        return decode == PlayerEngine.HARD ? HWDEC : "no";
-    }
-
-    private void applyHdrOptions() {
-        // Requires libmpv with Android target-colorspace-hint support (wobuhui666/mpv fongmi).
-        // Unknown options are ignored by mpv; safe on older AARs.
-        int mode = PlayerSetting.getMpvHdr();
-        String hint = switch (mode) {
-            case PlayerSetting.MPV_HDR_ON -> "yes";
-            case PlayerSetting.MPV_HDR_OFF -> "no";
-            default -> "auto";
-        };
-        try {
-            MPVLib.INSTANCE.setOptionString("target-colorspace-hint", hint);
-            MpvLogCollector.log("MpvPlayer", "target-colorspace-hint=" + hint);
-        } catch (Throwable e) {
-            MpvLogCollector.log("MpvPlayer", "HDR option not applied: " + e.getMessage());
-        }
-    }
-
-    private static final String HWDEC_CODECS_BASE = "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1";
-    private static final String HWDEC_CODECS_DOLBY = HWDEC_CODECS_BASE + ",dvhe,dvh1";
-
-    private void applyHwdecCodecs() {
-        String codecs = PlayerSetting.isDolbyEnabled() ? HWDEC_CODECS_DOLBY : HWDEC_CODECS_BASE;
-        MPVLib.INSTANCE.setOptionString("hwdec-codecs", codecs);
-        try {
-            MPVLib.INSTANCE.setPropertyString("hwdec-codecs", codecs);
-        } catch (Throwable ignored) {
-        }
-        MpvLogCollector.log("MpvPlayer", "hwdec-codecs=" + codecs);
-    }
-
     /**
      * Re-apply Dolby codec allow-list via hwdec-codecs only (no stop/loadfile, no rebuild).
      *
@@ -1121,7 +1048,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         if (closed) return false;
         Runnable apply = () -> {
             try {
-                applyHwdecCodecs();
+                MpvOptions.applyHwdecCodecs();
             } catch (Throwable e) {
                 MpvLogCollector.logError("MpvPlayer", "应用杜比设置失败: " + e.getMessage());
             }
@@ -1244,7 +1171,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.attachSurface(surface);
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         updateSurfaceSize(width, height);
-        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", getVo());
+        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", MpvOptions.videoOutputDriver());
         markRenderedFirstFrame();
         loadPendingUrl();
     }
@@ -1395,15 +1322,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
 
     private static @Nullable String emptyToNull(String value) {
         return TextUtils.isEmpty(value) ? null : value;
-    }
-
-    /**
-     * Video output driver. gpu-next is opt-in only (same as FongMi/TV MpvUtil).
-     * Vulkan uses gpu-api=vulkan + gpu-context=androidvk and keeps default vo=gpu
-     * unless the user also enables gpu-next.
-     */
-    private String getVo() {
-        return PlayerSetting.isMpvGpuNext() ? "gpu-next" : "gpu";
     }
 
     private static String getString(MPVNode node, String key) {

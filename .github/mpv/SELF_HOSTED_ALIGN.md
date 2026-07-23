@@ -23,11 +23,17 @@
    - Caller **awaits** destroy (5s timeout) before returning from `handleRelease`
    - `createNative` refuses double-create; force-destroy if stuck
 
+## Phase D — `MpvOptions` (done)
+
+- New `MpvOptions.java`: pre-init / post-init funnel used by `MpvPlayer.initialize()`
+- Vulkan: only `gpu-api` + `androidvk`; `vo` from `isMpvGpuNext()` only
+- Demuxer budget can scale with `PreloadSetting`; default UA from `Setting`/`PlayerHelper`
+- HDR: optional `target-colorspace-hint` only (not product guarantee)
+
 ## Still open
 
 | Phase | Work |
 |-------|------|
-| D | `MpvOptions` central init (optional polish) |
 | E | Drop `MPVNode`/`getPropertyNode`; gold AAR from FongMi/mpv-android+mpv; archive v0.0.3 |
 | F | Device matrix + instrumentation |
 
