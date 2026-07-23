@@ -56,17 +56,28 @@ jobs:
 
       - name: Optionally install jadx
         if: ${{ inputs.run_jadx == 'true' }}
+        id: jadx
         run: |
           set -euo pipefail
           JADX_VER=1.5.1
           curl -fL --retry 5 -o /tmp/jadx.zip \
             "https://github.com/skylot/jadx/releases/download/v${JADX_VER}/jadx-${JADX_VER}.zip"
-          # zip root is "jadx/" → extract under /opt so binary is /opt/jadx/bin/jadx
-          sudo rm -rf /opt/jadx
-          sudo unzip -q /tmp/jadx.zip -d /opt
-          test -x /opt/jadx/bin/jadx
-          echo "/opt/jadx/bin" >> "$GITHUB_PATH"
-          /opt/jadx/bin/jadx --version
+          sudo rm -rf /opt/jadx-dist
+          sudo mkdir -p /opt/jadx-dist
+          sudo unzip -q /tmp/jadx.zip -d /opt/jadx-dist
+          # Locate bin/jadx regardless of zip top-level folder name
+          JADX_BIN=$(find /opt/jadx-dist -type f -path '*/bin/jadx' | head -1)
+          if [ -z "${JADX_BIN}" ]; then
+            echo "jadx binary not found; zip layout:" >&2
+            find /opt/jadx-dist -maxdepth 3 -type f | head -40 >&2
+            exit 1
+          fi
+          sudo chmod +x "$JADX_BIN"
+          JADX_HOME=$(dirname "$(dirname "$JADX_BIN")")
+          echo "JADX_HOME=$JADX_HOME" >> "$GITHUB_ENV"
+          echo "JADX_BIN=$JADX_BIN" >> "$GITHUB_ENV"
+          echo "$JADX_HOME/bin" >> "$GITHUB_PATH"
+          "$JADX_BIN" --version
 
       - name: Resolve and download source
         id: dl
@@ -325,8 +336,9 @@ jobs:
           OUT=gold-out
           IN=gold-in/input.bin
           JADX_OUT=$(mktemp -d)
-          # Class filter keeps output small and focused on gold API
-          jadx \
+          JADX_CMD="${JADX_BIN:-jadx}"
+          # Full APK decompile; then we copy only mpv packages (bounded artifact)
+          "$JADX_CMD" \
             --show-bad-code \
             --no-res \
             --no-imports \
