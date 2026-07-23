@@ -10,6 +10,14 @@ import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 
+/**
+ * MPV engine aligned with FongMi/TV@fongmi behaviour (self-hosted player):
+ * <ul>
+ *   <li>{@link #setDecode(int)} always returns {@code false} — no PlayerManager rebuild</li>
+ *   <li>{@link #rebuild()} is a no-op and returns the same player instance</li>
+ * </ul>
+ * Runtime type remains {@link MpvPlayer}, not {@code androidx.media3.mpvplayer.MpvPlayer}.
+ */
 @UnstableApi
 public class MpvPlayerEngine implements PlayerEngine {
 
@@ -17,7 +25,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     private final MpvErrorMsgProvider provider;
     private final Player.Listener listener;
-    private MpvPlayer player;
+    private final MpvPlayer player;
     private PlaySpec spec;
     private int decode;
     private int recoverAttempts;
@@ -59,9 +67,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public Player rebuild() {
-        release();
-        player = new MpvPlayer(App.get(), decode);
-        player.addListener(listener);
+        // FongMi contract: MPV rebuild is a no-op (same player instance).
         return player;
     }
 
@@ -73,13 +79,18 @@ public class MpvPlayerEngine implements PlayerEngine {
     @Override
     public boolean setDecode(int decode) {
         this.decode = decode;
-        // false = hot path, PlayerManager skips rebuild; true = rebuild required
-        return player.setDecode(decode);
+        // FongMi contract: hot path only; PlayerManager must not rebuild.
+        player.setDecode(decode);
+        return false;
     }
 
-    /** Re-apply Dolby codec policy. {@code true} means caller should rebuild. */
+    /**
+     * Re-apply Dolby codec allow-list on the live player.
+     * Always returns {@code false} (no rebuild) — MPV does not use Engine rebuild for this.
+     */
     public boolean applyDolbySetting() {
-        return player.applyDolbySetting();
+        player.applyDolbySetting();
+        return false;
     }
 
     @Override
