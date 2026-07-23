@@ -38,3 +38,9 @@ flavor 维度是 `["mode","abi"]`（mode: leanback/mobile，abi: arm64_v8a/armea
 ```
 
 成功标志 `BUILD SUCCESSFUL`。若报 "Gradle build daemon disappeared"，是内存不足被 OOM 杀（VS Code server 会占数 GB），应降 `-Xmx` 或扩容机器，而非加大堆。
+
+## 本机资源铁律（2 核 / 3.8G）
+
+**禁止本机**：NDK/libmpv 全量构建、多 flavor `assemble*Release`、整包 APK 拆解/大文件对比。  
+**必须走 GitHub Actions**：`build-mpv-lib.yml`、`build-test-apk.yml`、`build-release.yml`、`audit-fongmi-gold-apk.yml`（Phase 0 金标）、`compile-check.yml`。  
+本机只改代码 + `gh workflow run` + 读 artifact。详见 **`.github/CI_POLICY.md`**（入库）以及本机 gitignore 下的 `docs/HANDOFF_FONGMI_MPV.md`。

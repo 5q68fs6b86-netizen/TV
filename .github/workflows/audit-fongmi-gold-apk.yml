@@ -1,0 +1,275 @@
+name: Audit FongMi Gold APK / AAR
+
+# Phase 0 helper: download a FongMi (or comparable) APK/AAR on GitHub-hosted
+# runners and extract gold-standard surfaces for media3.mpvplayer / libplayer / libmpv.
+# Do NOT run this unpack work on the 2-core / 3.8G VPS — use workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: "Direct URL to APK or AAR (https://...)"
+        required: false
+        default: ""
+      source_repo:
+        description: "Optional GitHub repo that owns a release asset (owner/name)"
+        required: false
+        default: "FongMi/TV"
+      source_tag:
+        description: "Optional release tag when using source_repo (empty = latest)"
+        required: false
+        default: ""
+      asset_name_regex:
+        description: "Regex to pick release asset (e.g. '.*leanback.*arm64.*\\.apk$' or '.*\\.apk$')"
+        required: false
+        default: ".*\\.apk$"
+      abis:
+        description: "Space-separated ABIs to audit under lib/"
+        required: true
+        default: "arm64-v8a armeabi-v7a"
+      keep_extracted_so:
+        description: "Upload extracted .so / classes as artifact (true/false)"
+        required: true
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Install tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip binutils file jq curl ca-certificates
+          # JDK for javap (optional but useful when classes.jar present)
+          sudo apt-get install -y openjdk-17-jdk-headless
+
+      - name: Resolve and download source
+        id: dl
+        env:
+          SOURCE_URL: ${{ inputs.source_url }}
+          SOURCE_REPO: ${{ inputs.source_repo }}
+          SOURCE_TAG: ${{ inputs.source_tag }}
+          ASSET_RE: ${{ inputs.asset_name_regex }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p gold-in gold-out
+          DEST="gold-in/input.bin"
+
+          if [ -n "${SOURCE_URL}" ]; then
+            echo "Downloading direct URL"
+            curl -fL --retry 5 -o "$DEST" "$SOURCE_URL"
+            echo "source=url" >> "$GITHUB_OUTPUT"
+            echo "label=$(basename "$SOURCE_URL" | tr -c 'A-Za-z0-9._-' '_')" >> "$GITHUB_OUTPUT"
+          else
+            test -n "${SOURCE_REPO}"
+            API="https://api.github.com/repos/${SOURCE_REPO}"
+            AUTH=()
+            if [ -n "${GH_TOKEN:-}" ]; then
+              AUTH=(-H "Authorization: Bearer ${GH_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28")
+            fi
+            if [ -n "${SOURCE_TAG}" ]; then
+              META=$(curl -fsSL "${AUTH[@]}" "${API}/releases/tags/${SOURCE_TAG}")
+            else
+              META=$(curl -fsSL "${AUTH[@]}" "${API}/releases/latest")
+            fi
+            echo "$META" | jq -r '.tag_name, .name' | tee gold-out/release-meta.txt
+            # Pick first asset matching regex
+            mapfile -t CANDS < <(echo "$META" | jq -r --arg re "$ASSET_RE" '
+              .assets[]
+              | select(.name | test($re))
+              | [.name, .browser_download_url, (.size|tostring)]
+              | @tsv
+            ')
+            if [ ${#CANDS[@]} -eq 0 ]; then
+              echo "No asset matched regex: $ASSET_RE" >&2
+              echo "$META" | jq -r '.assets[].name' >&2 || true
+              exit 1
+            fi
+            IFS=$'\t' read -r ANAME AURL ASIZE <<<"${CANDS[0]}"
+            echo "Selected asset: $ANAME ($ASIZE bytes)"
+            echo "name=$ANAME" >> "$GITHUB_OUTPUT"
+            echo "label=$(echo "$ANAME" | tr -c 'A-Za-z0-9._-' '_')" >> "$GITHUB_OUTPUT"
+            curl -fL --retry 5 -o "$DEST" "$AURL"
+            echo "source=release:${SOURCE_REPO}" >> "$GITHUB_OUTPUT"
+          fi
+
+          file "$DEST" | tee gold-out/file-type.txt
+          ls -lh "$DEST" | tee gold-out/size.txt
+          # Detect zip-based formats
+          if unzip -t "$DEST" >/dev/null 2>&1; then
+            echo "format=zip" >> "$GITHUB_OUTPUT"
+          else
+            echo "Input is not a zip/apk/aar" >&2
+            exit 1
+          fi
+
+      - name: Unpack and inventory
+        env:
+          ABIS: ${{ inputs.abis }}
+        run: |
+          set -euo pipefail
+          IN=gold-in/input.bin
+          OUT=gold-out
+          STAGE=$(mktemp -d)
+          unzip -q "$IN" -d "$STAGE"
+
+          {
+            echo "# Gold package inventory"
+            echo
+            echo "## Top-level"
+            find "$STAGE" -maxdepth 2 -type f | sed "s|^$STAGE/||" | sort | head -200
+            echo
+            echo "## Paths matching mpv / media3 / player"
+            find "$STAGE" -type f \( \
+              -iname '*mpv*' -o -iname '*player*' -o -iname '*media3*' -o \
+              -name 'classes.jar' -o -name '*.so' \
+            \) | sed "s|^$STAGE/||" | sort
+          } | tee "$OUT/inventory.txt"
+
+          # Prefer lib/<abi>/ layout (APK) or jni/<abi>/ (AAR)
+          mkdir -p "$OUT/so" "$OUT/jars" "$OUT/dex-hints"
+          for abi in $ABIS; do
+            for base in "lib/$abi" "jni/$abi"; do
+              if [ -d "$STAGE/$base" ]; then
+                echo "Found $base" | tee -a "$OUT/inventory.txt"
+                mkdir -p "$OUT/so/$abi"
+                cp -a "$STAGE/$base/." "$OUT/so/$abi/" 2>/dev/null || true
+              fi
+            done
+          done
+
+          # Collect jars that may hold androidx.media3.mpvplayer / is.xyz.mpv
+          while IFS= read -r -d '' jar; do
+            rel=${jar#"$STAGE/"}
+            safe=$(echo "$rel" | tr '/' '_')
+            cp "$jar" "$OUT/jars/$safe"
+          done < <(find "$STAGE" -type f \( -name 'classes.jar' -o -name 'classes*.jar' -o -name '*mpv*.jar' -o -name '*media3*.jar' \) -print0)
+
+          # APK may only have classes.dex — record presence
+          find "$STAGE" -name 'classes*.dex' | sed "s|^$STAGE/||" | tee "$OUT/dex-list.txt" || true
+
+          # Quick string scan for package names in the whole tree (bounded)
+          {
+            echo "# String hits (bounded)"
+            grep -RIa -m 50 -n -E 'androidx\.media3\.mpvplayer|is\.xyz\.mpv|MpvPlayer|MpvUtil|libmpv|libplayer' "$STAGE" 2>/dev/null \
+              | head -200 || true
+          } | tee "$OUT/string-hits.txt"
+
+      - name: Native symbol audit
+        env:
+          ABIS: ${{ inputs.abis }}
+        run: |
+          set -euo pipefail
+          OUT=gold-out
+          REPORT="$OUT/native-symbols.md"
+          {
+            echo "# Native symbol audit"
+            echo
+            for abi in $ABIS; do
+              dir="$OUT/so/$abi"
+              [ -d "$dir" ] || { echo "## $abi: (missing)"; echo; continue; }
+              echo "## $abi"
+              ls -lh "$dir" || true
+              echo
+              for so in libmpv.so libplayer.so libpl.so; do
+                f="$dir/$so"
+                if [ ! -f "$f" ]; then
+                  echo "### $so: NOT PRESENT"
+                  echo
+                  continue
+                fi
+                echo "### $so"
+                echo '```'
+                file "$f" || true
+                echo '--- nm -D (JNI / mpv-ish, head) ---'
+                nm -D "$f" 2>/dev/null | grep -nE 'Java_|mpv_|MPV' | head -120 || nm -D "$f" 2>/dev/null | head -80 || true
+                echo '--- readelf -d NEEDED ---'
+                readelf -d "$f" 2>/dev/null | grep -E 'NEEDED|SONAME' || true
+                echo '```'
+                echo
+              done
+              # any other .so names
+              echo "### other .so"
+              find "$dir" -name '*.so' -printf '%f\n' | sort
+              echo
+            done
+          } | tee "$REPORT"
+
+      - name: Java surface audit (javap when jars exist)
+        run: |
+          set -euo pipefail
+          OUT=gold-out
+          REPORT="$OUT/java-surface.md"
+          {
+            echo "# Java surface audit"
+            echo
+            shopt -s nullglob
+            jars=("$OUT/jars"/*)
+            if [ ${#jars[@]} -eq 0 ]; then
+              echo "No jars extracted (APK may be DEX-only). Use dex-list + string-hits, or feed an AAR URL."
+              exit 0
+            fi
+            for jar in "${jars[@]}"; do
+              echo "## $(basename "$jar")"
+              echo '```'
+              jar tf "$jar" | grep -nE 'androidx/media3/mpvplayer|is/xyz/mpv|MpvPlayer|MpvUtil' | head -200 || true
+              echo '```'
+              # javap public API for key classes if present
+              for cls in \
+                androidx.media3.mpvplayer.MpvPlayer \
+                androidx.media3.mpvplayer.MpvPlayer\$Builder \
+                androidx.media3.mpvplayer.MpvPlayerConfig \
+                androidx.media3.mpvplayer.MpvPlayerConfig\$Builder \
+                is.xyz.mpv.MPVLib
+              do
+                if jar tf "$jar" | grep -q "^${cls//.//}.class$"; then
+                  echo "### javap -public $cls"
+                  echo '```'
+                  javap -classpath "$jar" -public "$cls" 2>/dev/null | head -200 || true
+                  echo '```'
+                fi
+              done
+              echo
+            done
+          } | tee "$REPORT"
+
+      - name: Write summary
+        run: |
+          set -euo pipefail
+          {
+            echo "## FongMi gold audit"
+            echo
+            echo "- source: \`${{ steps.dl.outputs.source }}\`"
+            echo "- label: \`${{ steps.dl.outputs.label }}\`"
+            echo "- file: \`$(cat gold-out/file-type.txt)\`"
+            echo
+            echo "Artifacts under \`gold-out/\`: inventory, native-symbols, java-surface, string-hits."
+            echo
+            echo "### libmpv / libplayer presence"
+            find gold-out/so -type f -name '*.so' 2>/dev/null | sort || echo "(none)"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fongmi-gold-audit-${{ steps.dl.outputs.label || 'input' }}
+          path: gold-out/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload extracted natives (optional)
+        if: ${{ inputs.keep_extracted_so == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fongmi-gold-binaries-${{ steps.dl.outputs.label || 'input' }}
+          path: |
+            gold-out/so/
+            gold-out/jars/
+          if-no-files-found: ignore
+          retention-days: 7
