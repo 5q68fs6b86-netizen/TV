@@ -63,3 +63,11 @@ Gate: `HAS_MEDIA3_MPVPLAYER=yes` + `libplayer.so` / `libmpv.so` + `api/libplayer
 ## VPS rule
 
 Do **not** download/unpack the ~92 MB APK on this host. Use the workflow + report artifacts only.
+
+## Phase 0 result (2026-07-23)
+
+See **[PHASE0_GOLD_PIN.md](./PHASE0_GOLD_PIN.md)** and **[libplayer.nm.txt](./libplayer.nm.txt)**.
+
+- APK SHA256 `3d915e99…89c3` (5.5.6 / 556)
+- Natives + `is.xyz.mpv.MPVLib` **OK**
+- `androidx.media3.mpvplayer` **R8-obfuscated** in release → need private AAR / mapping / debug for Phase 1
