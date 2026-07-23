@@ -28,14 +28,20 @@ This VPS is **2 cores / 3.8G RAM**. Do not run heavy builds or APK unpacking loc
 
 ## Phase 0 trigger
 
-```bash
-gh workflow run audit-fongmi-gold-apk.yml \
-  -f source_repo=FongMi/TV \
-  -f asset_name_regex='.*\\.apk$'
+`FongMi/TV` has **no** GitHub Release assets. Official APKs live in
+[FongMi/Release](https://github.com/FongMi/Release) `apk/` (see `.github/mpv/GOLD_SOURCE.md`).
 
-# or
+```bash
+# Canonical gold (default source_url in the workflow)
 gh workflow run audit-fongmi-gold-apk.yml \
-  -f source_url='https://.../app.apk'
+  --ref feat/mpv-hot-decode-dolby-hdr \
+  -f source_url='https://raw.githubusercontent.com/FongMi/Release/fongmi/apk/leanback-arm64_v8a.apk'
+
+# Optional: another public release repo with assets
+gh workflow run audit-fongmi-gold-apk.yml \
+  -f source_url='' \
+  -f source_repo=owner/repo \
+  -f asset_name_regex='.*leanback.*arm64.*\\.apk$'
 ```
 
 Local handoff notes (gitignored under `/docs` on this machine):
@@ -43,3 +49,4 @@ Local handoff notes (gitignored under `/docs` on this machine):
 - `/root/TV/docs/HANDOFF_FONGMI_MPV.md`
 - `/root/TV/docs/FONGMI_MPV_REDO_PLAN.md`
 - `/root/TV/docs/CI_ONLY_NOW.md`
+- `/root/TV/.github/mpv/GOLD_SOURCE.md` (tracked)

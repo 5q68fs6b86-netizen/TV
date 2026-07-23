@@ -3,18 +3,22 @@ name: Audit FongMi Gold APK / AAR
 # Phase 0 helper: download a FongMi (or comparable) APK/AAR on GitHub-hosted
 # runners and extract gold-standard surfaces for media3.mpvplayer / libplayer / libmpv.
 # Do NOT run this unpack work on the 2-core / 3.8G VPS — use workflow_dispatch only.
+#
+# Official gold (FongMi does NOT publish APKs on FongMi/TV releases):
+#   source_url = https://raw.githubusercontent.com/FongMi/Release/fongmi/apk/leanback-arm64_v8a.apk
+#   meta       = FongMi/Release@fongmi apk/leanback.json (versionName/code)
 
 on:
   workflow_dispatch:
     inputs:
       source_url:
-        description: "Direct URL to APK or AAR (https://...)"
+        description: "Direct URL to APK or AAR (https://...). Prefer FongMi/Release raw APK."
+        required: false
+        default: "https://raw.githubusercontent.com/FongMi/Release/fongmi/apk/leanback-arm64_v8a.apk"
+      source_repo:
+        description: "Optional GitHub repo that owns a release asset (owner/name). Ignored if source_url set."
         required: false
         default: ""
-      source_repo:
-        description: "Optional GitHub repo that owns a release asset (owner/name)"
-        required: false
-        default: "FongMi/TV"
       source_tag:
         description: "Optional release tag when using source_repo (empty = latest)"
         required: false
@@ -22,13 +26,17 @@ on:
       asset_name_regex:
         description: "Regex to pick release asset (e.g. '.*leanback.*arm64.*\\.apk$' or '.*\\.apk$')"
         required: false
-        default: ".*\\.apk$"
+        default: ".*leanback.*arm64.*\\.apk$|.*arm64.*\\.apk$|.*\\.apk$"
       abis:
         description: "Space-separated ABIs to audit under lib/"
         required: true
         default: "arm64-v8a armeabi-v7a"
       keep_extracted_so:
         description: "Upload extracted .so / classes as artifact (true/false)"
+        required: true
+        default: "true"
+      run_jadx:
+        description: "Install jadx and dump public API for media3.mpvplayer / MPVLib from DEX"
         required: true
         default: "true"
 
@@ -38,15 +46,25 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Install tools
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y unzip binutils file jq curl ca-certificates
-          # JDK for javap (optional but useful when classes.jar present)
-          sudo apt-get install -y openjdk-17-jdk-headless
+          sudo apt-get install -y unzip binutils file jq curl ca-certificates openjdk-17-jdk-headless
+
+      - name: Optionally install jadx
+        if: ${{ inputs.run_jadx == 'true' }}
+        run: |
+          set -euo pipefail
+          JADX_VER=1.5.1
+          curl -fL --retry 5 -o /tmp/jadx.zip \
+            "https://github.com/skylot/jadx/releases/download/v${JADX_VER}/jadx-${JADX_VER}.zip"
+          sudo mkdir -p /opt/jadx
+          sudo unzip -q /tmp/jadx.zip -d /opt/jadx
+          echo "/opt/jadx/bin" >> "$GITHUB_PATH"
+          jadx --version
 
       - name: Resolve and download source
         id: dl
@@ -62,24 +80,50 @@ jobs:
           DEST="gold-in/input.bin"
 
           if [ -n "${SOURCE_URL}" ]; then
-            echo "Downloading direct URL"
+            echo "Downloading direct URL: $SOURCE_URL"
             curl -fL --retry 5 -o "$DEST" "$SOURCE_URL"
             echo "source=url" >> "$GITHUB_OUTPUT"
             echo "label=$(basename "$SOURCE_URL" | tr -c 'A-Za-z0-9._-' '_')" >> "$GITHUB_OUTPUT"
+            {
+              echo "source_url=$SOURCE_URL"
+              echo "source_mode=url"
+            } | tee gold-out/source-meta.txt
           else
-            test -n "${SOURCE_REPO}"
+            if [ -z "${SOURCE_REPO}" ]; then
+              cat >&2 <<'EOF'
+          No source_url and no source_repo.
+          Official gold APK (FongMi/TV has empty GitHub Releases):
+            source_url=https://raw.githubusercontent.com/FongMi/Release/fongmi/apk/leanback-arm64_v8a.apk
+          EOF
+              exit 1
+            fi
             API="https://api.github.com/repos/${SOURCE_REPO}"
             AUTH=()
             if [ -n "${GH_TOKEN:-}" ]; then
               AUTH=(-H "Authorization: Bearer ${GH_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28")
             fi
             if [ -n "${SOURCE_TAG}" ]; then
-              META=$(curl -fsSL "${AUTH[@]}" "${API}/releases/tags/${SOURCE_TAG}")
+              HTTP=$(curl -sS -o /tmp/rel.json -w "%{http_code}" "${AUTH[@]}" "${API}/releases/tags/${SOURCE_TAG}")
             else
-              META=$(curl -fsSL "${AUTH[@]}" "${API}/releases/latest")
+              HTTP=$(curl -sS -o /tmp/rel.json -w "%{http_code}" "${AUTH[@]}" "${API}/releases/latest")
             fi
+            if [ "$HTTP" != "200" ]; then
+              cat >&2 <<EOF
+          Release API HTTP $HTTP for ${SOURCE_REPO} (tag='${SOURCE_TAG:-latest}').
+          Note: FongMi/TV publishes NO GitHub Release assets (releases/latest → 404).
+          Use source_url to FongMi/Release raw APK instead, e.g.:
+            source_url=https://raw.githubusercontent.com/FongMi/Release/fongmi/apk/leanback-arm64_v8a.apk
+          EOF
+              head -c 500 /tmp/rel.json >&2 || true
+              exit 1
+            fi
+            META=$(cat /tmp/rel.json)
             echo "$META" | jq -r '.tag_name, .name' | tee gold-out/release-meta.txt
-            # Pick first asset matching regex
+            ASSET_COUNT=$(echo "$META" | jq -r '.assets | length')
+            if [ "${ASSET_COUNT}" = "0" ]; then
+              echo "Release has zero assets on ${SOURCE_REPO}" >&2
+              exit 1
+            fi
             mapfile -t CANDS < <(echo "$META" | jq -r --arg re "$ASSET_RE" '
               .assets[]
               | select(.name | test($re))
@@ -97,11 +141,16 @@ jobs:
             echo "label=$(echo "$ANAME" | tr -c 'A-Za-z0-9._-' '_')" >> "$GITHUB_OUTPUT"
             curl -fL --retry 5 -o "$DEST" "$AURL"
             echo "source=release:${SOURCE_REPO}" >> "$GITHUB_OUTPUT"
+            {
+              echo "source_repo=$SOURCE_REPO"
+              echo "asset=$ANAME"
+              echo "size=$ASIZE"
+            } | tee gold-out/source-meta.txt
           fi
 
           file "$DEST" | tee gold-out/file-type.txt
           ls -lh "$DEST" | tee gold-out/size.txt
-          # Detect zip-based formats
+          sha256sum "$DEST" | tee gold-out/sha256.txt
           if unzip -t "$DEST" >/dev/null 2>&1; then
             echo "format=zip" >> "$GITHUB_OUTPUT"
           else
@@ -118,6 +167,7 @@ jobs:
           OUT=gold-out
           STAGE=$(mktemp -d)
           unzip -q "$IN" -d "$STAGE"
+          echo "STAGE=$STAGE" >> "$GITHUB_ENV"
 
           {
             echo "# Gold package inventory"
@@ -132,8 +182,7 @@ jobs:
             \) | sed "s|^$STAGE/||" | sort
           } | tee "$OUT/inventory.txt"
 
-          # Prefer lib/<abi>/ layout (APK) or jni/<abi>/ (AAR)
-          mkdir -p "$OUT/so" "$OUT/jars" "$OUT/dex-hints"
+          mkdir -p "$OUT/so" "$OUT/jars" "$OUT/dex-hints" "$OUT/api"
           for abi in $ABIS; do
             for base in "lib/$abi" "jni/$abi"; do
               if [ -d "$STAGE/$base" ]; then
@@ -144,22 +193,39 @@ jobs:
             done
           done
 
-          # Collect jars that may hold androidx.media3.mpvplayer / is.xyz.mpv
           while IFS= read -r -d '' jar; do
             rel=${jar#"$STAGE/"}
             safe=$(echo "$rel" | tr '/' '_')
             cp "$jar" "$OUT/jars/$safe"
           done < <(find "$STAGE" -type f \( -name 'classes.jar' -o -name 'classes*.jar' -o -name '*mpv*.jar' -o -name '*media3*.jar' \) -print0)
 
-          # APK may only have classes.dex — record presence
           find "$STAGE" -name 'classes*.dex' | sed "s|^$STAGE/||" | tee "$OUT/dex-list.txt" || true
 
-          # Quick string scan for package names in the whole tree (bounded)
           {
             echo "# String hits (bounded)"
-            grep -RIa -m 50 -n -E 'androidx\.media3\.mpvplayer|is\.xyz\.mpv|MpvPlayer|MpvUtil|libmpv|libplayer' "$STAGE" 2>/dev/null \
-              | head -200 || true
+            grep -RIa -m 80 -n -E 'androidx\.media3\.mpvplayer|is\.xyz\.mpv|MpvPlayerConfig|MpvPlayer|libmpv|libplayer' "$STAGE" 2>/dev/null \
+              | head -300 || true
           } | tee "$OUT/string-hits.txt"
+
+          # Gate signal for gold
+          {
+            echo "# Gold gate signals"
+            if grep -RIa -q 'androidx.media3.mpvplayer' "$STAGE" 2>/dev/null; then
+              echo "HAS_MEDIA3_MPVPLAYER=yes"
+            else
+              echo "HAS_MEDIA3_MPVPLAYER=no"
+            fi
+            if find "$STAGE" -name 'libplayer.so' | grep -q .; then
+              echo "HAS_LIBPLAYER=yes"
+            else
+              echo "HAS_LIBPLAYER=no"
+            fi
+            if find "$STAGE" -name 'libmpv.so' | grep -q .; then
+              echo "HAS_LIBMPV=yes"
+            else
+              echo "HAS_LIBMPV=no"
+            fi
+          } | tee "$OUT/gate-signals.txt"
 
       - name: Native symbol audit
         env:
@@ -187,19 +253,29 @@ jobs:
                 echo "### $so"
                 echo '```'
                 file "$f" || true
+                sha256sum "$f" || true
+                echo '--- nm -D Java_is_xyz_mpv ---'
+                nm -D "$f" 2>/dev/null | grep 'Java_is_xyz_mpv' | sort || true
                 echo '--- nm -D (JNI / mpv-ish, head) ---'
-                nm -D "$f" 2>/dev/null | grep -nE 'Java_|mpv_|MPV' | head -120 || nm -D "$f" 2>/dev/null | head -80 || true
+                nm -D "$f" 2>/dev/null | grep -nE 'Java_|mpv_|MPV' | head -200 || nm -D "$f" 2>/dev/null | head -80 || true
                 echo '--- readelf -d NEEDED ---'
                 readelf -d "$f" 2>/dev/null | grep -E 'NEEDED|SONAME' || true
                 echo '```'
+                # pin-able JNI list
+                nm -D "$f" 2>/dev/null | grep 'Java_is_xyz_mpv' | sort > "$OUT/api/libplayer.nm.${abi}.${so}.txt" || true
                 echo
               done
-              # any other .so names
               echo "### other .so"
               find "$dir" -name '*.so' -printf '%f\n' | sort
               echo
             done
           } | tee "$REPORT"
+
+          # Prefer arm64 libplayer for canonical nm
+          if [ -f "$OUT/api/libplayer.nm.arm64-v8a.libplayer.so.txt" ]; then
+            cp "$OUT/api/libplayer.nm.arm64-v8a.libplayer.so.txt" "$OUT/api/libplayer.nm.txt"
+            sha256sum "$OUT/api/libplayer.nm.txt" | tee "$OUT/api/libplayer.nm.sha256.txt"
+          fi
 
       - name: Java surface audit (javap when jars exist)
         run: |
@@ -212,7 +288,7 @@ jobs:
             shopt -s nullglob
             jars=("$OUT/jars"/*)
             if [ ${#jars[@]} -eq 0 ]; then
-              echo "No jars extracted (APK may be DEX-only). Use dex-list + string-hits, or feed an AAR URL."
+              echo "No jars extracted (APK may be DEX-only). See dex-list + jadx step."
               exit 0
             fi
             for jar in "${jars[@]}"; do
@@ -220,24 +296,122 @@ jobs:
               echo '```'
               jar tf "$jar" | grep -nE 'androidx/media3/mpvplayer|is/xyz/mpv|MpvPlayer|MpvUtil' | head -200 || true
               echo '```'
-              # javap public API for key classes if present
               for cls in \
                 androidx.media3.mpvplayer.MpvPlayer \
-                androidx.media3.mpvplayer.MpvPlayer\$Builder \
+                'androidx.media3.mpvplayer.MpvPlayer$Builder' \
                 androidx.media3.mpvplayer.MpvPlayerConfig \
-                androidx.media3.mpvplayer.MpvPlayerConfig\$Builder \
+                'androidx.media3.mpvplayer.MpvPlayerConfig$Builder' \
                 is.xyz.mpv.MPVLib
               do
-                if jar tf "$jar" | grep -q "^${cls//.//}.class$"; then
+                path="${cls//.//}.class"
+                path="${path//\$/\$}"
+                if jar tf "$jar" | grep -qF "$path" || jar tf "$jar" | grep -q "${cls//.//}"; then
                   echo "### javap -public $cls"
                   echo '```'
-                  javap -classpath "$jar" -public "$cls" 2>/dev/null | head -200 || true
+                  javap -classpath "$jar" -public "$cls" 2>/dev/null | head -300 || true
                   echo '```'
                 fi
               done
               echo
             done
           } | tee "$REPORT"
+
+      - name: JADX DEX API dump (media3.mpvplayer / MPVLib)
+        if: ${{ inputs.run_jadx == 'true' }}
+        run: |
+          set -euo pipefail
+          OUT=gold-out
+          IN=gold-in/input.bin
+          JADX_OUT=$(mktemp -d)
+          # Class filter keeps output small and focused on gold API
+          jadx \
+            --show-bad-code \
+            --no-res \
+            --no-imports \
+            -ds "$JADX_OUT" \
+            "$IN" \
+            2>"$OUT/jadx.stderr.txt" || true
+
+          mkdir -p "$OUT/api/jadx"
+          # Copy key packages if present
+          for pkg in \
+            "androidx/media3/mpvplayer" \
+            "is/xyz/mpv"
+          do
+            if [ -d "$JADX_OUT/sources/$pkg" ]; then
+              mkdir -p "$OUT/api/jadx/$pkg"
+              cp -a "$JADX_OUT/sources/$pkg/." "$OUT/api/jadx/$pkg/" || true
+            fi
+          done
+
+          REPORT="$OUT/api/MpvPlayer.api.md"
+          {
+            echo "# JADX API dump"
+            echo
+            if [ -d "$OUT/api/jadx/androidx/media3/mpvplayer" ]; then
+              echo "## androidx.media3.mpvplayer files"
+              find "$OUT/api/jadx/androidx/media3/mpvplayer" -type f | sort
+              echo
+              for f in "$OUT/api/jadx/androidx/media3/mpvplayer"/*.java; do
+                [ -f "$f" ] || continue
+                echo "### $(basename "$f")"
+                echo '```java'
+                # Prefer public/protected signatures
+                grep -nE '^\s*(public|protected|class |interface |enum |@)' "$f" | head -200 || head -120 "$f"
+                echo '```'
+                echo
+              done
+            else
+              echo "MISSING package androidx.media3.mpvplayer in JADX output"
+              echo "This package is required for gold. See jadx.stderr / string-hits."
+            fi
+            echo
+            if [ -d "$OUT/api/jadx/is/xyz/mpv" ]; then
+              echo "## is.xyz.mpv files"
+              find "$OUT/api/jadx/is/xyz/mpv" -type f | sort
+              echo
+              for f in "$OUT/api/jadx/is/xyz/mpv"/*.java; do
+                [ -f "$f" ] || continue
+                echo "### $(basename "$f")"
+                echo '```java'
+                grep -nE '^\s*(public|protected|class |interface |native |static native)' "$f" | head -200 || head -80 "$f"
+                echo '```'
+                echo
+              done
+            else
+              echo "MISSING package is.xyz.mpv in JADX output"
+            fi
+          } | tee "$REPORT"
+
+          # Compact contract file for MpvUtil symbols
+          {
+            echo "# Required by FongMi MpvUtil / MpvPlayerEngine (fongmi branch)"
+            echo
+            echo "## MpvPlayer"
+            echo "- isAvailable()"
+            echo "- Builder(Context).setDecode(int).setConfig(MpvPlayerConfig).build()"
+            echo "- setDecode(int)"
+            echo "- setSubtitleOptions(MpvPlayerConfig)"
+            echo "- addSubtitle(SubtitleConfiguration)"
+            echo "- release() / setMediaItem / prepare / play / addListener (Player)"
+            echo
+            echo "## MpvPlayerConfig.Builder"
+            echo "- setDefaultUserAgent(String)"
+            echo "- setHlsHttpPersistent(boolean)"
+            echo "- addConfigDirectory(File)"
+            echo "- addAndroidFontConfig(File, File)"
+            echo "- addAndroidDefaults(String vo, File cacheDir)"
+            echo "- addTlsCaFileFromAsset(Context, String, File)"
+            echo "- addPreInitStringOption(String, String)"
+            echo "- addPostInitStringOption(String, String|List)"
+            echo "- addAndroidSubtitleOptions(Context, boolean, double, double)"
+            echo "- addDiskCacheOptions(File, int seconds, int sizeMb)"
+            echo "- build()"
+            echo "- VIDEO_OUTPUT_GPU_NEXT constant on MpvPlayerConfig"
+            echo
+            echo "## Gate"
+            cat "$OUT/gate-signals.txt" 2>/dev/null || true
+          } | tee "$OUT/api/MpvUtil-contract-checklist.md"
 
       - name: Write summary
         run: |
@@ -247,15 +421,36 @@ jobs:
             echo
             echo "- source: \`${{ steps.dl.outputs.source }}\`"
             echo "- label: \`${{ steps.dl.outputs.label }}\`"
-            echo "- file: \`$(cat gold-out/file-type.txt)\`"
+            echo "- file: \`$(cat gold-out/file-type.txt 2>/dev/null || echo n/a)\`"
+            echo "- sha256: \`$(cut -d' ' -f1 gold-out/sha256.txt 2>/dev/null || echo n/a)\`"
             echo
-            echo "Artifacts under \`gold-out/\`: inventory, native-symbols, java-surface, string-hits."
+            echo "### Gate signals"
+            cat gold-out/gate-signals.txt 2>/dev/null || echo "(missing)"
             echo
             echo "### libmpv / libplayer presence"
             find gold-out/so -type f -name '*.so' 2>/dev/null | sort || echo "(none)"
+            echo
+            echo "### API artifacts"
+            find gold-out/api -type f 2>/dev/null | sort || echo "(none)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
+      - name: Fail if not gold (media3.mpvplayer missing)
+        run: |
+          set -euo pipefail
+          if ! grep -q 'HAS_MEDIA3_MPVPLAYER=yes' gold-out/gate-signals.txt; then
+            echo "APK is NOT gold: androidx.media3.mpvplayer not found" >&2
+            echo "Do not proceed to Phase 1 with this package." >&2
+            exit 2
+          fi
+          if ! grep -q 'HAS_LIBPLAYER=yes' gold-out/gate-signals.txt; then
+            echo "WARNING: libplayer.so missing — JNI pin incomplete" >&2
+          fi
+          if ! grep -q 'HAS_LIBMPV=yes' gold-out/gate-signals.txt; then
+            echo "WARNING: libmpv.so missing" >&2
+          fi
+
       - name: Upload audit report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fongmi-gold-audit-${{ steps.dl.outputs.label || 'input' }}
@@ -264,12 +459,13 @@ jobs:
           retention-days: 14
 
       - name: Upload extracted natives (optional)
-        if: ${{ inputs.keep_extracted_so == 'true' }}
+        if: ${{ always() && inputs.keep_extracted_so == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: fongmi-gold-binaries-${{ steps.dl.outputs.label || 'input' }}
           path: |
             gold-out/so/
             gold-out/jars/
+            gold-out/api/
           if-no-files-found: ignore
           retention-days: 7
