@@ -176,6 +176,8 @@ jobs:
           ABIS: ${{ inputs.abis }}
         run: |
           set -euo pipefail
+          # Avoid SIGPIPE from sort|head under pipefail
+          set +o pipefail
           IN=gold-in/input.bin
           OUT=gold-out
           STAGE=$(mktemp -d)
@@ -186,13 +188,13 @@ jobs:
             echo "# Gold package inventory"
             echo
             echo "## Top-level"
-            find "$STAGE" -maxdepth 2 -type f | sed "s|^$STAGE/||" | sort | head -200
+            find "$STAGE" -maxdepth 2 -type f | sed "s|^$STAGE/||" | sort | head -n 200 || true
             echo
             echo "## Paths matching mpv / media3 / player"
             find "$STAGE" -type f \( \
               -iname '*mpv*' -o -iname '*player*' -o -iname '*media3*' -o \
               -name 'classes.jar' -o -name '*.so' \
-            \) | sed "s|^$STAGE/||" | sort
+            \) | sed "s|^$STAGE/||" | sort || true
           } | tee "$OUT/inventory.txt"
 
           mkdir -p "$OUT/so" "$OUT/jars" "$OUT/dex-hints" "$OUT/api"
@@ -217,7 +219,7 @@ jobs:
           {
             echo "# String hits (bounded)"
             grep -RIa -m 80 -n -E 'androidx\.media3\.mpvplayer|is\.xyz\.mpv|MpvPlayerConfig|MpvPlayer|libmpv|libplayer' "$STAGE" 2>/dev/null \
-              | head -300 || true
+              | head -n 300 || true
           } | tee "$OUT/string-hits.txt"
 
           # DEX path-form scan (survives R8 better than plain package dots in some builds)
@@ -226,7 +228,11 @@ jobs:
             for dex in "$STAGE"/classes*.dex; do
               [ -f "$dex" ] || continue
               echo "## $(basename "$dex")"
-              strings -a -n 8 "$dex" | grep -E 'androidx/media3/mpvplayer|is/xyz/mpv|MpvPlayerConfig|MpvPlayer\$|MPVLib|gpu-api|androidvk|VIDEO_OUTPUT' | sort -u | head -200 || true
+              # write to temp first so sort|head cannot kill the step under residual pipefail
+              strings -a -n 8 "$dex" > /tmp/dex.str.$$ || true
+              grep -E 'androidx/media3/mpvplayer|is/xyz/mpv|MpvPlayerConfig|MpvPlayer\$|MPVLib|gpu-api|androidvk|VIDEO_OUTPUT' /tmp/dex.str.$$ \
+                | sort -u | head -n 200 || true
+              rm -f /tmp/dex.str.$$
             done
           } | tee "$OUT/dex-strings.txt"
 
@@ -245,17 +251,18 @@ jobs:
             else
               echo "HAS_IS_XYZ_MPV=no"
             fi
-            if find "$STAGE" -name 'libplayer.so' | grep -q .; then
+            if [ -n "$(find "$STAGE" -name 'libplayer.so' -print -quit)" ]; then
               echo "HAS_LIBPLAYER=yes"
             else
               echo "HAS_LIBPLAYER=no"
             fi
-            if find "$STAGE" -name 'libmpv.so' | grep -q .; then
+            if [ -n "$(find "$STAGE" -name 'libmpv.so' -print -quit)" ]; then
               echo "HAS_LIBMPV=yes"
             else
               echo "HAS_LIBMPV=no"
             fi
           } | tee "$OUT/gate-signals.txt"
+          set -o pipefail
 
       - name: Native symbol audit
         env:
