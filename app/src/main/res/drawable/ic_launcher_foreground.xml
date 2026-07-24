@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive / SplashScreen icon layer.
+     Viewport 108dp-equivalent (160 units). Mark scaled about center so a clear ring
+     remains between the brand and the circular icon mask (safe zone + breathing room).
+     scale s about 80: translate = 80*(1-s). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="160"
     android:viewportHeight="160">
-    <!-- Scale 0.88 about center so mark stays inside adaptive safe zone (~66%). -->
+    <!-- 0.72 → ~28% margin to rim (was 0.88, still tight against outer disc). -->
     <group
-        android:translateX="9.6"
-        android:translateY="9.6"
-        android:scaleX="0.88"
-        android:scaleY="0.88">
+        android:translateX="22.4"
+        android:translateY="22.4"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
         <path
             android:fillColor="#24221F"
             android:pathData="M31,27h68l30,30v76H61l-30,-30V27Z" />
