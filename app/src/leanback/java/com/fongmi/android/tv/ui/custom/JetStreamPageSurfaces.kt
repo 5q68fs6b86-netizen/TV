@@ -252,14 +252,35 @@ class JetStreamHomeLogoView @JvmOverloads constructor(
     init {
         background = jetStreamHomeLogoBackground()
         foreground = jetStreamHomeLogoForeground()
-        scaleType = ScaleType.CENTER_CROP
+        // Default resource mark is square-ish; FIT_CENTER + light inset sits better in the disc.
+        // Custom network logos (BitmapDrawable via Glide circleCrop) fill the disc without inset.
+        scaleType = ScaleType.FIT_CENTER
         elevation = jetStreamDp(1)
         clipToOutline = false
+        applyLogoPresentation(drawable)
     }
 
     override fun setImageDrawable(drawable: Drawable?) {
         drawable?.setFilterBitmap(true)
         super.setImageDrawable(drawable)
+        applyLogoPresentation(drawable)
+    }
+
+    private fun applyLogoPresentation(drawable: Drawable?) {
+        val customBitmap = drawable is android.graphics.drawable.BitmapDrawable
+        if (customBitmap) {
+            // Site logo already circle-cropped by ImgUtil — fill the 44dp disc.
+            scaleType = ScaleType.CENTER_CROP
+            setPadding(0, 0, 0, 0)
+            cropToPadding = false
+        } else {
+            // Default ic_logo vector: keep mark centered with a thin ring so it does not
+            // read as a hard square jammed against the oval rim / nav gap.
+            scaleType = ScaleType.FIT_CENTER
+            val inset = jetStreamDpInt(2)
+            setPadding(inset, inset, inset, inset)
+            cropToPadding = true
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

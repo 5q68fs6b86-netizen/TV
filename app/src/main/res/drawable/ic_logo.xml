@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default home mark: fill circular JetStreamHomeLogoView better than a flat square tile.
+     Scale about center so the brand mass sits inside the oval crop with less dead ring. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -7,12 +9,12 @@
     <path
         android:fillColor="#F3EFE7"
         android:pathData="M0,0h160v160H0z" />
-    <!-- Scale 1.15 about center to reduce unused padding at 36/44dp. -->
+    <!-- scale 1.28 about (80,80): translate = 80*(1-s) = -22.4 ≈ -22 -->
     <group
-        android:translateX="-12"
-        android:translateY="-12"
-        android:scaleX="1.15"
-        android:scaleY="1.15">
+        android:translateX="-22"
+        android:translateY="-22"
+        android:scaleX="1.28"
+        android:scaleY="1.28">
         <path
             android:fillColor="#24221F"
             android:pathData="M31,27h68l30,30v76H61l-30,-30V27Z" />
