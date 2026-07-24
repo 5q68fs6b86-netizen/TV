@@ -45,7 +45,16 @@ public class ImgUtil {
 
     public static void logo(ImageView view) {
         try {
-            Glide.with(view).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(view);
+            // Custom site logo: circle crop to match round home disc.
+            // Default error mark is the square-ish brand vector — fitCenter (not circleCrop)
+            // so leanback/mobile toolbars keep a balanced mark; view may still oval-mask.
+            String logo = UrlUtil.convert(VodConfig.get().getConfig().getLogo());
+            Glide.with(view)
+                    .load(logo)
+                    .circleCrop()
+                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                    .error(Glide.with(view).load(R.drawable.ic_logo).fitCenter())
+                    .into(view);
         } catch (Throwable e) {
             e.printStackTrace();
         }
