@@ -53,9 +53,22 @@ public class JarLoader {
 
     private void load(String key, File file) {
         if (Thread.interrupted()) return;
-        if (!Path.exists(file) || !file.setReadOnly()) return;
-        String cachePath = Path.jar().getAbsolutePath();
-        DexClassLoader loader = new DexClassLoader(file.getAbsolutePath(), cachePath, cachePath, App.get().getClassLoader());
+        if (!Path.exists(file)) return;
+        // setReadOnly is best-effort only — do not abort load when it fails (API 30+ / some ROMs).
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            file.setReadOnly();
+        } catch (Throwable ignored) {
+        }
+        // Optimized dex dir must be app-writable and dedicated (not the jar file dir itself).
+        File optDir = new File(Path.jar(), "odex");
+        if (!optDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            optDir.mkdirs();
+        }
+        String jarPath = file.getAbsolutePath();
+        String optPath = optDir.getAbsolutePath();
+        DexClassLoader loader = new DexClassLoader(jarPath, optPath, null, App.get().getClassLoader());
         invokeInit(loader);
         invokeProxy(key, loader);
         loaders.put(key, loader);
@@ -63,8 +76,8 @@ public class JarLoader {
 
     private void invokeInit(DexClassLoader loader) {
         try {
-            // re-assert toast filter before spider init (promo toast often fires here)
-            com.fongmi.android.tv.utils.ToastFilter.install();
+            // Do NOT re-install Pine/Toast hooks here — that races DexClassLoader on API 30+
+            // and can make spider jar load fail. Toast filter is installed from App / settings.
             Class<?> clz = loader.loadClass("com.github.catvod.spider.Init");
             Method method = clz.getMethod("init", Context.class);
             method.invoke(clz, App.get());

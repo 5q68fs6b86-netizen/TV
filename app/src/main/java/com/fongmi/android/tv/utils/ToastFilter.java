@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.utils;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -21,31 +22,69 @@ import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
 /**
- * Settings-driven Toast keyword filter.
- * Uses Pine to hook {@link Toast#makeText} / {@link Toast#show} so spider-created
- * system toasts can be blocked when any configured keyword matches.
+ * Settings-driven Toast keyword filter for spider promo toasts.
+ * <p>
+ * Design for API 30+ / Android 11:
+ * <ul>
+ *   <li>Pine hooks are optional and only installed when the user enables the filter.</li>
+ *   <li>Install once on the main thread; never from {@code JarLoader}/DexClassLoader paths.</li>
+ *   <li>App-owned paths ({@link Notify}, {@link com.fongmi.android.tv.ui.custom.OverlayToast})
+ *       always use {@link #shouldBlock} without needing hooks.</li>
+ *   <li>Hook failure is logged and never rethrows into spider load.</li>
+ * </ul>
  */
 public final class ToastFilter {
 
     private static final String TAG = "ToastFilter";
-    private static final AtomicBoolean INSTALLED = new AtomicBoolean(false);
+    private static final AtomicBoolean HOOKS_INSTALLED = new AtomicBoolean(false);
+    private static final AtomicBoolean HOOKS_FAILED = new AtomicBoolean(false);
+    private static final AtomicBoolean INSTALL_SCHEDULED = new AtomicBoolean(false);
     private static final Map<Toast, CharSequence> TEXTS = new WeakHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     private ToastFilter() {
     }
 
+    /**
+     * Soft entry: schedule Pine install only when filter is enabled.
+     * Safe to call from {@link android.app.Application#onCreate()}; no-op when disabled.
+     */
     public static void install() {
-        if (!INSTALLED.compareAndSet(false, true)) return;
-        MAIN.post(() -> {
+        if (!Setting.isToastFilter()) return;
+        if (HOOKS_INSTALLED.get() || HOOKS_FAILED.get()) return;
+        scheduleInstall();
+    }
+
+    /**
+     * Call when user toggles the setting on, so hooks appear without restart.
+     */
+    public static void onFilterEnabledChanged() {
+        if (!Setting.isToastFilter()) return;
+        HOOKS_FAILED.set(false);
+        INSTALL_SCHEDULED.set(false);
+        scheduleInstall();
+    }
+
+    private static void scheduleInstall() {
+        if (HOOKS_INSTALLED.get() || HOOKS_FAILED.get()) return;
+        if (!INSTALL_SCHEDULED.compareAndSet(false, true)) return;
+        Runnable task = () -> {
             try {
+                if (!Setting.isToastFilter()) return;
+                if (HOOKS_INSTALLED.get() || HOOKS_FAILED.get()) return;
                 installPineHooks();
-                Log.i(TAG, "pine toast hooks installed");
+                HOOKS_INSTALLED.set(true);
+                Log.i(TAG, "pine toast hooks installed api=" + Build.VERSION.SDK_INT);
             } catch (Throwable t) {
-                INSTALLED.set(false);
-                Log.e(TAG, "install failed", t);
+                HOOKS_FAILED.set(true);
+                HOOKS_INSTALLED.set(false);
+                Log.e(TAG, "install failed (app toasts still filtered via shouldBlock)", t);
+            } finally {
+                INSTALL_SCHEDULED.set(false);
             }
-        });
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) task.run();
+        else MAIN.post(task);
     }
 
     public static boolean shouldBlock(CharSequence text) {
@@ -68,13 +107,19 @@ public final class ToastFilter {
     }
 
     private static void installPineHooks() throws Throwable {
+        // Conservative: do not disable platform hidden-api policy globally on API 30+
+        // (that path previously re-entered around DexClassLoader and broke jar load).
         PineConfig.debug = false;
         PineConfig.debuggable = false;
-        PineConfig.disableHiddenApiPolicy = true;
-        PineConfig.disableHiddenApiPolicyForPlatformDomain = true;
+        if (Build.VERSION.SDK_INT < 30) {
+            PineConfig.disableHiddenApiPolicy = true;
+            PineConfig.disableHiddenApiPolicyForPlatformDomain = true;
+        } else {
+            PineConfig.disableHiddenApiPolicy = false;
+            PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
+        }
         Pine.ensureInitialized();
 
-        // makeText(Context, CharSequence, int)
         Method makeTextCs = Toast.class.getDeclaredMethod("makeText", Context.class, CharSequence.class, int.class);
         Pine.hook(makeTextCs, new MethodHook() {
             @Override
@@ -86,10 +131,7 @@ public final class ToastFilter {
                             ? (CharSequence) args[1] : null;
                     if (result instanceof Toast toast) {
                         remember(toast, text);
-                        // do not recreate Toast here (would re-enter hook); show() will block
-                        if (shouldBlock(text)) {
-                            Log.i(TAG, "makeText marked: " + text);
-                        }
+                        if (shouldBlock(text)) Log.i(TAG, "makeText marked: " + text);
                     }
                 } catch (Throwable t) {
                     Log.w(TAG, "makeText hook: " + t.getMessage());
@@ -97,7 +139,6 @@ public final class ToastFilter {
             }
         });
 
-        // makeText(Context, int, int) — res id path (unlikely for spider promo)
         try {
             Method makeTextRes = Toast.class.getDeclaredMethod("makeText", Context.class, int.class, int.class);
             Pine.hook(makeTextRes, new MethodHook() {
@@ -123,19 +164,16 @@ public final class ToastFilter {
         } catch (NoSuchMethodException ignored) {
         }
 
-        // show()
         Method show = Toast.class.getDeclaredMethod("show");
         Pine.hook(show, new MethodHook() {
             @Override
             public void beforeCall(Pine.CallFrame frame) {
                 try {
                     Toast toast = (Toast) frame.thisObject;
-                    // Only use text captured from makeText hooks — no Toast private field reflection
-                    // (targetSdk 37 lint forbids BlockedPrivateApi like mText/mNextView).
                     CharSequence text = recall(toast);
                     if (shouldBlock(text)) {
                         Log.i(TAG, "show blocked: " + text);
-                        frame.setResult(null); // skip original show
+                        frame.setResult(null);
                     }
                 } catch (Throwable t) {
                     Log.w(TAG, "show hook: " + t.getMessage());
