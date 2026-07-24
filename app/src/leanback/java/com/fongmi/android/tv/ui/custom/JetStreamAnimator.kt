@@ -64,7 +64,10 @@ object JetStreamAnimator {
     @JvmOverloads
     fun show(view: View, fromXDp: Int = 0, fromYDp: Int = 12, duration: Long = PANEL_DURATION) {
         val alreadyVisible = view.visibility == View.VISIBLE
+        // cancel() alone can still run a previous withEndAction and force GONE after show.
         view.animate().cancel()
+        view.animate().setListener(null)
+        view.animate().withEndAction(null)
         if (alreadyVisible && view.alpha >= 0.99f && view.translationX == 0f && view.translationY == 0f) return
         if (!alreadyVisible) {
             view.alpha = 0f
@@ -78,6 +81,7 @@ object JetStreamAnimator {
             .translationY(0f)
             .setInterpolator(enterInterpolator)
             .setDuration(duration)
+            .withEndAction(null)
             .start()
     }
 
@@ -89,6 +93,8 @@ object JetStreamAnimator {
             return
         }
         view.animate().cancel()
+        view.animate().setListener(null)
+        view.animate().withEndAction(null)
         view.animate()
             .alpha(0f)
             .translationX(dp(view, toXDp))
