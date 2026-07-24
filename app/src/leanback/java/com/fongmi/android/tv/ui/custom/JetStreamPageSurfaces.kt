@@ -274,10 +274,10 @@ class JetStreamHomeLogoView @JvmOverloads constructor(
             setPadding(0, 0, 0, 0)
             cropToPadding = false
         } else {
-            // Default ic_logo vector: keep mark centered with a thin ring so it does not
-            // read as a hard square jammed against the oval rim / nav gap.
+            // Default ic_logo: FIT_CENTER + inset so brand and outer oval keep a visible ring
+            // (splash/launcher use a smaller mark for the same reason).
             scaleType = ScaleType.FIT_CENTER
-            val inset = jetStreamDpInt(2)
+            val inset = jetStreamDpInt(4)
             setPadding(inset, inset, inset, inset)
             cropToPadding = true
         }
