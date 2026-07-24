@@ -1,0 +1,16 @@
+{
+  "mpv_android_repo": "FongMi/mpv-android",
+  "mpv_android_ref": "fongmi",
+  "mpv_git": "https://github.com/FongMi/mpv",
+  "mpv_ref": "fongmi",
+  "aar_version": "gold-0.1.0",
+  "aar_name": "lib-mpv-fongmi-gold-0.1.0-jni.aar",
+  "aar_sha256": "552e945df635f1062cb4745326f811dcf97028f44974967005d944b2a1ba3767",
+  "libplayer_sha256": "df473225f57de8d782ae5940bab1e029e48a9f43900409fc89f3a16dbd881b06",
+  "libplayer_nm_gate": "built symbol names match .github/mpv/libplayer.nm.txt (19 Java_is_xyz_mpv_*)",
+  "workflow_run": "https://github.com/5q68fs6b86-netizen/TV/actions/runs/30061164819",
+  "release_tag": "mpv-fongmi-gold-0.1.0",
+  "contains_classes": false,
+  "note": "JNI-only AAR; keep app/libs/mpv-android-lib-v0.0.3.aar for is.xyz.mpv classes until classes are packaged",
+  "built_at": "2026-07-24T02:36:53Z"
+}

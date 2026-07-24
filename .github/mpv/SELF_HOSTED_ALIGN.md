@@ -41,20 +41,22 @@
 
 Still **compiles against** v0.0.3 `EventObserver` (`event(int, MPVNode)` / `eventProperty(..., MPVNode)`) until a gold classes AAR is the default dependency.
 
-### Native CI (skeleton)
+### Native CI (gold-0.1.0 built)
 
-- Workflow: `.github/workflows/build-mpv-fongmi-native.yml`
-- Sources: `FongMi/mpv-android@fongmi` + `FongMi/mpv@fongmi`
-- Gate: `nm` symbol **names** ⊇ `.github/mpv/libplayer.nm.txt`
-- Output: jni AAR + lock snippet artifact (full Kotlin classes packaging TBD)
+- Workflow registered on **default branch** `sync/fongmi-20260628` (required for workflow_dispatch indexing)
+- Run: https://github.com/5q68fs6b86-netizen/TV/actions/runs/30061164819 **success**
+- Release: https://github.com/5q68fs6b86-netizen/TV/releases/tag/mpv-fongmi-gold-0.1.0
+- Lock: `native/mpv.lock.json`
+- nm gate: **exact match** 19 `Java_is_xyz_mpv_*` vs Phase0 gold (includes `replaceSurface`)
+- AAR is **JNI-only** (`contains_classes: false`) — do **not** drop-in replace v0.0.3 yet
 
-Default app still loads `app/libs/mpv-android-lib-v0.0.3.aar` until gold AAR is published and swapped.
+Default app still loads `app/libs/mpv-android-lib-v0.0.3.aar`.
 
 ## Still open
 
 | Phase | Work |
 |-------|------|
-| E2 | Finish gold AAR with `is.xyz.mpv` classes; swap `app/libs`; archive v0.0.3 |
+| E2 | Package `is.xyz.mpv` classes into gold AAR; swap `app/libs`; archive v0.0.3 |
 | F | Device matrix + instrumentation |
 
 ## Product copy
