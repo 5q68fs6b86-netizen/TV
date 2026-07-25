@@ -668,7 +668,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_VIDEO_PREFER, context.getString(R.string.player_video_decode), toggle = true),
                     RowSpec(KEY_AAC, context.getString(R.string.player_aac_track), toggle = true),
                     RowSpec(KEY_AV3A, context.getString(R.string.player_av3a), toggle = true),
-                    RowSpec(KEY_DOLBY, context.getString(R.string.player_dolby), toggle = true),
+                    RowSpec(KEY_DOLBY, context.getString(R.string.player_mpv_dolby), toggle = true),
                     RowSpec(KEY_DV7, context.getString(R.string.player_dv7), toggle = true)
                 )
             ),

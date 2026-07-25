@@ -285,9 +285,6 @@ jobs:
           rm -rf "$STAGE" && mkdir -p "$STAGE"
           unzip -q "$OUT" -d "$STAGE"
           test -f "$STAGE/classes.jar"
-          test -f "$STAGE/jni/arm64-v8a/libmpv.so"
-          test -f "$STAGE/jni/arm64-v8a/libplayer.so"
-
           REQUIRED_JNI=(
             Java_is_xyz_mpv_MPVLib_getPropertyNode
             Java_is_xyz_mpv_MPVLib_setPropertyNode
@@ -296,21 +293,39 @@ jobs:
             Java_is_xyz_mpv_MPVLib_clearThumbnailCache
             Java_is_xyz_mpv_MPVLib_setThumbnailJavaVM
           )
-          nm -D "$STAGE/jni/arm64-v8a/libplayer.so" >"$GITHUB_WORKSPACE/nm-libplayer.txt"
-          for sym in "${REQUIRED_JNI[@]}"; do
-            if ! grep -qE "[[:space:]]T[[:space:]]+${sym}(@@|\$)" "$GITHUB_WORKSPACE/nm-libplayer.txt"; then
-              echo "FATAL: libplayer.so missing $sym"
-              head -40 "$GITHUB_WORKSPACE/nm-libplayer.txt" || true
-              exit 1
+          declare -A SEEN_ABIS=()
+          for arch in ${{ inputs.arches }}; do
+            case "$arch" in
+              arm64|aarch64|arm64-v8a) abi=arm64-v8a ;;
+              armv7l|armv7|armeabi-v7a) abi=armeabi-v7a ;;
+              x86) abi=x86 ;;
+              x86_64) abi=x86_64 ;;
+              *) echo "FATAL: unsupported requested arch: $arch" >&2; exit 1 ;;
+            esac
+            [ -z "${SEEN_ABIS[$abi]:-}" ] || continue
+            SEEN_ABIS[$abi]=1
+
+            PLAYER="$STAGE/jni/$abi/libplayer.so"
+            MPV="$STAGE/jni/$abi/libmpv.so"
+            test -f "$PLAYER" || { echo "FATAL: $abi libplayer.so missing" >&2; exit 1; }
+            test -f "$MPV" || { echo "FATAL: $abi libmpv.so missing" >&2; exit 1; }
+            NM="$GITHUB_WORKSPACE/nm-libplayer-${abi}.txt"
+            nm -D "$PLAYER" >"$NM"
+            for sym in "${REQUIRED_JNI[@]}"; do
+              if ! grep -qE "[[:space:]]T[[:space:]]+${sym}(@@|\$)" "$NM"; then
+                echo "FATAL: $abi libplayer.so missing $sym"
+                head -40 "$NM" || true
+                exit 1
+              fi
+            done
+            echo "$abi JNI surface OK (${#REQUIRED_JNI[@]} extended methods)."
+
+            if readelf -d "$MPV" | grep -q 'libvulkan.so'; then
+              echo "$abi libmpv depends on libvulkan.so"
+            else
+              echo "WARN: $abi libmpv has no libvulkan.so NEEDED entry"
             fi
           done
-          echo "JNI surface OK (${#REQUIRED_JNI[@]} extended methods)."
-
-          if readelf -d "$STAGE/jni/arm64-v8a/libmpv.so" | grep -q 'libvulkan.so'; then
-            echo "libmpv depends on libvulkan.so"
-          else
-            echo "WARN: libmpv has no libvulkan.so NEEDED entry"
-          fi
 
           {
             echo "Same-source AAR notes"
@@ -320,11 +335,11 @@ jobs:
             echo "libmpv core: ${{ inputs.mpv_git_url }}@${{ inputs.mpv_ref }}"
             echo "Arches: ${{ inputs.arches }}"
             echo ""
-            echo "arm64-v8a:"
-            ls -lh "$STAGE/jni/arm64-v8a/"
-            echo ""
-            echo "armeabi-v7a:"
-            ls -lh "$STAGE/jni/armeabi-v7a/" 2>/dev/null || echo "(missing)"
+            for abi in "${!SEEN_ABIS[@]}"; do
+              echo "$abi:"
+              ls -lh "$STAGE/jni/$abi/"
+              echo ""
+            done
           } | tee "$GITHUB_WORKSPACE/INSTALL_MPV_AAR.txt"
 
           ls -lh "$OUT"

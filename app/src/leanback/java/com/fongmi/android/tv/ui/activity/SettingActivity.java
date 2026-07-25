@@ -158,24 +158,23 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void refreshDecodeRows() {
-        boolean visible = !PlayerSetting.isMpv();
+        boolean exo = !PlayerSetting.isMpv();
         setRowValue(JetStreamSettingView.KEY_TUNNEL, Setting.getSwitch(PlayerSetting.isTunnel()));
         setRowValue(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, Setting.getSwitch(PlayerSetting.isAudioPassThrough()));
         setRowValue(JetStreamSettingView.KEY_AUDIO_PREFER, Setting.getSwitch(PlayerSetting.isAudioPrefer()));
         setRowValue(JetStreamSettingView.KEY_VIDEO_PREFER, Setting.getSwitch(PlayerSetting.isVideoPrefer()));
         setRowValue(JetStreamSettingView.KEY_AAC, Setting.getSwitch(PlayerSetting.isPreferAAC()));
         setRowValue(JetStreamSettingView.KEY_AV3A, Setting.getSwitch(PlayerSetting.isAv3a()));
-        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isMpvDolbyHwdecEnabled()));
         setRowValue(JetStreamSettingView.KEY_DV7, Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
-        setRowVisible(JetStreamSettingView.KEY_TUNNEL, visible);
-        setRowVisible(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, visible);
-        setRowVisible(JetStreamSettingView.KEY_AUDIO_PREFER, visible);
-        setRowVisible(JetStreamSettingView.KEY_VIDEO_PREFER, visible);
-        setRowVisible(JetStreamSettingView.KEY_AAC, visible);
-        // Dolby master switch applies to both engines; keep visible under MPV too.
-        setRowVisible(JetStreamSettingView.KEY_DOLBY, true);
-        setRowVisible(JetStreamSettingView.KEY_DV7, visible);
-        setRowVisible(JetStreamSettingView.KEY_AV3A, visible);
+        setRowVisible(JetStreamSettingView.KEY_TUNNEL, exo);
+        setRowVisible(JetStreamSettingView.KEY_AUDIO_PASS_THROUGH, exo);
+        setRowVisible(JetStreamSettingView.KEY_AUDIO_PREFER, exo);
+        setRowVisible(JetStreamSettingView.KEY_VIDEO_PREFER, exo);
+        setRowVisible(JetStreamSettingView.KEY_AAC, exo);
+        setRowVisible(JetStreamSettingView.KEY_DOLBY, !exo);
+        setRowVisible(JetStreamSettingView.KEY_DV7, exo);
+        setRowVisible(JetStreamSettingView.KEY_AV3A, exo);
     }
 
     private void refreshPreloadRows() {
@@ -558,8 +557,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void setDolby() {
-        PlayerSetting.putDolbyEnabled(!PlayerSetting.isDolbyEnabled());
-        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+        PlayerSetting.putMpvDolbyHwdecEnabled(!PlayerSetting.isMpvDolbyHwdecEnabled());
+        setRowValue(JetStreamSettingView.KEY_DOLBY, Setting.getSwitch(PlayerSetting.isMpvDolbyHwdecEnabled()));
     }
 
     private void setDv7() {

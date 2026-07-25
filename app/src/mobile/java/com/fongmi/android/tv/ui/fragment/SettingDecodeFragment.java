@@ -43,13 +43,21 @@ public class SettingDecodeFragment extends BaseFragment {
     }
 
     private void refresh() {
+        boolean exo = !PlayerSetting.isMpv();
         mBinding.aacText.setText(Setting.getSwitch(PlayerSetting.isPreferAAC()));
         mBinding.tunnelText.setText(Setting.getSwitch(PlayerSetting.isTunnel()));
         mBinding.audioPreferText.setText(Setting.getSwitch(PlayerSetting.isAudioPrefer()));
         mBinding.videoPreferText.setText(Setting.getSwitch(PlayerSetting.isVideoPrefer()));
         mBinding.audioPassThroughText.setText(Setting.getSwitch(PlayerSetting.isAudioPassThrough()));
-        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isMpvDolbyHwdecEnabled()));
         mBinding.dv7Text.setText(Setting.getSwitch(PlayerSetting.isDv7HevcFallback()));
+        mBinding.aac.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.tunnel.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.audioPrefer.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.videoPrefer.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.audioPassThrough.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.dolby.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.dv7.setVisibility(exo ? View.VISIBLE : View.GONE);
     }
 
     private void setTunnel(View view) {
@@ -79,8 +87,8 @@ public class SettingDecodeFragment extends BaseFragment {
     }
 
     private void setDolby(View view) {
-        PlayerSetting.putDolbyEnabled(!PlayerSetting.isDolbyEnabled());
-        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isDolbyEnabled()));
+        PlayerSetting.putMpvDolbyHwdecEnabled(!PlayerSetting.isMpvDolbyHwdecEnabled());
+        mBinding.dolbyText.setText(Setting.getSwitch(PlayerSetting.isMpvDolbyHwdecEnabled()));
     }
 
     private void setDv7(View view) {

@@ -222,12 +222,12 @@ public class PlayerSetting {
         Prefers.put("dv7_hevc", dv7HevcFallback);
     }
 
-    /** Master switch for Dolby Vision. Default on. Independent of {@link #isDv7HevcFallback()}. */
-    public static boolean isDolbyEnabled() {
+    /** Enables Dolby Vision codec tags in MPV hwdec-codecs. */
+    public static boolean isMpvDolbyHwdecEnabled() {
         return Prefers.getBoolean("dolby", true);
     }
 
-    public static void putDolbyEnabled(boolean enabled) {
+    public static void putMpvDolbyHwdecEnabled(boolean enabled) {
         Prefers.put("dolby", enabled);
     }
 }

@@ -118,8 +118,8 @@ public class ExoUtil {
             }
         };
         int extensionMode = audioPrefer || videoPrefer ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : renderMode;
-        // Dolby master-off forces Profile-7 HEVC fallback so DV is not kept as primary path.
-        boolean dv7 = PlayerSetting.isDv7HevcFallback() || !PlayerSetting.isDolbyEnabled();
+        // Exo keeps its Profile-7 fallback independent from MPV's hwdec codec allow-list.
+        boolean dv7 = PlayerSetting.isDv7HevcFallback();
         return factory.setEnableDecoderFallback(true).setEnableDv7HevcFallback(dv7).setExtensionRendererMode(extensionMode);
     }
 

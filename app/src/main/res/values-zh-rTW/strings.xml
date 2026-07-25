@@ -192,7 +192,7 @@
     <string name="player_mpv_conf_import_success">已匯入 mpv.conf</string>
     <string name="player_ua">User-Agent</string>
     <string name="player_av3a">AV3A 音訊解碼</string>
-    <string name="player_dolby">杜比視界</string>
+    <string name="player_mpv_dolby">MPV 杜比視界硬解</string>
     <string name="player_dv7">杜比視界(HEVC 回退)</string>
     <string name="player_mpv_hdr">HDR（自動）</string>
     <string name="player_ai_subtitle">即時語音字幕與翻譯</string>
