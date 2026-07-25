@@ -68,7 +68,8 @@ public class JarLoader {
         }
         String jarPath = file.getAbsolutePath();
         String optPath = optDir.getAbsolutePath();
-        DexClassLoader loader = new DexClassLoader(jarPath, optPath, null, App.get().getClassLoader());
+        String libPath = Path.jar().getAbsolutePath();
+        DexClassLoader loader = new DexClassLoader(jarPath, optPath, libPath, App.get().getClassLoader());
         invokeInit(loader);
         invokeProxy(key, loader);
         loaders.put(key, loader);

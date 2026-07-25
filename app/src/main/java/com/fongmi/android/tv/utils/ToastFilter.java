@@ -13,8 +13,8 @@ import android.widget.Toast;
 
 import com.fongmi.android.tv.setting.Setting;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,7 +71,6 @@ public final class ToastFilter {
     public static void onFilterEnabledChanged() {
         if (!Setting.isToastFilter()) return;
         HOOKS_FAILED.set(false);
-        INSTALL_SCHEDULED.set(false);
         scheduleInstall();
     }
 
@@ -130,9 +129,24 @@ public final class ToastFilter {
         }
         Pine.ensureInitialized();
 
+        List<MethodHook.Unhook> hooks = new ArrayList<>();
+        try {
+            installPineHooks(hooks);
+        } catch (Throwable t) {
+            for (int i = hooks.size() - 1; i >= 0; i--) {
+                try {
+                    hooks.get(i).unhook();
+                } catch (Throwable ignored) {
+                }
+            }
+            throw t;
+        }
+    }
+
+    private static void installPineHooks(List<MethodHook.Unhook> hooks) throws Throwable {
         // makeText(Context, CharSequence, int) — most spider promo toasts
         Method makeTextCs = Toast.class.getDeclaredMethod("makeText", Context.class, CharSequence.class, int.class);
-        Pine.hook(makeTextCs, new MethodHook() {
+        hooks.add(Pine.hook(makeTextCs, new MethodHook() {
             @Override
             public void afterCall(Pine.CallFrame frame) {
                 try {
@@ -148,12 +162,12 @@ public final class ToastFilter {
                     Log.w(TAG, "makeText hook: " + t.getMessage());
                 }
             }
-        });
+        }));
 
         // makeText(Context, int resId, int)
         try {
             Method makeTextRes = Toast.class.getDeclaredMethod("makeText", Context.class, int.class, int.class);
-            Pine.hook(makeTextRes, new MethodHook() {
+            hooks.add(Pine.hook(makeTextRes, new MethodHook() {
                 @Override
                 public void afterCall(Pine.CallFrame frame) {
                     try {
@@ -172,14 +186,14 @@ public final class ToastFilter {
                         Log.w(TAG, "makeText(res) hook: " + t.getMessage());
                     }
                 }
-            });
+            }));
         } catch (NoSuchMethodException ignored) {
         }
 
         // setText(CharSequence) — new Toast(ctx); toast.setText(...); toast.show()
         try {
             Method setTextCs = Toast.class.getDeclaredMethod("setText", CharSequence.class);
-            Pine.hook(setTextCs, new MethodHook() {
+            hooks.add(Pine.hook(setTextCs, new MethodHook() {
                 @Override
                 public void afterCall(Pine.CallFrame frame) {
                     try {
@@ -194,14 +208,14 @@ public final class ToastFilter {
                         Log.w(TAG, "setText hook: " + t.getMessage());
                     }
                 }
-            });
+            }));
         } catch (NoSuchMethodException ignored) {
         }
 
         // setText(int resId)
         try {
             Method setTextRes = Toast.class.getDeclaredMethod("setText", int.class);
-            Pine.hook(setTextRes, new MethodHook() {
+            hooks.add(Pine.hook(setTextRes, new MethodHook() {
                 @Override
                 public void afterCall(Pine.CallFrame frame) {
                     try {
@@ -222,19 +236,19 @@ public final class ToastFilter {
                         Log.w(TAG, "setText(res) hook: " + t.getMessage());
                     }
                 }
-            });
+            }));
         } catch (NoSuchMethodException ignored) {
         }
 
         // show() — final gate for spider system toasts
         Method show = Toast.class.getDeclaredMethod("show");
-        Pine.hook(show, new MethodHook() {
+        hooks.add(Pine.hook(show, new MethodHook() {
             @Override
             public void beforeCall(Pine.CallFrame frame) {
                 try {
                     Toast toast = (Toast) frame.thisObject;
                     CharSequence text = recall(toast);
-                    if (TextUtils.isEmpty(text)) text = extractText(toast);
+                    if (TextUtils.isEmpty(text)) text = findText(toast.getView());
                     if (shouldBlock(text)) {
                         Log.i(TAG, "show blocked: " + text);
                         frame.setResult(null);
@@ -243,7 +257,7 @@ public final class ToastFilter {
                     Log.w(TAG, "show hook: " + t.getMessage());
                 }
             }
-        });
+        }));
     }
 
     private static void remember(Toast toast, CharSequence text) {
@@ -260,48 +274,8 @@ public final class ToastFilter {
         }
     }
 
-    /**
-     * Best-effort text recovery when spider builds toast without makeText/setText hooks
-     * (custom view, or field-backed text on newer Android).
-     */
-    private static CharSequence extractText(Toast toast) {
-        if (toast == null) return null;
-        try {
-            View view = null;
-            try {
-                view = toast.getView();
-            } catch (Throwable ignored) {
-            }
-            if (view != null) {
-                CharSequence fromView = findText(view);
-                if (!TextUtils.isEmpty(fromView)) return fromView;
-            }
-            // Fallback: private mNextView / mText fields (varies by API / OEM)
-            for (String name : new String[]{"mNextView", "mView"}) {
-                try {
-                    Field f = Toast.class.getDeclaredField(name);
-                    f.setAccessible(true);
-                    Object v = f.get(toast);
-                    if (v instanceof View) {
-                        CharSequence t = findText((View) v);
-                        if (!TextUtils.isEmpty(t)) return t;
-                    }
-                } catch (Throwable ignored) {
-                }
-            }
-            try {
-                Field f = Toast.class.getDeclaredField("mText");
-                f.setAccessible(true);
-                Object t = f.get(toast);
-                if (t instanceof CharSequence) return (CharSequence) t;
-            } catch (Throwable ignored) {
-            }
-        } catch (Throwable ignored) {
-        }
-        return null;
-    }
-
     private static CharSequence findText(View view) {
+        if (view == null) return null;
         if (view instanceof TextView tv) {
             CharSequence t = tv.getText();
             if (!TextUtils.isEmpty(t)) return t;
