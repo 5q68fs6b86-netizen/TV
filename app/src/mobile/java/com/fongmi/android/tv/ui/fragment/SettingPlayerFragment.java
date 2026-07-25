@@ -92,7 +92,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, S
         mBinding.mpvVulkan.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvHdr.setVisibility(exo ? View.GONE : View.VISIBLE);
-        mBinding.decode.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.decode.setVisibility(View.VISIBLE);
         mBinding.adblock.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.caption.setVisibility(PlayerSetting.hasCaption() ? View.VISIBLE : View.GONE);
     }

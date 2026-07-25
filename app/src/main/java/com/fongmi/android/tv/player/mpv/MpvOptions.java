@@ -98,7 +98,7 @@ final class MpvOptions {
     }
 
     static void applyHwdecCodecs() {
-        String codecs = PlayerSetting.isDolbyEnabled() ? HWDEC_CODECS_DOLBY : HWDEC_CODECS_BASE;
+        String codecs = PlayerSetting.isMpvDolbyHwdecEnabled() ? HWDEC_CODECS_DOLBY : HWDEC_CODECS_BASE;
         set("hwdec-codecs", codecs);
         try {
             MPVLib.INSTANCE.setPropertyString("hwdec-codecs", codecs);

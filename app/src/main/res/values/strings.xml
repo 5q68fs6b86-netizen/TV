@@ -193,7 +193,7 @@
     <string name="player_mpv_conf_import_success">Imported mpv.conf</string>
     <string name="player_ua">User-Agent</string>
     <string name="player_av3a">AV3A audio decoding</string>
-    <string name="player_dolby">Dolby Vision</string>
+    <string name="player_mpv_dolby">MPV Dolby Vision hardware decode</string>
     <string name="player_dv7">Dolby Vision (HEVC fallback)</string>
     <string name="player_mpv_hdr">HDR (auto)</string>
     <string name="player_ai_subtitle">Live speech subtitles &amp; translation</string>

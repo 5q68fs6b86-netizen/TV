@@ -11,9 +11,9 @@ import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 
 /**
- * MPV engine aligned with FongMi/TV@fongmi behaviour (self-hosted player):
+ * Self-hosted MPV engine:
  * <ul>
- *   <li>{@link #setDecode(int)} always returns {@code false} — no PlayerManager rebuild</li>
+ *   <li>{@link #setDecode(int)} reopens media in the same MPV instance</li>
  *   <li>{@link #rebuild()} is a no-op and returns the same player instance</li>
  * </ul>
  * Runtime type remains {@link MpvPlayer}, not {@code androidx.media3.mpvplayer.MpvPlayer}.
@@ -41,7 +41,7 @@ public class MpvPlayerEngine implements PlayerEngine {
     public static boolean isAvailable() {
         try {
             Class.forName("is.xyz.mpv.MPVLib");
-            return true;
+            return MpvPlayer.isNativeAvailable();
         } catch (Throwable e) {
             return false;
         }
@@ -79,14 +79,13 @@ public class MpvPlayerEngine implements PlayerEngine {
     @Override
     public boolean setDecode(int decode) {
         this.decode = decode;
-        // FongMi contract: hot path only; PlayerManager must not rebuild.
+        // MpvPlayer performs stop/rebind/loadfile; PlayerManager must not rebuild it.
         player.setDecode(decode);
         return false;
     }
 
     /**
-     * Re-apply Dolby codec allow-list on the live player.
-     * Always returns {@code false} (no rebuild) — MPV does not use Engine rebuild for this.
+     * Re-apply the Dolby codec allow-list and reopen media in the live MPV instance.
      */
     public boolean applyDolbySetting() {
         player.applyDolbySetting();

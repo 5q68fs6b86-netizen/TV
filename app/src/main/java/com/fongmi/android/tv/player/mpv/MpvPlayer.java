@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.net.HttpHeaders;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import is.xyz.mpv.MPVLib;
 import is.xyz.mpv.MPVLib.MpvEvent;
@@ -62,10 +60,17 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
 
     private static final long LIVE_DURATION_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(1);
     private static final int[] SELECTABLE_TRACK_TYPES = {C.TRACK_TYPE_VIDEO, C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_TEXT};
-    /** Serializes MPVLib.create/destroy so ensureEngine cannot race a background destroy. */
     private static final Object NATIVE_LOCK = new Object();
-    private static final AtomicBoolean NATIVE_ALIVE = new AtomicBoolean(false);
     private static final long DESTROY_TIMEOUT_MS = 5_000L;
+    private static NativeState nativeState = NativeState.IDLE;
+    private static long nativeGeneration;
+
+    private enum NativeState {
+        IDLE,
+        CREATING,
+        ALIVE,
+        DESTROYING
+    }
 
     private final Context context;
     private final Player.Commands commands;
@@ -139,19 +144,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     void setSubtitleStyle() {
     }
 
-    /**
-     * Applies soft/hard decode preference (FongMi-aligned hot path).
-     * Always returns {@code false} so {@link MpvPlayerEngine#setDecode} never triggers rebuild.
-     */
-    boolean setDecode(int decode) {
+    /** Applies soft/hard decode in the current native context and reopens the media. */
+    void setDecode(int decode) {
         this.decode = decode;
         if (Looper.myLooper() != getApplicationLooper()) {
-            // Still apply on app looper asynchronously; never request Engine rebuild.
-            runOnApplicationThread(() -> applyDecodeHot(decode));
-            return false;
+            runOnApplicationThread(() -> reloadForDecoderChange(
+                    "切换解码模式", () -> MpvOptions.applyDecode(decode)));
+            return;
         }
-        applyDecodeHot(decode);
-        return false;
+        reloadForDecoderChange("切换解码模式", () -> MpvOptions.applyDecode(decode));
     }
 
     boolean isLive() {
@@ -160,6 +161,12 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
 
     boolean isVod() {
         return mediaItem != null && durationMs >= LIVE_DURATION_THRESHOLD_MS;
+    }
+
+    static boolean isNativeAvailable() {
+        synchronized (NATIVE_LOCK) {
+            return nativeState != NativeState.CREATING && nativeState != NativeState.DESTROYING;
+        }
     }
 
     @Override
@@ -221,7 +228,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     protected ListenableFuture<?> handleRelease() {
         if (closed) return Futures.immediateVoidFuture();
         closed = true;
-        MpvLogCollector.log("MpvPlayer", "handleRelease: stop + destroy (await)");
+        MpvLogCollector.log("MpvPlayer", "handleRelease: stop + async destroy");
         try {
             MPVLib.removeObserver(this);
             MPVLib.removeLogObserver(this);
@@ -231,10 +238,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             clearVideoOutputInternal(null);
         } catch (Throwable ignored) {
         }
-        // Never call destroy() on the application looper: the JNI event thread may
-        // be blocked posting callbacks back to main (deadlock). Destroy off-looper but
-        // complete this future only after destroy finishes so ensureEngine cannot create
-        // a second native context early.
         try {
             command("stop");
         } catch (Throwable ignored) {
@@ -243,36 +246,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             command("quit");
         } catch (Throwable ignored) {
         }
-        // Return a future that completes after destroy. SimpleBasePlayer.release() waits
-        // on this future; do NOT block the application looper with Future.get() here
-        // (event thread may post back to main → deadlock). createNative() also holds
-        // NATIVE_LOCK so the next create cannot race a still-running destroy.
-        SettableFuture<Void> done = SettableFuture.create();
-        Thread t = new Thread(() -> {
-            try {
-                destroyNative();
-                MpvLogCollector.log("MpvPlayer", "destroy 完成");
-            } catch (Throwable e) {
-                MpvLogCollector.logError("MpvPlayer", "destroy 异常: " + e.getMessage());
-            } finally {
-                done.set(null);
-            }
-        }, "mpv-destroy");
-        t.setDaemon(true);
-        t.start();
-        // Watchdog: if destroy hangs past timeout, still complete the future so
-        // ensureEngine can proceed; createNative will force-destroy if needed.
-        Thread watchdog = new Thread(() -> {
-            try {
-                done.get(DESTROY_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            } catch (Throwable e) {
-                MpvLogCollector.logError("MpvPlayer", "destroy 超时, 强制完成 release future: " + e.getMessage());
-                done.set(null);
-            }
-        }, "mpv-destroy-watchdog");
-        watchdog.setDaemon(true);
-        watchdog.start();
-        return done;
+        destroyNativeAsync("release");
+        return Futures.immediateVoidFuture();
     }
 
     @Override
@@ -460,48 +435,114 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 + " vulkan=" + PlayerSetting.isMpvVulkan()
                 + " hdr=" + PlayerSetting.getMpvHdr());
         File configDir = Path.mpv();
-        createNative(context);
-        MpvLogCollector.log("MpvPlayer", "MPVLib.create 完成");
-        MPVLib.addLogObserver(this);
-        // All pre-init options (config/vo/vulkan/hwdec/tls/…) live in MpvOptions.
-        MpvOptions.applyPreInit(context, decode);
-        MPVLib.INSTANCE.init();
-        MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + MpvOptions.videoOutputDriver()
-                + " vulkan=" + PlayerSetting.isMpvVulkan()
-                + " gpu-next=" + PlayerSetting.isMpvGpuNext());
-        MpvOptions.applyPostInit(configDir);
-        MPVLib.addObserver(this);
-        observeProperties();
+        boolean ownsNative = false;
+        boolean initialized = false;
+        try {
+            createNative(context);
+            ownsNative = true;
+            MpvLogCollector.log("MpvPlayer", "MPVLib.create 完成");
+            MPVLib.addLogObserver(this);
+            // All pre-init options (config/vo/vulkan/hwdec/tls/...) live in MpvOptions.
+            MpvOptions.applyPreInit(context, decode);
+            MPVLib.INSTANCE.init();
+            MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + MpvOptions.videoOutputDriver()
+                    + " vulkan=" + PlayerSetting.isMpvVulkan()
+                    + " gpu-next=" + PlayerSetting.isMpvGpuNext());
+            MpvOptions.applyPostInit(configDir);
+            MPVLib.addObserver(this);
+            observeProperties();
+            initialized = true;
+        } finally {
+            if (!initialized && ownsNative) rollbackInitialization();
+        }
     }
 
     private static void createNative(Context context) {
+        long generation;
         synchronized (NATIVE_LOCK) {
-            if (NATIVE_ALIVE.get()) {
-                MpvLogCollector.logError("MpvPlayer", "create 时 native 仍存活, 先 destroy");
-                try {
-                    MPVLib.INSTANCE.destroy();
-                } catch (Throwable e) {
-                    MpvLogCollector.logError("MpvPlayer", "强制 destroy 异常: " + e.getMessage());
-                }
-                NATIVE_ALIVE.set(false);
+            if (nativeState != NativeState.IDLE) {
+                throw new IllegalStateException("MPV native 当前不可创建: " + nativeState);
             }
+            nativeState = NativeState.CREATING;
+            generation = ++nativeGeneration;
+        }
+        try {
             MPVLib.INSTANCE.create(context);
-            NATIVE_ALIVE.set(true);
+            synchronized (NATIVE_LOCK) {
+                if (nativeGeneration != generation || nativeState != NativeState.CREATING) {
+                    throw new IllegalStateException("MPV native 创建状态异常: " + nativeState);
+                }
+                nativeState = NativeState.ALIVE;
+            }
+        } catch (Throwable e) {
+            destroyNativeAsync("create rollback");
+            if (e instanceof Error error) throw error;
+            if (e instanceof RuntimeException runtimeException) throw runtimeException;
+            throw new IllegalStateException("MPV native 创建失败", e);
         }
     }
 
-    private static void destroyNative() {
+    private void rollbackInitialization() {
+        MpvLogCollector.logError("MpvPlayer", "初始化失败, 异步回滚 native");
+        try {
+            MPVLib.removeObserver(this);
+        } catch (Throwable ignored) {
+        }
+        try {
+            MPVLib.removeLogObserver(this);
+        } catch (Throwable ignored) {
+        }
+        destroyNativeAsync("initialize rollback");
+    }
+
+    private static void destroyNativeAsync(String reason) {
+        long generation;
         synchronized (NATIVE_LOCK) {
-            if (!NATIVE_ALIVE.get()) {
-                MpvLogCollector.log("MpvPlayer", "destroy 跳过: native 未 create");
+            if (nativeState == NativeState.IDLE) {
+                MpvLogCollector.log("MpvPlayer", "destroy 跳过: native 已空闲");
                 return;
             }
+            if (nativeState == NativeState.DESTROYING) {
+                MpvLogCollector.log("MpvPlayer", "destroy 跳过: 已在释放, reason=" + reason);
+                return;
+            }
+            nativeState = NativeState.DESTROYING;
+            generation = nativeGeneration;
+        }
+        Thread destroy = new Thread(() -> {
+            boolean destroyed = false;
             try {
                 MPVLib.INSTANCE.destroy();
+                destroyed = true;
+                MpvLogCollector.log("MpvPlayer", "destroy 完成, reason=" + reason);
+            } catch (Throwable e) {
+                MpvLogCollector.logError("MpvPlayer", "destroy 异常, MPV 保持不可用: " + e.getMessage());
             } finally {
-                NATIVE_ALIVE.set(false);
+                synchronized (NATIVE_LOCK) {
+                    if (destroyed && nativeGeneration == generation && nativeState == NativeState.DESTROYING) {
+                        nativeState = NativeState.IDLE;
+                    }
+                }
             }
-        }
+        }, "mpv-destroy");
+        destroy.setDaemon(true);
+        destroy.start();
+
+        Thread watchdog = new Thread(() -> {
+            try {
+                Thread.sleep(DESTROY_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            synchronized (NATIVE_LOCK) {
+                if (destroy.isAlive() && nativeGeneration == generation && nativeState == NativeState.DESTROYING) {
+                    MpvLogCollector.logError("MpvPlayer", "destroy 超时, MPV 保持不可用, reason=" + reason);
+                }
+            }
+        }, "mpv-destroy-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
     }
 
     private static Player.Commands buildCommands() {
@@ -1064,48 +1105,44 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         return HttpHeaders.REFERER.equalsIgnoreCase(key) || "Referrer".equalsIgnoreCase(key);
     }
 
-    /**
-     * Hot-apply soft/hard decode without stop/loadfile (FongMi-aligned).
-     * Default path only updates hwdec option/property; limited Surface rebind on failure only.
-     *
-     * @return {@code true} if property write path completed without exception
-     */
-    private boolean applyDecodeHot(int decode) {
-        if (closed) return false;
-        String mode = MpvOptions.decodeMode(decode);
+    private void reloadForDecoderChange(String reason, Runnable applyOptions) {
+        if (closed) return;
+        String url = spec != null ? spec.getUrl() : mediaItem != null && mediaItem.localConfiguration != null
+                ? mediaItem.localConfiguration.uri.toString() : null;
         try {
-            MpvLogCollector.log("MpvPlayer", "热切解码(无 reload): mode=" + mode);
-            MpvOptions.applyDecode(decode);
-            if (!command("set", "hwdec", mode)) {
-                try {
-                    MPVLib.INSTANCE.setPropertyString("hwdec", mode);
-                } catch (Throwable ignored) {
-                }
+            if (TextUtils.isEmpty(url)) {
+                applyOptions.run();
+                return;
             }
-            String hwdec = null;
-            try {
-                hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
-            } catch (Throwable ignored) {
+            long resumePositionMs = Math.max(0, positionMs);
+            MpvLogCollector.log("MpvPlayer", reason + ": stop/rebind/loadfile, position=" + resumePositionMs + "ms");
+            if (!command("stop")) return;
+            pendingUrl = null;
+            pendingStartPositionMs = C.TIME_UNSET;
+            pendingSeekAfterLoadMs = C.TIME_UNSET;
+            fileLoaded = false;
+            renderedFirstFrame = false;
+            newlyRenderedFirstFrame = false;
+            loading = true;
+            playerError = null;
+            playbackState = Player.STATE_BUFFERING;
+            applyOptions.run();
+            if (!rebindVideoOutputForDecoderChange(reason)) {
+                fail(new PlaybackException(reason + "时重绑视频输出失败", null,
+                        PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK));
+                return;
             }
-            MpvLogCollector.log("MpvPlayer", "热切解码完成: hwdec=" + hwdec + " (want " + mode + ")");
-            if (!TextUtils.isEmpty(hwdec) && !"no".equals(mode) && "no".equalsIgnoreCase(hwdec.trim())) {
-                MpvLogCollector.logError("MpvPlayer", "热切后 hwdec 仍为 no, 尝试有限 Surface rebind");
-                rebindVideoOutputForDecodeSwitch(mode);
-            }
-            return true;
+            loadUrl(url, resumePositionMs);
+            invalidateState();
         } catch (Throwable e) {
-            MpvLogCollector.logError("MpvPlayer", "热切解码失败(不重建 Engine): " + e.getMessage());
-            return false;
+            MpvLogCollector.logError("MpvPlayer", reason + "失败: " + e.getMessage());
+            fail(new PlaybackException(reason + "失败", e, PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK));
         }
     }
 
-    /**
-     * Limited Surface re-own after hwdec change. Does not reload media.
-     * Used only when property read suggests the decoder path did not take the new mode.
-     */
-    private boolean rebindVideoOutputForDecodeSwitch(String mode) {
+    private boolean rebindVideoOutputForDecoderChange(String reason) {
         if (attachedSurface == null || !attachedSurface.isValid()) {
-            MpvLogCollector.log("MpvPlayer", "热切 rebind 跳过: 无有效 Surface, mode=" + mode);
+            MpvLogCollector.log("MpvPlayer", reason + " rebind 跳过: 无有效 Surface");
             return true;
         }
         try {
@@ -1119,34 +1156,23 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MPVLib.INSTANCE.setPropertyString("android-surface-size",
                         surfaceSize.getWidth() + "x" + surfaceSize.getHeight());
             }
-            MpvLogCollector.log("MpvPlayer", "热切 rebind Surface 完成 mode=" + mode);
+            MpvLogCollector.log("MpvPlayer", reason + " rebind Surface 完成");
             return true;
         } catch (Throwable e) {
-            MpvLogCollector.logError("MpvPlayer", "热切 rebind 失败: " + e.getMessage());
+            MpvLogCollector.logError("MpvPlayer", reason + " rebind 失败: " + e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Re-apply Dolby codec allow-list via hwdec-codecs only (no stop/loadfile, no rebuild).
-     *
-     * @return always {@code false} (Engine must not rebuild)
-     */
-    boolean applyDolbySetting() {
-        if (closed) return false;
-        Runnable apply = () -> {
-            try {
-                MpvOptions.applyHwdecCodecs();
-            } catch (Throwable e) {
-                MpvLogCollector.logError("MpvPlayer", "应用杜比设置失败: " + e.getMessage());
-            }
-        };
+    void applyDolbySetting() {
+        if (closed) return;
+        Runnable apply = () -> reloadForDecoderChange(
+                "应用 Dolby Vision 硬解设置", MpvOptions::applyHwdecCodecs);
         if (Looper.myLooper() != getApplicationLooper()) {
             runOnApplicationThread(apply);
-            return false;
+            return;
         }
         apply.run();
-        return false;
     }
 
     private void setVideoOutputInternal(Object output) {

@@ -158,26 +158,34 @@ jobs:
           done
           ls -laR "$OUT" | tee gold-check/jni-tree.txt
 
-          PLAYER="$OUT/arm64-v8a/libplayer.so"
-          if [ ! -f "$PLAYER" ]; then
-            echo "arm64 libplayer.so missing" >&2
-            exit 1
-          fi
-          nm -D "$PLAYER" | grep 'Java_is_xyz_mpv' | sort | tee gold-check/libplayer.nm.built.txt
           GOLD=tv/.github/mpv/libplayer.nm.txt
-          # Compare symbol *names* only (addresses differ)
-          awk '/Java_is_xyz_mpv/ {print $NF}' gold-check/libplayer.nm.built.txt | sort -u > gold-check/built.syms
           awk '/Java_is_xyz_mpv/ {print $NF}' "$GOLD" | sort -u > gold-check/gold.syms
-          echo '--- gold only ---'
-          comm -23 gold-check/gold.syms gold-check/built.syms | tee gold-check/missing-vs-gold.txt || true
-          echo '--- built only ---'
-          comm -13 gold-check/gold.syms gold-check/built.syms | tee gold-check/extra-vs-gold.txt || true
-          if [ -s gold-check/missing-vs-gold.txt ]; then
-            echo "FAIL: built libplayer missing gold JNI symbols" >&2
-            exit 2
-          fi
-          echo "nm gate OK (built ⊇ gold symbol names)"
-          sha256sum "$PLAYER" | tee gold-check/libplayer.sha256.txt
+          : > gold-check/libplayer.sha256.txt
+          : > gold-check/libmpv.sha256.txt
+          for abi in arm64-v8a armeabi-v7a; do
+            PLAYER="$OUT/$abi/libplayer.so"
+            MPV="$OUT/$abi/libmpv.so"
+            test -f "$PLAYER" || { echo "$abi libplayer.so missing" >&2; exit 1; }
+            test -f "$MPV" || { echo "$abi libmpv.so missing" >&2; exit 1; }
+
+            NM="gold-check/libplayer.${abi}.nm.built.txt"
+            BUILT="gold-check/built.${abi}.syms"
+            MISSING="gold-check/missing-vs-gold.${abi}.txt"
+            EXTRA="gold-check/extra-vs-gold.${abi}.txt"
+            nm -D "$PLAYER" | grep 'Java_is_xyz_mpv' | sort | tee "$NM"
+            awk '/Java_is_xyz_mpv/ {print $NF}' "$NM" | sort -u > "$BUILT"
+            echo "--- $abi: gold only ---"
+            comm -23 gold-check/gold.syms "$BUILT" | tee "$MISSING" || true
+            echo "--- $abi: built only ---"
+            comm -13 gold-check/gold.syms "$BUILT" | tee "$EXTRA" || true
+            if [ -s "$MISSING" ]; then
+              echo "FAIL: $abi libplayer missing gold JNI symbols" >&2
+              exit 2
+            fi
+            echo "$abi nm gate OK (built contains all gold symbol names)"
+            sha256sum "$PLAYER" | tee -a gold-check/libplayer.sha256.txt
+            sha256sum "$MPV" | tee -a gold-check/libmpv.sha256.txt
+          done
 
       - name: Package thin AAR (MPVLib sources + jni)
         run: |

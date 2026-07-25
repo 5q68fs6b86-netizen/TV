@@ -419,10 +419,8 @@ public class PlayerManager implements ParseCallback {
         if (PlayerEngineFactory.matches(engine, spec)) return;
         PlayerEngine old = engine;
         MpvLogCollector.log("PlayerManager", "重建播放器实例: " + engineName(old.getType()) + " -> " + engineName(PlayerSetting.getEngine()));
-        // Release the old engine first. MPV destroy can block briefly; doing it before
-        // creating/binding the new Exo instance avoids a half-switched UI where the
-        // activity still holds the dying MPV surface and then falls into error fallback
-        // (which triggers search/empty detail).
+        // Release first so MPV enters DESTROYING before a replacement is selected.
+        // The factory immediately uses Exo while native teardown is still in progress.
         try {
             player.removeListener(listener);
         } catch (Throwable ignored) {
