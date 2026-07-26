@@ -27,16 +27,20 @@ import is.xyz.mpv.MPVLib;
 final class MpvOptions {
 
     static final String HWDEC_HARD = "mediacodec,mediacodec-copy";
-    private static final String HWDEC_CODECS_BASE = "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1";
-    private static final String HWDEC_CODECS_DOLBY = HWDEC_CODECS_BASE + ",dvhe,dvh1";
+    private static final String HWDEC_CODECS = "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1";
     private static final long DEFAULT_DEMUXER_BYTES = 64L * 1024L * 1024L;
 
     private MpvOptions() {
     }
 
-    /** FongMi: gpu-next is opt-in only; Vulkan does not force it. */
+    /**
+     * FongMi: gpu-next is opt-in only; Vulkan does not force it.
+     * HDR=on implies gpu-next because {@code target-colorspace-hint} is only implemented there.
+     */
     static String videoOutputDriver() {
-        return PlayerSetting.isMpvGpuNext() ? "gpu-next" : "gpu";
+        if (PlayerSetting.isMpvGpuNext()) return "gpu-next";
+        if (PlayerSetting.getMpvHdr() == PlayerSetting.MPV_HDR_ON) return "gpu-next";
+        return "gpu";
     }
 
     static String decodeMode(int decode) {
@@ -61,7 +65,7 @@ final class MpvOptions {
         applyVideoOutputOptions();
         applyHdrHint();
         applyDecode(decode);
-        applyHwdecCodecs();
+        set("hwdec-codecs", HWDEC_CODECS);
         set("ao", "audiotrack,opensles");
         set("audio-set-media-role", "yes");
         set("tls-verify", "yes");
@@ -97,16 +101,6 @@ final class MpvOptions {
         }
     }
 
-    static void applyHwdecCodecs() {
-        String codecs = PlayerSetting.isMpvDolbyHwdecEnabled() ? HWDEC_CODECS_DOLBY : HWDEC_CODECS_BASE;
-        set("hwdec-codecs", codecs);
-        try {
-            MPVLib.INSTANCE.setPropertyString("hwdec-codecs", codecs);
-        } catch (Throwable ignored) {
-        }
-        MpvLogCollector.log("MpvOptions", "hwdec-codecs=" + codecs);
-    }
-
     /**
      * Vulkan: only gpu-api + androidvk (FongMi MpvUtil.addVideoOutputOptions).
      * GL path keeps opengl-es + android context.
@@ -122,8 +116,8 @@ final class MpvOptions {
     }
 
     /**
-     * Optional kernel hint only — not a product "HDR mode" guarantee.
-     * Unknown options are ignored by mpv.
+     * {@code target-colorspace-hint} is only implemented by vo=gpu-next; HDR=on therefore
+     * forces gpu-next via {@link #videoOutputDriver()}. Still a hint, not an "HDR mode" guarantee.
      */
     private static void applyHdrHint() {
         int mode = PlayerSetting.getMpvHdr();
@@ -151,9 +145,15 @@ final class MpvOptions {
         set("demuxer-max-back-bytes", value);
     }
 
-    private static void applyDefaultUserAgent() {
+    /** Configured UA, falling back to the app default; never null. */
+    static String defaultUserAgent() {
         String ua = Setting.getUa();
         if (TextUtils.isEmpty(ua)) ua = PlayerHelper.getDefaultUa();
+        return ua == null ? "" : ua;
+    }
+
+    private static void applyDefaultUserAgent() {
+        String ua = defaultUserAgent();
         if (!TextUtils.isEmpty(ua)) set("user-agent", ua);
     }
 

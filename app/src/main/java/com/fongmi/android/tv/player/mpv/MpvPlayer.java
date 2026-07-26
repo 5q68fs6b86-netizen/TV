@@ -695,6 +695,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void handleEvent(int eventId, @Nullable MPVNode data) {
+        // Queued events may land after release, racing the async native destroy thread.
+        if (closed) return;
         switch (eventId) {
             case MpvEvent.MPV_EVENT_START_FILE -> {
                 fileLoaded = false;
@@ -710,6 +712,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MpvLogCollector.log("MpvPlayer", "文件加载成功");
                 seekAfterLoadIfNeeded();
                 readRuntimeState();
+                applyDolbyPolicy();
                 addInitialSubtitles();
                 invalidateState();
             }
@@ -717,6 +720,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MpvLogCollector.log("MpvPlayer", "视频重新配置");
                 seekAfterLoadIfNeeded();
                 readVideoSize();
+                // DV metadata may surface late (HLS) or via track switch; policy is idempotent.
+                applyDolbyPolicy();
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
@@ -730,23 +735,22 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             case MpvEvent.MPV_EVENT_END_FILE -> {
                 // Prefer gold-style reason/error ints when node payload is absent.
                 if (data == null) {
-                    handleEndFile(/*reason*/ 0, /*error*/ 0, null);
+                    handleEndFile(MpvEndFile.REASON_EOF, /*error*/ 0, null);
                 } else {
                     String reason = nodeString(data, "reason");
                     String errorMsg = nodeString(data, "error");
                     int fileError = nodeInt(data, "file_error", 0);
-                    int reasonCode = "error".equals(reason) ? 4 : 0; // MPV_END_FILE_REASON_ERROR=4
-                    handleEndFile(reasonCode, fileError, errorMsg.isEmpty() ? reason : errorMsg);
+                    handleEndFile(MpvEndFile.mapReason(reason), fileError, errorMsg.isEmpty() ? reason : errorMsg);
                 }
             }
         }
     }
 
     private void handleEndFile(int reason, int error, @Nullable String errorString) {
+        if (closed) return;
         loading = false;
         fileLoaded = false;
-        // MPV_END_FILE_REASON_ERROR = 4 (gold MpvEndFileReason / libmpv)
-        boolean isError = reason == 4 || error != 0
+        boolean isError = reason == MpvEndFile.REASON_ERROR || error != 0
                 || (errorString != null && errorString.toLowerCase(Locale.US).contains("error"));
         if (isError) {
             String errorMsg = errorString == null ? "" : errorString;
@@ -789,10 +793,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             fail(new PlaybackException(msgBuilder.toString(), null, errorCode));
             return;
         }
-        // MPV_END_FILE_REASON_EOF=0, STOP=2, QUIT=3, REDIRECT=5
-        if (reason == 0) playbackState = Player.STATE_ENDED;
-        else if (reason == 2 && mediaItem == null) playbackState = Player.STATE_IDLE;
-        else if (reason == 3) playbackState = Player.STATE_IDLE;
+        // Only a genuine EOF may surface STATE_ENDED — upstream treats it as "auto play next".
+        if (reason == MpvEndFile.REASON_EOF) playbackState = Player.STATE_ENDED;
+        else if (reason == MpvEndFile.REASON_STOP && mediaItem == null) playbackState = Player.STATE_IDLE;
+        else if (reason == MpvEndFile.REASON_QUIT) playbackState = Player.STATE_IDLE;
         invalidateState();
     }
 
@@ -1090,6 +1094,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 fields.add(key + ": " + value);
             }
         }
+        // Never write an empty UA: it would wipe the pre-init default from MpvOptions.
+        if (TextUtils.isEmpty(userAgent)) userAgent = MpvOptions.defaultUserAgent();
         MPVLib.INSTANCE.setPropertyString("user-agent", userAgent);
         MPVLib.INSTANCE.setPropertyString("referrer", referrer);
         applyHttpHeaderFields(fields);
@@ -1164,15 +1170,37 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         }
     }
 
-    void applyDolbySetting() {
-        if (closed) return;
-        Runnable apply = () -> reloadForDecoderChange(
-                "应用 Dolby Vision 硬解设置", MpvOptions::applyHwdecCodecs);
-        if (Looper.myLooper() != getApplicationLooper()) {
-            runOnApplicationThread(apply);
-            return;
+    /**
+     * The AAR's libmpv has no dvhe/dvh1 handling in hwdec-codecs; the only reliable lever is
+     * per-file: when the Dolby switch is off and the selected video track carries a Dolby
+     * Vision profile ({@code track-list/N/dolby-vision-profile}, mpv 0.38+), drop to software
+     * decode so gpu-next/libplacebo can apply the RPU metadata. The next startInternal()
+     * restores the configured hwdec mode via applyDecode().
+     */
+    private void applyDolbyPolicy() {
+        if (decode != PlayerEngine.HARD || PlayerSetting.isMpvDolbyHwdecEnabled()) return;
+        int profile = selectedVideoDolbyProfile();
+        if (profile < 0) return;
+        MpvLogCollector.log("MpvPlayer", "Dolby Vision 硬解已关闭 (profile " + profile + "), 本片改用软解");
+        try {
+            MPVLib.INSTANCE.setPropertyString("hwdec", "no");
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "Dolby 软解切换失败: " + e.getMessage());
         }
-        apply.run();
+    }
+
+    private int selectedVideoDolbyProfile() {
+        try {
+            int count = trackListCount();
+            for (int i = 0; i < count; i++) {
+                String prefix = "track-list/" + i + "/";
+                if (!"video".equals(propString(prefix + "type", ""))) continue;
+                if (!propBoolean(prefix + "selected")) continue;
+                return propInt(prefix + "dolby-vision-profile", -1);
+            }
+        } catch (Throwable ignored) {
+        }
+        return -1;
     }
 
     private void setVideoOutputInternal(Object output) {

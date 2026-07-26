@@ -84,14 +84,6 @@ public class MpvPlayerEngine implements PlayerEngine {
         return false;
     }
 
-    /**
-     * Re-apply the Dolby codec allow-list and reopen media in the live MPV instance.
-     */
-    public boolean applyDolbySetting() {
-        player.applyDolbySetting();
-        return false;
-    }
-
     @Override
     public void setSubtitleStyle() {
         player.setSubtitleStyle();
