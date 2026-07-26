@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -39,7 +40,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -71,6 +74,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,6 +108,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     private data class CommandState(
+        val title: String,
         val label: String,
         val visible: Boolean,
         val selected: Boolean
@@ -112,7 +117,8 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private data class CommandGroupState(
         val key: String,
         @param:DrawableRes val icon: Int,
-        val label: String,
+        @param:StringRes val labelRes: Int,
+        val customLabel: String,
         val visible: Boolean,
         val commandKeys: List<String>
     )
@@ -138,13 +144,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
     private var infoDuration by mutableStateOf("")
     private var activeGroup by mutableStateOf<String?>(null)
     private var controlFocused by mutableStateOf(false)
-    private var fullscreenState by mutableStateOf(false)
-    private var primaryFocusRequest by mutableLongStateOf(0L)
     private var settingsCloseFocus by mutableLongStateOf(0L)
+    private var drawerFocusKey by mutableStateOf<String?>(null)
     private val commandGroups = mutableStateListOf(
-        CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, "Playlist", true, PLAYLIST_COMMANDS),
-        CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, "Captions", true, CAPTION_COMMANDS),
-        CommandGroupState(GROUP_SETTINGS, R.drawable.msr_settings, "Settings", true, SETTINGS_COMMANDS)
+        CommandGroupState(GROUP_PLAYLIST, R.drawable.msr_auto_awesome_motion, R.string.vod_control_group_playlist, "", true, PLAYLIST_COMMANDS),
+        CommandGroupState(GROUP_CAPTIONS, R.drawable.msr_closed_caption, R.string.vod_control_group_captions, "", true, CAPTION_COMMANDS),
+        CommandGroupState(GROUP_SETTINGS, R.drawable.msr_settings, R.string.vod_control_group_settings, "", true, SETTINGS_COMMANDS)
     )
     private val commands = mutableStateMapOf<String, CommandState>()
 
@@ -203,10 +208,6 @@ class JetStreamVodControlView @JvmOverloads constructor(
         controlPanelVisible = visible
     }
 
-    fun setFullscreen(value: Boolean) {
-        fullscreenState = value
-    }
-
     fun isControlsVisible(): Boolean {
         return controlPanelVisible
     }
@@ -238,18 +239,24 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     fun setCommand(key: String, label: CharSequence?, visible: Boolean, selected: Boolean) {
-        commands[key] = CommandState(label?.toString().orEmpty(), visible, selected)
+        setCommand(key, null, label, visible, selected)
+    }
+
+    fun setCommand(key: String, title: CharSequence?, label: CharSequence?, visible: Boolean, selected: Boolean) {
+        commands[key] = CommandState(title?.toString().orEmpty(), label?.toString().orEmpty(), visible, selected)
         validateActiveGroup()
     }
 
     fun setCommandGroup(key: String, @DrawableRes icon: Int, label: CharSequence?, visible: Boolean, vararg commandKeys: String) {
-        val group = CommandGroupState(key, icon, label?.toString().orEmpty(), visible, commandKeys.toList())
+        val group = CommandGroupState(key, icon, 0, label?.toString().orEmpty(), visible, commandKeys.toList())
         val index = commandGroups.indexOfFirst { it.key == key }
         if (index >= 0) commandGroups[index] = group else commandGroups.add(group)
         if (activeGroup == key) validateActiveGroup()
     }
 
-    fun showGroup(group: String?) {
+    @JvmOverloads
+    fun showGroup(group: String?, focusKey: String? = null) {
+        drawerFocusKey = focusKey
         activeGroup = group?.takeIf { hasVisibleCommands(it) }
     }
 
@@ -272,7 +279,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
         var durationMs by remember(player) { mutableLongStateOf(normalize(player?.duration)) }
         var polledPlaying by remember(player, playing) { mutableStateOf(playing) }
 
-        LaunchedEffect(player) {
+        // 仅在控制条或信息层可见时轮询，隐藏后停表避免常驻唤醒
+        LaunchedEffect(player, controlPanelVisible, topInfoVisible, centerInfoVisible) {
+            if (!controlPanelVisible && !isInfoVisible()) return@LaunchedEffect
             while (isActive) {
                 positionMs = normalize(player?.currentPosition)
                 durationMs = normalize(player?.duration)
@@ -314,79 +323,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                         InfoOverlay()
                     }
                 }
-                AnimatedVisibility(
-                    visible = fullscreenState && !polledPlaying && !controlPanelVisible && !isInfoVisible() && durationMs > 0,
-                    enter = fadeIn(tween(JetStreamAnimations.DurationPanel)) + slideInVertically(
-                        animationSpec = tween(JetStreamAnimations.DurationPanel),
-                        initialOffsetY = { it / 3 }
-                    ),
-                    exit = fadeOut(tween(JetStreamAnimations.DurationExit)),
-                    modifier = Modifier.align(Alignment.BottomStart)
-                ) {
-                    PauseCard(positionMs, durationMs)
-                }
                 SettingsDrawer()
-            }
-        }
-    }
-
-    @Composable
-    private fun PauseCard(positionMs: Long, durationMs: Long) {
-        val colorScheme = MaterialTheme.colorScheme
-        val subtitle = subtitleText()
-        Row(
-            modifier = Modifier
-                .padding(start = 48.dp, bottom = 40.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(colorScheme.surface.copy(alpha = 0.88f))
-                .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(24.dp))
-                .padding(horizontal = 24.dp, vertical = 18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.msr_pause),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = colorScheme.onPrimaryContainer
-                )
-            }
-            Spacer(Modifier.width(18.dp))
-            Column {
-                Text(
-                    text = mediaTitle,
-                    color = colorScheme.onSurface,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 460.dp)
-                )
-                if (subtitle.isNotEmpty()) {
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        text = subtitle,
-                        color = colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.widthIn(max = 460.dp)
-                    )
-                }
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
-                    color = colorScheme.primary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1
-                )
             }
         }
     }
@@ -547,12 +484,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (previousVisible) {
-                    ControlIcon(R.drawable.msr_skip_previous, isPlaying, true, false, "Previous") {
+                    ControlIcon(R.drawable.msr_skip_previous, isPlaying, true, false, stringResource(R.string.play_prev)) {
                         listener?.onPrevious()
                     }
                 }
                 if (nextVisible) {
-                    ControlIcon(R.drawable.msr_skip_next, isPlaying, true, false, "Next") {
+                    ControlIcon(R.drawable.msr_skip_next, isPlaying, true, false, stringResource(R.string.play_next)) {
                         listener?.onNext()
                     }
                 }
@@ -562,13 +499,13 @@ class JetStreamVodControlView @JvmOverloads constructor(
                         isPlaying = isPlaying,
                         enabled = true,
                         selected = repeating,
-                        contentDescription = "Repeat"
+                        contentDescription = stringResource(R.string.play_repeat)
                     ) {
                         listener?.onRepeat()
                     }
                 }
                 commandGroups.filter { hasVisibleCommands(it.key) }.forEach { group ->
-                    ControlIcon(group.icon, isPlaying, true, activeGroup == group.key, group.label) {
+                    ControlIcon(group.icon, isPlaying, true, activeGroup == group.key, groupLabel(group)) {
                         toggleGroup(group.key)
                     }
                 }
@@ -605,7 +542,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
     @Composable
     private fun SeekerRow(isPlaying: Boolean, positionMs: Long, durationMs: Long) {
         val playFocusRequester = remember { FocusRequester() }
-        LaunchedEffect(controlPanelVisible, controlFocused, primaryFocusRequest, activeGroup) {
+        var seekActive by remember { mutableStateOf(false) }
+        var seekFraction by remember { mutableStateOf(0f) }
+        LaunchedEffect(controlPanelVisible, controlFocused, activeGroup) {
             if (controlPanelVisible && controlFocused && activeGroup == null) runCatching { playFocusRequester.requestFocus() }
         }
         LaunchedEffect(settingsCloseFocus) {
@@ -620,16 +559,23 @@ class JetStreamVodControlView @JvmOverloads constructor(
                 isPlaying = isPlaying,
                 enabled = true,
                 selected = false,
-                contentDescription = "Play/Pause",
+                contentDescription = stringResource(if (isPlaying) R.string.pause else R.string.play),
                 focusRequester = playFocusRequester
             ) {
                 listener?.onPlayPause()
             }
             Spacer(Modifier.width(12.dp))
-            ControllerText(formatTime(positionMs))
+            ControllerText(
+                text = formatTime(if (seekActive) (durationMs * seekFraction).roundToLong() else positionMs),
+                color = if (seekActive) MaterialTheme.colorScheme.primary else null
+            )
             ControllerIndicator(
                 progress = progress(positionMs, durationMs),
                 durationMs = durationMs,
+                selected = seekActive,
+                seekProgress = seekFraction,
+                onSelectedChange = { seekActive = it },
+                onSeekProgressChange = { seekFraction = it },
                 modifier = Modifier.weight(1f)
             )
             ControllerText(formatTime(durationMs))
@@ -649,8 +595,14 @@ class JetStreamVodControlView @JvmOverloads constructor(
 
         LaunchedEffect(group, visibleCommands.size) {
             if (open) {
+                val requested = visibleCommands.indexOfFirst { it.first == drawerFocusKey }
                 val selected = visibleCommands.indexOfFirst { it.second.selected }
-                focusedIndex = (if (selected >= 0) selected else 0).coerceIn(0, visibleCommands.lastIndex.coerceAtLeast(0))
+                focusedIndex = when {
+                    requested >= 0 -> requested
+                    selected >= 0 -> selected
+                    else -> 0
+                }.coerceIn(0, visibleCommands.lastIndex.coerceAtLeast(0))
+                drawerFocusKey = null
                 runCatching { drawerFocus.requestFocus() }
             }
         }
@@ -703,7 +655,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
                     .padding(vertical = 18.dp)
             ) {
                 Text(
-                    text = groupTitle(group),
+                    text = groupState?.let { groupLabel(it) }.orEmpty(),
                     color = colorScheme.onSurface,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -775,13 +727,9 @@ class JetStreamVodControlView @JvmOverloads constructor(
         listener?.onShowControls()
     }
 
-    private fun groupTitle(group: String?): String {
-        return when (group) {
-            GROUP_PLAYLIST -> "播放列表"
-            GROUP_CAPTIONS -> "字幕 · 音轨"
-            GROUP_SETTINGS -> "设置"
-            else -> ""
-        }
+    @Composable
+    private fun groupLabel(group: CommandGroupState): String {
+        return if (group.labelRes != 0) stringResource(group.labelRes) else group.customLabel
     }
 
     @Composable
@@ -872,22 +820,28 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun ControllerText(text: String) {
+    private fun ControllerText(text: String, color: Color? = null) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = color ?: MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             maxLines = 1
         )
     }
 
     @Composable
-    private fun ControllerIndicator(progress: Float, durationMs: Long, modifier: Modifier) {
+    private fun ControllerIndicator(
+        progress: Float,
+        durationMs: Long,
+        selected: Boolean,
+        seekProgress: Float,
+        onSelectedChange: (Boolean) -> Unit,
+        onSeekProgressChange: (Float) -> Unit,
+        modifier: Modifier
+    ) {
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        var selected by remember { mutableStateOf(false) }
-        var seekProgress by remember { mutableStateOf(progress) }
         val height by animateDpAsState(if (focused) 10.dp else 4.dp, label = "indicatorHeight")
         val colorScheme = MaterialTheme.colorScheme
         val progressColor = if (selected) colorScheme.primary else colorScheme.onSurface.copy(alpha = 0.92f)
@@ -895,10 +849,17 @@ class JetStreamVodControlView @JvmOverloads constructor(
         val displayProgress = if (selected) seekProgress else progress
 
         LaunchedEffect(progress, selected) {
-            if (!selected) seekProgress = progress
+            if (!selected) onSeekProgressChange(progress)
         }
         LaunchedEffect(selected) {
             if (selected) listener?.onShowControls()
+        }
+        // 焦点移开时丢弃未确认的拖动值，避免进度条冻结在待定位置
+        LaunchedEffect(focused) {
+            if (!focused && selected) {
+                onSelectedChange(false)
+                onSeekProgressChange(progress)
+            }
         }
 
         Canvas(
@@ -910,29 +871,35 @@ class JetStreamVodControlView @JvmOverloads constructor(
                     when (event.key) {
                         Key.DirectionCenter, Key.Enter -> {
                             if (selected) listener?.onSeekTo((durationMs * seekProgress).roundToLong())
-                            else seekProgress = progress
-                            selected = !selected
+                            else onSeekProgressChange(progress)
+                            onSelectedChange(!selected)
                             listener?.onShowControls()
                             true
                         }
 
                         Key.DirectionLeft -> {
-                            selected = true
-                            seekProgress = (seekProgress - seekStepFraction(event)).coerceAtLeast(0f)
+                            onSelectedChange(true)
+                            onSeekProgressChange((seekProgress - seekStepFraction(event, durationMs)).coerceAtLeast(0f))
                             listener?.onShowControls()
                             true
                         }
 
                         Key.DirectionRight -> {
-                            selected = true
-                            seekProgress = (seekProgress + seekStepFraction(event)).coerceAtMost(1f)
+                            onSelectedChange(true)
+                            onSeekProgressChange((seekProgress + seekStepFraction(event, durationMs)).coerceAtMost(1f))
                             listener?.onShowControls()
                             true
                         }
 
                         Key.Back -> {
-                            selected = false
-                            false
+                            // 拖动中按返回：只取消待定 seek，不关闭控制条
+                            if (selected) {
+                                onSelectedChange(false)
+                                onSeekProgressChange(progress)
+                                true
+                            } else {
+                                false
+                            }
                         }
 
                         else -> false
@@ -964,10 +931,12 @@ class JetStreamVodControlView @JvmOverloads constructor(
     }
 
     /**
-     * 进度条步进：单击 1% 精调，按住连发升到 4% 快扫。
+     * 进度条步进：单击跳转 10 秒，按住连发后跳转 30 秒。
      */
-    private fun seekStepFraction(event: androidx.compose.ui.input.key.KeyEvent): Float {
-        return if (event.nativeKeyEvent.repeatCount < 5) 0.01f else 0.04f
+    private fun seekStepFraction(event: androidx.compose.ui.input.key.KeyEvent, durationMs: Long): Float {
+        if (durationMs <= 0) return 0f
+        val stepMs = if (event.nativeKeyEvent.repeatCount < 5) 10_000L else 30_000L
+        return stepMs.toFloat() / durationMs.toFloat()
     }
 
     private fun setCommandGroupVisibility(key: String, visible: Boolean) {
@@ -982,7 +951,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         val group = activeGroup ?: return
         if (hasVisibleCommands(group)) return
         activeGroup = null
-        primaryFocusRequest++
+        settingsCloseFocus++
     }
 
     private fun hasVisibleCommands(group: String): Boolean {
@@ -1031,7 +1000,7 @@ class JetStreamVodControlView @JvmOverloads constructor(
         const val ACTION_REWIND = "rewind"
 
         private val PLAYLIST_COMMANDS = listOf("prev", "next", "change", "parse", "replay", "reset")
-        private val CAPTION_COMMANDS = listOf("subtitle", "text", "audio", "video", "danmaku")
+        private val CAPTION_COMMANDS = listOf("subtitle", "text", "audio", "video", "ai", "ai_language", "danmaku")
         private val SETTINGS_COMMANDS = listOf("speed", "scale", "player", "decode", "opening", "ending", "edition", "chapter")
     }
 }

@@ -18,6 +18,9 @@
     <string name="discover_tmdb_top_tv">TMDB 高分剧集</string>
     <string name="discover_search_play">搜索播放</string>
     <string name="discover_view_details">查看详情</string>
+    <string name="vod_control_group_playlist">播放列表</string>
+    <string name="vod_control_group_captions">字幕 · 音轨</string>
+    <string name="vod_control_group_settings">设置</string>
 
     <!-- Setting -->
     <string name="setting_section_source">来源</string>

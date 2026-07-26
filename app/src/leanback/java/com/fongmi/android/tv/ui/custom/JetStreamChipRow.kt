@@ -73,6 +73,8 @@ class JetStreamChipRow @JvmOverloads constructor(
     private var rowFocused by mutableStateOf(false)
     private var clickListener: ((Int) -> Unit)? = null
     private var longClickListener: ((Int) -> Unit)? = null
+    private var centerPressed = false
+    private var centerLongPressed = false
 
     init {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
@@ -142,12 +144,44 @@ class JetStreamChipRow @JvmOverloads constructor(
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (isCenterKey(event.keyCode)) return handleCenterKey(event)
         if (event.action == KeyEvent.ACTION_DOWN && handleKeyDown(event.keyCode)) return true
         return super.dispatchKeyEvent(event)
     }
 
     override fun onKeyPreIme(keyCode: Int, event: KeyEvent): Boolean {
+        if (isCenterKey(keyCode)) return handleCenterKey(event)
         return event.action == KeyEvent.ACTION_DOWN && handleKeyDown(keyCode) || super.onKeyPreIme(keyCode, event)
+    }
+
+    private fun isCenterKey(keyCode: Int): Boolean {
+        return keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+    }
+
+    // 与 JetStreamHomeNavView 一致：ACTION_UP 触发、isLongPress 走长按，避免长按 OK 连发点击。
+    private fun handleCenterKey(event: KeyEvent): Boolean {
+        normalizeFocus()
+        if (focusedIndex !in items.indices) return false
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (event.repeatCount == 0) {
+                centerPressed = true
+                // 消费 DOWN 后系统不会自动跟踪长按，需显式开启 isLongPress 才会置位
+                event.startTracking()
+            }
+            if (event.isLongPress && longClickListener != null) {
+                centerLongPressed = true
+                longClickChip(focusedIndex)
+            }
+            return true
+        }
+        if (event.action == KeyEvent.ACTION_UP) {
+            if (!centerPressed) return true
+            centerPressed = false
+            if (centerLongPressed) centerLongPressed = false
+            else clickChip(focusedIndex)
+            return true
+        }
+        return true
     }
 
     private fun handleKeyDown(keyCode: Int): Boolean {
@@ -157,15 +191,6 @@ class JetStreamChipRow @JvmOverloads constructor(
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 moveFocus(1)
-            }
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                normalizeFocus()
-                if (focusedIndex in 0 until items.size) {
-                    clickChip(focusedIndex)
-                    true
-                } else {
-                    false
-                }
             }
             KeyEvent.KEYCODE_DPAD_UP -> moveViewFocus(View.FOCUS_UP)
             KeyEvent.KEYCODE_DPAD_DOWN -> moveViewFocus(View.FOCUS_DOWN)

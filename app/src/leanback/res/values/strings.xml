@@ -18,6 +18,9 @@
     <string name="discover_tmdb_top_tv">TMDB Top TV</string>
     <string name="discover_search_play">Search &amp; Play</string>
     <string name="discover_view_details">View details</string>
+    <string name="vod_control_group_playlist">Playlist</string>
+    <string name="vod_control_group_captions">Captions &amp; Audio</string>
+    <string name="vod_control_group_settings">Settings</string>
 
     <!-- Setting -->
     <string name="setting_section_source">Source</string>
