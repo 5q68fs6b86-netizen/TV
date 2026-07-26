@@ -105,6 +105,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private Runnable mR4;
     private Clock mClock;
     private View mFocus2;
+    private long mSeekTime;
+    private final Runnable mSeekRunnable = () -> seek(mSeekTime);
     private int count;
 
     public static void start(Context context) {
@@ -1246,7 +1248,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isJetStreamControlVisible()) setR1Callback();
-        if (isJetStreamControlVisible()) mFocus2 = getCurrentFocus();
+        if (isJetStreamControlVisible() && mBinding.control.getRoot().hasFocus()) mFocus2 = getCurrentFocus();
         if (mKeyDown.hasEvent(event) && isPlaybackReady()) mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
@@ -1296,13 +1298,19 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void onKeyLeft(long time) {
         if (player().isLive()) prevLine();
-        else App.post(() -> seek(time), 250);
+        else postSeek(time);
     }
 
     @Override
     public void onKeyRight(long time) {
         if (player().isLive()) nextLine(true);
-        else App.post(() -> seek(time), 250);
+        else postSeek(time);
+    }
+
+    // 复用同一个 Runnable 让 App.post 的 removeCallbacks 去重生效，连点方向键只保留最后一次 seek。
+    private void postSeek(long time) {
+        mSeekTime = time;
+        App.post(mSeekRunnable, 250);
     }
 
     @Override
@@ -1359,7 +1367,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     protected void onDestroy() {
         mClock.release();
         Source.get().exit();
-        App.removeCallbacks(mR0, mR1, mR2, mR3, mR4);
+        App.removeCallbacks(mR0, mR1, mR2, mR3, mR4, mSeekRunnable);
         super.onDestroy();
     }
 }

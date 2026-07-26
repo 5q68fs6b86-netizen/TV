@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -16,17 +17,23 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.DiscoverApi;
+import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityDiscoverBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.dialog.DiscoverDialog;
+import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
+import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.ui.theme.JetStreamAmbient;
 import com.fongmi.android.tv.utils.ResUtil;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,12 +42,14 @@ import java.util.Map;
 public class DiscoverActivity extends BaseActivity implements VodPresenter.OnClickListener {
 
     private static final int ROW_SPACING = 16;
+    private static final int SKELETON_ROWS = 3;
 
     private ActivityDiscoverBinding mBinding;
     private ArrayObjectAdapter mAdapter;
     private Map<DiscoverApi.Row, Integer> mHeaders;
     private Map<DiscoverApi.Row, ArrayObjectAdapter> mRowAdapters;
     private int mPending;
+    private int mHeroPriority;
     private boolean mShown;
 
     public static void start(Activity activity) {
@@ -54,9 +63,9 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mBinding.progressLayout.showProgress();
         setRecyclerView();
         setRows();
+        mBinding.progressLayout.showContent();
         getContent();
     }
 
@@ -64,12 +73,15 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private void setRecyclerView() {
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
+        selector.addPresenter(String.class, new ProgressPresenter());
+        selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this, R.string.discover_view_details));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(ROW_SPACING, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(10));
     }
 
     private void setRows() {
+        mHeroPriority = Integer.MAX_VALUE;
         mHeaders = new LinkedHashMap<>();
         mHeaders.put(DiscoverApi.Row.DOUBAN_HOT_MOVIE, R.string.discover_douban_hot_movie);
         mHeaders.put(DiscoverApi.Row.DOUBAN_HOT_TV, R.string.discover_douban_hot_tv);
@@ -78,13 +90,22 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         mHeaders.put(DiscoverApi.Row.TMDB_TOP_MOVIE, R.string.discover_tmdb_top_movie);
         mHeaders.put(DiscoverApi.Row.TMDB_TOP_TV, R.string.discover_tmdb_top_tv);
         mRowAdapters = new EnumMap<>(DiscoverApi.Row.class);
-        VodPresenter presenter = new VodPresenter(this, Style.rect());
+        VodPresenter presenter = new VodPresenter(this, Style.rect()) {
+            @Override
+            public void onBindViewHolder(androidx.leanback.widget.Presenter.ViewHolder viewHolder, Object object) {
+                super.onBindViewHolder(viewHolder, object);
+                Vod item = (Vod) object;
+                viewHolder.view.setOnFocusChangeListener((view, hasFocus) -> {
+                    JetStreamAnimator.animateFocus(view, hasFocus, JetStreamAnimator.FOCUS_SCALE_CARD, 12);
+                    if (hasFocus) JetStreamAmbient.push(item.getPic());
+                });
+            }
+        };
         for (Map.Entry<DiscoverApi.Row, Integer> entry : mHeaders.entrySet()) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
             mRowAdapters.put(entry.getKey(), adapter);
-            mAdapter.add(entry.getValue());
-            mAdapter.add(new ListRow(adapter));
         }
+        showSkeletons();
     }
 
     private void getContent() {
@@ -107,21 +128,59 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private void setRowContent(DiscoverApi.Row row, List<Vod> items) {
         if (isFinishing()) return;
         mPending--;
-        if (items.isEmpty()) removeRow(row);
-        else {
+        if (!items.isEmpty()) {
             ArrayObjectAdapter adapter = mRowAdapters.get(row);
             if (adapter != null) adapter.setItems(items, null);
+            if (!mShown) mAdapter.clear();
+            updateHero(row, items);
+            addRow(row, adapter);
             showContent();
         }
-        if (mPending == 0 && !mShown) mBinding.progressLayout.showContent(true, 0);
+        if (mPending == 0 && !mShown) {
+            mAdapter.clear();
+            mBinding.progressLayout.showContent(true, 0);
+        }
     }
 
-    private void removeRow(DiscoverApi.Row row) {
+    private void updateHero(DiscoverApi.Row row, List<Vod> items) {
+        // hero 按 mHeaders 声明顺序取固定优先级：首个返回先建保证有内容，更高优先级的行返回后原位替换，避免整表刷新
+        int priority = priorityOf(row);
+        if (priority >= mHeroPriority) return;
+        List<Vod> featured = getFeatured(items);
+        if (featured.isEmpty()) return;
+        mHeroPriority = priority;
+        if (mAdapter.size() > 0 && mAdapter.get(0) instanceof FeaturedVodRow) mAdapter.replace(0, FeaturedVodRow.create(featured));
+        else mAdapter.add(0, FeaturedVodRow.create(featured));
+    }
+
+    private int priorityOf(DiscoverApi.Row row) {
+        int index = 0;
+        for (DiscoverApi.Row key : mHeaders.keySet()) {
+            if (key == row) return index;
+            index++;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    private void addRow(DiscoverApi.Row row, ArrayObjectAdapter adapter) {
         Integer header = mHeaders.get(row);
-        if (header == null) return;
-        int index = mAdapter.indexOf(header);
-        if (index >= 0) mAdapter.removeItems(index, 2);
-        mRowAdapters.remove(row);
+        if (header == null || adapter == null || mAdapter.indexOf(header) >= 0) return;
+        int index = mAdapter.size() > 0 && mAdapter.get(0) instanceof FeaturedVodRow ? 1 : 0;
+        for (Map.Entry<DiscoverApi.Row, Integer> entry : mHeaders.entrySet()) {
+            if (entry.getKey() == row) break;
+            if (mAdapter.indexOf(entry.getValue()) >= 0) index += 2;
+        }
+        mAdapter.add(index, header);
+        mAdapter.add(index + 1, new ListRow(adapter));
+    }
+
+    private List<Vod> getFeatured(List<Vod> source) {
+        List<Vod> featured = new ArrayList<>();
+        for (Vod item : source) {
+            if (featured.size() >= 5) break;
+            if (!item.getPic().isEmpty()) featured.add(item);
+        }
+        return featured;
     }
 
     private void showContent() {
@@ -150,6 +209,33 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
             if (target != null) return target;
         }
         return null;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        // 全部接口失败的空态无可聚焦控件，拦下确认键触发重试
+        if (isEmptyRetryEvent(event)) {
+            if (event.getAction() == KeyEvent.ACTION_UP) retry();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private boolean isEmptyRetryEvent(KeyEvent event) {
+        if (mShown || mPending != 0) return false;
+        int keyCode = event.getKeyCode();
+        return keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER;
+    }
+
+    private void retry() {
+        showSkeletons();
+        mBinding.progressLayout.showContent();
+        getContent();
+    }
+
+    private void showSkeletons() {
+        mAdapter.clear();
+        for (int i = 0; i < SKELETON_ROWS; i++) mAdapter.add("discover_progress_" + i);
     }
 
     @Override

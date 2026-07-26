@@ -66,6 +66,7 @@ class JetStreamPlaybackPanelIconView @JvmOverloads constructor(
         adjustViewBounds = true
         scaleType = ScaleType.CENTER_INSIDE
         alpha = 0.92f
+        applyJetStreamPlaybackIconTint()
     }
 }
 

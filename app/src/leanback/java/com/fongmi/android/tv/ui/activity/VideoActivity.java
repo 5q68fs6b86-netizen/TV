@@ -961,7 +961,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagSelectedPos);
         mKeyDown.setFull(true);
-        mBinding.control.jetstream.setFullscreen(true);
         setFullscreen(true);
         updateFullscreenViews();
         mFocus2 = null;
@@ -972,7 +971,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setBackgroundResource(R.drawable.shape_video_window);
         mBinding.video.setLayoutParams(mFrameParams);
         mKeyDown.setFull(false);
-        mBinding.control.jetstream.setFullscreen(false);
         setFullscreen(false);
         updateFullscreenViews();
         applyWindowVideoStyle();
@@ -1319,7 +1317,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getJetStreamFocus(View view) {
-        if (!canRequestFocus(view) || isLegacyControlAction(view)) return mBinding.control.jetstream;
+        if (!canRequestFocus(view) || view == mBinding.video || isLegacyControlAction(view)) return mBinding.control.jetstream;
         return view;
     }
 
@@ -1876,7 +1874,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
         if (isJetStreamControlVisible()) setR1Callback();
-        if (isJetStreamControlVisible()) mFocus2 = getCurrentFocus();
+        // 只有焦点确实在控制面板内才记忆，否则 onToggle 同帧内会把还未交接的 video 记成 mFocus2，
+        // 下次弹控制条焦点落在 video 上导致方向键失效。
+        if (isJetStreamControlVisible() && mBinding.control.getRoot().hasFocus()) mFocus2 = getCurrentFocus();
         if (isFullscreen() && !isJetStreamControlVisible() && mKeyDown.hasEvent(event) && isPlaybackReady()) return mKeyDown.onKeyDown(event);
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();

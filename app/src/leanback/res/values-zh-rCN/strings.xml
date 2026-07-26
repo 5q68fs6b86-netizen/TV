@@ -10,7 +10,6 @@
     <string name="home_history">最近观看</string>
     <string name="home_recommend">更新推荐</string>
     <string name="home_discover">推荐</string>
-    <string name="discover_page_desc">豆瓣与 TMDB 热门影视推荐</string>
     <string name="discover_douban_hot_movie">豆瓣热门电影</string>
     <string name="discover_douban_hot_tv">豆瓣热门剧集</string>
     <string name="discover_douban_new_movie">豆瓣新片榜</string>
@@ -18,6 +17,10 @@
     <string name="discover_tmdb_top_movie">TMDB 高分电影</string>
     <string name="discover_tmdb_top_tv">TMDB 高分剧集</string>
     <string name="discover_search_play">搜索播放</string>
+    <string name="discover_view_details">查看详情</string>
+    <string name="vod_control_group_playlist">播放列表</string>
+    <string name="vod_control_group_captions">字幕 · 音轨</string>
+    <string name="vod_control_group_settings">设置</string>
 
     <!-- Setting -->
     <string name="setting_section_source">来源</string>

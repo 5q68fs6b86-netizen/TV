@@ -26,6 +26,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.NestedScrollView
+import androidx.core.widget.TextViewCompat
 import androidx.leanback.widget.HorizontalGridView
 import androidx.leanback.widget.VerticalGridView
 import androidx.recyclerview.widget.RecyclerView
@@ -476,6 +477,7 @@ class JetStreamPosterOverlayImageView @JvmOverloads constructor(
         background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 16, colorRes = R.color.jetstream_overlay_surface)
         scaleType = ScaleType.CENTER
         clipToOutline = true
+        applyJetStreamControlIconTint()
     }
 }
 
@@ -615,6 +617,7 @@ class JetStreamRoundTypeView @JvmOverloads constructor(
 
     init {
         applyJetStreamRoundItemSurface(attrs, 0)
+        TextViewCompat.setCompoundDrawableTintList(this, jetStreamColorStateList(R.color.jetstream_control_text))
         JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
@@ -639,6 +642,7 @@ class JetStreamRoundChipImageView @JvmOverloads constructor(
 
     init {
         background = jetStreamChipBackground(28)
+        applyJetStreamControlIconTint()
     }
 }
 
@@ -953,6 +957,7 @@ class JetStreamSearchMicView @JvmOverloads constructor(
 
     init {
         applyJetStreamSearchIconSurface()
+        applyJetStreamControlIconTint()
     }
 }
 

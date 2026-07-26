@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -12,17 +13,18 @@ import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DiscoverDialog extends BaseAlertDialog {
+
+    private static final String ITEM = "item";
 
     private DialogDiscoverBinding binding;
     private Vod item;
 
     public static DiscoverDialog create(Vod item) {
         DiscoverDialog dialog = new DiscoverDialog();
-        dialog.item = item;
+        Bundle args = new Bundle();
+        args.putParcelable(ITEM, item);
+        dialog.setArguments(args);
         return dialog;
     }
 
@@ -42,14 +44,16 @@ public class DiscoverDialog extends BaseAlertDialog {
 
     @Override
     protected void initView() {
+        item = getArguments() == null ? null : getArguments().getParcelable(ITEM);
         if (item == null) {
             dismissAllowingStateLoss();
             return;
         }
         ImgUtil.load(item.getName(), item.getPic(), binding.poster);
+        binding.poster.setContentDescription(item.getName());
         binding.name.setText(item.getName());
-        binding.meta.setText(getMeta());
-        binding.meta.setVisibility(TextUtils.isEmpty(binding.meta.getText()) ? View.GONE : View.VISIBLE);
+        bindPill(binding.year, item.getYear());
+        bindPill(binding.rating, item.getRemarks());
         binding.content.setText(item.getContent());
         binding.content.setVisibility(TextUtils.isEmpty(item.getContent()) ? View.GONE : View.VISIBLE);
         binding.search.requestFocus();
@@ -61,16 +65,20 @@ public class DiscoverDialog extends BaseAlertDialog {
         binding.cancel.setOnClickListener(view -> dismiss());
     }
 
-    private String getMeta() {
-        List<String> values = new ArrayList<>();
-        if (!TextUtils.isEmpty(item.getYear())) values.add(item.getYear());
-        if (!TextUtils.isEmpty(item.getRemarks())) values.add(item.getRemarks());
-        return TextUtils.join("  ·  ", values);
+    private void bindPill(android.widget.TextView view, String text) {
+        view.setText(text);
+        view.setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
     }
 
     private void onSearch(View view) {
         FragmentActivity activity = getActivity();
         dismiss();
         if (activity != null) CollectActivity.start(activity, item.getName());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        setWidth(0.72f);
     }
 }

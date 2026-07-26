@@ -1,49 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fongmi.android.tv.ui.custom.JetStreamDialogRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp">
+    android:minHeight="340dp"
+    android:padding="32dp">
 
-    <ImageView
+    <com.fongmi.android.tv.ui.custom.JetStreamPosterImageView
         android:id="@+id/poster"
-        android:layout_width="140dp"
-        android:layout_height="200dp"
-        android:contentDescription="@string/home_discover"
+        android:layout_width="196dp"
+        android:layout_height="280dp"
         android:scaleType="centerCrop" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamLabelTextView
         android:id="@+id/name"
-        android:layout_width="320dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="28dp"
         android:layout_toEndOf="@+id/poster"
         android:ellipsize="end"
         android:maxLines="2"
-        android:textSize="20sp"
+        android:textSize="30sp"
+        android:textStyle="bold"
         tools:text="Name" />
 
-    <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
-        android:id="@+id/meta"
+    <LinearLayout
+        android:id="@+id/metaRow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/name"
         android:layout_alignStart="@+id/name"
-        android:layout_marginTop="6dp"
-        android:singleLine="true"
-        tools:text="2024 · 8.2" />
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamMetadataPillView
+            android:id="@+id/year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            tools:text="2024"
+            tools:visibility="visible" />
+
+        <com.fongmi.android.tv.ui.custom.JetStreamMetadataPillView
+            android:id="@+id/rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:text="TMDB 8.2"
+            tools:visibility="visible" />
+
+    </LinearLayout>
 
     <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
         android:id="@+id/content"
-        android:layout_width="320dp"
+        android:layout_width="500dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/meta"
+        android:layout_below="@+id/metaRow"
         android:layout_above="@+id/bottom"
         android:layout_alignStart="@+id/name"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginBottom="22dp"
         android:ellipsize="end"
-        android:maxLines="6"
+        android:lineSpacingExtra="4dp"
+        android:maxLines="8"
+        android:textSize="16sp"
         tools:text="Overview" />
 
     <com.fongmi.android.tv.ui.custom.JetStreamDialogButtonRowLayout
@@ -58,7 +80,7 @@
             android:id="@+id/search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="12dp"
             android:layout_weight="1"
             android:focusable="true"
             android:focusableInTouchMode="true"

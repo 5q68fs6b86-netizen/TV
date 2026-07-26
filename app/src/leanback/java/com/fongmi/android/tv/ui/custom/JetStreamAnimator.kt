@@ -63,11 +63,12 @@ object JetStreamAnimator {
     @JvmStatic
     @JvmOverloads
     fun show(view: View, fromXDp: Int = 0, fromYDp: Int = 12, duration: Long = PANEL_DURATION) {
-        val alreadyVisible = view.visibility == View.VISIBLE
         // cancel() alone can still run a previous withEndAction and force GONE after show.
         view.animate().cancel()
         view.animate().setListener(null)
         view.animate().withEndAction(null)
+        // 必须在 cancel() 之后采样：上一次 hide 的 withEndAction 会被 cancel 同步触发（置 GONE、alpha=1、位移归零），先采样会误判早退致视图停在 GONE
+        val alreadyVisible = view.visibility == View.VISIBLE
         if (alreadyVisible && view.alpha >= 0.99f && view.translationX == 0f && view.translationY == 0f) return
         if (!alreadyVisible) {
             view.alpha = 0f
