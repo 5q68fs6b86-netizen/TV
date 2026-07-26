@@ -252,7 +252,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setToolbarVisible(true);
         mBinding.title.setSelected(true);
         App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) requestRecyclerFocus();
+        // Empty home (headers only / no focusable rows) → keep focus on top nav, not
+        // a non-focusable header that cannot host DPAD / Back navigation.
+        if (!mBinding.title.hasFocus()) {
+            if (hasFocusableRecyclerContent()) requestRecyclerFocus();
+            else requestNavFocus();
+        }
     }
 
     private void requestRecyclerFocus() {
@@ -261,22 +266,62 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void requestRecyclerFocus(int position) {
         mBinding.recycler.post(() -> {
-            if (mAdapter.size() <= 0 || !canRequestFocus(mBinding.recycler)) {
-                if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+            if (!hasFocusableRecyclerContent() || !canRequestFocus(mBinding.recycler)) {
+                requestNavFocus();
                 return;
             }
             int target = position == RecyclerView.NO_POSITION ? mBinding.recycler.getSelectedPosition() : position;
             target = Math.max(0, Math.min(target, mAdapter.size() - 1));
+            // Prefer a row that actually has focusable children when possible.
+            if (position == RecyclerView.NO_POSITION && !rowHasFocusable(target)) {
+                int better = firstFocusableRowIndex();
+                if (better >= 0) target = better;
+            }
             mBinding.recycler.setSelectedPosition(target);
             int focusTarget = target;
             mBinding.recycler.postDelayed(() -> {
                 RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(focusTarget);
                 View focus = holder == null ? null : findFocusable(holder.itemView);
                 if (focus != null && focus.requestFocus()) return;
-                if (canRequestFocus(mBinding.recycler) && mBinding.recycler.requestFocus()) return;
-                if (canRequestFocus(mBinding.nav)) mBinding.nav.requestFocus();
+                if (canRequestFocus(mBinding.recycler) && mBinding.recycler.requestFocus() && mBinding.recycler.hasFocus()) return;
+                requestNavFocus();
             }, 50);
         });
+    }
+
+    /** Top JetStream nav (点播/直播/搜索/…) — host focus for empty home / Back-to-toolbar. */
+    private void requestNavFocus() {
+        setToolbarVisible(true);
+        mBinding.toolbar.post(() -> {
+            if (!canRequestFocus(mBinding.nav)) {
+                if (canRequestFocus(mBinding.toolbar)) mBinding.toolbar.requestFocus();
+                return;
+            }
+            mBinding.nav.requestFocus();
+        });
+    }
+
+    private boolean hasFocusableRecyclerContent() {
+        return firstFocusableRowIndex() >= 0;
+    }
+
+    private int firstFocusableRowIndex() {
+        if (mAdapter == null) return -1;
+        for (int i = 0; i < mAdapter.size(); i++) {
+            if (rowHasFocusable(i)) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Header integers ({@code R.string.home_*}) and the progress marker are not focusable
+     * media rows. History / featured / recommend rows are.
+     */
+    private boolean rowHasFocusable(int index) {
+        if (mAdapter == null || index < 0 || index >= mAdapter.size()) return false;
+        Object item = mAdapter.get(index);
+        if (item == null || item instanceof Integer || "progress".equals(item)) return false;
+        return item instanceof ListRow || item instanceof FeaturedVodRow || item instanceof Vod;
     }
 
     private void requestHistoryFocus(int position) {
@@ -360,11 +405,19 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setToolbarVisible(boolean visible) {
-        if (mToolbarVisible == visible && mBinding.toolbar.getVisibility() == View.VISIBLE) return;
+        // When toolbar is already meant to be shown, still force VISIBLE — a pending hide
+        // animation's endAction can leave GONE and cause top nav to flash then disappear.
+        if (mToolbarVisible == visible) {
+            if (visible && mBinding.toolbar.getVisibility() != View.VISIBLE) {
+                JetStreamAnimator.show(mBinding.toolbar, 0, -16, JetStreamAnimator.FOCUS_DURATION);
+            }
+            return;
+        }
         mToolbarVisible = visible;
         if (visible) JetStreamAnimator.show(mBinding.toolbar, 0, -16, JetStreamAnimator.FOCUS_DURATION);
         else {
-            if (mBinding.toolbar.hasFocus()) requestRecyclerFocus();
+            // Only dump focus to recycler if there is a real focusable row; otherwise keep nav.
+            if (mBinding.toolbar.hasFocus() && hasFocusableRecyclerContent()) requestRecyclerFocus();
             JetStreamAnimator.hide(mBinding.toolbar, 0, -16, View.GONE, JetStreamAnimator.FOCUS_DURATION);
         }
     }
@@ -672,15 +725,45 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onBackInvoked() {
         if (mBinding.progressLayout.isProgress()) {
             showContent();
-        } else if (mPresenter.isDelete()) {
-            setHistoryDelete(false);
-        } else if (mBinding.recycler.getSelectedPosition() > 0) {
-            mBinding.recycler.scrollToPosition(0);
-            requestRecyclerFocus();
-        } else {
-            if (PlaybackService.isRunning()) moveTaskToBack(true);
-            else super.onBackInvoked();
+            return;
         }
+        if (mPresenter.isDelete()) {
+            setHistoryDelete(false);
+            return;
+        }
+        // 1) Content has focus → first Back returns to top nav (点播/设置…), do not exit.
+        if (isContentFocused()) {
+            mBinding.recycler.scrollToPosition(0);
+            requestNavFocus();
+            return;
+        }
+        // 2) List scrolled down while toolbar hidden → scroll top + show toolbar + focus nav.
+        if (mBinding.recycler.getSelectedPosition() > 0 || !mToolbarVisible) {
+            mBinding.recycler.scrollToPosition(0);
+            requestNavFocus();
+            return;
+        }
+        // 3) Already on top nav / title → exit or background.
+        if (PlaybackService.isRunning()) moveTaskToBack(true);
+        else super.onBackInvoked();
+    }
+
+    private boolean isContentFocused() {
+        if (mBinding.recycler.hasFocus()) return true;
+        View focus = getCurrentFocus();
+        if (focus == null) return false;
+        if (mBinding.nav.hasFocus() || mBinding.title.hasFocus() || mBinding.toolbar.hasFocus()) return false;
+        return isDescendant(mBinding.recycler, focus);
+    }
+
+    private static boolean isDescendant(View parent, View child) {
+        View current = child;
+        while (current != null) {
+            if (current == parent) return true;
+            Object p = current.getParent();
+            current = p instanceof View ? (View) p : null;
+        }
+        return false;
     }
 
     @Override

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default in-app home/toolbar mark for circular JetStreamHomeLogoView.
+     Do NOT fill the disc flush — leave a ring between the brand mass and the oval rim
+     (pairs with view padding in JetStreamHomeLogoView). scale about (80,80). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -7,12 +10,12 @@
     <path
         android:fillColor="#F3EFE7"
         android:pathData="M0,0h160v160H0z" />
-    <!-- Scale 1.15 about center to reduce unused padding at 36/44dp. -->
+    <!-- 0.92 about center: translate = 80*(1-0.92)=6.4 — slight inset vs full tile. -->
     <group
-        android:translateX="-12"
-        android:translateY="-12"
-        android:scaleX="1.15"
-        android:scaleY="1.15">
+        android:translateX="6.4"
+        android:translateY="6.4"
+        android:scaleX="0.92"
+        android:scaleY="0.92">
         <path
             android:fillColor="#24221F"
             android:pathData="M31,27h68l30,30v76H61l-30,-30V27Z" />
