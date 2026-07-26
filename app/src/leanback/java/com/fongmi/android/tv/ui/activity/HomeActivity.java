@@ -502,6 +502,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         List<JetStreamHomeNavView.NavItem> items = new ArrayList<>();
         items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_vod), getString(R.string.home_vod), R.drawable.ic_home_vod));
         if (LiveConfig.hasUrl()) items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_live), getString(R.string.home_live), R.drawable.ic_home_live));
+        items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_discover), getString(R.string.home_discover), R.drawable.ic_home_discover));
         items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_search), getString(R.string.home_search), R.drawable.ic_home_search));
         items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_keep), getString(R.string.home_keep), R.drawable.ic_home_keep));
         items.add(new JetStreamHomeNavView.NavItem(String.valueOf(R.string.home_push), getString(R.string.home_push), R.drawable.ic_home_push));
@@ -627,6 +628,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         int resId = Integer.parseInt(key);
         if (resId == R.string.home_vod) VodActivity.start(this, mResult);
         else if (resId == R.string.home_live) LiveActivity.start(this);
+        else if (resId == R.string.home_discover) DiscoverActivity.start(this);
         else if (resId == R.string.home_keep) KeepActivity.start(this);
         else if (resId == R.string.home_push) PushActivity.start(this);
         else if (resId == R.string.home_search) SearchActivity.start(this);
