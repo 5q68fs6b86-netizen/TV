@@ -16,17 +16,23 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.DiscoverApi;
+import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityDiscoverBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.dialog.DiscoverDialog;
+import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
+import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.ui.theme.JetStreamAmbient;
 import com.fongmi.android.tv.utils.ResUtil;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,9 +60,9 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mBinding.progressLayout.showProgress();
         setRecyclerView();
         setRows();
+        mBinding.progressLayout.showContent();
         getContent();
     }
 
@@ -64,6 +70,8 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private void setRecyclerView() {
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
+        selector.addPresenter(String.class, new ProgressPresenter());
+        selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this, R.string.discover_view_details));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(ROW_SPACING, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(10));
@@ -78,13 +86,22 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         mHeaders.put(DiscoverApi.Row.TMDB_TOP_MOVIE, R.string.discover_tmdb_top_movie);
         mHeaders.put(DiscoverApi.Row.TMDB_TOP_TV, R.string.discover_tmdb_top_tv);
         mRowAdapters = new EnumMap<>(DiscoverApi.Row.class);
-        VodPresenter presenter = new VodPresenter(this, Style.rect());
+        VodPresenter presenter = new VodPresenter(this, Style.rect()) {
+            @Override
+            public void onBindViewHolder(androidx.leanback.widget.Presenter.ViewHolder viewHolder, Object object) {
+                super.onBindViewHolder(viewHolder, object);
+                Vod item = (Vod) object;
+                viewHolder.view.setOnFocusChangeListener((view, hasFocus) -> {
+                    JetStreamAnimator.animateFocus(view, hasFocus, JetStreamAnimator.FOCUS_SCALE_CARD, 12);
+                    if (hasFocus) JetStreamAmbient.push(item.getPic());
+                });
+            }
+        };
         for (Map.Entry<DiscoverApi.Row, Integer> entry : mHeaders.entrySet()) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
             mRowAdapters.put(entry.getKey(), adapter);
-            mAdapter.add(entry.getValue());
-            mAdapter.add(new ListRow(adapter));
         }
+        mAdapter.add("discover_progress");
     }
 
     private void getContent() {
@@ -107,21 +124,42 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private void setRowContent(DiscoverApi.Row row, List<Vod> items) {
         if (isFinishing()) return;
         mPending--;
-        if (items.isEmpty()) removeRow(row);
-        else {
+        if (!items.isEmpty()) {
             ArrayObjectAdapter adapter = mRowAdapters.get(row);
             if (adapter != null) adapter.setItems(items, null);
+            if (!mShown) {
+                mAdapter.clear();
+                List<Vod> featured = getFeatured(items);
+                if (!featured.isEmpty()) mAdapter.add(FeaturedVodRow.create(featured));
+            }
+            addRow(row, adapter);
             showContent();
         }
-        if (mPending == 0 && !mShown) mBinding.progressLayout.showContent(true, 0);
+        if (mPending == 0 && !mShown) {
+            mAdapter.clear();
+            mBinding.progressLayout.showContent(true, 0);
+        }
     }
 
-    private void removeRow(DiscoverApi.Row row) {
+    private void addRow(DiscoverApi.Row row, ArrayObjectAdapter adapter) {
         Integer header = mHeaders.get(row);
-        if (header == null) return;
-        int index = mAdapter.indexOf(header);
-        if (index >= 0) mAdapter.removeItems(index, 2);
-        mRowAdapters.remove(row);
+        if (header == null || adapter == null || mAdapter.indexOf(header) >= 0) return;
+        int index = mAdapter.size() > 0 && mAdapter.get(0) instanceof FeaturedVodRow ? 1 : 0;
+        for (Map.Entry<DiscoverApi.Row, Integer> entry : mHeaders.entrySet()) {
+            if (entry.getKey() == row) break;
+            if (mAdapter.indexOf(entry.getValue()) >= 0) index += 2;
+        }
+        mAdapter.add(index, header);
+        mAdapter.add(index + 1, new ListRow(adapter));
+    }
+
+    private List<Vod> getFeatured(List<Vod> source) {
+        List<Vod> featured = new ArrayList<>();
+        for (Vod item : source) {
+            if (featured.size() >= 5) break;
+            if (!item.getPic().isEmpty()) featured.add(item);
+        }
+        return featured;
     }
 
     private void showContent() {

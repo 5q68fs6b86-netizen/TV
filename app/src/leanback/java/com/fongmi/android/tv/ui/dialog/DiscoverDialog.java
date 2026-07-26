@@ -47,6 +47,7 @@ public class DiscoverDialog extends BaseAlertDialog {
             return;
         }
         ImgUtil.load(item.getName(), item.getPic(), binding.poster);
+        binding.poster.setContentDescription(item.getName());
         binding.name.setText(item.getName());
         binding.meta.setText(getMeta());
         binding.meta.setVisibility(TextUtils.isEmpty(binding.meta.getText()) ? View.GONE : View.VISIBLE);

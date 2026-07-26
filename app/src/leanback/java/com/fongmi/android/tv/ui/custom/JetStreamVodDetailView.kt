@@ -59,11 +59,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.fongmi.android.tv.R
-import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
-import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.components.JetStreamGlassCard
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
 
 class JetStreamVodDetailView @JvmOverloads constructor(
     context: Context,
@@ -202,15 +202,11 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun DetailSurface() {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(JetStreamShapes.Card)
-                .background(jetStreamHorizontalScrimBrush())
-                .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 20.dp)
-        ) {
+        JetStreamGlassCard(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 16.dp)
             ) {
                 TitleBlock()
                 Spacer(Modifier.height(8.dp))
@@ -230,7 +226,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(38.dp),
+                    .height(44.dp),
                 factory = { context ->
                     AppCompatImageView(context).apply {
                         scaleType = ImageView.ScaleType.FIT_START

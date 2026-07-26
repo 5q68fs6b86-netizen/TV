@@ -10,10 +10,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.leanback.widget.Presenter;
 
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
@@ -36,15 +38,21 @@ import java.util.Set;
 public class FeaturedVodPresenter extends Presenter {
 
     private final VodPresenter.OnClickListener listener;
+    private final int actionText;
 
     public FeaturedVodPresenter(VodPresenter.OnClickListener listener) {
+        this(listener, R.string.play);
+    }
+
+    public FeaturedVodPresenter(VodPresenter.OnClickListener listener, @StringRes int actionText) {
         this.listener = listener;
+        this.actionText = actionText;
     }
 
     @NonNull
     @Override
     public Presenter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
-        return new ViewHolder(AdapterFeaturedVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), listener);
+        return new ViewHolder(AdapterFeaturedVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), listener, actionText);
     }
 
     @Override
@@ -75,7 +83,7 @@ public class FeaturedVodPresenter extends Presenter {
         private String artworkRequest;
         private int index;
 
-        public ViewHolder(@NonNull AdapterFeaturedVodBinding binding, VodPresenter.OnClickListener listener) {
+        public ViewHolder(@NonNull AdapterFeaturedVodBinding binding, VodPresenter.OnClickListener listener, @StringRes int actionText) {
             super(binding.getRoot());
             this.binding = binding;
             this.listener = listener;
@@ -88,6 +96,7 @@ public class FeaturedVodPresenter extends Presenter {
                 schedule();
             };
             this.front = binding.imageA;
+            binding.actionText.setText(actionText);
             setListeners();
         }
 

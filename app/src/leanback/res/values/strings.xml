@@ -10,7 +10,6 @@
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
     <string name="home_discover">Discover</string>
-    <string name="discover_page_desc">Trending picks from Douban and TMDB</string>
     <string name="discover_douban_hot_movie">Douban Hot Movies</string>
     <string name="discover_douban_hot_tv">Douban Hot TV</string>
     <string name="discover_douban_new_movie">Douban New Releases</string>
@@ -18,6 +17,7 @@
     <string name="discover_tmdb_top_movie">TMDB Top Movies</string>
     <string name="discover_tmdb_top_tv">TMDB Top TV</string>
     <string name="discover_search_play">Search &amp; Play</string>
+    <string name="discover_view_details">View details</string>
 
     <!-- Setting -->
     <string name="setting_section_source">Source</string>
