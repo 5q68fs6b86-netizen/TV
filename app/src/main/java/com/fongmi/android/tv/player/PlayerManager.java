@@ -231,7 +231,10 @@ public class PlayerManager implements ParseCallback {
         PlayerSetting.putEngine(targetEngine);
         MpvLogCollector.log("PlayerManager", "切换播放器内核: " + engineName(oldEngine) + " -> " + engineName(targetEngine) + ", isEmpty=" + isEmpty());
         if (oldEngine == targetEngine || isEmpty()) return;
-        startCurrent();
+        // Capture position before engine teardown; after ensureEngine the old player is gone.
+        long position = getPosition();
+        reset(); // cancel play-timeout so a slow MPV teardown cannot fire onPlayTimeout → fallback
+        startCurrent(position);
     }
 
     public String getPositionTime(long delta) {
@@ -416,10 +419,19 @@ public class PlayerManager implements ParseCallback {
         if (PlayerEngineFactory.matches(engine, spec)) return;
         PlayerEngine old = engine;
         MpvLogCollector.log("PlayerManager", "重建播放器实例: " + engineName(old.getType()) + " -> " + engineName(PlayerSetting.getEngine()));
-        player.removeListener(listener);
+        // Release first so MPV enters DESTROYING before a replacement is selected.
+        // The factory immediately uses Exo while native teardown is still in progress.
+        try {
+            player.removeListener(listener);
+        } catch (Throwable ignored) {
+        }
+        try {
+            old.release();
+        } catch (Throwable e) {
+            MpvLogCollector.logError("PlayerManager", "旧引擎 release 异常: " + e.getMessage());
+        }
         engine = PlayerEngineFactory.create(decode, spec, listener);
         setPlayer(engine.getPlayer());
-        old.release();
     }
 
     private void setPlayer(Player player) {

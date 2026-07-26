@@ -654,6 +654,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_MPV_ANIME4K, context.getString(R.string.player_mpv_anime4k)),
                     RowSpec(KEY_MPV_GPU_NEXT, context.getString(R.string.player_mpv_gpu_next), toggle = true),
                     RowSpec(KEY_MPV_VULKAN, context.getString(R.string.player_mpv_vulkan), toggle = true),
+                    RowSpec(KEY_MPV_HDR, context.getString(R.string.player_mpv_hdr)),
                     RowSpec(KEY_ADBLOCK, context.getString(R.string.player_adblock), toggle = true)
                 )
             ),
@@ -667,6 +668,7 @@ class JetStreamSettingView @JvmOverloads constructor(
                     RowSpec(KEY_VIDEO_PREFER, context.getString(R.string.player_video_decode), toggle = true),
                     RowSpec(KEY_AAC, context.getString(R.string.player_aac_track), toggle = true),
                     RowSpec(KEY_AV3A, context.getString(R.string.player_av3a), toggle = true),
+                    RowSpec(KEY_DOLBY, context.getString(R.string.player_mpv_dolby), toggle = true),
                     RowSpec(KEY_DV7, context.getString(R.string.player_dv7), toggle = true)
                 )
             ),
@@ -742,11 +744,13 @@ class JetStreamSettingView @JvmOverloads constructor(
         const val KEY_UA = "ua"
         const val KEY_AI_SUBTITLE = "ai_subtitle"
         const val KEY_AV3A = "av3a"
+        const val KEY_DOLBY = "dolby"
         const val KEY_DV7 = "dv7_hevc"
         const val KEY_MPV_CONF = "mpv_conf"
         const val KEY_MPV_ANIME4K = "mpv_anime4k"
         const val KEY_MPV_GPU_NEXT = "mpv_gpu_next"
         const val KEY_MPV_VULKAN = "mpv_vulkan"
+        const val KEY_MPV_HDR = "mpv_hdr"
         const val KEY_ADBLOCK = "adblock"
 
         const val KEY_TUNNEL = "tunnel"
