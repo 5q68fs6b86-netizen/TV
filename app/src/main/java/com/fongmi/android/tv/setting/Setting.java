@@ -176,6 +176,13 @@ public class Setting {
 
     public static void putToastFilter(boolean enable) {
         Prefers.put("toast_filter", enable);
+        if (enable) {
+            // Install Pine hooks when user turns filter on (no process restart required).
+            try {
+                com.fongmi.android.tv.utils.ToastFilter.onFilterEnabledChanged();
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     /**

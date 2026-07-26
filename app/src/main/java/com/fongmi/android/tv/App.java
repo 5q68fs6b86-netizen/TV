@@ -77,13 +77,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         Init.set(base);
-        // earliest possible: hidden-api exempt + schedule sService hook
-        ToastFilter.install();
+        // Do not install Pine here — Prefers/settings may not be ready; attachBaseContext
+        // is also too early for ART hooks that race later DexClassLoader on API 30+.
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        // Only schedules Pine when toast filter is already enabled in settings.
         ToastFilter.install();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
