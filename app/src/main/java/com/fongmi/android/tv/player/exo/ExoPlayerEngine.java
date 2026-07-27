@@ -11,6 +11,7 @@ import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.ai.subtitle.AiSubtitleRuntime;
 import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
+import com.fongmi.android.tv.setting.PlayerSetting;
 
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +93,9 @@ public class ExoPlayerEngine implements PlayerEngine {
 
     @Override
     public ErrorAction handleError(PlaybackException e) {
+        if (ExoTunnelFallback.shouldFallback(PlayerSetting.isTunnelingEnabled(), e.errorCode)) {
+            return ErrorAction.TUNNEL;
+        }
         return switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW -> seekToDefaultPosition();
             case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED, PlaybackException.ERROR_CODE_DECODING_FAILED -> ErrorAction.DECODE;

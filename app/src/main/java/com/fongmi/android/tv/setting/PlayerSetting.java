@@ -222,7 +222,7 @@ public class PlayerSetting {
         Prefers.put("dv7_hevc", dv7HevcFallback);
     }
 
-    /** Enables Dolby Vision codec tags in MPV hwdec-codecs. */
+    /** Uses the platform Dolby Vision decoder instead of MPV software decoding. */
     public static boolean isMpvDolbyHwdecEnabled() {
         return Prefers.getBoolean("dolby", true);
     }

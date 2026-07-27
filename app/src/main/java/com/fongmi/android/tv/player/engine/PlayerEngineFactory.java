@@ -24,6 +24,10 @@ public final class PlayerEngineFactory {
         return create(decode, resolve(spec), listener);
     }
 
+    public static PlayerEngine createPlatform(int decode, Player.Listener listener) {
+        return new ExoPlayerEngine(decode, listener);
+    }
+
     private static PlayerEngine create(int decode, PlayerEngine.Type type, Player.Listener listener) {
         return switch (type) {
             case EXO -> new ExoPlayerEngine(decode, listener);

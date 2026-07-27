@@ -101,6 +101,16 @@ final class MpvOptions {
         }
     }
 
+    static void applyPlaybackDefaults(int decode) {
+        MPVLib.INSTANCE.setPropertyString("vo", videoOutputDriver());
+        applyDecode(decode);
+    }
+
+    static void applyDolbyVisionSoftwareDecode() {
+        MPVLib.INSTANCE.setPropertyString("hwdec", "no");
+        MPVLib.INSTANCE.setPropertyString("vo", "gpu-next");
+    }
+
     /**
      * Vulkan: only gpu-api + androidvk (FongMi MpvUtil.addVideoOutputOptions).
      * GL path keeps opengl-es + android context.

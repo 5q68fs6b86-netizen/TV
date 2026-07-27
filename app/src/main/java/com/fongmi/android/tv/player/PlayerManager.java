@@ -56,6 +56,7 @@ public class PlayerManager implements ParseCallback {
     private long pendingStartPositionMs;
     private boolean danmakuEnabled;
     private boolean initTrack;
+    private boolean forcePlatformEngine;
     private int retry;
     private int decode;
 
@@ -228,6 +229,7 @@ public class PlayerManager implements ParseCallback {
 
     public void setEngine(int targetEngine) {
         int oldEngine = getEngine();
+        forcePlatformEngine = false;
         PlayerSetting.putEngine(targetEngine);
         MpvLogCollector.log("PlayerManager", "切换播放器内核: " + engineName(oldEngine) + " -> " + engineName(targetEngine) + ", isEmpty=" + isEmpty());
         if (oldEngine == targetEngine || isEmpty()) return;
@@ -373,6 +375,7 @@ public class PlayerManager implements ParseCallback {
 
     public void clear() {
         spec = null;
+        forcePlatformEngine = false;
     }
 
     public void resetTrack() {
@@ -381,6 +384,14 @@ public class PlayerManager implements ParseCallback {
 
     public void toggleDecode() {
         decode = isHard() ? PlayerEngine.SOFT : PlayerEngine.HARD;
+        if (forcePlatformEngine) {
+            long position = Math.max(0, getPosition());
+            forcePlatformEngine = false;
+            MpvLogCollector.log("PlayerManager", "切换解码模式并退出 Dolby Vision 平台转交");
+            callback.onDecodeChanged();
+            startCurrent(position);
+            return;
+        }
         boolean rebuild = engine.setDecode(decode);
         MpvLogCollector.log("PlayerManager", "切换解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解") + ", rebuild=" + rebuild);
         callback.onDecodeChanged();
@@ -406,6 +417,23 @@ public class PlayerManager implements ParseCallback {
         }
     }
 
+    private void handleTunnelError(PlaybackException e) {
+        long position = Math.max(0, getPosition());
+        MpvLogCollector.logError("PlayerManager", "隧道播放失败，关闭后重试: errorCode=" + e.errorCode);
+        PlayerSetting.putTunnel(false);
+        Notify.show(R.string.error_tunnel_fallback);
+        setPlayer(engine.rebuild());
+        startCurrent(position);
+    }
+
+    private void handlePlatformDecoderFallback(PlaybackException e) {
+        long position = Math.max(0, getPosition());
+        forcePlatformEngine = true;
+        MpvLogCollector.log("PlayerManager", "MPV Dolby Vision 硬解转交平台解码器: " + e.getMessage());
+        Notify.show(R.string.error_dolby_fallback);
+        startCurrent(position);
+    }
+
     private boolean isHard() {
         return decode == PlayerEngine.HARD;
     }
@@ -416,9 +444,11 @@ public class PlayerManager implements ParseCallback {
     }
 
     private void ensureEngine(PlaySpec spec) {
-        if (PlayerEngineFactory.matches(engine, spec)) return;
+        if (forcePlatformEngine && engine.getType() == PlayerEngine.Type.EXO) return;
+        if (!forcePlatformEngine && PlayerEngineFactory.matches(engine, spec)) return;
         PlayerEngine old = engine;
-        MpvLogCollector.log("PlayerManager", "重建播放器实例: " + engineName(old.getType()) + " -> " + engineName(PlayerSetting.getEngine()));
+        String targetEngine = forcePlatformEngine ? "EXO (Dolby Vision)" : engineName(PlayerSetting.getEngine());
+        MpvLogCollector.log("PlayerManager", "重建播放器实例: " + engineName(old.getType()) + " -> " + targetEngine);
         // Release first so MPV enters DESTROYING before a replacement is selected.
         // The factory immediately uses Exo while native teardown is still in progress.
         try {
@@ -430,7 +460,9 @@ public class PlayerManager implements ParseCallback {
         } catch (Throwable e) {
             MpvLogCollector.logError("PlayerManager", "旧引擎 release 异常: " + e.getMessage());
         }
-        engine = PlayerEngineFactory.create(decode, spec, listener);
+        engine = forcePlatformEngine
+                ? PlayerEngineFactory.createPlatform(decode, listener)
+                : PlayerEngineFactory.create(decode, spec, listener);
         setPlayer(engine.getPlayer());
     }
 
@@ -460,6 +492,7 @@ public class PlayerManager implements ParseCallback {
     }
 
     public void start(PlaySpec spec, long timeout, long startPositionMs) {
+        forcePlatformEngine = false;
         this.spec = spec;
         setMediaItem(timeout, startPositionMs);
     }
@@ -470,6 +503,7 @@ public class PlayerManager implements ParseCallback {
 
     public void parse(String key, Result result, boolean useParse, MediaMetadata metadata, long startPositionMs) {
         stopParse();
+        forcePlatformEngine = false;
         pendingStartPositionMs = startPositionMs;
         spec = PlaySpec.fromParse(result, key, metadata);
         parseJob = ParseJob.create(this).start(result, useParse);
@@ -609,6 +643,8 @@ public class PlayerManager implements ParseCallback {
             if (spec == null) return;
             switch (engine.handleError(e)) {
                 case DECODE -> handleDecodeError(e);
+                case TUNNEL -> handleTunnelError(e);
+                case PLATFORM -> handlePlatformDecoderFallback(e);
                 case RECOVERED -> setDanmakus(spec.getDanmakus());
                 case FATAL -> callback.onError(engine.getErrorMessage(e));
             }
