@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -132,7 +133,29 @@ class JetStreamPushView @JvmOverloads constructor(
                         .align(Alignment.Center)
                         .fillMaxWidth()
                 ) {
-                    if (maxWidth < 920.dp) {
+                    val availableWidth = maxWidth
+                    val compactLandscape = maxHeight < 640.dp && availableWidth > maxHeight * 1.4f
+                    if (compactLandscape) {
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .widthIn(max = 900.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(40.dp)
+                        ) {
+                            PushInfoPanel(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .widthIn(max = 460.dp),
+                                compact = true
+                            )
+                            QrPanel(
+                                modifier = Modifier.width(if (availableWidth < 820.dp) 320.dp else 360.dp),
+                                compact = true
+                            )
+                        }
+                    } else if (maxWidth < 920.dp) {
                         Column(
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -170,28 +193,28 @@ class JetStreamPushView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun PushInfoPanel(modifier: Modifier) {
+    private fun PushInfoPanel(modifier: Modifier, compact: Boolean = false) {
         val primaryFocusRequester = remember { FocusRequester() }
         LaunchedEffect(contentFocused) {
             if (contentFocused) runCatching { primaryFocusRequester.requestFocus() }
         }
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(40.dp)
+            verticalArrangement = Arrangement.spacedBy(if (compact) 24.dp else 40.dp)
         ) {
-            PushHeader()
-            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                AddressBlock()
-                PushClipboardButton(primaryFocusRequester)
+            PushHeader(compact)
+            Column(verticalArrangement = Arrangement.spacedBy(if (compact) 16.dp else 24.dp)) {
+                AddressBlock(compact)
+                PushClipboardButton(primaryFocusRequester, compact)
             }
-            HintRow()
+            HintRow(compact)
         }
     }
 
     @Composable
-    private fun PushHeader() {
+    private fun PushHeader(compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -216,8 +239,8 @@ class JetStreamPushView @JvmOverloads constructor(
             Text(
                 text = stringResource(id = R.string.push_title),
                 color = colorScheme.onSurface,
-                fontSize = 60.sp,
-                lineHeight = 64.sp,
+                fontSize = if (compact) 40.sp else 60.sp,
+                lineHeight = if (compact) 44.sp else 64.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -226,18 +249,18 @@ class JetStreamPushView @JvmOverloads constructor(
                 text = stringResource(id = R.string.push_desc),
                 modifier = Modifier.widthIn(max = 448.dp),
                 color = colorScheme.onSurfaceVariant,
-                fontSize = 20.sp,
-                lineHeight = 30.sp,
+                fontSize = if (compact) 16.sp else 20.sp,
+                lineHeight = if (compact) 22.sp else 30.sp,
                 fontWeight = FontWeight.Normal
             )
         }
     }
 
     @Composable
-    private fun AddressBlock() {
+    private fun AddressBlock(compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
         val supportingColor = colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -264,7 +287,12 @@ class JetStreamPushView @JvmOverloads constructor(
                     .clip(RoundedCornerShape(20.dp))
                     .background(colorScheme.surface)
                     .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.52f), RoundedCornerShape(20.dp))
-                    .padding(start = 24.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
+                    .padding(
+                        start = if (compact) 20.dp else 24.dp,
+                        top = if (compact) 4.dp else 8.dp,
+                        bottom = if (compact) 4.dp else 8.dp,
+                        end = if (compact) 4.dp else 8.dp
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -278,13 +306,13 @@ class JetStreamPushView @JvmOverloads constructor(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(Modifier.width(8.dp))
-                CopyAddressButton()
+                CopyAddressButton(compact)
             }
         }
     }
 
     @Composable
-    private fun CopyAddressButton() {
+    private fun CopyAddressButton(compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
@@ -300,7 +328,7 @@ class JetStreamPushView @JvmOverloads constructor(
         )
         Box(
             modifier = Modifier
-                .size(52.dp)
+                .size(if (compact) 44.dp else 52.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(RoundedCornerShape(12.dp))
                 .background(background)
@@ -316,14 +344,14 @@ class JetStreamPushView @JvmOverloads constructor(
             Icon(
                 painter = painterResource(id = if (copied) R.drawable.msr_check else R.drawable.msr_content_copy),
                 contentDescription = stringResource(id = R.string.push_copy_url),
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(if (compact) 20.dp else 22.dp),
                 tint = if (copied) colorScheme.tertiary else colorScheme.onSurfaceVariant
             )
         }
     }
 
     @Composable
-    private fun PushClipboardButton(focusRequester: FocusRequester? = null) {
+    private fun PushClipboardButton(focusRequester: FocusRequester? = null, compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
         var pushed by remember { mutableStateOf(false) }
         val interactionSource = remember { MutableInteractionSource() }
@@ -365,7 +393,7 @@ class JetStreamPushView @JvmOverloads constructor(
 
         Row(
             modifier = Modifier
-                .height(56.dp)
+                .height(if (compact) 52.dp else 56.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(CircleShape)
                 .background(background)
@@ -377,21 +405,21 @@ class JetStreamPushView @JvmOverloads constructor(
                         if (listener?.onPushClipboard() == true) pushed = true
                     }
                 )
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = if (compact) 24.dp else 32.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = painterResource(id = if (pushed) R.drawable.msr_check else R.drawable.msr_content_paste),
                 contentDescription = null,
-                modifier = Modifier.size(25.dp),
+                modifier = Modifier.size(if (compact) 23.dp else 25.dp),
                 tint = contentColor
             )
             Spacer(Modifier.width(12.dp))
             Text(
                 text = stringResource(id = if (pushed) R.string.push_clip_sent else R.string.push_clip),
                 color = contentColor,
-                fontSize = 18.sp,
+                fontSize = if (compact) 17.sp else 18.sp,
                 lineHeight = 24.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
@@ -401,14 +429,14 @@ class JetStreamPushView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun HintRow() {
+    private fun HintRow(compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
         val supportingColor = colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 0.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            verticalArrangement = Arrangement.spacedBy(if (compact) 16.dp else 32.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -437,46 +465,50 @@ class JetStreamPushView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun QrPanel(modifier: Modifier) {
+    private fun QrPanel(modifier: Modifier, compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
-        val panelShape = RoundedCornerShape(40.dp)
+        val panelShape = RoundedCornerShape(if (compact) 32.dp else 40.dp)
         Column(
             modifier = modifier
                 .shadow(22.dp, panelShape, clip = false)
                 .clip(panelShape)
                 .background(colorScheme.surface)
                 .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.32f), panelShape)
-                .padding(horizontal = 56.dp, vertical = 56.dp),
+                .padding(
+                    horizontal = if (compact) 32.dp else 56.dp,
+                    vertical = if (compact) 28.dp else 56.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            QrImageCard()
-            Spacer(Modifier.height(32.dp))
+            QrImageCard(compact)
+            Spacer(Modifier.height(if (compact) 20.dp else 32.dp))
             Row(
+                modifier = Modifier.heightIn(min = if (compact) 32.dp else 36.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.msr_smartphone),
                     contentDescription = null,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier.size(if (compact) 22.dp else 26.dp),
                     tint = colorScheme.primary
                 )
                 Text(
                     text = stringResource(id = R.string.push_scan_title),
                     color = colorScheme.onSurface,
-                    fontSize = 24.sp,
-                    lineHeight = 30.sp,
+                    fontSize = if (compact) 20.sp else 24.sp,
+                    lineHeight = if (compact) 28.sp else 32.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(if (compact) 6.dp else 8.dp))
             Text(
                 text = stringResource(id = R.string.push_scan_desc),
                 color = colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
+                fontSize = if (compact) 13.sp else 14.sp,
+                lineHeight = if (compact) 18.sp else 20.sp,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -485,11 +517,11 @@ class JetStreamPushView @JvmOverloads constructor(
     }
 
     @Composable
-    private fun QrImageCard() {
+    private fun QrImageCard(compact: Boolean = false) {
         val colorScheme = MaterialTheme.colorScheme
         val interactionSource = remember { MutableInteractionSource() }
         val focused by interactionSource.collectIsFocusedAsState()
-        val shape = RoundedCornerShape(28.dp)
+        val shape = RoundedCornerShape(if (compact) 22.dp else 28.dp)
         val scale by animateFloatAsState(
             targetValue = if (focused) 1.05f else 1f,
             animationSpec = JetStreamAnimations.ScaleSpring,
@@ -502,7 +534,7 @@ class JetStreamPushView @JvmOverloads constructor(
         )
         Box(
             modifier = Modifier
-                .size(288.dp)
+                .size(if (compact) 220.dp else 288.dp)
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .shadow(14.dp, shape, clip = false)
                 .clip(shape)
@@ -513,7 +545,7 @@ class JetStreamPushView @JvmOverloads constructor(
                     indication = null,
                     onClick = { listener?.onOpenAddress() }
                 )
-                .padding(20.dp),
+                .padding(if (compact) 16.dp else 20.dp),
             contentAlignment = Alignment.Center
         ) {
             val bitmap = qrImage

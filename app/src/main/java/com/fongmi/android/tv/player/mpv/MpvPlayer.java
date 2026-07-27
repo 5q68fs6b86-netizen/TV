@@ -109,6 +109,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     private long textOffsetMs;
     private float volume;
     private int decode;
+    private @Nullable String dolbyDecoderOverride;
+    private boolean dolbyPlatformFallbackRequested;
 
     MpvPlayer(Context context, int decode) {
         super(Looper.getMainLooper());
@@ -149,10 +151,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         this.decode = decode;
         if (Looper.myLooper() != getApplicationLooper()) {
             runOnApplicationThread(() -> reloadForDecoderChange(
-                    "切换解码模式", () -> MpvOptions.applyDecode(decode)));
+                    "切换解码模式", this::restorePlaybackOptions));
             return;
         }
-        reloadForDecoderChange("切换解码模式", () -> MpvOptions.applyDecode(decode));
+        reloadForDecoderChange("切换解码模式", this::restorePlaybackOptions);
     }
 
     boolean isLive() {
@@ -612,7 +614,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
         MpvLogCollector.log("MpvPlayer", "解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解"));
 
-        MpvOptions.applyDecode(decode);
+        restorePlaybackOptions();
         applyHeaders(spec.getHeaders());
         loadUrl(spec.getUrl(), this.positionMs);
         invalidateState();
@@ -637,6 +639,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         this.loading = true;
         this.playerError = null;
         this.playbackState = Player.STATE_BUFFERING;
+        restorePlaybackOptions();
         loadUrl(item.localConfiguration.uri.toString(), this.positionMs);
         invalidateState();
     }
@@ -712,7 +715,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MpvLogCollector.log("MpvPlayer", "文件加载成功");
                 seekAfterLoadIfNeeded();
                 readRuntimeState();
-                applyDolbyPolicy();
+                if (applyDolbyPolicy()) return;
                 addInitialSubtitles();
                 invalidateState();
             }
@@ -721,7 +724,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 seekAfterLoadIfNeeded();
                 readVideoSize();
                 // DV metadata may surface late (HLS) or via track switch; policy is idempotent.
-                applyDolbyPolicy();
+                if (applyDolbyPolicy()) return;
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
@@ -1170,23 +1173,43 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         }
     }
 
-    /**
-     * The AAR's libmpv has no dvhe/dvh1 handling in hwdec-codecs; the only reliable lever is
-     * per-file: when the Dolby switch is off and the selected video track carries a Dolby
-     * Vision profile ({@code track-list/N/dolby-vision-profile}, mpv 0.38+), drop to software
-     * decode so gpu-next/libplacebo can apply the RPU metadata. The next startInternal()
-     * restores the configured hwdec mode via applyDecode().
-     */
-    private void applyDolbyPolicy() {
-        if (decode != PlayerEngine.HARD || PlayerSetting.isMpvDolbyHwdecEnabled()) return;
+    private boolean applyDolbyPolicy() {
         int profile = selectedVideoDolbyProfile();
-        if (profile < 0) return;
-        MpvLogCollector.log("MpvPlayer", "Dolby Vision 硬解已关闭 (profile " + profile + "), 本片改用软解");
-        try {
-            MPVLib.INSTANCE.setPropertyString("hwdec", "no");
-        } catch (Throwable e) {
-            MpvLogCollector.logError("MpvPlayer", "Dolby 软解切换失败: " + e.getMessage());
+        boolean hardDecode = decode == PlayerEngine.HARD;
+        boolean dolbyHwdecEnabled = PlayerSetting.isMpvDolbyHwdecEnabled();
+        if (profile < 0) return false;
+        if (MpvDolbyPolicy.shouldUsePlatformDecoder(hardDecode, dolbyHwdecEnabled, profile)) {
+            if (dolbyPlatformFallbackRequested) return true;
+            dolbyPlatformFallbackRequested = true;
+            MpvDolbyVisionException cause = new MpvDolbyVisionException(profile);
+            fail(new PlaybackException(cause.getMessage(), cause,
+                    PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED));
+            return true;
         }
+        if (!MpvDolbyPolicy.shouldUseSoftwareDecoder(hardDecode, dolbyHwdecEnabled, profile)) return false;
+        if ("no".equals(dolbyDecoderOverride)) return false;
+        dolbyDecoderOverride = "no";
+        MpvLogCollector.log("MpvPlayer", "Dolby Vision profile " + profile
+                + ": reload with hwdec=no, vo=gpu-next");
+        if (profile == 7) {
+            MpvLogCollector.log("MpvPlayer", "Dolby Vision profile 7 enhancement layer is unsupported; using BL/RPU");
+        }
+        reloadForDecoderChange("Dolby Vision 软件解码", MpvOptions::applyDolbyVisionSoftwareDecode);
+        return true;
+    }
+
+    private void restorePlaybackOptions() {
+        dolbyDecoderOverride = null;
+        dolbyPlatformFallbackRequested = false;
+        try {
+            MpvOptions.applyPlaybackDefaults(decode);
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "恢复默认视频输出失败: " + e.getMessage());
+        }
+    }
+
+    private String activeVideoOutputDriver() {
+        return "no".equals(dolbyDecoderOverride) ? "gpu-next" : MpvOptions.videoOutputDriver();
     }
 
     private int selectedVideoDolbyProfile() {
@@ -1313,7 +1336,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.attachSurface(surface);
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         updateSurfaceSize(width, height);
-        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", MpvOptions.videoOutputDriver());
+        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", activeVideoOutputDriver());
         markRenderedFirstFrame();
         loadPendingUrl();
     }

@@ -44,6 +44,8 @@ public interface PlayerEngine {
 
     enum ErrorAction {
         RECOVERED,
+        TUNNEL,
+        PLATFORM,
         DECODE,
         FATAL
     }

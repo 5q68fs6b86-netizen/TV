@@ -113,6 +113,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public ErrorAction handleError(PlaybackException e) {
+        if (e.getCause() instanceof MpvDolbyVisionException) return ErrorAction.PLATFORM;
         return switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
                     PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
