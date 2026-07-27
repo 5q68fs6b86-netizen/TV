@@ -448,7 +448,11 @@ class JetStreamVodCardRootLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
-        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 12)
+        // Keep the scale feedback on the complete card, but do not elevate this
+        // transparent container. Its bounds also include the title below the
+        // poster, so a platform elevation shadow appears there as a hard-edged
+        // rectangle instead of following the poster's rounded outline.
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 0)
     }
 }
 
