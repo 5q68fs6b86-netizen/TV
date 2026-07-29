@@ -456,6 +456,76 @@ class JetStreamVodCardRootLayout @JvmOverloads constructor(
     }
 }
 
+class JetStreamDiscoverPanelLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamDiscoverPanelBackground(12)
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 12, strokeWidthDp = 3)
+        clipChildren = false
+        clipToPadding = false
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 0)
+    }
+}
+
+class JetStreamDiscoverFacetLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamDiscoverPanelBackground(12)
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 12, strokeWidthDp = 3)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 0)
+    }
+}
+
+class JetStreamDiscoverShelfImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(10)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 10)
+        scaleType = ScaleType.CENTER_CROP
+        clipToOutline = true
+    }
+}
+
+class JetStreamDiscoverPreviewImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(8)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 8)
+        scaleType = ScaleType.CENTER_CROP
+        clipToOutline = true
+    }
+}
+
+class JetStreamDiscoverFacetImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(9)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 9)
+        scaleType = ScaleType.CENTER_INSIDE
+        clipToOutline = true
+    }
+}
+
 class JetStreamPosterImageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -1414,6 +1484,14 @@ private fun View.jetStreamFocusDrawable(cornerRadiusDp: Int, strokeWidthDp: Int)
         cornerRadius = jetStreamDp(cornerRadiusDp)
         setColor(Color.TRANSPARENT)
         setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(R.color.jetstream_primary))
+    }
+}
+
+private fun View.jetStreamDiscoverPanelBackground(cornerRadiusDp: Int): GradientDrawable {
+    return GradientDrawable().apply {
+        cornerRadius = jetStreamDp(cornerRadiusDp)
+        setColor(jetStreamColor(R.color.jetstream_surface_container))
+        setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
     }
 }
 

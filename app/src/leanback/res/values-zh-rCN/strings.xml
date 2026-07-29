@@ -18,6 +18,16 @@
     <string name="discover_tmdb_top_tv">TMDB 高分剧集</string>
     <string name="discover_search_play">搜索播放</string>
     <string name="discover_view_details">查看详情</string>
+    <string name="discover_today_trending">今日趋势</string>
+    <string name="discover_week_trending">本周趋势</string>
+    <string name="discover_popular_movie">备受欢迎 · 电影</string>
+    <string name="discover_popular_tv">备受欢迎 · 剧集</string>
+    <string name="discover_now_playing">正在热映</string>
+    <string name="discover_top_movie">高分电影</string>
+    <string name="discover_top_tv">高分剧集</string>
+    <string name="discover_categories">分类浏览</string>
+    <string name="discover_companies">电影公司</string>
+    <string name="discover_providers">播出平台</string>
     <string name="vod_control_group_playlist">播放列表</string>
     <string name="vod_control_group_captions">字幕 · 音轨</string>
     <string name="vod_control_group_settings">设置</string>
