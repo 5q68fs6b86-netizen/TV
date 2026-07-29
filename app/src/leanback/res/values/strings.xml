@@ -18,6 +18,16 @@
     <string name="discover_tmdb_top_tv">TMDB Top TV</string>
     <string name="discover_search_play">Search &amp; Play</string>
     <string name="discover_view_details">View details</string>
+    <string name="discover_today_trending">Trending today</string>
+    <string name="discover_week_trending">Trending this week</string>
+    <string name="discover_popular_movie">Popular · Movies</string>
+    <string name="discover_popular_tv">Popular · TV</string>
+    <string name="discover_now_playing">Now playing</string>
+    <string name="discover_top_movie">Top movies</string>
+    <string name="discover_top_tv">Top TV</string>
+    <string name="discover_categories">Browse genres</string>
+    <string name="discover_companies">Studios</string>
+    <string name="discover_providers">Streaming providers</string>
     <string name="vod_control_group_playlist">Playlist</string>
     <string name="vod_control_group_captions">Captions &amp; Audio</string>
     <string name="vod_control_group_settings">Settings</string>

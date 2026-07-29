@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fongmi.android.tv.ui.custom.JetStreamDiscoverPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="418dp"
+    android:layout_height="264dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <com.fongmi.android.tv.ui.custom.JetStreamDiscoverShelfImageView
+        android:id="@+id/hero"
+        android:layout_width="match_parent"
+        android:layout_height="150dp" />
+
+    <com.fongmi.android.tv.ui.custom.JetStreamHeroTitleTextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="-42dp"
+        android:gravity="start|center_vertical"
+        android:paddingStart="14dp"
+        android:textSize="20sp"
+        tools:text="备受欢迎 · 剧集" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="74dp"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamDiscoverPreviewImageView
+            android:id="@+id/previewA"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <com.fongmi.android.tv.ui.custom.JetStreamDiscoverPreviewImageView
+            android:id="@+id/previewB"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1" />
+
+        <com.fongmi.android.tv.ui.custom.JetStreamDiscoverPreviewImageView
+            android:id="@+id/previewC"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+</com.fongmi.android.tv.ui.custom.JetStreamDiscoverPanelLayout>

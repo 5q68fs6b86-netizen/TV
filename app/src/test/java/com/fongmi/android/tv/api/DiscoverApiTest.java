@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.api;
 
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -79,6 +80,30 @@ public class DiscoverApiTest {
         assertEquals("https://tapi.coolmarket.eu.org/t/p/w342/abc.jpg", DiscoverApi.tmdbPic("/abc.jpg"));
         assertEquals("https://tapi.coolmarket.eu.org/t/p/w342/abc.jpg", DiscoverApi.tmdbPic("abc.jpg"));
         assertEquals("", DiscoverApi.tmdbPic(""));
+    }
+
+    @Test
+    public void shouldBuildTmdbBackdropAndLogoUrls() {
+        assertEquals("https://tapi.coolmarket.eu.org/t/p/w780/hero.jpg", DiscoverApi.tmdbBackdrop("/hero.jpg"));
+        assertEquals("https://tapi.coolmarket.eu.org/t/p/w300/logo.png", DiscoverApi.tmdbLogo("logo.png"));
+    }
+
+    @Test
+    public void shouldParseGenresAndProviders() {
+        List<DiscoverFacet> genres = DiscoverApi.parseFacets("{\"genres\":[{\"id\":878,\"name\":\"科幻\"}]}", DiscoverFacet.GENRE);
+        List<DiscoverFacet> providers = DiscoverApi.parseFacets("{\"results\":[{\"provider_id\":8,\"provider_name\":\"Netflix\",\"logo_path\":\"/n.png\"}]}", DiscoverFacet.PROVIDER);
+
+        assertEquals("878", genres.get(0).getId());
+        assertEquals("Netflix", providers.get(0).getName());
+        assertEquals("https://tapi.coolmarket.eu.org/t/p/w300/n.png", providers.get(0).getImage());
+    }
+
+    @Test
+    public void shouldParseTmdbBackdropAndMediaType() {
+        List<Vod> items = DiscoverApi.parseTmdbResults("{\"results\":[{\"id\":1,\"name\":\"剧名\",\"media_type\":\"tv\",\"poster_path\":\"/p.jpg\",\"backdrop_path\":\"/b.jpg\"}]}");
+
+        assertEquals("剧集", items.get(0).getTypeName());
+        assertEquals("https://tapi.coolmarket.eu.org/t/p/w780/b.jpg", items.get(0).getBackdrop());
     }
 
     @Test

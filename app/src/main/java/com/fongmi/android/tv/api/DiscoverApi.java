@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.fongmi.android.tv.bean.Vod;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.JsonArray;
@@ -28,14 +29,16 @@ public class DiscoverApi {
 
     private static final String TAG = "DiscoverApi";
     private static final String TMDB_BASE = "https://tapi.coolmarket.eu.org/3/";
-    private static final String TMDB_IMAGE = "https://tapi.coolmarket.eu.org/t/p/w342";
+    private static final String TMDB_IMAGE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DOUBAN_LIST = "https://movie.douban.com/j/search_subjects";
     private static final String DOUBAN_PIC_SUFFIX = "@Referer=https://movie.douban.com/@User-Agent=Mozilla/5.0";
     private static final long CACHE_TTL = 30 * 60 * 1000L;
     private static final Map<Row, CacheEntry> CACHE = new ConcurrentHashMap<>();
 
     public enum Row {
-        DOUBAN_HOT_MOVIE, DOUBAN_HOT_TV, DOUBAN_NEW_MOVIE, TMDB_TRENDING, TMDB_TOP_MOVIE, TMDB_TOP_TV
+        DOUBAN_HOT_MOVIE, DOUBAN_HOT_TV, DOUBAN_NEW_MOVIE,
+        TMDB_DAY, TMDB_WEEK, TMDB_NOW_PLAYING, TMDB_POPULAR_MOVIE, TMDB_POPULAR_TV,
+        TMDB_TOP_MOVIE, TMDB_TOP_TV
     }
 
     public interface Listener {
@@ -96,8 +99,16 @@ public class DiscoverApi {
                 return buildDoubanUrl("tv", "热门");
             case DOUBAN_NEW_MOVIE:
                 return buildDoubanUrl("movie", "最新");
-            case TMDB_TRENDING:
+            case TMDB_DAY:
+                return buildTmdbUrl("trending/all/day", tmdbApiKey);
+            case TMDB_WEEK:
                 return buildTmdbUrl("trending/all/week", tmdbApiKey);
+            case TMDB_NOW_PLAYING:
+                return buildTmdbUrl("movie/now_playing", tmdbApiKey);
+            case TMDB_POPULAR_MOVIE:
+                return buildTmdbUrl("movie/popular", tmdbApiKey);
+            case TMDB_POPULAR_TV:
+                return buildTmdbUrl("tv/popular", tmdbApiKey);
             case TMDB_TOP_MOVIE:
                 return buildTmdbUrl("movie/top_rated", tmdbApiKey);
             case TMDB_TOP_TV:
@@ -176,6 +187,8 @@ public class DiscoverApi {
             item.setYear(tmdbYear(result));
             item.setRemarks(tmdbRemarks(getDouble(result, "vote_average")));
             item.setContent(getString(result, "overview"));
+            item.setTypeName(tmdbType(result));
+            item.setBackdrop(tmdbBackdrop(getString(result, "backdrop_path")));
             items.add(item);
         }
         return items;
@@ -197,7 +210,27 @@ public class DiscoverApi {
     static String tmdbPic(String posterPath) {
         if (isEmpty(posterPath)) return "";
         String path = posterPath.trim();
-        return TMDB_IMAGE + (path.startsWith("/") ? path : "/" + path);
+        return tmdbImage("w342", path);
+    }
+
+    static String tmdbBackdrop(String backdropPath) {
+        return tmdbImage("w780", backdropPath);
+    }
+
+    static String tmdbLogo(String logoPath) {
+        return tmdbImage("w300", logoPath);
+    }
+
+    private static String tmdbImage(String size, String value) {
+        if (isEmpty(value)) return "";
+        String path = value.trim();
+        return TMDB_IMAGE + size + (path.startsWith("/") ? path : "/" + path);
+    }
+
+    static String tmdbType(@Nullable JsonObject result) {
+        String type = getString(result, "media_type");
+        if (isEmpty(type)) type = result != null && result.has("title") ? "movie" : "tv";
+        return "tv".equals(type) ? "剧集" : "电影";
     }
 
     static String tmdbYear(@Nullable JsonObject result) {
@@ -208,6 +241,104 @@ public class DiscoverApi {
 
     static String tmdbRemarks(double voteAverage) {
         return voteAverage > 0 ? String.format(Locale.US, "%.1f分", voteAverage) : "";
+    }
+
+    public interface FacetListener {
+        void onSuccess(List<DiscoverFacet> items);
+
+        void onError(Exception e);
+    }
+
+    public static void fetchGenres(@Nullable String apiKey, FacetListener listener) {
+        HttpUrl url = buildTmdbUrl("genre/movie/list", apiKey);
+        fetchFacets(url, DiscoverFacet.GENRE, listener);
+    }
+
+    public static void fetchProviders(@Nullable String apiKey, FacetListener listener) {
+        HttpUrl url = buildTmdbUrl("watch/providers/movie", apiKey);
+        if (url != null) url = url.newBuilder().addQueryParameter("watch_region", "CN").build();
+        fetchFacets(url, DiscoverFacet.PROVIDER, listener);
+    }
+
+    private static void fetchFacets(@Nullable HttpUrl url, String kind, FacetListener listener) {
+        if (url == null) {
+            post(() -> listener.onError(new IOException("Discover facet url unavailable")));
+            return;
+        }
+        OkHttp.client().newCall(new Request.Builder().url(url).tag(TAG).build()).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (!call.isCanceled()) post(() -> listener.onError(e));
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try (Response resp = response) {
+                    if (!resp.isSuccessful() || resp.body() == null) throw new IOException("Discover facet failed: HTTP " + resp.code());
+                    List<DiscoverFacet> items = parseFacets(resp.body().string(), kind);
+                    post(() -> listener.onSuccess(items));
+                } catch (Exception e) {
+                    post(() -> listener.onError(e));
+                }
+            }
+        });
+    }
+
+    static List<DiscoverFacet> parseFacets(String body, String kind) {
+        List<DiscoverFacet> items = new ArrayList<>();
+        JsonObject object = parseObject(body);
+        JsonArray array = getArray(object, DiscoverFacet.GENRE.equals(kind) ? "genres" : "results");
+        if (array == null) return items;
+        for (JsonElement element : array) {
+            JsonObject value = getObject(element);
+            String id = getString(value, DiscoverFacet.PROVIDER.equals(kind) ? "provider_id" : "id");
+            String name = getString(value, DiscoverFacet.PROVIDER.equals(kind) ? "provider_name" : "name");
+            if (isEmpty(id) || isEmpty(name)) continue;
+            items.add(new DiscoverFacet(kind, id, name, tmdbLogo(getString(value, "logo_path"))));
+        }
+        return items;
+    }
+
+    public static void fetchFiltered(DiscoverFacet facet, int page, @Nullable String apiKey, Listener listener) {
+        Row row = DiscoverFacet.TOP_TV.equals(facet.getKind()) ? Row.TMDB_TOP_TV
+                : DiscoverFacet.TOP_MOVIE.equals(facet.getKind()) ? Row.TMDB_TOP_MOVIE
+                : DiscoverFacet.NOW_PLAYING.equals(facet.getKind()) ? Row.TMDB_NOW_PLAYING : null;
+        HttpUrl url = row == null ? buildDiscoverUrl(facet, page, apiKey) : buildUrl(row, apiKey);
+        if (url != null) url = url.newBuilder().setQueryParameter("page", String.valueOf(page)).build();
+        if (url == null) {
+            Row errorRow = row == null ? Row.TMDB_POPULAR_MOVIE : row;
+            post(() -> listener.onError(errorRow, new IOException("Discover filter url unavailable")));
+            return;
+        }
+        Row callbackRow = row == null ? Row.TMDB_POPULAR_MOVIE : row;
+        newCall(callbackRow, url).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (!call.isCanceled()) post(() -> listener.onError(callbackRow, e));
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try (Response resp = response) {
+                    if (!resp.isSuccessful() || resp.body() == null) throw new IOException("Discover filter failed: HTTP " + resp.code());
+                    List<Vod> items = parseTmdbResults(resp.body().string());
+                    post(() -> listener.onSuccess(callbackRow, items));
+                } catch (Exception e) {
+                    post(() -> listener.onError(callbackRow, e));
+                }
+            }
+        });
+    }
+
+    @Nullable
+    private static HttpUrl buildDiscoverUrl(DiscoverFacet facet, int page, @Nullable String apiKey) {
+        HttpUrl url = buildTmdbUrl("discover/movie", apiKey);
+        if (url == null) return null;
+        HttpUrl.Builder builder = url.newBuilder().addQueryParameter("page", String.valueOf(page)).addQueryParameter("sort_by", "popularity.desc");
+        if (DiscoverFacet.GENRE.equals(facet.getKind())) builder.addQueryParameter("with_genres", facet.getId());
+        if (DiscoverFacet.COMPANY.equals(facet.getKind())) builder.addQueryParameter("with_companies", facet.getId());
+        if (DiscoverFacet.PROVIDER.equals(facet.getKind())) builder.addQueryParameter("with_watch_providers", facet.getId()).addQueryParameter("watch_region", "CN");
+        return builder.build();
     }
 
     @Nullable
