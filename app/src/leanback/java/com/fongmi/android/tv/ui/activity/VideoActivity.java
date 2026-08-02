@@ -1747,6 +1747,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     protected void onPlayingChanged(boolean isPlaying) {
         if (isPlaying) {
             hideCenter();
+            if (isJetStreamControlVisible()) hideControl();
         } else if (isPaused()) {
             if (isFullscreen() && !isJetStreamControlVisible()) showInfo();
             else hideInfo();
