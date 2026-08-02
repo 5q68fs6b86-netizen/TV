@@ -624,6 +624,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     protected void onPlayingChanged(boolean isPlaying) {
         if (isPlaying) {
             mBinding.control.action.action.setText(R.string.pause);
+            if (isJetStreamControlVisible()) hideControl();
         } else if (isPaused()) {
             mBinding.control.action.action.setText(R.string.play);
         }
