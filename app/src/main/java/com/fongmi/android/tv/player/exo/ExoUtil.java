@@ -118,7 +118,9 @@ public class ExoUtil {
             }
         };
         int extensionMode = audioPrefer || videoPrefer ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : renderMode;
-        return factory.setEnableDecoderFallback(true).setEnableDv7HevcFallback(PlayerSetting.isDv7HevcFallback()).setExtensionRendererMode(extensionMode);
+        // Exo keeps its Profile-7 fallback independent from MPV's hwdec codec allow-list.
+        boolean dv7 = PlayerSetting.isDv7HevcFallback();
+        return factory.setEnableDecoderFallback(true).setEnableDv7HevcFallback(dv7).setExtensionRendererMode(extensionMode);
     }
 
     private static AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioOutputPlaybackParams) {

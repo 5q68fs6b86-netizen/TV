@@ -72,6 +72,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
     @Element(name = "des", required = false)
     @SerializedName("vod_content")
     private String vodContent;
+    private String backdrop;
     @SerializedName("vod_play_from")
     private String vodPlayFrom;
     @SerializedName("vod_play_url")
@@ -109,6 +110,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
         this.vodDirector = in.readString();
         this.vodActor = in.readString();
         this.vodContent = in.readString();
+        this.backdrop = in.readString();
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
         this.vodTag = in.readString();
@@ -153,6 +155,10 @@ public class Vod implements Parcelable, Diffable<Vod> {
         return TextUtils.isEmpty(typeName) ? "" : typeName.trim();
     }
 
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
     public String getPic() {
         return normalizePic(TextUtils.isEmpty(vodPic) ? "" : vodPic.trim());
     }
@@ -165,8 +171,16 @@ public class Vod implements Parcelable, Diffable<Vod> {
         return TextUtils.isEmpty(vodRemarks) ? "" : vodRemarks.trim();
     }
 
+    public void setRemarks(String vodRemarks) {
+        this.vodRemarks = vodRemarks;
+    }
+
     public String getYear() {
         return TextUtils.isEmpty(vodYear) ? "" : vodYear.trim();
+    }
+
+    public void setYear(String vodYear) {
+        this.vodYear = vodYear;
     }
 
     public String getArea() {
@@ -191,6 +205,14 @@ public class Vod implements Parcelable, Diffable<Vod> {
 
     public void setContent(String vodContent) {
         this.vodContent = vodContent;
+    }
+
+    public String getBackdrop() {
+        return TextUtils.isEmpty(backdrop) ? getPic() : backdrop.trim();
+    }
+
+    public void setBackdrop(String backdrop) {
+        this.backdrop = backdrop;
     }
 
     public String getPlayFrom() {
@@ -361,6 +383,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
         dest.writeString(this.vodDirector);
         dest.writeString(this.vodActor);
         dest.writeString(this.vodContent);
+        dest.writeString(this.backdrop);
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
         dest.writeString(this.vodTag);

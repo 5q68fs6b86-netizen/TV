@@ -192,7 +192,9 @@
     <string name="player_mpv_conf_import_success">已导入 mpv.conf</string>
     <string name="player_ua">User-Agent</string>
     <string name="player_av3a">AV3A 音频解码</string>
+    <string name="player_mpv_dolby">杜比视界平台硬解</string>
     <string name="player_dv7">杜比视界(HEVC 回退)</string>
+    <string name="player_mpv_hdr">HDR（自动）</string>
     <string name="player_ai_subtitle">实时语音字幕与翻译</string>
     <string name="ai_subtitle_on">字幕翻译：开</string>
     <string name="ai_subtitle_off">字幕翻译：关</string>
@@ -236,6 +238,8 @@
     <string name="error_play_url">播放地址加载失败</string>
     <string name="error_play_flag">暂无线路数据</string>
     <string name="error_play_timeout">连接超时</string>
+    <string name="error_dolby_fallback">已切换杜比视界平台解码器</string>
+    <string name="error_tunnel_fallback">隧道播放失败，已关闭并重试</string>
     <string name="error_decode_fallback">硬解失败，已切换软解</string>
     <string name="error_play_tvbus">错误代码：<xliff:g name="name">%s</xliff:g></string>
     <string name="error_detail">暂无播放数据</string>
@@ -297,6 +301,12 @@
         <item>高质 A</item>
         <item>高质 B</item>
         <item>高质 C</item>
+    </string-array>
+
+    <string-array name="select_mpv_hdr">
+        <item>自动</item>
+        <item>开</item>
+        <item>关</item>
     </string-array>
 
     <string-array name="select_track">

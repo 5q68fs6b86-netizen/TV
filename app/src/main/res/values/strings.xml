@@ -193,7 +193,9 @@
     <string name="player_mpv_conf_import_success">Imported mpv.conf</string>
     <string name="player_ua">User-Agent</string>
     <string name="player_av3a">AV3A audio decoding</string>
+    <string name="player_mpv_dolby">Dolby Vision platform hardware decode</string>
     <string name="player_dv7">Dolby Vision (HEVC fallback)</string>
+    <string name="player_mpv_hdr">HDR (auto)</string>
     <string name="player_ai_subtitle">Live speech subtitles &amp; translation</string>
     <string name="ai_subtitle_on">Subtitle translation: On</string>
     <string name="ai_subtitle_off">Subtitle translation: Off</string>
@@ -237,6 +239,8 @@
     <string name="error_play_url">Unable to load url</string>
     <string name="error_play_flag">No flag data</string>
     <string name="error_play_timeout">Timed out</string>
+    <string name="error_dolby_fallback">Switched to the platform Dolby Vision decoder</string>
+    <string name="error_tunnel_fallback">Tunnel playback failed and was disabled</string>
     <string name="error_decode_fallback">Hardware decoding failed, switched to software decoding</string>
     <string name="error_play_tvbus">Error code: <xliff:g name="name">%s</xliff:g></string>
     <string name="error_detail">No play data</string>
@@ -308,6 +312,12 @@
         <item>HQ A</item>
         <item>HQ B</item>
         <item>HQ C</item>
+    </string-array>
+
+    <string-array name="select_mpv_hdr">
+        <item>Auto</item>
+        <item>On</item>
+        <item>Off</item>
     </string-array>
 
     <string-array name="select_track">

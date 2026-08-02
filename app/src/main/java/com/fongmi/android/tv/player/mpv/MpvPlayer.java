@@ -59,8 +59,18 @@ import is.xyz.mpv.MPVNode;
 final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, MPVLib.LogObserver {
 
     private static final long LIVE_DURATION_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(1);
-    private static final String HWDEC = "mediacodec,mediacodec-copy";
     private static final int[] SELECTABLE_TRACK_TYPES = {C.TRACK_TYPE_VIDEO, C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_TEXT};
+    private static final Object NATIVE_LOCK = new Object();
+    private static final long DESTROY_TIMEOUT_MS = 5_000L;
+    private static NativeState nativeState = NativeState.IDLE;
+    private static long nativeGeneration;
+
+    private enum NativeState {
+        IDLE,
+        CREATING,
+        ALIVE,
+        DESTROYING
+    }
 
     private final Context context;
     private final Player.Commands commands;
@@ -99,6 +109,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     private long textOffsetMs;
     private float volume;
     private int decode;
+    private @Nullable String dolbyDecoderOverride;
+    private boolean dolbyPlatformFallbackRequested;
 
     MpvPlayer(Context context, int decode) {
         super(Looper.getMainLooper());
@@ -134,10 +146,15 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     void setSubtitleStyle() {
     }
 
-    boolean setDecode(int decode) {
+    /** Applies soft/hard decode in the current native context and reopens the media. */
+    void setDecode(int decode) {
         this.decode = decode;
-        runOnApplicationThread(() -> applyDecode(decode));
-        return true;
+        if (Looper.myLooper() != getApplicationLooper()) {
+            runOnApplicationThread(() -> reloadForDecoderChange(
+                    "切换解码模式", this::restorePlaybackOptions));
+            return;
+        }
+        reloadForDecoderChange("切换解码模式", this::restorePlaybackOptions);
     }
 
     boolean isLive() {
@@ -146,6 +163,12 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
 
     boolean isVod() {
         return mediaItem != null && durationMs >= LIVE_DURATION_THRESHOLD_MS;
+    }
+
+    static boolean isNativeAvailable() {
+        synchronized (NATIVE_LOCK) {
+            return nativeState != NativeState.CREATING && nativeState != NativeState.DESTROYING;
+        }
     }
 
     @Override
@@ -207,13 +230,25 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     protected ListenableFuture<?> handleRelease() {
         if (closed) return Futures.immediateVoidFuture();
         closed = true;
-        MPVLib.removeObserver(this);
-        MPVLib.removeLogObserver(this);
-        clearVideoOutputInternal(null);
+        MpvLogCollector.log("MpvPlayer", "handleRelease: stop + async destroy");
         try {
-            MPVLib.INSTANCE.destroy();
-        } catch (RuntimeException ignored) {
+            MPVLib.removeObserver(this);
+            MPVLib.removeLogObserver(this);
+        } catch (Throwable ignored) {
         }
+        try {
+            clearVideoOutputInternal(null);
+        } catch (Throwable ignored) {
+        }
+        try {
+            command("stop");
+        } catch (Throwable ignored) {
+        }
+        try {
+            command("quit");
+        } catch (Throwable ignored) {
+        }
+        destroyNativeAsync("release");
         return Futures.immediateVoidFuture();
     }
 
@@ -361,19 +396,32 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         });
     }
 
+    /**
+     * Extended-JNI callback (v0.0.3). Gold {@code MPVLib} has no Node overload;
+     * when present we only treat it as a track-list change signal and re-read via strings.
+     */
     @Override
     public void eventProperty(String property, MPVNode value) {
-        if ("track-list".equals(property)) {
-            runOnApplicationThread(() -> {
-                readTracks(value);
-                invalidateState();
-            });
-        }
+        if ("track-list".equals(property)) refreshTracksOnApplicationThread();
     }
 
+    /**
+     * Extended-JNI callback (v0.0.3): {@code event(id, node)}.
+     * Gold public API uses {@code event(id)} + {@code eventEndFile}; keep this for current AAR.
+     */
     @Override
     public void event(int eventId, MPVNode data) {
         runOnApplicationThread(() -> handleEvent(eventId, data));
+    }
+
+    /** Gold-compatible shape if JNI dispatches bare event ids without node payload. */
+    public void event(int eventId) {
+        runOnApplicationThread(() -> handleEvent(eventId, null));
+    }
+
+    /** Gold MPVLib.EventObserver default path for END_FILE with reason/error strings. */
+    public void eventEndFile(int reason, int error, @Nullable String errorString) {
+        runOnApplicationThread(() -> handleEndFile(reason, error, errorString));
     }
 
     @Override
@@ -385,38 +433,118 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
     }
 
     private void initialize() {
+        MpvLogCollector.log("MpvPlayer", "initialize 开始 decode=" + (decode == PlayerEngine.HARD ? "硬解" : "软解")
+                + " vulkan=" + PlayerSetting.isMpvVulkan()
+                + " hdr=" + PlayerSetting.getMpvHdr());
         File configDir = Path.mpv();
-        File cacheDir = Path.mpvCache();
-        MpvAssets.ensure(context, configDir);
-        MPVLib.INSTANCE.create(context);
-        MPVLib.addLogObserver(this);
-        MPVLib.INSTANCE.setOptionString("config", "yes");
-        MPVLib.INSTANCE.setOptionString("config-dir", configDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("msg-level", "all=warn");
-        MPVLib.INSTANCE.setOptionString("gpu-shader-cache-dir", cacheDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("icc-cache-dir", cacheDir.getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("profile", "fast");
-        MPVLib.INSTANCE.setOptionString("vo", getVo());
-        MPVLib.INSTANCE.setOptionString("gpu-context", "android");
-        MPVLib.INSTANCE.setOptionString("opengl-es", "yes");
-        if (PlayerSetting.isMpvVulkan()) MPVLib.INSTANCE.setOptionString("gpu-api", "vulkan");
-        applyDecode(decode);
-        MPVLib.INSTANCE.setOptionString("hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1");
-        MPVLib.INSTANCE.setOptionString("ao", "audiotrack,opensles");
-        MPVLib.INSTANCE.setOptionString("audio-set-media-role", "yes");
-        MPVLib.INSTANCE.setOptionString("tls-verify", "yes");
-        MPVLib.INSTANCE.setOptionString("tls-ca-file", new File(context.getFilesDir(), "cacert.pem").getAbsolutePath());
-        MPVLib.INSTANCE.setOptionString("input-default-bindings", "yes");
-        MPVLib.INSTANCE.setOptionString("demuxer-lavf-o", "http_persistent=0");
-        MPVLib.INSTANCE.setOptionString("demuxer-max-bytes", Long.toString(64L * 1024L * 1024L));
-        MPVLib.INSTANCE.setOptionString("demuxer-max-back-bytes", Long.toString(64L * 1024L * 1024L));
-        MPVLib.INSTANCE.init();
-        MpvAnime4K.apply(configDir);
-        MPVLib.INSTANCE.setOptionString("save-position-on-quit", "no");
-        MPVLib.INSTANCE.setOptionString("force-window", "no");
-        MPVLib.INSTANCE.setOptionString("idle", "once");
-        MPVLib.addObserver(this);
-        observeProperties();
+        boolean ownsNative = false;
+        boolean initialized = false;
+        try {
+            createNative(context);
+            ownsNative = true;
+            MpvLogCollector.log("MpvPlayer", "MPVLib.create 完成");
+            MPVLib.addLogObserver(this);
+            // All pre-init options (config/vo/vulkan/hwdec/tls/...) live in MpvOptions.
+            MpvOptions.applyPreInit(context, decode);
+            MPVLib.INSTANCE.init();
+            MpvLogCollector.log("MpvPlayer", "MPVLib.init 完成 vo=" + MpvOptions.videoOutputDriver()
+                    + " vulkan=" + PlayerSetting.isMpvVulkan()
+                    + " gpu-next=" + PlayerSetting.isMpvGpuNext());
+            MpvOptions.applyPostInit(configDir);
+            MPVLib.addObserver(this);
+            observeProperties();
+            initialized = true;
+        } finally {
+            if (!initialized && ownsNative) rollbackInitialization();
+        }
+    }
+
+    private static void createNative(Context context) {
+        long generation;
+        synchronized (NATIVE_LOCK) {
+            if (nativeState != NativeState.IDLE) {
+                throw new IllegalStateException("MPV native 当前不可创建: " + nativeState);
+            }
+            nativeState = NativeState.CREATING;
+            generation = ++nativeGeneration;
+        }
+        try {
+            MPVLib.INSTANCE.create(context);
+            synchronized (NATIVE_LOCK) {
+                if (nativeGeneration != generation || nativeState != NativeState.CREATING) {
+                    throw new IllegalStateException("MPV native 创建状态异常: " + nativeState);
+                }
+                nativeState = NativeState.ALIVE;
+            }
+        } catch (Throwable e) {
+            destroyNativeAsync("create rollback");
+            if (e instanceof Error error) throw error;
+            if (e instanceof RuntimeException runtimeException) throw runtimeException;
+            throw new IllegalStateException("MPV native 创建失败", e);
+        }
+    }
+
+    private void rollbackInitialization() {
+        MpvLogCollector.logError("MpvPlayer", "初始化失败, 异步回滚 native");
+        try {
+            MPVLib.removeObserver(this);
+        } catch (Throwable ignored) {
+        }
+        try {
+            MPVLib.removeLogObserver(this);
+        } catch (Throwable ignored) {
+        }
+        destroyNativeAsync("initialize rollback");
+    }
+
+    private static void destroyNativeAsync(String reason) {
+        long generation;
+        synchronized (NATIVE_LOCK) {
+            if (nativeState == NativeState.IDLE) {
+                MpvLogCollector.log("MpvPlayer", "destroy 跳过: native 已空闲");
+                return;
+            }
+            if (nativeState == NativeState.DESTROYING) {
+                MpvLogCollector.log("MpvPlayer", "destroy 跳过: 已在释放, reason=" + reason);
+                return;
+            }
+            nativeState = NativeState.DESTROYING;
+            generation = nativeGeneration;
+        }
+        Thread destroy = new Thread(() -> {
+            boolean destroyed = false;
+            try {
+                MPVLib.INSTANCE.destroy();
+                destroyed = true;
+                MpvLogCollector.log("MpvPlayer", "destroy 完成, reason=" + reason);
+            } catch (Throwable e) {
+                MpvLogCollector.logError("MpvPlayer", "destroy 异常, MPV 保持不可用: " + e.getMessage());
+            } finally {
+                synchronized (NATIVE_LOCK) {
+                    if (destroyed && nativeGeneration == generation && nativeState == NativeState.DESTROYING) {
+                        nativeState = NativeState.IDLE;
+                    }
+                }
+            }
+        }, "mpv-destroy");
+        destroy.setDaemon(true);
+        destroy.start();
+
+        Thread watchdog = new Thread(() -> {
+            try {
+                Thread.sleep(DESTROY_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            synchronized (NATIVE_LOCK) {
+                if (destroy.isAlive() && nativeGeneration == generation && nativeState == NativeState.DESTROYING) {
+                    MpvLogCollector.logError("MpvPlayer", "destroy 超时, MPV 保持不可用, reason=" + reason);
+                }
+            }
+        }, "mpv-destroy-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
     }
 
     private static Player.Commands buildCommands() {
@@ -486,7 +614,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MpvLogCollector.log("MpvPlayer", "起始位置: " + startPositionMs + "ms");
         MpvLogCollector.log("MpvPlayer", "解码模式: " + (decode == PlayerEngine.HARD ? "硬解" : "软解"));
 
-        applyDecode(decode);
+        restorePlaybackOptions();
         applyHeaders(spec.getHeaders());
         loadUrl(spec.getUrl(), this.positionMs);
         invalidateState();
@@ -511,6 +639,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         this.loading = true;
         this.playerError = null;
         this.playbackState = Player.STATE_BUFFERING;
+        restorePlaybackOptions();
         loadUrl(item.localConfiguration.uri.toString(), this.positionMs);
         invalidateState();
     }
@@ -568,7 +697,9 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         command("set", "pause", playWhenReady ? "no" : "yes");
     }
 
-    private void handleEvent(int eventId, MPVNode data) {
+    private void handleEvent(int eventId, @Nullable MPVNode data) {
+        // Queued events may land after release, racing the async native destroy thread.
+        if (closed) return;
         switch (eventId) {
             case MpvEvent.MPV_EVENT_START_FILE -> {
                 fileLoaded = false;
@@ -584,6 +715,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MpvLogCollector.log("MpvPlayer", "文件加载成功");
                 seekAfterLoadIfNeeded();
                 readRuntimeState();
+                if (applyDolbyPolicy()) return;
                 addInitialSubtitles();
                 invalidateState();
             }
@@ -591,6 +723,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 MpvLogCollector.log("MpvPlayer", "视频重新配置");
                 seekAfterLoadIfNeeded();
                 readVideoSize();
+                // DV metadata may surface late (HLS) or via track switch; policy is idempotent.
+                if (applyDolbyPolicy()) return;
                 invalidateState();
             }
             case MpvEvent.MPV_EVENT_PLAYBACK_RESTART -> {
@@ -601,39 +735,46 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 readRuntimeState();
                 invalidateState();
             }
-            case MpvEvent.MPV_EVENT_END_FILE -> handleEndFile(data);
+            case MpvEvent.MPV_EVENT_END_FILE -> {
+                // Prefer gold-style reason/error ints when node payload is absent.
+                if (data == null) {
+                    handleEndFile(MpvEndFile.REASON_EOF, /*error*/ 0, null);
+                } else {
+                    String reason = nodeString(data, "reason");
+                    String errorMsg = nodeString(data, "error");
+                    int fileError = nodeInt(data, "file_error", 0);
+                    handleEndFile(MpvEndFile.mapReason(reason), fileError, errorMsg.isEmpty() ? reason : errorMsg);
+                }
+            }
         }
     }
 
-    private void handleEndFile(MPVNode data) {
+    private void handleEndFile(int reason, int error, @Nullable String errorString) {
+        if (closed) return;
         loading = false;
         fileLoaded = false;
-        String reason = getString(data, "reason");
-        if ("error".equals(reason)) {
-            // Extract detailed error information from mpv
-            String errorMsg = getString(data, "error");
-            int fileError = getInt(data, "file_error", 0);
+        boolean isError = reason == MpvEndFile.REASON_ERROR || error != 0
+                || (errorString != null && errorString.toLowerCase(Locale.US).contains("error"));
+        if (isError) {
+            String errorMsg = errorString == null ? "" : errorString;
+            int fileError = error;
 
-            // Log detailed error information for debugging
             MpvLogCollector.logError("MpvPlayer", "=== MPV播放错误详情 ===");
-            MpvLogCollector.logError("MpvPlayer", "错误原因: " + reason);
+            MpvLogCollector.logError("MpvPlayer", "错误原因码: " + reason);
             MpvLogCollector.logError("MpvPlayer", "错误消息: " + errorMsg);
             MpvLogCollector.logError("MpvPlayer", "文件错误码: " + fileError);
             MpvLogCollector.logError("MpvPlayer", "URL: " + (mediaItem != null && mediaItem.localConfiguration != null ? mediaItem.localConfiguration.uri.toString() : "null"));
             MpvLogCollector.logError("MpvPlayer", "Surface已附加: " + (attachedSurface != null));
             MpvLogCollector.logError("MpvPlayer", "Surface有效: " + (attachedSurface != null && attachedSurface.isValid()));
 
-            // Check hwdec status
             String hwdec = MPVLib.INSTANCE.getPropertyString("hwdec");
             String hwdecCurrent = MPVLib.INSTANCE.getPropertyString("hwdec-current");
             MpvLogCollector.logError("MpvPlayer", "硬解配置: " + hwdec);
             MpvLogCollector.logError("MpvPlayer", "当前硬解: " + hwdecCurrent);
 
-            // Check video codec
             String videoCodec = MPVLib.INSTANCE.getPropertyString("video-codec");
             MpvLogCollector.logError("MpvPlayer", "视频编码: " + videoCodec);
 
-            // Build detailed error message
             StringBuilder msgBuilder = new StringBuilder("MPV播放失败");
             if (!errorMsg.isEmpty()) {
                 msgBuilder.append(": ").append(errorMsg);
@@ -642,7 +783,6 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 msgBuilder.append(" (错误码: ").append(fileError).append(")");
             }
 
-            // Determine specific error code based on error content
             int errorCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED;
             String errorLower = errorMsg.toLowerCase(Locale.US);
             if (errorLower.contains("decode") || errorLower.contains("codec")) {
@@ -656,8 +796,10 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
             fail(new PlaybackException(msgBuilder.toString(), null, errorCode));
             return;
         }
-        if ("eof".equals(reason)) playbackState = Player.STATE_ENDED;
-        else if ("stop".equals(reason) && mediaItem == null) playbackState = Player.STATE_IDLE;
+        // Only a genuine EOF may surface STATE_ENDED — upstream treats it as "auto play next".
+        if (reason == MpvEndFile.REASON_EOF) playbackState = Player.STATE_ENDED;
+        else if (reason == MpvEndFile.REASON_STOP && mediaItem == null) playbackState = Player.STATE_IDLE;
+        else if (reason == MpvEndFile.REASON_QUIT) playbackState = Player.STATE_IDLE;
         invalidateState();
     }
 
@@ -727,81 +869,143 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         invalidateState();
     }
 
+    /**
+     * Read tracks via gold-compatible string properties:
+     * {@code track-list/count} + {@code track-list/N/{type,id,title,lang,...}}.
+     * Does not call {@code getPropertyNode} (absent from gold libplayer).
+     */
     private void readTracks() {
         try {
-            readTracks(MPVLib.INSTANCE.getPropertyNode("track-list"));
-        } catch (RuntimeException e) {
+            int count = trackListCount();
+            if (count <= 0) {
+                tracks = Tracks.EMPTY;
+                trackIdsByGroupId.clear();
+                return;
+            }
+            List<Tracks.Group> groups = new ArrayList<>();
+            Map<String, Integer> idsByGroupId = new HashMap<>();
+            for (int i = 0; i < count; i++) {
+                String prefix = "track-list/" + i + "/";
+                int type = toTrackType(propString(prefix + "type", ""));
+                int id = propInt(prefix + "id", C.INDEX_UNSET);
+                if (type == C.TRACK_TYPE_UNKNOWN || id == C.INDEX_UNSET) continue;
+                String groupId = trackGroupId(type, id);
+                TrackGroup group = new TrackGroup(groupId, buildTrackFormat(prefix, type, id));
+                boolean selected = propBoolean(prefix + "selected");
+                groups.add(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{selected}));
+                idsByGroupId.put(groupId, id);
+            }
+            tracks = groups.isEmpty() ? Tracks.EMPTY : new Tracks(groups);
+            trackIdsByGroupId.clear();
+            trackIdsByGroupId.putAll(idsByGroupId);
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "读取 track-list 失败: " + e.getMessage());
             tracks = Tracks.EMPTY;
             trackIdsByGroupId.clear();
         }
     }
 
-    private void readTracks(@Nullable MPVNode node) {
-        MPVNode[] items = node == null ? null : node.asArray();
-        if (items == null || items.length == 0) {
-            tracks = Tracks.EMPTY;
-            trackIdsByGroupId.clear();
-            return;
+    private int trackListCount() {
+        Integer count = MPVLib.INSTANCE.getPropertyInt("track-list/count");
+        if (count != null && count >= 0) return count;
+        // Fallback: probe until type is empty (cap to avoid runaway).
+        for (int i = 0; i < 64; i++) {
+            String type = propString("track-list/" + i + "/type", null);
+            if (type == null) return i;
         }
-        List<Tracks.Group> groups = new ArrayList<>();
-        Map<String, Integer> idsByGroupId = new HashMap<>();
-        for (MPVNode item : items) {
-            int type = toTrackType(getString(item, "type"));
-            int id = getInt(item, "id", C.INDEX_UNSET);
-            if (type == C.TRACK_TYPE_UNKNOWN || id == C.INDEX_UNSET) continue;
-            String groupId = trackGroupId(type, id);
-            TrackGroup group = new TrackGroup(groupId, buildTrackFormat(item, type, id));
-            groups.add(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{getBoolean(item, "selected")}));
-            idsByGroupId.put(groupId, id);
-        }
-        tracks = groups.isEmpty() ? Tracks.EMPTY : new Tracks(groups);
-        trackIdsByGroupId.clear();
-        trackIdsByGroupId.putAll(idsByGroupId);
+        return 64;
     }
 
-    private Format buildTrackFormat(MPVNode item, int type, int id) {
-        String codec = emptyToNull(getString(item, "codec"));
+    private Format buildTrackFormat(String prefix, int type, int id) {
+        String codec = emptyToNull(propString(prefix + "codec", ""));
         Format.Builder builder = new Format.Builder()
                 .setId(Integer.toString(id))
-                .setLabel(buildTrackLabel(item, type, id))
-                .setLanguage(emptyToNull(getString(item, "lang")))
+                .setLabel(buildTrackLabel(prefix, type, id))
+                .setLanguage(emptyToNull(propString(prefix + "lang", "")))
                 .setCodecs(codec)
                 .setSampleMimeType(getSampleMimeType(type, codec))
-                .setSelectionFlags(getSelectionFlags(item));
-        int bitrate = getInt(item, "demux-bitrate", C.LENGTH_UNSET);
+                .setSelectionFlags(trackSelectionFlags(prefix));
+        int bitrate = propInt(prefix + "demux-bitrate", C.LENGTH_UNSET);
         if (bitrate > 0) builder.setAverageBitrate(bitrate);
         if (type == C.TRACK_TYPE_VIDEO) {
-            int width = getInt(item, "demux-w", C.LENGTH_UNSET);
-            int height = getInt(item, "demux-h", C.LENGTH_UNSET);
-            double frameRate = getDouble(item, "demux-fps", 0);
+            int width = propInt(prefix + "demux-w", C.LENGTH_UNSET);
+            int height = propInt(prefix + "demux-h", C.LENGTH_UNSET);
+            double frameRate = propDouble(prefix + "demux-fps", 0);
             if (width > 0) builder.setWidth(width);
             if (height > 0) builder.setHeight(height);
             if (frameRate > 0) builder.setFrameRate((float) frameRate);
         } else if (type == C.TRACK_TYPE_AUDIO) {
-            int channelCount = getInt(item, "demux-channel-count", C.LENGTH_UNSET);
-            int sampleRate = getInt(item, "demux-samplerate", C.RATE_UNSET_INT);
+            int channelCount = propInt(prefix + "demux-channel-count", C.LENGTH_UNSET);
+            int sampleRate = propInt(prefix + "demux-samplerate", C.RATE_UNSET_INT);
             if (channelCount > 0) builder.setChannelCount(channelCount);
             if (sampleRate > 0) builder.setSampleRate(sampleRate);
         }
         return builder.build();
     }
 
-    private String buildTrackLabel(MPVNode item, int type, int id) {
-        String title = getString(item, "title");
+    private String buildTrackLabel(String prefix, int type, int id) {
+        String title = propString(prefix + "title", "");
         if (!TextUtils.isEmpty(title)) return title;
-        String lang = getString(item, "lang");
-        String codec = getString(item, "codec");
-        String prefix = switch (type) {
+        String lang = propString(prefix + "lang", "");
+        String codec = propString(prefix + "codec", "");
+        String trackPrefix = switch (type) {
             case C.TRACK_TYPE_VIDEO -> "Video";
             case C.TRACK_TYPE_AUDIO -> "Audio";
             case C.TRACK_TYPE_TEXT -> "Subtitle";
             default -> "Track";
         };
         List<String> parts = new ArrayList<>();
-        parts.add(prefix + " " + id);
+        parts.add(trackPrefix + " " + id);
         if (!TextUtils.isEmpty(lang)) parts.add(lang);
         if (!TextUtils.isEmpty(codec)) parts.add(codec);
         return String.join(" - ", parts);
+    }
+
+    private static int trackSelectionFlags(String prefix) {
+        int flags = 0;
+        if (propBoolean(prefix + "default")) flags |= C.SELECTION_FLAG_DEFAULT;
+        if (propBoolean(prefix + "forced")) flags |= C.SELECTION_FLAG_FORCED;
+        return flags;
+    }
+
+    private static String propString(String name, @Nullable String fallback) {
+        try {
+            String value = MPVLib.INSTANCE.getPropertyString(name);
+            return value == null ? fallback : value;
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static int propInt(String name, int fallback) {
+        try {
+            Integer value = MPVLib.INSTANCE.getPropertyInt(name);
+            if (value != null) return value;
+            Double d = MPVLib.INSTANCE.getPropertyDouble(name);
+            return d == null ? fallback : (int) Math.round(d);
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static double propDouble(String name, double fallback) {
+        try {
+            Double value = MPVLib.INSTANCE.getPropertyDouble(name);
+            return value == null ? fallback : value;
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private static boolean propBoolean(String name) {
+        try {
+            Boolean value = MPVLib.INSTANCE.getPropertyBoolean(name);
+            if (value != null) return value;
+            String s = MPVLib.INSTANCE.getPropertyString(name);
+            return "yes".equalsIgnoreCase(s) || "true".equalsIgnoreCase(s);
+        } catch (Throwable e) {
+            return false;
+        }
     }
 
     private void applyTrackSelectionParameters() {
@@ -860,7 +1064,13 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.observeProperty("speed", MpvFormat.MPV_FORMAT_DOUBLE);
         MPVLib.INSTANCE.observeProperty("audio-delay", MpvFormat.MPV_FORMAT_DOUBLE);
         MPVLib.INSTANCE.observeProperty("sub-delay", MpvFormat.MPV_FORMAT_DOUBLE);
-        MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NODE);
+        // Prefer flag/none notify; gold has no node format requirement for refresh.
+        // MPV_FORMAT_NONE (0) if present triggers eventProperty(name) only.
+        try {
+            MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NONE);
+        } catch (Throwable e) {
+            MPVLib.INSTANCE.observeProperty("track-list", MpvFormat.MPV_FORMAT_NODE);
+        }
     }
 
     private void applyHeaders(@Nullable Map<String, String> headers) {
@@ -887,6 +1097,8 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
                 fields.add(key + ": " + value);
             }
         }
+        // Never write an empty UA: it would wipe the pre-init default from MpvOptions.
+        if (TextUtils.isEmpty(userAgent)) userAgent = MpvOptions.defaultUserAgent();
         MPVLib.INSTANCE.setPropertyString("user-agent", userAgent);
         MPVLib.INSTANCE.setPropertyString("referrer", referrer);
         applyHttpHeaderFields(fields);
@@ -902,8 +1114,116 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         return HttpHeaders.REFERER.equalsIgnoreCase(key) || "Referrer".equalsIgnoreCase(key);
     }
 
-    private void applyDecode(int decode) {
-        MPVLib.INSTANCE.setOptionString("hwdec", decode == PlayerEngine.HARD ? HWDEC : "no");
+    private void reloadForDecoderChange(String reason, Runnable applyOptions) {
+        if (closed) return;
+        String url = spec != null ? spec.getUrl() : mediaItem != null && mediaItem.localConfiguration != null
+                ? mediaItem.localConfiguration.uri.toString() : null;
+        try {
+            if (TextUtils.isEmpty(url)) {
+                applyOptions.run();
+                return;
+            }
+            long resumePositionMs = Math.max(0, positionMs);
+            MpvLogCollector.log("MpvPlayer", reason + ": stop/rebind/loadfile, position=" + resumePositionMs + "ms");
+            if (!command("stop")) return;
+            pendingUrl = null;
+            pendingStartPositionMs = C.TIME_UNSET;
+            pendingSeekAfterLoadMs = C.TIME_UNSET;
+            fileLoaded = false;
+            renderedFirstFrame = false;
+            newlyRenderedFirstFrame = false;
+            loading = true;
+            playerError = null;
+            playbackState = Player.STATE_BUFFERING;
+            applyOptions.run();
+            if (!rebindVideoOutputForDecoderChange(reason)) {
+                fail(new PlaybackException(reason + "时重绑视频输出失败", null,
+                        PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK));
+                return;
+            }
+            loadUrl(url, resumePositionMs);
+            invalidateState();
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", reason + "失败: " + e.getMessage());
+            fail(new PlaybackException(reason + "失败", e, PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK));
+        }
+    }
+
+    private boolean rebindVideoOutputForDecoderChange(String reason) {
+        if (attachedSurface == null || !attachedSurface.isValid()) {
+            MpvLogCollector.log("MpvPlayer", reason + " rebind 跳过: 无有效 Surface");
+            return true;
+        }
+        try {
+            try {
+                MPVLib.INSTANCE.detachSurface();
+            } catch (Throwable ignored) {
+            }
+            MPVLib.INSTANCE.attachSurface(attachedSurface);
+            MPVLib.INSTANCE.setOptionString("force-window", "yes");
+            if (surfaceSize.getWidth() > 0 && surfaceSize.getHeight() > 0) {
+                MPVLib.INSTANCE.setPropertyString("android-surface-size",
+                        surfaceSize.getWidth() + "x" + surfaceSize.getHeight());
+            }
+            MpvLogCollector.log("MpvPlayer", reason + " rebind Surface 完成");
+            return true;
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", reason + " rebind 失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean applyDolbyPolicy() {
+        int profile = selectedVideoDolbyProfile();
+        boolean hardDecode = decode == PlayerEngine.HARD;
+        boolean dolbyHwdecEnabled = PlayerSetting.isMpvDolbyHwdecEnabled();
+        if (profile < 0) return false;
+        if (MpvDolbyPolicy.shouldUsePlatformDecoder(hardDecode, dolbyHwdecEnabled, profile)) {
+            if (dolbyPlatformFallbackRequested) return true;
+            dolbyPlatformFallbackRequested = true;
+            MpvDolbyVisionException cause = new MpvDolbyVisionException(profile);
+            fail(new PlaybackException(cause.getMessage(), cause,
+                    PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED));
+            return true;
+        }
+        if (!MpvDolbyPolicy.shouldUseSoftwareDecoder(hardDecode, dolbyHwdecEnabled, profile)) return false;
+        if ("no".equals(dolbyDecoderOverride)) return false;
+        dolbyDecoderOverride = "no";
+        MpvLogCollector.log("MpvPlayer", "Dolby Vision profile " + profile
+                + ": reload with hwdec=no, vo=gpu-next");
+        if (profile == 7) {
+            MpvLogCollector.log("MpvPlayer", "Dolby Vision profile 7 enhancement layer is unsupported; using BL/RPU");
+        }
+        reloadForDecoderChange("Dolby Vision 软件解码", MpvOptions::applyDolbyVisionSoftwareDecode);
+        return true;
+    }
+
+    private void restorePlaybackOptions() {
+        dolbyDecoderOverride = null;
+        dolbyPlatformFallbackRequested = false;
+        try {
+            MpvOptions.applyPlaybackDefaults(decode);
+        } catch (Throwable e) {
+            MpvLogCollector.logError("MpvPlayer", "恢复默认视频输出失败: " + e.getMessage());
+        }
+    }
+
+    private String activeVideoOutputDriver() {
+        return "no".equals(dolbyDecoderOverride) ? "gpu-next" : MpvOptions.videoOutputDriver();
+    }
+
+    private int selectedVideoDolbyProfile() {
+        try {
+            int count = trackListCount();
+            for (int i = 0; i < count; i++) {
+                String prefix = "track-list/" + i + "/";
+                if (!"video".equals(propString(prefix + "type", ""))) continue;
+                if (!propBoolean(prefix + "selected")) continue;
+                return propInt(prefix + "dolby-vision-profile", -1);
+            }
+        } catch (Throwable ignored) {
+        }
+        return -1;
     }
 
     private void setVideoOutputInternal(Object output) {
@@ -1016,7 +1336,7 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         MPVLib.INSTANCE.attachSurface(surface);
         MPVLib.INSTANCE.setOptionString("force-window", "yes");
         updateSurfaceSize(width, height);
-        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", getVo());
+        if (TextUtils.isEmpty(pendingUrl)) MPVLib.INSTANCE.setPropertyString("vo", activeVideoOutputDriver());
         markRenderedFirstFrame();
         loadPendingUrl();
     }
@@ -1136,47 +1456,33 @@ final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObserver, 
         };
     }
 
-    private static int getSelectionFlags(MPVNode item) {
-        int flags = 0;
-        if (getBoolean(item, "default")) flags |= C.SELECTION_FLAG_DEFAULT;
-        if (getBoolean(item, "forced")) flags |= C.SELECTION_FLAG_FORCED;
-        return flags;
+    /** Best-effort field read from extended-JNI END_FILE node payload (v0.0.3 only). */
+    private static String nodeString(@Nullable MPVNode node, String key) {
+        if (node == null) return "";
+        try {
+            MPVNode child = node.get(key);
+            String value = child == null ? null : child.asString();
+            return value == null ? "" : value;
+        } catch (Throwable e) {
+            return "";
+        }
     }
 
-    private static int getInt(MPVNode node, String key, int fallback) {
-        MPVNode child = node == null ? null : node.get(key);
-        Long value = child == null ? null : child.asInt();
-        if (value != null) return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
-        Double doubleValue = child == null ? null : child.asDouble();
-        return doubleValue == null ? fallback : (int) Math.round(doubleValue);
-    }
-
-    private static double getDouble(MPVNode node, String key, double fallback) {
-        MPVNode child = node == null ? null : node.get(key);
-        Double value = child == null ? null : child.asDouble();
-        if (value != null) return value;
-        Long intValue = child == null ? null : child.asInt();
-        return intValue == null ? fallback : intValue.doubleValue();
-    }
-
-    private static boolean getBoolean(MPVNode node, String key) {
-        MPVNode child = node == null ? null : node.get(key);
-        Boolean value = child == null ? null : child.asBoolean();
-        return value != null && value;
+    private static int nodeInt(@Nullable MPVNode node, String key, int fallback) {
+        if (node == null) return fallback;
+        try {
+            MPVNode child = node.get(key);
+            Long value = child == null ? null : child.asInt();
+            if (value != null) return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
+            Double d = child == null ? null : child.asDouble();
+            return d == null ? fallback : (int) Math.round(d);
+        } catch (Throwable e) {
+            return fallback;
+        }
     }
 
     private static @Nullable String emptyToNull(String value) {
         return TextUtils.isEmpty(value) ? null : value;
-    }
-
-    private String getVo() {
-        return PlayerSetting.isMpvGpuNext() || PlayerSetting.isMpvVulkan() ? "gpu-next" : "gpu";
-    }
-
-    private static String getString(MPVNode node, String key) {
-        MPVNode child = node == null ? null : node.get(key);
-        String value = child == null ? null : child.asString();
-        return value == null ? "" : value;
     }
 
     private static long secondsToMs(double seconds, long fallback) {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fongmi.android.tv.ui.custom.JetStreamDiscoverFacetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="248dp"
+    android:layout_height="104dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="10dp">
+
+    <com.fongmi.android.tv.ui.custom.JetStreamDiscoverFacetImageView
+        android:id="@+id/image"
+        android:layout_width="82dp"
+        android:layout_height="82dp" />
+
+    <com.fongmi.android.tv.ui.custom.JetStreamStrongLabelTextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textSize="22sp"
+        tools:text="科幻" />
+</com.fongmi.android.tv.ui.custom.JetStreamDiscoverFacetLayout>

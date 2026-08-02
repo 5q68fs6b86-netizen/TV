@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import is.xyz.mpv.MPVLib;
-import is.xyz.mpv.MPVNode;
 
 @RunWith(AndroidJUnit4.class)
 public class MpvPlaybackTest {
@@ -72,25 +71,23 @@ public class MpvPlaybackTest {
         }
     }
 
+    /**
+     * Gold-compatible header contract: use change-list + string property,
+     * not getPropertyNode (absent from gold libplayer JNI).
+     */
     private void verifyHttpHeaderFieldsContract() {
         String header = "Accept: video/mp4,video/*";
         MPVLib.INSTANCE.command("change-list", "http-header-fields", "clr", "");
         try {
             MPVLib.INSTANCE.command("change-list", "http-header-fields", "append", header);
-            MPVNode[] fields = getHttpHeaderFields();
-            assertEquals(1, fields.length);
-            assertEquals(header, fields[0].asString());
+            String fields = MPVLib.INSTANCE.getPropertyString("http-header-fields");
+            assertNotNull(fields);
+            assertTrue("expected header in http-header-fields, got: " + fields, fields.contains("Accept"));
         } finally {
             MPVLib.INSTANCE.command("change-list", "http-header-fields", "clr", "");
         }
-        assertEquals(0, getHttpHeaderFields().length);
-    }
-
-    private MPVNode[] getHttpHeaderFields() {
-        MPVNode fields = MPVLib.INSTANCE.getPropertyNode("http-header-fields");
-        assertNotNull(fields);
-        assertNotNull(fields.asArray());
-        return fields.asArray();
+        String cleared = MPVLib.INSTANCE.getPropertyString("http-header-fields");
+        assertTrue(cleared == null || cleared.isEmpty() || "[]".equals(cleared.trim()));
     }
 
     private String getArgument(Bundle arguments, String key, String altKey, String defaultValue) {

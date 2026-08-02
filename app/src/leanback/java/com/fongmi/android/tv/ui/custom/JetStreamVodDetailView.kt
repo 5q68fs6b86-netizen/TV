@@ -59,11 +59,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.fongmi.android.tv.R
-import com.fongmi.android.tv.ui.components.jetStreamHorizontalScrimBrush
-import com.fongmi.android.tv.ui.theme.JetStreamTheme
+import com.fongmi.android.tv.ui.components.JetStreamGlassCard
 import com.fongmi.android.tv.ui.theme.JetStreamAnimations
 import com.fongmi.android.tv.ui.theme.JetStreamShapes
 import com.fongmi.android.tv.ui.theme.JetStreamSpacing
+import com.fongmi.android.tv.ui.theme.JetStreamTheme
 
 class JetStreamVodDetailView @JvmOverloads constructor(
     context: Context,
@@ -110,6 +110,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     private var selectedAction by mutableStateOf(0)
     private var detailFocused by mutableStateOf(false)
     private var logoLoadFailed by mutableStateOf(false)
+    private var centerPressed = false
 
     init {
         isFocusable = true
@@ -131,6 +132,9 @@ class JetStreamVodDetailView @JvmOverloads constructor(
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> return handleCenterKey(event)
+        }
         if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -150,12 +154,23 @@ class JetStreamVodDetailView @JvmOverloads constructor(
                 } ?: super.dispatchKeyEvent(event)
             }
             KeyEvent.KEYCODE_DPAD_UP -> super.dispatchKeyEvent(event)
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
-                performSelectedAction()
-                true
-            }
             else -> super.dispatchKeyEvent(event)
         }
+    }
+
+    // ACTION_UP 触发，吞掉长按 repeat，避免焦点停在“收藏”上长按 OK 时反复开关收藏。
+    private fun handleCenterKey(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (event.repeatCount == 0) centerPressed = true
+            return true
+        }
+        if (event.action == KeyEvent.ACTION_UP) {
+            if (!centerPressed) return true
+            centerPressed = false
+            performSelectedAction()
+            return true
+        }
+        return true
     }
 
     fun setListener(listener: Listener?) {
@@ -202,15 +217,11 @@ class JetStreamVodDetailView @JvmOverloads constructor(
 
     @Composable
     private fun DetailSurface() {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(JetStreamShapes.Card)
-                .background(jetStreamHorizontalScrimBrush())
-                .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 20.dp)
-        ) {
+        JetStreamGlassCard(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = JetStreamSpacing.CardPaddingLarge, vertical = 16.dp)
             ) {
                 TitleBlock()
                 Spacer(Modifier.height(8.dp))
@@ -230,7 +241,7 @@ class JetStreamVodDetailView @JvmOverloads constructor(
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(38.dp),
+                    .height(44.dp),
                 factory = { context ->
                     AppCompatImageView(context).apply {
                         scaleType = ImageView.ScaleType.FIT_START

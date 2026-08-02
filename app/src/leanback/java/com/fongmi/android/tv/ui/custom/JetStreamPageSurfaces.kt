@@ -26,6 +26,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.NestedScrollView
+import androidx.core.widget.TextViewCompat
 import androidx.leanback.widget.HorizontalGridView
 import androidx.leanback.widget.VerticalGridView
 import androidx.recyclerview.widget.RecyclerView
@@ -447,7 +448,81 @@ class JetStreamVodCardRootLayout @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
-        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 12)
+        // Keep the scale feedback on the complete card, but do not elevate this
+        // transparent container. Its bounds also include the title below the
+        // poster, so a platform elevation shadow appears there as a hard-edged
+        // rectangle instead of following the poster's rounded outline.
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_CARD, 0)
+    }
+}
+
+class JetStreamDiscoverPanelLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamDiscoverPanelBackground(12)
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 12, strokeWidthDp = 3)
+        clipChildren = false
+        clipToPadding = false
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 0)
+    }
+}
+
+class JetStreamDiscoverFacetLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamDiscoverPanelBackground(12)
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 12, strokeWidthDp = 3)
+        JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 0)
+    }
+}
+
+class JetStreamDiscoverShelfImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(10)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 10)
+        scaleType = ScaleType.CENTER_CROP
+        clipToOutline = true
+    }
+}
+
+class JetStreamDiscoverPreviewImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(8)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 8)
+        scaleType = ScaleType.CENTER_CROP
+        clipToOutline = true
+    }
+}
+
+class JetStreamDiscoverFacetImageView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ShapeableImageView(context, attrs, defStyleAttr) {
+
+    init {
+        shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(jetStreamDp(9)).build()
+        background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 9)
+        scaleType = ScaleType.CENTER_INSIDE
+        clipToOutline = true
     }
 }
 
@@ -476,6 +551,7 @@ class JetStreamPosterOverlayImageView @JvmOverloads constructor(
         background = jetStreamImagePlaceholderDrawable(cornerRadiusDp = 16, colorRes = R.color.jetstream_overlay_surface)
         scaleType = ScaleType.CENTER
         clipToOutline = true
+        applyJetStreamControlIconTint()
     }
 }
 
@@ -615,6 +691,7 @@ class JetStreamRoundTypeView @JvmOverloads constructor(
 
     init {
         applyJetStreamRoundItemSurface(attrs, 0)
+        TextViewCompat.setCompoundDrawableTintList(this, jetStreamColorStateList(R.color.jetstream_control_text))
         JetStreamAnimator.bindFocus(this, JetStreamAnimator.FOCUS_SCALE_LIST, 8)
     }
 }
@@ -639,6 +716,7 @@ class JetStreamRoundChipImageView @JvmOverloads constructor(
 
     init {
         background = jetStreamChipBackground(28)
+        applyJetStreamControlIconTint()
     }
 }
 
@@ -953,6 +1031,7 @@ class JetStreamSearchMicView @JvmOverloads constructor(
 
     init {
         applyJetStreamSearchIconSurface()
+        applyJetStreamControlIconTint()
     }
 }
 
@@ -1405,6 +1484,14 @@ private fun View.jetStreamFocusDrawable(cornerRadiusDp: Int, strokeWidthDp: Int)
         cornerRadius = jetStreamDp(cornerRadiusDp)
         setColor(Color.TRANSPARENT)
         setStroke(jetStreamDpInt(strokeWidthDp), jetStreamColor(R.color.jetstream_primary))
+    }
+}
+
+private fun View.jetStreamDiscoverPanelBackground(cornerRadiusDp: Int): GradientDrawable {
+    return GradientDrawable().apply {
+        cornerRadius = jetStreamDp(cornerRadiusDp)
+        setColor(jetStreamColor(R.color.jetstream_surface_container))
+        setStroke(jetStreamDpInt(1), jetStreamColor(R.color.jetstream_outline_variant))
     }
 }
 

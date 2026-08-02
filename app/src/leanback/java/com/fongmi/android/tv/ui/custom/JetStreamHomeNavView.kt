@@ -257,6 +257,7 @@ class JetStreamHomeNavView @JvmOverloads constructor(
                 R.drawable.ic_home_keep -> R.drawable.msr_bookmark_border
                 R.drawable.ic_home_push -> R.drawable.msr_cloud_upload
                 R.drawable.ic_home_setting -> R.drawable.msr_settings
+                R.drawable.ic_home_discover -> R.drawable.ic_home_discover
                 else -> R.drawable.msr_movie
             }
         }

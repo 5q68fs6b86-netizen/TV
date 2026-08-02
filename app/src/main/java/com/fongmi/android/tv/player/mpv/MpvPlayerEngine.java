@@ -10,6 +10,14 @@ import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.utils.MpvLogCollector;
 
+/**
+ * Self-hosted MPV engine:
+ * <ul>
+ *   <li>{@link #setDecode(int)} reopens media in the same MPV instance</li>
+ *   <li>{@link #rebuild()} is a no-op and returns the same player instance</li>
+ * </ul>
+ * Runtime type remains {@link MpvPlayer}, not {@code androidx.media3.mpvplayer.MpvPlayer}.
+ */
 @UnstableApi
 public class MpvPlayerEngine implements PlayerEngine {
 
@@ -17,7 +25,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     private final MpvErrorMsgProvider provider;
     private final Player.Listener listener;
-    private MpvPlayer player;
+    private final MpvPlayer player;
     private PlaySpec spec;
     private int decode;
     private int recoverAttempts;
@@ -33,7 +41,7 @@ public class MpvPlayerEngine implements PlayerEngine {
     public static boolean isAvailable() {
         try {
             Class.forName("is.xyz.mpv.MPVLib");
-            return true;
+            return MpvPlayer.isNativeAvailable();
         } catch (Throwable e) {
             return false;
         }
@@ -59,9 +67,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public Player rebuild() {
-        release();
-        player = new MpvPlayer(App.get(), decode);
-        player.addListener(listener);
+        // FongMi contract: MPV rebuild is a no-op (same player instance).
         return player;
     }
 
@@ -73,8 +79,9 @@ public class MpvPlayerEngine implements PlayerEngine {
     @Override
     public boolean setDecode(int decode) {
         this.decode = decode;
+        // MpvPlayer performs stop/rebind/loadfile; PlayerManager must not rebuild it.
         player.setDecode(decode);
-        return true;
+        return false;
     }
 
     @Override
@@ -106,6 +113,7 @@ public class MpvPlayerEngine implements PlayerEngine {
 
     @Override
     public ErrorAction handleError(PlaybackException e) {
+        if (e.getCause() instanceof MpvDolbyVisionException) return ErrorAction.PLATFORM;
         return switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
                     PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,

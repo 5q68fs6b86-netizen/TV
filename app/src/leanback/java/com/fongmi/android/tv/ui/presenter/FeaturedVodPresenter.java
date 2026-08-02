@@ -7,13 +7,16 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.leanback.widget.Presenter;
 
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterFeaturedVodBinding;
@@ -36,15 +39,21 @@ import java.util.Set;
 public class FeaturedVodPresenter extends Presenter {
 
     private final VodPresenter.OnClickListener listener;
+    private final int actionText;
 
     public FeaturedVodPresenter(VodPresenter.OnClickListener listener) {
+        this(listener, R.string.play);
+    }
+
+    public FeaturedVodPresenter(VodPresenter.OnClickListener listener, @StringRes int actionText) {
         this.listener = listener;
+        this.actionText = actionText;
     }
 
     @NonNull
     @Override
     public Presenter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
-        return new ViewHolder(AdapterFeaturedVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), listener);
+        return new ViewHolder(AdapterFeaturedVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), listener, actionText);
     }
 
     @Override
@@ -57,6 +66,18 @@ public class FeaturedVodPresenter extends Presenter {
         ((ViewHolder) viewHolder).unbind();
     }
 
+    @Override
+    public void onViewAttachedToWindow(@NonNull Presenter.ViewHolder viewHolder) {
+        super.onViewAttachedToWindow(viewHolder);
+        ((ViewHolder) viewHolder).attach();
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull Presenter.ViewHolder viewHolder) {
+        ((ViewHolder) viewHolder).detach();
+        super.onViewDetachedFromWindow(viewHolder);
+    }
+
     public static class ViewHolder extends Presenter.ViewHolder {
 
         private static final long AUTO_DELAY = 6500;
@@ -67,15 +88,18 @@ public class FeaturedVodPresenter extends Presenter {
         private final VodPresenter.OnClickListener listener;
         private final Handler handler;
         private final Runnable rotate;
+        private final ViewTreeObserver.OnWindowFocusChangeListener windowFocusListener;
         private final Map<String, String> artworkCache;
         private final Set<String> artworkMissing;
         private final FeaturedPosterCache posterCache;
         private FeaturedVodRow row;
         private ShapeableImageView front;
         private String artworkRequest;
+        private String currentArtwork;
+        private boolean windowFocusListenerRegistered;
         private int index;
 
-        public ViewHolder(@NonNull AdapterFeaturedVodBinding binding, VodPresenter.OnClickListener listener) {
+        public ViewHolder(@NonNull AdapterFeaturedVodBinding binding, VodPresenter.OnClickListener listener, @StringRes int actionText) {
             super(binding.getRoot());
             this.binding = binding;
             this.listener = listener;
@@ -84,10 +108,15 @@ public class FeaturedVodPresenter extends Presenter {
             this.artworkMissing = new HashSet<>();
             this.posterCache = new FeaturedPosterCache();
             this.rotate = () -> {
-                show(index + 1, true);
+                // 页面失去窗口焦点（进后台/被覆盖）时跳过本轮，避免向全局 JetStreamAmbient 推送污染前台页面背景
+                if (binding.getRoot().hasWindowFocus()) show(index + 1, true);
                 schedule();
             };
+            this.windowFocusListener = hasFocus -> {
+                if (hasFocus) publishCurrentArtwork();
+            };
             this.front = binding.imageA;
+            binding.actionText.setText(actionText);
             setListeners();
         }
 
@@ -115,6 +144,8 @@ public class FeaturedVodPresenter extends Presenter {
             this.row = row;
             this.index = 0;
             this.front = binding.imageA;
+            this.artworkRequest = null;
+            this.currentArtwork = null;
             if (posterCache.prepare(row.getItems())) {
                 artworkCache.clear();
                 artworkMissing.clear();
@@ -197,11 +228,13 @@ public class FeaturedVodPresenter extends Presenter {
 
                 @Override
                 public void onNotFound() {
+                    if (!posterCache.isCurrent(requestSignature)) return;
                     artworkMissing.add(key);
                 }
 
                 @Override
                 public void onError(@NonNull Exception error) {
+                    if (!posterCache.isCurrent(requestSignature)) return;
                     artworkMissing.add(key);
                 }
             });
@@ -209,7 +242,15 @@ public class FeaturedVodPresenter extends Presenter {
 
         private void loadArtwork(Vod item, String url, ShapeableImageView target) {
             ImgUtil.load(item.getName(), url, target);
-            JetStreamAmbient.push(url);
+            currentArtwork = url;
+            publishCurrentArtwork();
+        }
+
+        private void publishCurrentArtwork() {
+            // JetStreamAmbient 是全局单例，只有当前窗口可更新；重新获得焦点时补发此前被抑制的图片。
+            if (!TextUtils.isEmpty(currentArtwork) && binding.getRoot().isAttachedToWindow() && binding.getRoot().hasWindowFocus()) {
+                JetStreamAmbient.push(currentArtwork);
+            }
         }
 
         private boolean isArtworkRequestActive(String key) {
@@ -288,6 +329,22 @@ public class FeaturedVodPresenter extends Presenter {
             schedule();
         }
 
+        private void attach() {
+            if (!windowFocusListenerRegistered) {
+                binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(windowFocusListener);
+                windowFocusListenerRegistered = true;
+            }
+            publishCurrentArtwork();
+            restart();
+        }
+
+        private void detach() {
+            stop();
+            ViewTreeObserver observer = binding.getRoot().getViewTreeObserver();
+            if (windowFocusListenerRegistered && observer.isAlive()) observer.removeOnWindowFocusChangeListener(windowFocusListener);
+            windowFocusListenerRegistered = false;
+        }
+
         private void schedule() {
             if (row != null && row.size() > 1) handler.postDelayed(rotate, AUTO_DELAY);
         }
@@ -297,8 +354,10 @@ public class FeaturedVodPresenter extends Presenter {
         }
 
         private void unbind() {
-            stop();
+            detach();
+            row = null;
             artworkRequest = null;
+            currentArtwork = null;
             binding.getRoot().setOnClickListener(null);
             JetStreamAnimator.reset(binding.getRoot());
             Glide.with(binding.imageA).clear(binding.imageA);
