@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.api.loader;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.quickjs.crawler.Loader;
 import com.fongmi.quickjs.utils.Module;
 import com.fongmi.quickjs.utils.QuickLog;
@@ -21,7 +22,7 @@ public class JsLoader {
 
     public JsLoader() {
         spiders = new ConcurrentHashMap<>();
-        loader = new Loader();
+        loader = new Loader(BuildConfig.TMDB_API_KEY);
     }
 
     public void clear() {
