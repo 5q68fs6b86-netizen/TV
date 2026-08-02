@@ -161,7 +161,7 @@ public class FeaturedVodPresenter extends Presenter {
             show(0, false);
             binding.getRoot().setOnClickListener(view -> {
                 Vod item = getCurrent();
-                if (item != null) listener.onItemClick(item);
+                if (item != null) listener.onItemClick(item, front);
             });
             restart();
         }

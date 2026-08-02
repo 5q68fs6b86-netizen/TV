@@ -22,7 +22,6 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
-import com.fongmi.android.tv.ui.dialog.DiscoverDialog;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.common.collect.Lists;
@@ -130,7 +129,21 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
 
     @Override
     public void onItemClick(Vod item) {
-        DiscoverDialog.create(item).show(this);
+        openDetail(item, null);
+    }
+
+    @Override
+    public void onItemClick(Vod item, View poster) {
+        openDetail(item, poster);
+    }
+
+    private void openDetail(Vod item, View poster) {
+        com.fongmi.android.tv.bean.DiscoverMediaKey key = com.fongmi.android.tv.bean.DiscoverMediaKey.parse(item.getId());
+        if (key == null) {
+            CollectActivity.start(this, item.getName());
+            return;
+        }
+        DiscoverDetailActivity.start(this, key, item.getName(), item.getPic(), item.getBackdrop(), item.getContent(), item.getYear(), item.getRemarks(), poster);
     }
 
     @Override

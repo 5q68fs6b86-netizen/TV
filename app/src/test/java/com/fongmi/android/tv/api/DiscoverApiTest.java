@@ -1,7 +1,10 @@
 package com.fongmi.android.tv.api;
 
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.bean.DiscoverDetail;
 import com.fongmi.android.tv.bean.DiscoverFacet;
+import com.fongmi.android.tv.bean.DiscoverMediaKey;
+import com.fongmi.android.tv.bean.DiscoverQuery;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -102,7 +105,8 @@ public class DiscoverApiTest {
     public void shouldParseTmdbBackdropAndMediaType() {
         List<Vod> items = DiscoverApi.parseTmdbResults("{\"results\":[{\"id\":1,\"name\":\"剧名\",\"media_type\":\"tv\",\"poster_path\":\"/p.jpg\",\"backdrop_path\":\"/b.jpg\"}]}");
 
-        assertEquals("剧集", items.get(0).getTypeName());
+        assertEquals("tmdb:tv:1", items.get(0).getId());
+        assertEquals("tv", items.get(0).getTypeName());
         assertEquals("https://tapi.coolmarket.eu.org/t/p/w780/b.jpg", items.get(0).getBackdrop());
     }
 
@@ -121,5 +125,86 @@ public class DiscoverApiTest {
     public void shouldFormatTmdbRemarks() {
         assertEquals("8.2分", DiscoverApi.tmdbRemarks(8.16));
         assertEquals("", DiscoverApi.tmdbRemarks(0));
+    }
+
+    @Test
+    public void shouldUseFallbackMediaTypeForDiscoverLists() {
+        List<Vod> movies = DiscoverApi.parseTmdbResults("{\"results\":[{\"id\":7,\"title\":\"同号电影\",\"poster_path\":\"/m.jpg\"}]}", "movie");
+        List<Vod> shows = DiscoverApi.parseTmdbResults("{\"results\":[{\"id\":7,\"name\":\"同号剧集\",\"poster_path\":\"/t.jpg\"}]}", "tv");
+
+        assertEquals("tmdb:movie:7", movies.get(0).getId());
+        assertEquals("tmdb:tv:7", shows.get(0).getId());
+    }
+
+    @Test
+    public void shouldBuildMovieFilterUrl() {
+        DiscoverQuery query = new DiscoverQuery("movie", "878", "US", "2024-01-01", "2024-12-31", DiscoverQuery.SORT_RATING, 3);
+
+        String url = query.buildUrl("https://example.com/3/", "key").toString();
+
+        assertTrue(url.startsWith("https://example.com/3/discover/movie?"));
+        assertTrue(url.contains("with_genres=878"));
+        assertTrue(url.contains("with_origin_country=US"));
+        assertTrue(url.contains("primary_release_date.gte=2024-01-01"));
+        assertTrue(url.contains("primary_release_date.lte=2024-12-31"));
+        assertTrue(url.contains("sort_by=vote_average.desc"));
+        assertTrue(url.contains("vote_count.gte=100"));
+        assertTrue(url.contains("page=3"));
+    }
+
+    @Test
+    public void shouldBuildPopularFilterUrlByDefault() {
+        DiscoverQuery query = DiscoverQuery.defaults();
+
+        String url = query.buildUrl("https://example.com/3/", "key").toString();
+
+        assertTrue(url.startsWith("https://example.com/3/discover/movie?"));
+        assertTrue(url.contains("sort_by=popularity.desc"));
+        assertTrue(url.contains("page=1"));
+    }
+
+    @Test
+    public void shouldBuildTvLatestFilterUrl() {
+        DiscoverQuery query = new DiscoverQuery("tv", "", "KR", "2020-01-01", "2029-12-31", DiscoverQuery.SORT_LATEST, 2);
+
+        String url = query.buildUrl("https://example.com/3/", "key").toString();
+
+        assertTrue(url.startsWith("https://example.com/3/discover/tv?"));
+        assertTrue(url.contains("first_air_date.gte=2020-01-01"));
+        assertTrue(url.contains("first_air_date.lte=2029-12-31"));
+        assertTrue(url.contains("sort_by=first_air_date.desc"));
+        assertTrue(url.contains("page=2"));
+    }
+
+    @Test
+    public void shouldParseMovieDetailAndCredits() {
+        String json = "{\"id\":693134,\"title\":\"沙丘2\",\"original_title\":\"Dune: Part Two\",\"release_date\":\"2024-02-27\",\"runtime\":166," +
+                "\"vote_average\":8.2,\"genres\":[{\"name\":\"科幻\"}],\"production_countries\":[{\"name\":\"美国\"}],\"poster_path\":\"/p.jpg\",\"backdrop_path\":\"/b.jpg\"," +
+                "\"credits\":{\"crew\":[{\"job\":\"Director\",\"name\":\"丹尼斯\"}],\"cast\":[{\"name\":\"提莫西\",\"character\":\"保罗\",\"profile_path\":\"/a.jpg\"}]}}";
+
+        DiscoverDetail detail = DiscoverApi.parseDetail(DiscoverMediaKey.of("movie", 693134), json);
+
+        assertEquals("沙丘2", detail.getTitle());
+        assertEquals("2024", detail.getYear());
+        assertEquals(166, detail.getRuntimeMinutes());
+        assertEquals("丹尼斯", detail.getCreators());
+        assertEquals("提莫西", detail.getCast().get(0).getName());
+        assertEquals("https://tapi.coolmarket.eu.org/t/p/w185/a.jpg", detail.getCast().get(0).getProfile());
+    }
+
+    @Test
+    public void shouldParseTvDetailWithFallbacks() {
+        String json = "{\"id\":1,\"name\":\"剧集\",\"first_air_date\":\"2023-01-14\",\"number_of_seasons\":2,\"number_of_episodes\":16,\"status\":\"Ended\"," +
+                "\"episode_run_time\":[45],\"created_by\":[{\"name\":\"主创\"}],\"credits\":{\"cast\":[]}}";
+
+        DiscoverDetail detail = DiscoverApi.parseDetail(DiscoverMediaKey.of("tv", 1), json);
+
+        assertEquals("剧集", detail.getTitle());
+        assertEquals(45, detail.getRuntimeMinutes());
+        assertEquals(2, detail.getSeasons());
+        assertEquals(16, detail.getEpisodes());
+        assertEquals("Ended", detail.getStatus());
+        assertEquals("主创", detail.getCreators());
+        assertTrue(detail.getCast().isEmpty());
     }
 }

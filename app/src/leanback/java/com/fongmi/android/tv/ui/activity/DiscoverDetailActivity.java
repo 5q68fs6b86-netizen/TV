@@ -1,0 +1,230 @@
+package com.fongmi.android.tv.ui.activity;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.viewbinding.ViewBinding;
+
+import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.DiscoverApi;
+import com.fongmi.android.tv.bean.DiscoverDetail;
+import com.fongmi.android.tv.bean.DiscoverMediaKey;
+import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.databinding.ActivityDiscoverDetailBinding;
+import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.ui.adapter.DiscoverCreditAdapter;
+import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.dialog.ContentDialog;
+import com.fongmi.android.tv.utils.ImgUtil;
+import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DiscoverDetailActivity extends BaseActivity {
+
+    private static final String TRANSITION = "discover_poster";
+
+    private ActivityDiscoverDetailBinding mBinding;
+    private DiscoverCreditAdapter castAdapter;
+    private DiscoverMediaKey key;
+    private DiscoverDetail detail;
+    private String title;
+    private String poster;
+    private String backdrop;
+    private String overview;
+    private String year;
+    private String rating;
+
+    public static void start(Activity activity, DiscoverMediaKey key, String title, String poster, String backdrop,
+                             String overview, String year, String rating, View sharedPoster) {
+        Intent intent = new Intent(activity, DiscoverDetailActivity.class);
+        intent.putExtra("key", key.toString());
+        intent.putExtra("title", title);
+        intent.putExtra("poster", poster);
+        intent.putExtra("backdrop", backdrop);
+        intent.putExtra("overview", overview);
+        intent.putExtra("year", year);
+        intent.putExtra("rating", rating);
+        if (sharedPoster == null) {
+            activity.startActivity(intent);
+            return;
+        }
+        sharedPoster.setTransitionName(TRANSITION);
+        activity.startActivity(intent, ActivityOptionsCompat.makeSceneTransitionAnimation(activity, sharedPoster, TRANSITION).toBundle());
+        sharedPoster.post(() -> sharedPoster.setTransitionName(null));
+    }
+
+    @Override
+    protected ViewBinding getBinding() {
+        return mBinding = ActivityDiscoverDetailBinding.inflate(getLayoutInflater());
+    }
+
+    @Override
+    protected boolean customWall() {
+        return false;
+    }
+
+    @Override
+    protected void initView(Bundle savedInstanceState) {
+        key = DiscoverMediaKey.parse(getIntent().getStringExtra("key"));
+        if (key == null) {
+            finish();
+            return;
+        }
+        title = value(getIntent().getStringExtra("title"));
+        poster = value(getIntent().getStringExtra("poster"));
+        backdrop = value(getIntent().getStringExtra("backdrop"));
+        overview = value(getIntent().getStringExtra("overview"));
+        year = value(getIntent().getStringExtra("year"));
+        rating = value(getIntent().getStringExtra("rating"));
+        setCast();
+        bindFallback();
+        updateKeep();
+        load();
+        mBinding.search.requestFocus();
+    }
+
+    private void setCast() {
+        mBinding.cast.setAdapter(castAdapter = new DiscoverCreditAdapter());
+        mBinding.cast.addItemDecoration(new androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@androidx.annotation.NonNull android.graphics.Rect outRect, @androidx.annotation.NonNull View view,
+                                       @androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView parent,
+                                       @androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView.State state) {
+                outRect.right = ResUtil.dp2px(8);
+            }
+        });
+    }
+
+    @Override
+    protected void initEvent() {
+        mBinding.search.setOnClickListener(view -> CollectActivity.start(this, title));
+        mBinding.keep.setOnClickListener(view -> toggleKeep());
+        mBinding.fullOverview.setOnClickListener(view -> ContentDialog.create().content(overview).show(this));
+        mBinding.retry.setOnClickListener(view -> load());
+    }
+
+    private void bindFallback() {
+        mBinding.title.setText(title);
+        mBinding.originalTitle.setVisibility(View.GONE);
+        bindMeta();
+        mBinding.creator.setVisibility(View.GONE);
+        mBinding.overview.setText(overview);
+        mBinding.overview.setVisibility(overview.isEmpty() ? View.GONE : View.VISIBLE);
+        mBinding.fullOverview.setVisibility(hasLongOverview() ? View.VISIBLE : View.GONE);
+        ImgUtil.load(title, poster, mBinding.poster);
+        if (!backdrop.isEmpty()) ImgUtil.load(title, backdrop, mBinding.backdrop);
+    }
+
+    private void load() {
+        mBinding.retry.setVisibility(View.GONE);
+        DiscoverApi.fetchDetail(key, BuildConfig.TMDB_API_KEY, new DiscoverApi.DetailListener() {
+            @Override
+            public void onSuccess(DiscoverDetail value) {
+                if (isFinishing()) return;
+                detail = value;
+                bindDetail(value);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (!isFinishing()) mBinding.retry.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void bindDetail(DiscoverDetail item) {
+        if (!item.getTitle().isEmpty()) title = item.getTitle();
+        if (!item.getPoster().isEmpty()) poster = item.getPoster();
+        if (!item.getBackdrop().isEmpty()) backdrop = item.getBackdrop();
+        if (!item.getOverview().isEmpty()) overview = item.getOverview();
+        if (!item.getYear().isEmpty()) year = item.getYear();
+        if (!item.getRating().isEmpty()) rating = item.getRating();
+        mBinding.title.setText(title);
+        mBinding.originalTitle.setText(item.getOriginalTitle());
+        mBinding.originalTitle.setVisibility(item.getOriginalTitle().isEmpty() || item.getOriginalTitle().equals(title) ? View.GONE : View.VISIBLE);
+        bindMeta();
+        String creator = item.getCreators().isEmpty() ? "" : getString(R.string.discover_creators, item.getCreators());
+        mBinding.creator.setText(creator);
+        mBinding.creator.setVisibility(creator.isEmpty() ? View.GONE : View.VISIBLE);
+        mBinding.overview.setText(overview);
+        mBinding.overview.setVisibility(overview.isEmpty() ? View.GONE : View.VISIBLE);
+        mBinding.fullOverview.setVisibility(hasLongOverview() ? View.VISIBLE : View.GONE);
+        ImgUtil.load(title, poster, mBinding.poster);
+        if (!backdrop.isEmpty()) ImgUtil.load(title, backdrop, mBinding.backdrop);
+        castAdapter.setItems(item.getCast());
+        int castVisibility = item.getCast().isEmpty() ? View.GONE : View.VISIBLE;
+        mBinding.castTitle.setVisibility(castVisibility);
+        mBinding.cast.setVisibility(castVisibility);
+        updateKeep();
+    }
+
+    private void bindMeta() {
+        List<String> values = new ArrayList<>();
+        add(values, rating);
+        add(values, year);
+        if (detail != null) {
+            add(values, detail.getGenres());
+            add(values, detail.getCountries());
+            if (detail.getRuntimeMinutes() > 0) add(values, getString(R.string.discover_runtime_minutes, detail.getRuntimeMinutes()));
+            if (detail.getSeasons() > 0) add(values, getString(R.string.discover_seasons, detail.getSeasons()));
+            if (detail.getEpisodes() > 0) add(values, getString(R.string.discover_episodes, detail.getEpisodes()));
+            add(values, detail.getStatus());
+        }
+        mBinding.meta.setText(TextUtils.join(" · ", values));
+        mBinding.meta.setVisibility(values.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private void toggleKeep() {
+        Keep saved = Keep.findDiscover(key.toString());
+        if (saved != null) {
+            saved.delete();
+            Notify.show(getString(R.string.keep_del));
+        } else {
+            Keep keep = new Keep();
+            keep.setKey(key.toString());
+            keep.setType(Keep.TYPE_DISCOVER);
+            keep.setCid(0);
+            keep.setSiteName(getString(key.isMovie() ? R.string.discover_tmdb_movie : R.string.discover_tmdb_tv));
+            keep.setVodName(title);
+            keep.setVodPic(poster);
+            keep.setCreateTime(System.currentTimeMillis());
+            keep.save();
+            Notify.show(getString(R.string.keep_add));
+        }
+        updateKeep();
+        RefreshEvent.keep();
+    }
+
+    private void updateKeep() {
+        boolean saved = Keep.findDiscover(key.toString()) != null;
+        mBinding.keep.setText(saved ? R.string.discover_remove_keep : R.string.discover_add_keep);
+    }
+
+    private static String value(String value) {
+        return value == null ? "" : value;
+    }
+
+    private boolean hasLongOverview() {
+        return overview.length() > 180;
+    }
+
+    private static void add(List<String> values, String value) {
+        if (!TextUtils.isEmpty(value)) values.add(value);
+    }
+
+    @Override
+    protected void onDestroy() {
+        DiscoverApi.cancel();
+        com.bumptech.glide.Glide.with(mBinding.backdrop).clear(mBinding.backdrop);
+        com.bumptech.glide.Glide.with(mBinding.poster).clear(mBinding.poster);
+        super.onDestroy();
+    }
+}

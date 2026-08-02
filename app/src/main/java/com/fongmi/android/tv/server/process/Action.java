@@ -171,7 +171,7 @@ public class Action implements Process {
     private void sendKeep(Device device) {
         try {
             FormBody.Builder body = new FormBody.Builder();
-            body.add("targets", App.gson().toJson(Keep.getVod()));
+            body.add("targets", App.gson().toJson(Keep.getVodAndDiscover()));
             body.add("configs", App.gson().toJson(Config.findUrls()));
             post(device, "keep", body);
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class Action implements Process {
         if (TextUtils.isEmpty(VodConfig.getUrl()) && !configs.isEmpty()) {
             VodConfig.load(Config.find(configs.get(0)), getCallback(configs, targets, force));
         } else {
-            if (force) Keep.deleteAll();
+            if (force) Keep.replaceSynced(targets);
             Keep.sync(configs, targets);
             RefreshEvent.keep();
         }
@@ -224,7 +224,7 @@ public class Action implements Process {
         return new Callback() {
             @Override
             public void success() {
-                if (force) Keep.deleteAll();
+                if (force) Keep.replaceSynced(targets);
                 Keep.sync(configs, targets);
                 RefreshEvent.keep();
             }

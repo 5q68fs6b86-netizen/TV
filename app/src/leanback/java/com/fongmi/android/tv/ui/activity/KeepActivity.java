@@ -11,6 +11,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.databinding.ActivityKeepBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -52,7 +53,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod(), () -> {
+        mAdapter.setItems(Keep.getVodAndDiscover(), () -> {
             mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
             requestFocus(0);
         });
@@ -91,6 +92,11 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemClick(Keep item) {
+        if (item.getType() == Keep.TYPE_DISCOVER) {
+            DiscoverMediaKey key = DiscoverMediaKey.parse(item.getKey());
+            if (key != null) DiscoverDetailActivity.start(this, key, item.getVodName(), item.getVodPic(), "", "", "", "", null);
+            return;
+        }
         Config config = Config.find(item.getCid());
         if (config == null) CollectActivity.start(this, item.getVodName());
         else if (item.getCid() != VodConfig.getCid()) loadConfig(config, item);
