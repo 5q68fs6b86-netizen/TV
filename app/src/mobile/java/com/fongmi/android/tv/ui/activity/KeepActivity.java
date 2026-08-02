@@ -64,7 +64,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
+        mAdapter.setItems(Keep.getVodAndDiscover(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
     }
 
     private void onSync() {
@@ -100,6 +100,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemClick(Keep item) {
+        if (item.getType() == Keep.TYPE_DISCOVER) {
+            SearchActivity.start(this, item.getVodName());
+            return;
+        }
         Config config = Config.find(item.getCid());
         if (config == null) SearchActivity.start(this, item.getVodName());
         else if (item.getCid() != VodConfig.getCid()) loadConfig(config, item);

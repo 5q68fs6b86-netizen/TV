@@ -13,12 +13,17 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
 public class Keep implements Diffable<Keep> {
+
+    public static final int TYPE_VOD = 0;
+    public static final int TYPE_LIVE = 1;
+    public static final int TYPE_DISCOVER = 2;
 
     @NonNull
     @PrimaryKey
@@ -55,8 +60,20 @@ public class Keep implements Diffable<Keep> {
         return AppDatabase.get().getKeepDao().find(key) != null;
     }
 
+    public static Keep findDiscover(String key) {
+        return AppDatabase.get().getKeepDao().findDiscover(key);
+    }
+
     public static void deleteAll() {
         AppDatabase.get().getKeepDao().delete();
+    }
+
+    public static void replaceSynced(List<Keep> targets) {
+        AppDatabase.get().getKeepDao().delete();
+        if (targets == null) return;
+        List<Keep> direct = new ArrayList<>();
+        for (Keep target : targets) if (target.getType() == TYPE_DISCOVER) direct.add(target);
+        AppDatabase.get().getKeepDao().insertOrUpdate(direct);
     }
 
     public static void delete(int cid) {
@@ -71,14 +88,26 @@ public class Keep implements Diffable<Keep> {
         return AppDatabase.get().getKeepDao().getVod();
     }
 
+    public static List<Keep> getVodAndDiscover() {
+        return AppDatabase.get().getKeepDao().getVodAndDiscover();
+    }
+
     public static List<Keep> getLive() {
         return AppDatabase.get().getKeepDao().getLive();
     }
 
     public static void sync(List<Config> configs, List<Keep> targets) {
-        targets.forEach(target -> configs.stream()
-                .filter(config -> target.getCid() == config.getId()).findFirst()
-                .ifPresent(config -> target.save(Config.find(config).getId())));
+        if (targets == null) return;
+        if (configs == null) configs = Collections.emptyList();
+        List<Config> available = configs;
+        targets.forEach(target -> {
+            if (target.getType() == TYPE_DISCOVER) {
+                target.save();
+                return;
+            }
+            available.stream().filter(config -> target.getCid() == config.getId()).findFirst()
+                    .ifPresent(config -> target.save(Config.find(config).getId()));
+        });
     }
 
     @NonNull
@@ -139,11 +168,13 @@ public class Keep implements Diffable<Keep> {
     }
 
     public String getSiteKey() {
-        return getKey().split(AppDatabase.SYMBOL)[0];
+        String[] parts = getKey().split(AppDatabase.SYMBOL, -1);
+        return parts.length > 0 ? parts[0] : "";
     }
 
     public String getVodId() {
-        return getKey().split(AppDatabase.SYMBOL)[1];
+        String[] parts = getKey().split(AppDatabase.SYMBOL, -1);
+        return parts.length > 1 ? parts[1] : "";
     }
 
     public void save(int cid) {
@@ -156,7 +187,8 @@ public class Keep implements Diffable<Keep> {
     }
 
     public Keep delete() {
-        AppDatabase.get().getKeepDao().delete(getCid(), getKey());
+        if (getType() == TYPE_DISCOVER) AppDatabase.get().getKeepDao().deleteDiscover(getKey());
+        else AppDatabase.get().getKeepDao().delete(getCid(), getKey());
         return this;
     }
 

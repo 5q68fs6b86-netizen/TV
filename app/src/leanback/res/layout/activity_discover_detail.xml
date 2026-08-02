@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_discover_detail_scrim" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:paddingStart="56dp"
+        android:paddingTop="42dp"
+        android:paddingEnd="56dp"
+        android:paddingBottom="36dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="38dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <com.fongmi.android.tv.ui.custom.JetStreamHeroTitleTextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textSize="38sp"
+                tools:text="影视标题" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                android:id="@+id/originalTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="15sp"
+                tools:text="Original title" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamStrongLabelTextView
+                android:id="@+id/meta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textSize="16sp"
+                tools:text="TMDB 8.5 · 2026 · 科幻 · 美国 · 2小时10分钟" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamSupportingLabelTextView
+                android:id="@+id/creator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="14sp"
+                tools:text="导演 / 主创" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamBodyTextView
+                android:id="@+id/overview"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="18dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:lineSpacingExtra="3dp"
+                android:maxLines="7"
+                android:textSize="16sp"
+                tools:text="剧情简介" />
+
+            <LinearLayout
+                android:id="@+id/actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <com.fongmi.android.tv.ui.custom.JetStreamPrimaryButtonTextView
+                    android:id="@+id/search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:nextFocusDown="@id/cast"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="@string/discover_search_play" />
+
+                <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                    android:id="@+id/keep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:nextFocusDown="@id/cast"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="@string/keep" />
+
+                <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                    android:id="@+id/fullOverview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:nextFocusDown="@id/cast"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="@string/discover_full_overview" />
+
+                <com.fongmi.android.tv.ui.custom.JetStreamButtonTextView
+                    android:id="@+id/retry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:nextFocusDown="@id/cast"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="@string/discover_retry"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <com.fongmi.android.tv.ui.custom.JetStreamStrongLabelTextView
+                android:id="@+id/castTitle"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="18dp"
+                android:text="@string/discover_cast"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
+            <com.fongmi.android.tv.ui.custom.JetStreamHorizontalGridView
+                android:id="@+id/cast"
+                android:layout_width="match_parent"
+                android:layout_height="142dp"
+                android:nextFocusUp="@id/search"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <com.fongmi.android.tv.ui.custom.JetStreamPosterImageView
+            android:id="@+id/poster"
+            android:layout_width="248dp"
+            android:layout_height="372dp"
+            android:transitionName="discover_poster"
+            tools:src="@drawable/ic_launcher_background" />
+    </LinearLayout>
+</FrameLayout>

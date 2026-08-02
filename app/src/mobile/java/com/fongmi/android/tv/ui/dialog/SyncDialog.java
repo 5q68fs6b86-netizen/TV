@@ -73,7 +73,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
 
     public SyncDialog keep() {
         body.add("device", Device.get().toString());
-        body.add("targets", App.gson().toJson(Keep.getVod()));
+        body.add("targets", App.gson().toJson(Keep.getVodAndDiscover()));
         body.add("configs", App.gson().toJson(Config.findUrls()));
         return type("keep");
     }
