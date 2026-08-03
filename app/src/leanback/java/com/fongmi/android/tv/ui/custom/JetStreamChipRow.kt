@@ -99,6 +99,8 @@ class JetStreamChipRow @JvmOverloads constructor(
 
     fun getSelectedPosition(): Int = selectedIndex
 
+    fun getFocusedPosition(): Int = focusedIndex
+
     fun setSelectedPosition(position: Int) {
         selectedIndex = if (position in items.indices) position else -1
         setFocusedPosition(selectedIndex)
@@ -135,6 +137,11 @@ class JetStreamChipRow @JvmOverloads constructor(
 
     fun setOnChipLongClickListener(listener: OnChipLongClickListener) {
         longClickListener = { pos -> listener.onChipLongClick(pos) }
+    }
+
+    fun clearListeners() {
+        clickListener = null
+        longClickListener = null
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {

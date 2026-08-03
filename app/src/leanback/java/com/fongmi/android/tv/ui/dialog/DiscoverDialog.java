@@ -7,7 +7,8 @@ import android.view.View;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.bean.DoubanDetail;
 import com.fongmi.android.tv.databinding.DialogDiscoverBinding;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -18,9 +19,9 @@ public class DiscoverDialog extends BaseAlertDialog {
     private static final String ITEM = "item";
 
     private DialogDiscoverBinding binding;
-    private Vod item;
+    private DoubanDetail item;
 
-    public static DiscoverDialog create(Vod item) {
+    public static DiscoverDialog create(DoubanDetail item) {
         DiscoverDialog dialog = new DiscoverDialog();
         Bundle args = new Bundle();
         args.putParcelable(ITEM, item);
@@ -49,13 +50,18 @@ public class DiscoverDialog extends BaseAlertDialog {
             dismissAllowingStateLoss();
             return;
         }
-        ImgUtil.load(item.getName(), item.getPic(), binding.poster);
-        binding.poster.setContentDescription(item.getName());
-        binding.name.setText(item.getName());
+        ImgUtil.load(item.getTitle(), item.getPoster(), binding.poster);
+        binding.poster.setContentDescription(item.getTitle());
+        binding.name.setText(item.getTitle());
         bindPill(binding.year, item.getYear());
-        bindPill(binding.rating, item.getRemarks());
-        binding.content.setText(item.getContent());
-        binding.content.setVisibility(TextUtils.isEmpty(item.getContent()) ? View.GONE : View.VISIBLE);
+        bindPill(binding.rating, item.getRating());
+        bindPill(binding.type, item.getGenres());
+        bindPill(binding.region, item.getRegion());
+        bindPill(binding.duration, item.getDuration());
+        bindLine(binding.directors, R.string.discover_douban_directors, item.getDirectors());
+        bindLine(binding.actors, R.string.discover_douban_actors, item.getActors());
+        binding.content.setText(item.getComment());
+        binding.content.setVisibility(TextUtils.isEmpty(item.getComment()) ? View.GONE : View.VISIBLE);
         binding.search.requestFocus();
     }
 
@@ -70,10 +76,15 @@ public class DiscoverDialog extends BaseAlertDialog {
         view.setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
     }
 
+    private void bindLine(android.widget.TextView view, int label, String text) {
+        view.setText(TextUtils.isEmpty(text) ? "" : getString(label, text));
+        view.setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
+    }
+
     private void onSearch(View view) {
         FragmentActivity activity = getActivity();
         dismiss();
-        if (activity != null) CollectActivity.start(activity, item.getName());
+        if (activity != null) CollectActivity.start(activity, item.getTitle());
     }
 
     @Override

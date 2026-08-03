@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.DiscoverDetail;
 import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.DiscoverQuery;
+import com.fongmi.android.tv.bean.DoubanDetail;
 import com.fongmi.android.tv.bean.Vod;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.JsonArray;
@@ -24,6 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -37,9 +40,15 @@ public class DiscoverApi {
     private static final String TMDB_BASE = "https://tapi.coolmarket.eu.org/3/";
     private static final String TMDB_IMAGE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DOUBAN_LIST = "https://movie.douban.com/j/search_subjects";
+    private static final String DOUBAN_ABSTRACT = "https://movie.douban.com/j/subject_abstract";
     private static final String DOUBAN_PIC_SUFFIX = "@Referer=https://movie.douban.com/@User-Agent=Mozilla/5.0";
     private static final long CACHE_TTL = 30 * 60 * 1000L;
     private static final Map<Row, CacheEntry> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, DoubanDetail> DOUBAN_DETAIL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, DiscoverMediaKey> DOUBAN_MATCH_CACHE = new ConcurrentHashMap<>();
+    private static final Pattern YEAR = Pattern.compile("(?:19|20)\\d{2}");
+    private static final Pattern TITLE_YEAR_SUFFIX = Pattern.compile("\\s*[（(](?:19|20)\\d{2}[)）]\\s*$");
+    private static final Pattern TITLE_NOISE = Pattern.compile("[\\s\\p{Punct}\\p{IsPunctuation}]+");
 
     public enum Row {
         DOUBAN_HOT_MOVIE, DOUBAN_HOT_TV, DOUBAN_NEW_MOVIE,
@@ -64,6 +73,22 @@ public class DiscoverApi {
     public interface DetailListener {
 
         void onSuccess(DiscoverDetail detail);
+
+        void onError(Exception e);
+    }
+
+    public interface DoubanDetailListener {
+
+        void onSuccess(DoubanDetail detail);
+
+        void onError(Exception e);
+    }
+
+    public interface MatchListener {
+
+        void onMatch(DiscoverMediaKey key);
+
+        void onNoMatch();
 
         void onError(Exception e);
     }
@@ -96,7 +121,7 @@ public class DiscoverApi {
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try (Response resp = response) {
                     if (!resp.isSuccessful() || resp.body() == null) throw new IOException("Discover failed: HTTP " + resp.code());
-                    List<Vod> items = isDouban(row) ? parseDoubanSubjects(resp.body().string()) : parseTmdbResults(resp.body().string(), rowMediaType(row));
+                    List<Vod> items = isDouban(row) ? parseDoubanSubjects(resp.body().string(), rowMediaType(row)) : parseTmdbResults(resp.body().string(), rowMediaType(row));
                     if (!items.isEmpty()) CACHE.put(row, new CacheEntry(items));
                     post(() -> listener.onSuccess(row, new ArrayList<>(items)));
                 } catch (Exception e) {
@@ -122,8 +147,8 @@ public class DiscoverApi {
 
     private static String rowMediaType(Row row) {
         return switch (row) {
-            case TMDB_NOW_PLAYING, TMDB_POPULAR_MOVIE, TMDB_TOP_MOVIE -> DiscoverMediaKey.MOVIE;
-            case TMDB_POPULAR_TV, TMDB_TOP_TV -> DiscoverMediaKey.TV;
+            case DOUBAN_HOT_MOVIE, DOUBAN_NEW_MOVIE, TMDB_NOW_PLAYING, TMDB_POPULAR_MOVIE, TMDB_TOP_MOVIE -> DiscoverMediaKey.MOVIE;
+            case DOUBAN_HOT_TV, TMDB_POPULAR_TV, TMDB_TOP_TV -> DiscoverMediaKey.TV;
             default -> "";
         };
     }
@@ -180,16 +205,15 @@ public class DiscoverApi {
     }
 
     private static Call newCall(Row row, HttpUrl url, Object tag) {
-        Request.Builder builder = new Request.Builder().url(url).tag(tag);
-        if (isDouban(row)) {
-            builder.header("User-Agent", "Mozilla/5.0");
-            builder.header("Referer", "https://movie.douban.com/");
-            builder.header("Accept", "application/json,text/plain,*/*");
-        }
+        Request.Builder builder = isDouban(row) ? doubanRequest(url, tag) : new Request.Builder().url(url).tag(tag);
         return OkHttp.client().newCall(builder.build());
     }
 
     static List<Vod> parseDoubanSubjects(String body) {
+        return parseDoubanSubjects(body, "");
+    }
+
+    static List<Vod> parseDoubanSubjects(String body, String mediaType) {
         List<Vod> items = new ArrayList<>();
         JsonArray subjects = getArray(parseObject(body), "subjects");
         if (subjects == null) return items;
@@ -203,6 +227,7 @@ public class DiscoverApi {
             item.setName(name);
             item.setPic(doubanPic(cover));
             item.setRemarks(doubanRemarks(getString(subject, "rate")));
+            item.setTypeName(mediaType);
             items.add(item);
         }
         return items;
@@ -439,6 +464,182 @@ public class DiscoverApi {
         });
     }
 
+    public static void fetchDoubanDetail(Vod item, Object tag, DoubanDetailListener listener) {
+        String subjectId = doubanSubjectId(item == null ? "" : item.getId());
+        if (subjectId.isEmpty()) {
+            post(() -> listener.onError(new IOException("Invalid Douban subject")));
+            return;
+        }
+        DoubanDetail cached = DOUBAN_DETAIL_CACHE.get(subjectId);
+        if (cached != null) {
+            post(() -> listener.onSuccess(cached));
+            return;
+        }
+        HttpUrl base = HttpUrl.parse(DOUBAN_ABSTRACT);
+        HttpUrl url = base == null ? null : base.newBuilder().addQueryParameter("subject_id", subjectId).build();
+        if (url == null) {
+            post(() -> listener.onError(new IOException("Douban detail url unavailable")));
+            return;
+        }
+        Request request = doubanRequest(url, tag).build();
+        OkHttp.client().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (!call.isCanceled()) post(() -> listener.onError(e));
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try (Response resp = response) {
+                    if (!resp.isSuccessful() || resp.body() == null) throw new IOException("Douban detail failed: HTTP " + resp.code());
+                    DoubanDetail detail = parseDoubanDetail(subjectId, item, resp.body().string());
+                    if (detail == null) throw new IOException("Douban detail invalid");
+                    DOUBAN_DETAIL_CACHE.put(subjectId, detail);
+                    post(() -> listener.onSuccess(detail));
+                } catch (Exception e) {
+                    post(() -> listener.onError(e));
+                }
+            }
+        });
+    }
+
+    public static void matchDoubanToTmdb(DoubanDetail detail, @Nullable String apiKey, Object tag, MatchListener listener) {
+        if (detail == null || !detail.hasReliableMatchFields()) {
+            post(listener::onNoMatch);
+            return;
+        }
+        String cacheKey = detail.getSubjectId() + ":" + detail.getMediaType();
+        DiscoverMediaKey cached = DOUBAN_MATCH_CACHE.get(cacheKey);
+        if (cached != null) {
+            post(() -> listener.onMatch(cached));
+            return;
+        }
+        HttpUrl url = buildTmdbSearchUrl(detail, apiKey);
+        if (url == null) {
+            post(() -> listener.onError(new IOException("TMDB search url unavailable")));
+            return;
+        }
+        OkHttp.client().newCall(new Request.Builder().url(url).tag(tag).build()).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (!call.isCanceled()) post(() -> listener.onError(e));
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try (Response resp = response) {
+                    if (!resp.isSuccessful() || resp.body() == null) throw new IOException("TMDB match failed: HTTP " + resp.code());
+                    DiscoverMediaKey key = selectTmdbMatch(resp.body().string(), detail.getMediaType(), detail.getTitle(), detail.getYear());
+                    if (key == null) post(listener::onNoMatch);
+                    else {
+                        DOUBAN_MATCH_CACHE.put(cacheKey, key);
+                        post(() -> listener.onMatch(key));
+                    }
+                } catch (Exception e) {
+                    post(() -> listener.onError(e));
+                }
+            }
+        });
+    }
+
+    @Nullable
+    private static HttpUrl buildTmdbSearchUrl(DoubanDetail detail, @Nullable String apiKey) {
+        HttpUrl url = buildTmdbUrl("search/" + detail.getMediaType(), apiKey);
+        if (url == null) return null;
+        String yearParameter = DiscoverMediaKey.TV.equals(detail.getMediaType()) ? "first_air_date_year" : "primary_release_year";
+        return url.newBuilder()
+                .addQueryParameter("query", detail.getTitle())
+                .addQueryParameter(yearParameter, detail.getYear())
+                .addQueryParameter("include_adult", "false")
+                .build();
+    }
+
+    @Nullable
+    static DoubanDetail parseDoubanDetail(String subjectId, @Nullable Vod fallback, String body) {
+        JsonObject subject = getObject(parseObject(body), "subject");
+        if (subject == null) return null;
+        boolean tv = getBoolean(subject, "is_tv") || !getString(subject, "episodes_count").isEmpty()
+                || "tv".equalsIgnoreCase(getString(subject, "subtype"));
+        String mediaType = tv ? DiscoverMediaKey.TV : DiscoverMediaKey.MOVIE;
+        String rawTitle = getString(subject, "title");
+        String year = firstYear(getString(subject, "release_year"));
+        if (year.isEmpty()) year = firstYear(rawTitle);
+        String title = fallback == null ? "" : fallback.getName();
+        if (title.isEmpty()) title = stripTitleYear(rawTitle);
+        String poster = fallback == null ? "" : fallback.getPic();
+        String rate = getString(subject, "rate");
+        if (rate.isEmpty() && fallback != null) rate = value(fallback.getRemarks()).replace("分", "");
+        JsonObject shortComment = getObject(subject, "short_comment");
+        return new DoubanDetail(subjectId, mediaType, title, poster, doubanRemarks(rate), year,
+                joinStrings(getArray(subject, "types")), getString(subject, "region"), doubanDuration(subject),
+                joinStrings(getArray(subject, "directors")), joinStrings(getArray(subject, "actors")),
+                getString(shortComment, "content"));
+    }
+
+    @Nullable
+    static DiscoverMediaKey selectTmdbMatch(String body, String mediaType, String title, String year) {
+        if (!DiscoverMediaKey.MOVIE.equals(mediaType) && !DiscoverMediaKey.TV.equals(mediaType)) return null;
+        String targetTitle = normalizeTitle(title);
+        String targetYear = firstYear(year);
+        if (targetTitle.isEmpty() || targetYear.isEmpty()) return null;
+        JsonArray results = getArray(parseObject(body), "results");
+        if (results == null) return null;
+        for (JsonElement element : results) {
+            JsonObject result = getObject(element);
+            String candidateType = tmdbMediaType(result, "");
+            if (!mediaType.equals(candidateType)) continue;
+            String candidateTitle = DiscoverMediaKey.MOVIE.equals(mediaType) ? getString(result, "title") : getString(result, "name");
+            String originalTitle = DiscoverMediaKey.MOVIE.equals(mediaType) ? getString(result, "original_title") : getString(result, "original_name");
+            boolean exact = targetTitle.equals(normalizeTitle(candidateTitle)) || targetTitle.equals(normalizeTitle(originalTitle));
+            if (!exact || !targetYear.equals(tmdbYear(result))) continue;
+            long id = getLong(result, "id");
+            if (id > 0) return DiscoverMediaKey.of(mediaType, id);
+        }
+        return null;
+    }
+
+    private static String doubanSubjectId(String id) {
+        if (id == null || !id.startsWith("douban:")) return "";
+        return id.substring("douban:".length()).trim();
+    }
+
+    private static Request.Builder doubanRequest(HttpUrl url, Object tag) {
+        return new Request.Builder().url(url).tag(tag)
+                .header("User-Agent", "Mozilla/5.0")
+                .header("Referer", "https://movie.douban.com/")
+                .header("Accept", "application/json,text/plain,*/*");
+    }
+
+    private static String doubanDuration(JsonObject subject) {
+        String duration = getString(subject, "duration");
+        String episodes = getString(subject, "episodes_count");
+        if (!episodes.isEmpty()) duration = duration.isEmpty() ? episodes + "集" : episodes + "集 · " + duration;
+        return duration;
+    }
+
+    private static String stripTitleYear(String title) {
+        return TITLE_YEAR_SUFFIX.matcher(title == null ? "" : title.trim()).replaceFirst("").trim();
+    }
+
+    private static String firstYear(String value) {
+        Matcher matcher = YEAR.matcher(value == null ? "" : value);
+        return matcher.find() ? matcher.group() : "";
+    }
+
+    private static String normalizeTitle(String value) {
+        return TITLE_NOISE.matcher(value == null ? "" : value.toLowerCase(Locale.ROOT).trim()).replaceAll("");
+    }
+
+    private static String joinStrings(@Nullable JsonArray array) {
+        List<String> values = new ArrayList<>();
+        if (array != null) for (JsonElement element : array) {
+            if (element == null || !element.isJsonPrimitive()) continue;
+            String value = element.getAsString().trim();
+            if (!value.isEmpty()) values.add(value);
+        }
+        return String.join("、", values);
+    }
+
     public static void fetchDetail(DiscoverMediaKey key, @Nullable String apiKey, DetailListener listener) {
         fetchDetail(key, apiKey, TAG, listener);
     }
@@ -575,6 +776,11 @@ public class DiscoverApi {
     }
 
     @Nullable
+    private static JsonObject getObject(@Nullable JsonObject object, String name) {
+        return object == null ? null : getObject(object.get(name));
+    }
+
+    @Nullable
     private static JsonArray getArray(@Nullable JsonObject object, String name) {
         JsonElement element = object == null ? null : object.get(name);
         return element != null && element.isJsonArray() ? element.getAsJsonArray() : null;
@@ -610,8 +816,20 @@ public class DiscoverApi {
         }
     }
 
+    private static boolean getBoolean(@Nullable JsonObject object, String name) {
+        try {
+            return object != null && object.get(name) != null && object.get(name).getAsBoolean();
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
     private static boolean isEmpty(@Nullable String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static String value(@Nullable String value) {
+        return value == null ? "" : value;
     }
 
     private static void post(Runnable runnable) {

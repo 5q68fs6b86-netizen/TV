@@ -5,6 +5,7 @@ import com.fongmi.android.tv.bean.DiscoverDetail;
 import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.DiscoverQuery;
+import com.fongmi.android.tv.bean.DoubanDetail;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -13,6 +14,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DiscoverApiTest {
@@ -27,6 +29,59 @@ public class DiscoverApiTest {
         List<Vod> items = DiscoverApi.parseDoubanSubjects(json);
 
         assertEquals(1, items.size());
+    }
+
+    @Test
+    public void shouldCarryDoubanMediaTypeFromEachList() {
+        String json = "{\"subjects\":[{\"title\":\"剧集\",\"cover\":\"https://img/p.jpg\",\"id\":\"1\"}]}";
+
+        assertEquals("movie", DiscoverApi.parseDoubanSubjects(json, "movie").get(0).getTypeName());
+        assertEquals("tv", DiscoverApi.parseDoubanSubjects(json, "tv").get(0).getTypeName());
+    }
+
+    @Test
+    public void shouldParseDoubanAbstractFields() {
+        Vod fallback = new Vod();
+        fallback.setName("肖申克的救赎");
+        fallback.setPic("poster");
+        String json = "{\"r\":0,\"subject\":{\"title\":\"肖申克的救赎 The Shawshank Redemption (1994)\",\"rate\":\"9.7\",\"is_tv\":false," +
+                "\"directors\":[\"弗兰克\"],\"actors\":[\"蒂姆\",\"摩根\"],\"duration\":\"142分钟\",\"region\":\"美国\"," +
+                "\"types\":[\"犯罪\",\"剧情\"],\"release_year\":\"1994\",\"short_comment\":{\"content\":\"希望让你重获自由。\"}}}";
+
+        DoubanDetail detail = DiscoverApi.parseDoubanDetail("1292052", fallback, json);
+
+        assertEquals("肖申克的救赎", detail.getTitle());
+        assertEquals("movie", detail.getMediaType());
+        assertEquals("1994", detail.getYear());
+        assertEquals("犯罪、剧情", detail.getGenres());
+        assertEquals("美国", detail.getRegion());
+        assertEquals("弗兰克", detail.getDirectors());
+        assertEquals("蒂姆、摩根", detail.getActors());
+        assertEquals("希望让你重获自由。", detail.getComment());
+    }
+
+    @Test
+    public void shouldParseDoubanTvEpisodesAndType() {
+        Vod fallback = new Vod();
+        fallback.setName("狂飙");
+        String json = "{\"subject\":{\"title\":\"狂飙 (2023)\",\"is_tv\":true,\"episodes_count\":\"39\",\"duration\":\"45分钟\",\"release_year\":\"2023\"}}";
+
+        DoubanDetail detail = DiscoverApi.parseDoubanDetail("1", fallback, json);
+
+        assertEquals("tv", detail.getMediaType());
+        assertEquals("39集 · 45分钟", detail.getDuration());
+    }
+
+    @Test
+    public void shouldMatchOnlyExactTmdbTitleYearAndType() {
+        String json = "{\"results\":[" +
+                "{\"id\":1,\"media_type\":\"movie\",\"title\":\"沙丘\",\"release_date\":\"2021-10-22\"}," +
+                "{\"id\":2,\"media_type\":\"movie\",\"title\":\"沙丘2\",\"release_date\":\"2024-02-27\"}]}";
+
+        assertEquals(DiscoverMediaKey.of("movie", 2), DiscoverApi.selectTmdbMatch(json, "movie", "沙丘 2", "2024"));
+        assertNull(DiscoverApi.selectTmdbMatch(json, "tv", "沙丘2", "2024"));
+        assertNull(DiscoverApi.selectTmdbMatch(json, "movie", "沙丘2", "2023"));
+        assertNull(DiscoverApi.selectTmdbMatch(json, "movie", "沙丘", "2024"));
     }
 
     @Test

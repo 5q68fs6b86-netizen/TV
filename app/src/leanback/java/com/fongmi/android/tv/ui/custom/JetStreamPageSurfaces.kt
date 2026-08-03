@@ -471,6 +471,35 @@ class JetStreamDiscoverPanelLayout @JvmOverloads constructor(
     }
 }
 
+class JetStreamDiscoverHeroLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayoutCompat(context, attrs, defStyleAttr) {
+
+    init {
+        background = jetStreamOverlayBackground(
+            orientation = GradientDrawable.Orientation.TL_BR,
+            cornerRadius = jetStreamDp(28)
+        )
+        clipChildren = false
+        clipToPadding = false
+    }
+}
+
+class JetStreamDiscoverHeroPosterView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : JetStreamPosterImageView(context, attrs, defStyleAttr) {
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 16, strokeWidthDp = 3)
+    }
+}
+
 class JetStreamDiscoverFacetLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -526,7 +555,7 @@ class JetStreamDiscoverFacetImageView @JvmOverloads constructor(
     }
 }
 
-class JetStreamPosterImageView @JvmOverloads constructor(
+open class JetStreamPosterImageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
