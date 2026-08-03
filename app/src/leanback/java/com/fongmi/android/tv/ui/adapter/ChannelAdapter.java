@@ -6,9 +6,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.databinding.AdapterChannelBinding;
+import com.fongmi.android.tv.utils.ImgUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +93,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     @Override
     public void onViewRecycled(@NonNull ViewHolder holder) {
-        Glide.with(holder.binding.logo).clear(holder.binding.logo);
+        ImgUtil.clear(holder.binding.logo);
     }
 
     public interface OnClickListener {

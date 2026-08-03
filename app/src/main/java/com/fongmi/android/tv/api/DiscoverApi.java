@@ -72,6 +72,10 @@ public class DiscoverApi {
     }
 
     public static void fetch(Row row, @Nullable String tmdbApiKey, Listener listener) {
+        fetch(row, tmdbApiKey, TAG, listener);
+    }
+
+    public static void fetch(Row row, @Nullable String tmdbApiKey, Object tag, Listener listener) {
         CacheEntry entry = CACHE.get(row);
         if (entry != null && !entry.expired()) {
             post(() -> listener.onSuccess(row, entry.copy()));
@@ -82,7 +86,7 @@ public class DiscoverApi {
             post(() -> listener.onError(row, new IOException("Discover url unavailable")));
             return;
         }
-        newCall(row, url).enqueue(new Callback() {
+        newCall(row, url, tag).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (!call.isCanceled()) post(() -> listener.onError(row, e));
@@ -104,6 +108,12 @@ public class DiscoverApi {
 
     public static void cancel() {
         OkHttp.cancel(TAG);
+    }
+
+    public static void cancel(Object tag) {
+        if (tag == null) return;
+        for (Call call : OkHttp.client().dispatcher().queuedCalls()) if (tag.equals(call.request().tag())) call.cancel();
+        for (Call call : OkHttp.client().dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
     }
 
     private static boolean isDouban(Row row) {
@@ -169,8 +179,8 @@ public class DiscoverApi {
                 .build();
     }
 
-    private static Call newCall(Row row, HttpUrl url) {
-        Request.Builder builder = new Request.Builder().url(url).tag(TAG);
+    private static Call newCall(Row row, HttpUrl url, Object tag) {
+        Request.Builder builder = new Request.Builder().url(url).tag(tag);
         if (isDouban(row)) {
             builder.header("User-Agent", "Mozilla/5.0");
             builder.header("Referer", "https://movie.douban.com/");
@@ -296,23 +306,27 @@ public class DiscoverApi {
     }
 
     public static void fetchGenres(String mediaType, @Nullable String apiKey, FacetListener listener) {
+        fetchGenres(mediaType, apiKey, TAG, listener);
+    }
+
+    public static void fetchGenres(String mediaType, @Nullable String apiKey, Object tag, FacetListener listener) {
         String type = DiscoverMediaKey.TV.equals(mediaType) ? DiscoverMediaKey.TV : DiscoverMediaKey.MOVIE;
         HttpUrl url = buildTmdbUrl("genre/" + type + "/list", apiKey);
-        fetchFacets(url, DiscoverFacet.GENRE, listener);
+        fetchFacets(url, DiscoverFacet.GENRE, tag, listener);
     }
 
     public static void fetchProviders(@Nullable String apiKey, FacetListener listener) {
         HttpUrl url = buildTmdbUrl("watch/providers/movie", apiKey);
         if (url != null) url = url.newBuilder().addQueryParameter("watch_region", "CN").build();
-        fetchFacets(url, DiscoverFacet.PROVIDER, listener);
+        fetchFacets(url, DiscoverFacet.PROVIDER, TAG, listener);
     }
 
-    private static void fetchFacets(@Nullable HttpUrl url, String kind, FacetListener listener) {
+    private static void fetchFacets(@Nullable HttpUrl url, String kind, Object tag, FacetListener listener) {
         if (url == null) {
             post(() -> listener.onError(new IOException("Discover facet url unavailable")));
             return;
         }
-        OkHttp.client().newCall(new Request.Builder().url(url).tag(TAG).build()).enqueue(new Callback() {
+        OkHttp.client().newCall(new Request.Builder().url(url).tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (!call.isCanceled()) post(() -> listener.onError(e));
@@ -347,6 +361,10 @@ public class DiscoverApi {
     }
 
     public static void fetchFiltered(DiscoverFacet facet, int page, @Nullable String apiKey, Listener listener) {
+        fetchFiltered(facet, page, apiKey, TAG, listener);
+    }
+
+    public static void fetchFiltered(DiscoverFacet facet, int page, @Nullable String apiKey, Object tag, Listener listener) {
         Row row = DiscoverFacet.TOP_TV.equals(facet.getKind()) ? Row.TMDB_TOP_TV
                 : DiscoverFacet.TOP_MOVIE.equals(facet.getKind()) ? Row.TMDB_TOP_MOVIE
                 : DiscoverFacet.NOW_PLAYING.equals(facet.getKind()) ? Row.TMDB_NOW_PLAYING : null;
@@ -358,7 +376,7 @@ public class DiscoverApi {
             return;
         }
         Row callbackRow = row == null ? Row.TMDB_POPULAR_MOVIE : row;
-        newCall(callbackRow, url).enqueue(new Callback() {
+        newCall(callbackRow, url, tag).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (!call.isCanceled()) post(() -> listener.onError(callbackRow, e));
@@ -389,12 +407,16 @@ public class DiscoverApi {
     }
 
     public static void fetch(DiscoverQuery query, @Nullable String apiKey, QueryListener listener) {
+        fetch(query, apiKey, TAG, listener);
+    }
+
+    public static void fetch(DiscoverQuery query, @Nullable String apiKey, Object tag, QueryListener listener) {
         HttpUrl url = query.buildUrl(apiKey);
         if (url == null) {
             post(() -> listener.onError(new IOException("Discover query url unavailable")));
             return;
         }
-        OkHttp.client().newCall(new Request.Builder().url(url).tag(TAG).build()).enqueue(new Callback() {
+        OkHttp.client().newCall(new Request.Builder().url(url).tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (!call.isCanceled()) post(() -> listener.onError(e));
@@ -418,13 +440,17 @@ public class DiscoverApi {
     }
 
     public static void fetchDetail(DiscoverMediaKey key, @Nullable String apiKey, DetailListener listener) {
+        fetchDetail(key, apiKey, TAG, listener);
+    }
+
+    public static void fetchDetail(DiscoverMediaKey key, @Nullable String apiKey, Object tag, DetailListener listener) {
         HttpUrl url = buildTmdbUrl(key.getMediaType() + "/" + key.getId(), apiKey);
         if (url != null) url = url.newBuilder().addQueryParameter("append_to_response", "credits").build();
         if (url == null) {
             post(() -> listener.onError(new IOException("Discover detail url unavailable")));
             return;
         }
-        OkHttp.client().newCall(new Request.Builder().url(url).tag(TAG).build()).enqueue(new Callback() {
+        OkHttp.client().newCall(new Request.Builder().url(url).tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (!call.isCanceled()) post(() -> listener.onError(e));

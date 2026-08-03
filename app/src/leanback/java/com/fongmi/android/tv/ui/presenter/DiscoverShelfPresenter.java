@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.DiscoverShelf;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterDiscoverShelfBinding;
@@ -61,10 +60,10 @@ public class DiscoverShelfPresenter extends Presenter {
     @Override
     public void onUnbindViewHolder(@NonNull ViewHolder viewHolder) {
         Holder holder = (Holder) viewHolder;
-        Glide.with(holder.binding.hero).clear(holder.binding.hero);
-        Glide.with(holder.binding.previewA).clear(holder.binding.previewA);
-        Glide.with(holder.binding.previewB).clear(holder.binding.previewB);
-        Glide.with(holder.binding.previewC).clear(holder.binding.previewC);
+        ImgUtil.clear(holder.binding.hero);
+        ImgUtil.clear(holder.binding.previewA);
+        ImgUtil.clear(holder.binding.previewB);
+        ImgUtil.clear(holder.binding.previewC);
     }
 
     private static class Holder extends ViewHolder {

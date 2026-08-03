@@ -31,6 +31,7 @@ public class DiscoverDetailActivity extends BaseActivity {
 
     private static final String TRANSITION = "discover_poster";
 
+    private final Object requestTag = new Object();
     private ActivityDiscoverDetailBinding mBinding;
     private DiscoverCreditAdapter castAdapter;
     private DiscoverMediaKey key;
@@ -93,6 +94,7 @@ public class DiscoverDetailActivity extends BaseActivity {
 
     private void setCast() {
         mBinding.cast.setAdapter(castAdapter = new DiscoverCreditAdapter());
+        mBinding.cast.setItemAnimator(null);
         mBinding.cast.addItemDecoration(new androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(@androidx.annotation.NonNull android.graphics.Rect outRect, @androidx.annotation.NonNull View view,
@@ -125,17 +127,17 @@ public class DiscoverDetailActivity extends BaseActivity {
 
     private void load() {
         mBinding.retry.setVisibility(View.GONE);
-        DiscoverApi.fetchDetail(key, BuildConfig.TMDB_API_KEY, new DiscoverApi.DetailListener() {
+        DiscoverApi.fetchDetail(key, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.DetailListener() {
             @Override
             public void onSuccess(DiscoverDetail value) {
-                if (isFinishing()) return;
+                if (isInactive()) return;
                 detail = value;
                 bindDetail(value);
             }
 
             @Override
             public void onError(Exception e) {
-                if (!isFinishing()) mBinding.retry.setVisibility(View.VISIBLE);
+                if (!isInactive()) mBinding.retry.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -222,9 +224,11 @@ public class DiscoverDetailActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        DiscoverApi.cancel();
-        com.bumptech.glide.Glide.with(mBinding.backdrop).clear(mBinding.backdrop);
-        com.bumptech.glide.Glide.with(mBinding.poster).clear(mBinding.poster);
+        DiscoverApi.cancel(requestTag);
         super.onDestroy();
+    }
+
+    private boolean isInactive() {
+        return isFinishing() || isDestroyed();
     }
 }

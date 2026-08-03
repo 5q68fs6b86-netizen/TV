@@ -1,11 +1,16 @@
 package com.fongmi.android.tv.ui.custom
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.Color
 import android.os.Build
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import com.fongmi.android.tv.ui.theme.JetStreamPalette
+import java.util.WeakHashMap
 
 object JetStreamAnimator {
 
@@ -20,6 +25,7 @@ object JetStreamAnimator {
 
     private val enterInterpolator = DecelerateInterpolator(1.8f)
     private val exitInterpolator = AccelerateInterpolator(1.2f)
+    private val focusAnimations = WeakHashMap<View, AnimatorSet>()
 
     @JvmStatic
     @JvmOverloads
@@ -32,25 +38,36 @@ object JetStreamAnimator {
     @JvmStatic
     @JvmOverloads
     fun animateFocus(view: View, focused: Boolean, scale: Float = FOCUS_SCALE_CARD, elevationDp: Int = 12, duration: Long = FOCUS_DURATION) {
-        view.animate().cancel()
+        focusAnimations.remove(view)?.cancel()
         view.isSelected = focused
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val shadowColor = if (focused) JetStreamPalette.shadowColor() else Color.TRANSPARENT
             view.outlineAmbientShadowColor = shadowColor
             view.outlineSpotShadowColor = shadowColor
         }
-        view.animate()
-            .scaleX(if (focused) scale else 1f)
-            .scaleY(if (focused) scale else 1f)
-            .translationZ(if (focused) dp(view, elevationDp) else 0f)
-            .setInterpolator(enterInterpolator)
-            .setDuration(duration)
-            .start()
+        val targetScale = if (focused) scale else 1f
+        val targetElevation = if (focused) dp(view, elevationDp) else 0f
+        val animation = AnimatorSet().apply {
+            playTogether(
+                ObjectAnimator.ofFloat(view, View.SCALE_X, targetScale),
+                ObjectAnimator.ofFloat(view, View.SCALE_Y, targetScale),
+                ObjectAnimator.ofFloat(view, View.TRANSLATION_Z, targetElevation)
+            )
+            interpolator = enterInterpolator
+            this.duration = duration
+        }
+        animation.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animator: Animator) {
+                if (focusAnimations[view] === animation) focusAnimations.remove(view)
+            }
+        })
+        focusAnimations[view] = animation
+        animation.start()
     }
 
     @JvmStatic
     fun reset(view: View) {
-        view.animate().cancel()
+        focusAnimations.remove(view)?.cancel()
         view.alpha = 1f
         view.scaleX = 1f
         view.scaleY = 1f
@@ -58,6 +75,10 @@ object JetStreamAnimator {
         view.translationY = 0f
         view.translationZ = 0f
         view.isSelected = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            view.outlineAmbientShadowColor = Color.TRANSPARENT
+            view.outlineSpotShadowColor = Color.TRANSPARENT
+        }
     }
 
     @JvmStatic
