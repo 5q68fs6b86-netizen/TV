@@ -60,6 +60,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private final Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
     private final DiscoverRequestState requestState = new DiscoverRequestState();
+    private final Object requestTag = new Object();
     private ActivityDiscoverBinding mBinding;
     private ArrayObjectAdapter mAdapter;
     private CustomScroller scroller;
@@ -106,6 +107,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this, R.string.discover_view_details));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(14, FocusHighlight.ZOOM_FACTOR_NONE));
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
+        mBinding.recycler.setItemAnimator(null);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(8));
         mBinding.recycler.addOnScrollListener(scroller = new CustomScroller(this));
         mBinding.progressLayout.showProgress();
@@ -120,7 +122,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
                 DiscoverApi.Row.TMDB_POPULAR_MOVIE, DiscoverApi.Row.TMDB_POPULAR_TV,
                 DiscoverApi.Row.TMDB_TOP_MOVIE, DiscoverApi.Row.TMDB_TOP_TV
         };
-        for (DiscoverApi.Row row : rows) DiscoverApi.fetch(row, BuildConfig.TMDB_API_KEY, new DiscoverApi.Listener() {
+        for (DiscoverApi.Row row : rows) DiscoverApi.fetch(row, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.Listener() {
             @Override
             public void onSuccess(DiscoverApi.Row value, List<Vod> items) {
                 if (!items.isEmpty()) content.put(value, items);
@@ -135,23 +137,24 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void completeFeatured() {
+        if (isInactive()) return;
         featurePending--;
         featureFinished = featurePending <= 0;
         rebuildPage(false, null);
     }
 
     private void loadGenres(String type, boolean refreshPage) {
-        DiscoverApi.fetchGenres(type, BuildConfig.TMDB_API_KEY, new DiscoverApi.FacetListener() {
+        DiscoverApi.fetchGenres(type, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.FacetListener() {
             @Override
             public void onSuccess(List<DiscoverFacet> items) {
-                if (!mediaType.equals(type)) return;
+                if (isInactive() || !mediaType.equals(type)) return;
                 genres = items;
                 if (refreshPage) rebuildPage(false, null);
             }
 
             @Override
             public void onError(Exception e) {
-                if (mediaType.equals(type)) genres = List.of();
+                if (!isInactive() && mediaType.equals(type)) genres = List.of();
             }
         });
     }
@@ -175,10 +178,10 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void loadQuery(DiscoverQuery query, int generation) {
-        DiscoverApi.fetch(query, BuildConfig.TMDB_API_KEY, new DiscoverApi.QueryListener() {
+        DiscoverApi.fetch(query, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.QueryListener() {
             @Override
             public void onSuccess(List<Vod> items, int responsePage, int responseTotalPages) {
-                if (!requestState.accepts(generation) || !query.equals(currentQuery(query.getPage()))) return;
+                if (isInactive() || !requestState.accepts(generation) || !query.equals(currentQuery(query.getPage()))) return;
                 requestState.addAll(generation, items);
                 page = responsePage;
                 totalPages = responseTotalPages;
@@ -197,7 +200,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
             @Override
             public void onError(Exception e) {
-                if (!requestState.accepts(generation)) return;
+                if (isInactive() || !requestState.accepts(generation)) return;
                 queryFinished = true;
                 if (scroller != null) {
                     if (query.getPage() > 1) scroller.endLoading(newResult(List.of()));
@@ -222,6 +225,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void rebuildPage(boolean focusResults, View preservedFocus) {
+        if (isInactive()) return;
         FocusedItem focusedItem = captureFocusedItem();
         int selectedPosition = mBinding.recycler.getSelectedPosition();
         mAdapter.clear();
@@ -373,6 +377,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private void restorePosition(int position) {
         mBinding.recycler.postDelayed(() -> {
+            if (isInactive()) return;
             RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
             View target = holder == null ? null : findFocusable(holder.itemView);
             if (target != null) target.requestFocus();
@@ -381,6 +386,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private void restoreFilterFocus(int position) {
         mBinding.recycler.postDelayed(() -> {
+            if (isInactive()) return;
             RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
             View target = holder == null ? null : findSelected(holder.itemView);
             if (target != null) target.requestFocus();
@@ -424,6 +430,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         int finalIndex = index;
         mBinding.recycler.setSelectedPosition(rowPosition);
         mBinding.recycler.postDelayed(() -> {
+            if (isInactive()) return;
             RecyclerView.ViewHolder rowHolder = mBinding.recycler.findViewHolderForAdapterPosition(rowPosition);
             RecyclerView row = rowHolder == null ? null : findRecycler(rowHolder.itemView);
             RecyclerView.ViewHolder itemHolder = row == null ? null : row.findViewHolderForAdapterPosition(column);
@@ -519,7 +526,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     @Override
     public boolean onLoadMore(String ignored) {
-        if (!queryFinished || page >= totalPages) return false;
+        if (isInactive() || !queryFinished || page >= totalPages) return false;
         queryFinished = false;
         loadQuery(currentQuery(page + 1), queryGeneration);
         return true;
@@ -538,7 +545,12 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     @Override
     protected void onDestroy() {
-        DiscoverApi.cancel();
+        DiscoverApi.cancel(requestTag);
+        if (scroller != null) mBinding.recycler.removeOnScrollListener(scroller);
         super.onDestroy();
+    }
+
+    private boolean isInactive() {
+        return isFinishing() || isDestroyed();
     }
 }

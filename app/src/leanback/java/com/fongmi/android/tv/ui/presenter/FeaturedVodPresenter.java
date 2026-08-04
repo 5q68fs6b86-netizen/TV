@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.leanback.widget.Presenter;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.FeaturedVodRow;
@@ -360,8 +359,8 @@ public class FeaturedVodPresenter extends Presenter {
             currentArtwork = null;
             binding.getRoot().setOnClickListener(null);
             JetStreamAnimator.reset(binding.getRoot());
-            Glide.with(binding.imageA).clear(binding.imageA);
-            Glide.with(binding.imageB).clear(binding.imageB);
+            ImgUtil.clear(binding.imageA);
+            ImgUtil.clear(binding.imageB);
         }
     }
 }

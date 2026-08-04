@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
@@ -91,7 +90,7 @@ public class HistoryPresenter extends Presenter {
     @Override
     public void onUnbindViewHolder(@NonNull Presenter.ViewHolder viewHolder) {
         ViewHolder holder = (ViewHolder) viewHolder;
-        Glide.with(holder.binding.image).clear(holder.binding.image);
+        ImgUtil.clear(holder.binding.image);
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {

@@ -31,6 +31,7 @@ import java.util.List;
 public class DiscoverResultActivity extends BaseActivity implements VodPresenter.OnClickListener, CustomScroller.Callback {
 
     private static final int COLUMN = 6;
+    private final Object requestTag = new Object();
     private ActivityDiscoverResultBinding mBinding;
     private ArrayObjectAdapter mAdapter;
     private CustomScroller scroller;
@@ -64,6 +65,7 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
+        mBinding.recycler.setItemAnimator(null);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.addOnScrollListener(scroller = new CustomScroller(this));
     }
@@ -71,9 +73,10 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
     private void load(int targetPage) {
         page = targetPage;
         if (targetPage == 1) mBinding.progressLayout.showProgress();
-        DiscoverApi.fetchFiltered(facet, targetPage, BuildConfig.TMDB_API_KEY, new DiscoverApi.Listener() {
+        DiscoverApi.fetchFiltered(facet, targetPage, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.Listener() {
             @Override
             public void onSuccess(DiscoverApi.Row row, List<Vod> items) {
+                if (isInactive()) return;
                 scroller.endLoading(newResult(items));
                 if (items.isEmpty()) scroller.setEnable(1);
                 if (targetPage == 1) mBinding.progressLayout.showContent(true, items.size());
@@ -82,6 +85,7 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
 
             @Override
             public void onError(DiscoverApi.Row row, Exception e) {
+                if (isInactive()) return;
                 scroller.endLoading(newResult(List.of()));
                 scroller.setEnable(1);
                 if (targetPage == 1) mBinding.progressLayout.showContent(true, 0);
@@ -109,6 +113,7 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
 
     private void requestFocus() {
         mBinding.recycler.postDelayed(() -> {
+            if (isInactive()) return;
             RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(0);
             View target = holder == null ? null : findFocusable(holder.itemView);
             if (target != null && target.requestFocus()) return;
@@ -153,13 +158,19 @@ public class DiscoverResultActivity extends BaseActivity implements VodPresenter
 
     @Override
     public boolean onLoadMore(String ignored) {
+        if (isInactive()) return false;
         load(page + 1);
         return true;
     }
 
     @Override
     protected void onDestroy() {
-        DiscoverApi.cancel();
+        DiscoverApi.cancel(requestTag);
+        if (scroller != null) mBinding.recycler.removeOnScrollListener(scroller);
         super.onDestroy();
+    }
+
+    private boolean isInactive() {
+        return isFinishing() || isDestroyed();
     }
 }

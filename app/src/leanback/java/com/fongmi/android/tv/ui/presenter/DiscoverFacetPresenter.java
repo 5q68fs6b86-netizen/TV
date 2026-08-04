@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.fongmi.android.tv.databinding.AdapterDiscoverFacetBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -42,7 +41,7 @@ public class DiscoverFacetPresenter extends Presenter {
 
     @Override
     public void onUnbindViewHolder(@NonNull ViewHolder viewHolder) {
-        Glide.with(((Holder) viewHolder).binding.image).clear(((Holder) viewHolder).binding.image);
+        ImgUtil.clear(((Holder) viewHolder).binding.image);
     }
 
     private static class Holder extends ViewHolder {

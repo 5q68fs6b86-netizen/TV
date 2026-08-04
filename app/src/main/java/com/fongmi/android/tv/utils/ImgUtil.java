@@ -80,6 +80,10 @@ public class ImgUtil {
         load(text, url, view, true);
     }
 
+    public static void clear(ImageView view) {
+        Glide.with(App.get()).clear(view);
+    }
+
     public static void load(String text, String url, ImageView view, boolean vod) {
         view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
