@@ -4,26 +4,26 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.DiscoverApi;
 import com.fongmi.android.tv.bean.DiscoverFacet;
 import com.fongmi.android.tv.bean.DiscoverFilterOption;
+import com.fongmi.android.tv.bean.DiscoverFilterPanel;
+import com.fongmi.android.tv.bean.DiscoverHero;
 import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.DiscoverQuery;
 import com.fongmi.android.tv.bean.DiscoverRequestState;
-import com.fongmi.android.tv.bean.DiscoverShelf;
-import com.fongmi.android.tv.bean.FeaturedVodRow;
+import com.fongmi.android.tv.bean.DoubanDetail;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityDiscoverBinding;
@@ -31,27 +31,28 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
-import com.fongmi.android.tv.ui.presenter.DiscoverFilterPresenter;
-import com.fongmi.android.tv.ui.presenter.DiscoverLandscapePresenter;
-import com.fongmi.android.tv.ui.presenter.DiscoverShelfPresenter;
-import com.fongmi.android.tv.ui.presenter.FeaturedVodPresenter;
+import com.fongmi.android.tv.ui.dialog.DiscoverDialog;
+import com.fongmi.android.tv.ui.presenter.DiscoverFilterPanelPresenter;
+import com.fongmi.android.tv.ui.presenter.DiscoverHeroPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.common.collect.Lists;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-public class DiscoverActivity extends BaseActivity implements VodPresenter.OnClickListener, DiscoverShelfPresenter.Listener,
-        DiscoverFilterPresenter.Listener, CustomScroller.Callback {
+public class DiscoverActivity extends BaseActivity implements VodPresenter.OnClickListener,
+        DiscoverFilterPanelPresenter.Listener, CustomScroller.Callback {
 
-    private static final int COLUMN = 6;
-    private static final int FEATURE_REQUESTS = 7;
+    private static final int FEATURE_REQUESTS = 10;
     private static final int FILTER_MEDIA = 0;
     private static final int FILTER_GENRE = 1;
     private static final int FILTER_REGION = 2;
@@ -59,7 +60,11 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private static final int FILTER_SORT = 4;
 
     private final Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
+    private final Map<DiscoverApi.Row, ArrayObjectAdapter> posterRows = new EnumMap<>(DiscoverApi.Row.class);
+    private final Map<Integer, Integer> sectionPositions = new LinkedHashMap<>();
     private final DiscoverRequestState requestState = new DiscoverRequestState();
+    private final DiscoverHero hero = new DiscoverHero();
+    private final DiscoverFilterPanel filterPanel = new DiscoverFilterPanel();
     private final Object requestTag = new Object();
     private ActivityDiscoverBinding mBinding;
     private ArrayObjectAdapter mAdapter;
@@ -76,11 +81,11 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private int queryGeneration;
     private int page = 1;
     private int totalPages = 1;
-    private int resultStartPosition = -1;
+    private int resultStartPosition;
+    private int resultRowCount;
     private boolean featureFinished;
     private boolean queryFinished;
-    private boolean pendingResultFocus;
-    private View pendingFilterFocus;
+    private boolean destroyed;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, DiscoverActivity.class));
@@ -94,9 +99,10 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     @Override
     protected void initView(Bundle savedInstanceState) {
         setRecyclerView();
+        buildStablePage();
         loadFeatured();
-        loadGenres(mediaType, false);
-        refreshResults(null, true);
+        loadGenres(mediaType);
+        refreshResults(true);
     }
 
     @SuppressLint("RestrictedApi")
@@ -104,20 +110,45 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
-        selector.addPresenter(FeaturedVodRow.class, new FeaturedVodPresenter(this, R.string.discover_view_details));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(14, FocusHighlight.ZOOM_FACTOR_NONE));
+        selector.addPresenter(DiscoverHero.class, new DiscoverHeroPresenter(this));
+        selector.addPresenter(DiscoverFilterPanel.class, new DiscoverFilterPanelPresenter(this));
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE));
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setItemAnimator(null);
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(8));
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(10));
         mBinding.recycler.addOnScrollListener(scroller = new CustomScroller(this));
         mBinding.progressLayout.showProgress();
     }
 
+    private void buildStablePage() {
+        mAdapter.add(hero);
+        addPosterSection(R.string.discover_douban_hot_movie, DiscoverApi.Row.DOUBAN_HOT_MOVIE);
+        addPosterSection(R.string.discover_douban_hot_tv, DiscoverApi.Row.DOUBAN_HOT_TV);
+        addPosterSection(R.string.discover_douban_new_movie, DiscoverApi.Row.DOUBAN_NEW_MOVIE);
+        mAdapter.add(filterPanel);
+        mAdapter.add(R.string.discover_filter_results);
+        resultStartPosition = mAdapter.size();
+        mAdapter.add("discover_filter_progress");
+        resultRowCount = 1;
+        addPosterSection(R.string.discover_now_playing, DiscoverApi.Row.TMDB_NOW_PLAYING);
+        addPosterSection(R.string.discover_popular_selection, DiscoverApi.Row.TMDB_POPULAR_MOVIE);
+        addPosterSection(R.string.discover_top_rated, DiscoverApi.Row.TMDB_TOP_MOVIE);
+        updateFilterPanel();
+    }
+
+    private void addPosterSection(int title, DiscoverApi.Row row) {
+        sectionPositions.put(title, mAdapter.size());
+        mAdapter.add(title);
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, Style.rect()));
+        posterRows.put(row, adapter);
+        mAdapter.add(new ListRow(adapter));
+    }
+
     private void loadFeatured() {
-        content.clear();
         featurePending = FEATURE_REQUESTS;
         featureFinished = false;
         DiscoverApi.Row[] rows = {
+                DiscoverApi.Row.DOUBAN_HOT_MOVIE, DiscoverApi.Row.DOUBAN_HOT_TV, DiscoverApi.Row.DOUBAN_NEW_MOVIE,
                 DiscoverApi.Row.TMDB_DAY, DiscoverApi.Row.TMDB_WEEK, DiscoverApi.Row.TMDB_NOW_PLAYING,
                 DiscoverApi.Row.TMDB_POPULAR_MOVIE, DiscoverApi.Row.TMDB_POPULAR_TV,
                 DiscoverApi.Row.TMDB_TOP_MOVIE, DiscoverApi.Row.TMDB_TOP_TV
@@ -125,55 +156,172 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         for (DiscoverApi.Row row : rows) DiscoverApi.fetch(row, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.Listener() {
             @Override
             public void onSuccess(DiscoverApi.Row value, List<Vod> items) {
-                if (!items.isEmpty()) content.put(value, items);
+                if (isInactive()) return;
+                content.put(value, items);
+                updatePosterRow(value, items);
+                updateHero();
                 completeFeatured();
             }
 
             @Override
             public void onError(DiscoverApi.Row value, Exception e) {
+                if (isInactive()) return;
+                content.put(value, List.of());
+                updateHero();
                 completeFeatured();
             }
         });
     }
 
-    private void completeFeatured() {
-        if (isInactive()) return;
-        featurePending--;
-        featureFinished = featurePending <= 0;
-        rebuildPage(false, null);
+    private void updatePosterRow(DiscoverApi.Row row, List<Vod> items) {
+        ArrayObjectAdapter adapter = posterRows.get(row);
+        if (adapter == null) return;
+        adapter.clear();
+        adapter.addAll(0, items);
+        Integer title = switch (row) {
+            case DOUBAN_HOT_MOVIE -> R.string.discover_douban_hot_movie;
+            case DOUBAN_HOT_TV -> R.string.discover_douban_hot_tv;
+            case DOUBAN_NEW_MOVIE -> R.string.discover_douban_new_movie;
+            case TMDB_NOW_PLAYING -> R.string.discover_now_playing;
+            case TMDB_POPULAR_MOVIE -> R.string.discover_popular_selection;
+            case TMDB_TOP_MOVIE -> R.string.discover_top_rated;
+            default -> null;
+        };
+        if (title != null) notifySection(title);
     }
 
-    private void loadGenres(String type, boolean refreshPage) {
+    private void notifySection(int title) {
+        Integer header = sectionPositions.get(title);
+        if (header != null) mAdapter.notifyArrayItemRangeChanged(header, 2);
+    }
+
+    private void updateHero() {
+        List<Vod> values = assembleHero(content);
+        for (Vod item : values) {
+            if (!item.getId().startsWith("douban:") || !item.getContent().isEmpty()) continue;
+            loadHeroDoubanDetail(item);
+        }
+        hero.replace(values);
+        mAdapter.notifyArrayItemRangeChanged(0, 1);
+    }
+
+    static List<Vod> assembleHero(Map<DiscoverApi.Row, List<Vod>> content) {
+        DiscoverApi.Row[] preferred = {
+                DiscoverApi.Row.TMDB_DAY, DiscoverApi.Row.DOUBAN_HOT_MOVIE, DiscoverApi.Row.TMDB_WEEK,
+                DiscoverApi.Row.DOUBAN_HOT_TV, DiscoverApi.Row.TMDB_NOW_PLAYING
+        };
+        DiscoverApi.Row[] fallback = {
+                DiscoverApi.Row.TMDB_POPULAR_MOVIE, DiscoverApi.Row.TMDB_POPULAR_TV, DiscoverApi.Row.TMDB_TOP_MOVIE,
+                DiscoverApi.Row.TMDB_TOP_TV, DiscoverApi.Row.DOUBAN_NEW_MOVIE
+        };
+        LinkedHashMap<String, Vod> result = new LinkedHashMap<>();
+        for (DiscoverApi.Row row : preferred) addHeroCandidate(result, content.get(row));
+        for (DiscoverApi.Row row : fallback) {
+            if (result.size() >= 5) break;
+            addHeroCandidates(result, content.get(row));
+        }
+        return new ArrayList<>(result.values()).subList(0, Math.min(5, result.size()));
+    }
+
+    private static void addHeroCandidate(Map<String, Vod> result, List<Vod> items) {
+        if (items == null) return;
+        for (Vod item : items) if (putHero(result, item)) return;
+    }
+
+    private static void addHeroCandidates(Map<String, Vod> result, List<Vod> items) {
+        if (items == null) return;
+        for (Vod item : items) {
+            if (result.size() >= 5) return;
+            putHero(result, item);
+        }
+    }
+
+    private static boolean putHero(Map<String, Vod> result, Vod item) {
+        if (item == null || item.getName().isEmpty() || item.getPic().isEmpty()) return false;
+        String title = item.getName().toLowerCase(Locale.ROOT).replaceAll("[\\s\\p{Punct}\\p{IsPunctuation}]", "");
+        if (title.isEmpty() || result.containsKey(title)) return false;
+        result.put(title, item);
+        return true;
+    }
+
+    private void loadHeroDoubanDetail(Vod item) {
+        DiscoverApi.fetchDoubanDetail(item, requestTag, new DiscoverApi.DoubanDetailListener() {
+            @Override
+            public void onSuccess(DoubanDetail detail) {
+                if (isInactive()) return;
+                applyDoubanDetail(item, detail);
+                mAdapter.notifyArrayItemRangeChanged(0, 1);
+            }
+
+            @Override
+            public void onError(Exception e) {
+            }
+        });
+    }
+
+    private void applyDoubanDetail(Vod item, DoubanDetail detail) {
+        item.setName(detail.getTitle());
+        item.setYear(detail.getYear());
+        item.setTypeName(detail.getMediaType());
+        item.setRemarks(detail.getRating());
+        item.setArea(detail.getRegion());
+        item.setDirector(detail.getDirectors());
+        item.setActor(detail.getActors());
+        item.setContent(detail.getComment());
+    }
+
+    private void completeFeatured() {
+        featurePending--;
+        featureFinished = featurePending <= 0;
+        showContentIfReady();
+    }
+
+    private void loadGenres(String type) {
         DiscoverApi.fetchGenres(type, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.FacetListener() {
             @Override
             public void onSuccess(List<DiscoverFacet> items) {
                 if (isInactive() || !mediaType.equals(type)) return;
                 genres = items;
-                if (refreshPage) rebuildPage(false, null);
+                updateFilterPanel();
             }
 
             @Override
             public void onError(Exception e) {
-                if (!isInactive() && mediaType.equals(type)) genres = List.of();
+                if (isInactive() || !mediaType.equals(type)) return;
+                genres = List.of();
+                updateFilterPanel();
             }
         });
     }
 
-    private void refreshResults(View focus, boolean force) {
+    private void updateFilterPanel() {
+        filterPanel.setRow(FILTER_MEDIA, mediaOptions());
+        filterPanel.setRow(FILTER_GENRE, genreOptions());
+        filterPanel.setRow(FILTER_REGION, regionOptions());
+        filterPanel.setRow(FILTER_YEAR, yearOptions());
+        filterPanel.setRow(FILTER_SORT, sortOptions());
+        int position = findObjectPosition(filterPanel);
+        if (position >= 0) mAdapter.notifyArrayItemRangeChanged(position, 1);
+    }
+
+    private int findObjectPosition(Object object) {
+        for (int i = 0; i < mAdapter.size(); i++) if (mAdapter.get(i) == object) return i;
+        return -1;
+    }
+
+    private void refreshResults(boolean force) {
         DiscoverQuery query = currentQuery(1);
         if (!force && query.equals(lastQuery)) return;
         lastQuery = query;
         queryGeneration = requestState.reset();
         page = 1;
         totalPages = 1;
+        queryFinished = false;
         if (scroller != null) {
             scroller.reset();
             scroller.setEnable(2);
         }
-        queryFinished = false;
-        pendingFilterFocus = focus;
-        pendingResultFocus = focus == null;
-        rebuildPage(false, focus);
+        replaceResultRows(List.of(), true);
         loadQuery(query, queryGeneration);
     }
 
@@ -186,16 +334,12 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
                 page = responsePage;
                 totalPages = responseTotalPages;
                 queryFinished = true;
+                syncResultSection();
                 if (scroller != null) {
                     if (query.getPage() > 1) scroller.endLoading(newResult(items));
                     scroller.setEnable(responseTotalPages);
                 }
-                boolean firstPage = query.getPage() == 1;
-                boolean focusResults = firstPage && pendingResultFocus;
-                View focus = firstPage ? pendingFilterFocus : null;
-                pendingResultFocus = false;
-                pendingFilterFocus = null;
-                rebuildPage(focusResults, focus);
+                showContentIfReady();
             }
 
             @Override
@@ -206,12 +350,37 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
                     if (query.getPage() > 1) scroller.endLoading(newResult(List.of()));
                     scroller.setEnable(totalPages);
                 }
-                View focus = query.getPage() == 1 ? pendingFilterFocus : null;
-                pendingResultFocus = false;
-                pendingFilterFocus = null;
-                rebuildPage(false, focus);
+                showContentIfReady();
             }
         });
+    }
+
+    private void syncResultSection() {
+        replaceResultRows(requestState.getItems(), false);
+    }
+
+    private void replaceResultRows(List<Vod> values, boolean loading) {
+        int previousCount = resultRowCount;
+        if (resultRowCount > 0) mAdapter.removeItems(resultStartPosition, resultRowCount);
+        List<Object> rows = new ArrayList<>();
+        if (loading) rows.add("discover_filter_progress");
+        else {
+            VodPresenter presenter = new VodPresenter(this, Style.rect());
+            for (List<Vod> part : Lists.partition(values, Product.getColumn(Style.rect()))) {
+                ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
+                adapter.addAll(0, part);
+                rows.add(new ListRow(adapter));
+            }
+        }
+        if (!rows.isEmpty()) mAdapter.addAll(resultStartPosition, rows);
+        resultRowCount = rows.size();
+        int delta = resultRowCount - previousCount;
+        if (delta != 0) sectionPositions.replaceAll((title, position) -> position >= resultStartPosition ? position + delta : position);
+    }
+
+    private void showContentIfReady() {
+        if (featureFinished && queryFinished) mBinding.progressLayout.showContent(true, mAdapter.size());
+        else mBinding.progressLayout.showContent();
     }
 
     private com.fongmi.android.tv.bean.Result newResult(List<Vod> items) {
@@ -224,74 +393,8 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         return new DiscoverQuery(mediaType, genreId, region, dateStart, dateEnd, sort, targetPage);
     }
 
-    private void rebuildPage(boolean focusResults, View preservedFocus) {
-        if (isInactive()) return;
-        FocusedItem focusedItem = captureFocusedItem();
-        int selectedPosition = mBinding.recycler.getSelectedPosition();
-        mAdapter.clear();
-        addFeaturedSections();
-        addFilters();
-        int resultStart = mAdapter.size();
-        resultStartPosition = resultStart;
-        addResults();
-        boolean finished = featureFinished && queryFinished;
-        if (finished) mBinding.progressLayout.showContent(true, mAdapter.size());
-        else if (mAdapter.size() > 0) mBinding.progressLayout.showContent();
-        if (focusResults && !requestState.isEmpty()) requestFocus(resultStart);
-        else if (preservedFocus != null) restoreFilterFocus(selectedPosition);
-        else if (focusedItem != null) restoreVodFocus(focusedItem);
-        else if (selectedPosition >= 0) restorePosition(Math.min(selectedPosition, Math.max(0, mAdapter.size() - 1)));
-    }
-
-    private void addFeaturedSections() {
-        List<Vod> hero = first(DiscoverApi.Row.TMDB_DAY, DiscoverApi.Row.TMDB_WEEK);
-        if (!hero.isEmpty()) mAdapter.add(FeaturedVodRow.create(hero.subList(0, Math.min(5, hero.size()))));
-        addLandscape(R.string.discover_today_trending, content.get(DiscoverApi.Row.TMDB_DAY));
-        addLandscape(R.string.discover_week_trending, content.get(DiscoverApi.Row.TMDB_WEEK));
-        List<DiscoverShelf> popular = new ArrayList<>();
-        addShelf(popular, DiscoverShelf.Type.FEATURE, getString(R.string.discover_popular_movie), DiscoverFacet.TOP_MOVIE, content.get(DiscoverApi.Row.TMDB_POPULAR_MOVIE));
-        addShelf(popular, DiscoverShelf.Type.FEATURE, getString(R.string.discover_popular_tv), DiscoverFacet.TOP_TV, content.get(DiscoverApi.Row.TMDB_POPULAR_TV));
-        addObjectRow(popular, new DiscoverShelfPresenter(this));
-        addPosterRow(R.string.discover_now_playing, content.get(DiscoverApi.Row.TMDB_NOW_PLAYING));
-        List<DiscoverShelf> top = new ArrayList<>();
-        addShelf(top, DiscoverShelf.Type.RANKING, getString(R.string.discover_top_tv), DiscoverFacet.TOP_TV, content.get(DiscoverApi.Row.TMDB_TOP_TV));
-        addShelf(top, DiscoverShelf.Type.RANKING, getString(R.string.discover_top_movie), DiscoverFacet.TOP_MOVIE, content.get(DiscoverApi.Row.TMDB_TOP_MOVIE));
-        addObjectRow(top, new DiscoverShelfPresenter(this));
-    }
-
-    private void addFilters() {
-        mAdapter.add(R.string.discover_filter_title);
-        addFilterRow(FILTER_MEDIA, mediaOptions());
-        addFilterRow(FILTER_GENRE, genreOptions());
-        addFilterRow(FILTER_REGION, regionOptions());
-        addFilterRow(FILTER_YEAR, yearOptions());
-        addFilterRow(FILTER_SORT, sortOptions());
-        mAdapter.add(R.string.discover_filter_results);
-    }
-
-    private void addFilterRow(int row, List<DiscoverFilterOption> options) {
-        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new DiscoverFilterPresenter(row, this));
-        adapter.addAll(0, options);
-        mAdapter.add(new ListRow(adapter));
-    }
-
-    private void addResults() {
-        if (requestState.isEmpty()) {
-            if (!queryFinished) mAdapter.add("discover_filter_progress");
-            return;
-        }
-        int width = (ResUtil.getScreenWidth() - ResUtil.dp2px(32 + 14 * (COLUMN - 1))) / COLUMN;
-        VodPresenter presenter = new VodPresenter(this, Style.rect(), new int[]{width, Math.round(width / 0.75f)});
-        for (List<Vod> part : Lists.partition(requestState.getItems(), COLUMN)) {
-            ArrayObjectAdapter row = new ArrayObjectAdapter(presenter);
-            row.addAll(0, part);
-            mAdapter.add(new ListRow(row));
-        }
-    }
-
     private List<DiscoverFilterOption> mediaOptions() {
-        return List.of(
-                option(DiscoverMediaKey.MOVIE, getString(R.string.discover_media_movie), mediaType),
+        return List.of(option(DiscoverMediaKey.MOVIE, getString(R.string.discover_media_movie), mediaType),
                 option(DiscoverMediaKey.TV, getString(R.string.discover_media_tv), mediaType));
     }
 
@@ -303,8 +406,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private List<DiscoverFilterOption> regionOptions() {
-        return List.of(
-                option("", getString(R.string.discover_all), region), option("CN", getString(R.string.discover_region_cn), region),
+        return List.of(option("", getString(R.string.discover_all), region), option("CN", getString(R.string.discover_region_cn), region),
                 option("HK", getString(R.string.discover_region_hk), region), option("TW", getString(R.string.discover_region_tw), region),
                 option("US", getString(R.string.discover_region_us), region), option("JP", getString(R.string.discover_region_jp), region),
                 option("KR", getString(R.string.discover_region_kr), region), option("GB", getString(R.string.discover_region_gb), region),
@@ -314,18 +416,17 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private List<DiscoverFilterOption> yearOptions() {
         int current = LocalDate.now().getYear();
         List<DiscoverFilterOption> items = new ArrayList<>();
-        items.add(yearOption("", getString(R.string.discover_all), "", ""));
-        for (int value = current; value >= current - 2; value--) items.add(yearOption(String.valueOf(value), String.valueOf(value), value + "-01-01", value + "-12-31"));
-        items.add(yearOption("recent", getString(R.string.discover_year_recent, current - 7, current - 3), (current - 7) + "-01-01", (current - 3) + "-12-31"));
-        int decade = (current / 10) * 10;
-        for (int start = decade; start >= 2000; start -= 10) items.add(yearOption("decade_" + start, getString(R.string.discover_year_decade, start), start + "-01-01", (start + 9) + "-12-31"));
-        items.add(yearOption("before_2000", getString(R.string.discover_year_before_2000), "", "1999-12-31"));
+        items.add(yearOption(getString(R.string.discover_all), "", ""));
+        for (int value = current; value >= current - 2; value--) items.add(yearOption(String.valueOf(value), value + "-01-01", value + "-12-31"));
+        items.add(yearOption(getString(R.string.discover_year_recent, current - 7, current - 3), (current - 7) + "-01-01", (current - 3) + "-12-31"));
+        int decade = current / 10 * 10;
+        for (int start = decade; start >= 2000; start -= 10) items.add(yearOption(getString(R.string.discover_year_decade, start), start + "-01-01", (start + 9) + "-12-31"));
+        items.add(yearOption(getString(R.string.discover_year_before_2000), "", "1999-12-31"));
         return items;
     }
 
     private List<DiscoverFilterOption> sortOptions() {
-        return List.of(
-                option(DiscoverQuery.SORT_POPULAR, getString(R.string.discover_sort_popular), sort),
+        return List.of(option(DiscoverQuery.SORT_POPULAR, getString(R.string.discover_sort_popular), sort),
                 option(DiscoverQuery.SORT_RATING, getString(R.string.discover_sort_rating), sort),
                 option(DiscoverQuery.SORT_LATEST, getString(R.string.discover_sort_latest), sort));
     }
@@ -334,145 +435,12 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         return new DiscoverFilterOption(value, label, value.equals(selected));
     }
 
-    private DiscoverFilterOption yearOption(String value, String label, String start, String end) {
-        return new DiscoverFilterOption(value, label, start, end, start.equals(dateStart) && end.equals(dateEnd));
-    }
-
-    private List<Vod> first(DiscoverApi.Row first, DiscoverApi.Row second) {
-        List<Vod> items = content.get(first);
-        return items == null || items.isEmpty() ? content.getOrDefault(second, List.of()) : items;
-    }
-
-    private void addLandscape(int title, List<Vod> items) {
-        if (items == null || items.isEmpty()) return;
-        mAdapter.add(title);
-        ArrayObjectAdapter row = new ArrayObjectAdapter(new DiscoverLandscapePresenter(this));
-        row.addAll(0, items);
-        mAdapter.add(new ListRow(row));
-    }
-
-    private void addPosterRow(int title, List<Vod> items) {
-        if (items == null || items.isEmpty()) return;
-        mAdapter.add(title);
-        ArrayObjectAdapter row = new ArrayObjectAdapter(new VodPresenter(this, Style.rect(), new int[]{ResUtil.dp2px(124), ResUtil.dp2px(186)}));
-        row.addAll(0, items);
-        mAdapter.add(new ListRow(row));
-    }
-
-    private void addShelf(List<DiscoverShelf> shelves, DiscoverShelf.Type type, String title, String kind, List<Vod> items) {
-        if (items != null && !items.isEmpty()) shelves.add(new DiscoverShelf(type, title, kind, items.subList(0, Math.min(3, items.size()))));
-    }
-
-    private void addObjectRow(List<?> items, androidx.leanback.widget.Presenter presenter) {
-        if (items.isEmpty()) return;
-        ArrayObjectAdapter row = new ArrayObjectAdapter(presenter);
-        row.addAll(0, items);
-        mAdapter.add(new ListRow(row));
-    }
-
-    private void requestFocus(int position) {
-        mBinding.recycler.setSelectedPosition(Math.max(0, position));
-        restorePosition(Math.max(0, position));
-    }
-
-    private void restorePosition(int position) {
-        mBinding.recycler.postDelayed(() -> {
-            if (isInactive()) return;
-            RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
-            View target = holder == null ? null : findFocusable(holder.itemView);
-            if (target != null) target.requestFocus();
-        }, 80);
-    }
-
-    private void restoreFilterFocus(int position) {
-        mBinding.recycler.postDelayed(() -> {
-            if (isInactive()) return;
-            RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(position);
-            View target = holder == null ? null : findSelected(holder.itemView);
-            if (target != null) target.requestFocus();
-            else restorePosition(position);
-        }, 80);
-    }
-
-    private FocusedItem captureFocusedItem() {
-        if (resultStartPosition < 0) return null;
-        View focused = getCurrentFocus();
-        if (focused == null) return null;
-        RecyclerView.ViewHolder rowHolder = mBinding.recycler.findContainingViewHolder(focused);
-        if (rowHolder == null || rowHolder.getBindingAdapterPosition() < resultStartPosition) return null;
-        List<Vod> values = requestState.getItems();
-        int index = (rowHolder.getBindingAdapterPosition() - resultStartPosition) * COLUMN;
-        RecyclerView row = findRecycler(rowHolder.itemView);
-        if (row != null) {
-            RecyclerView.ViewHolder itemHolder = row.findContainingViewHolder(focused);
-            if (itemHolder != null) index += itemHolder.getBindingAdapterPosition();
-        }
-        if (index < 0 || index >= values.size()) return null;
-        return new FocusedItem(values.get(index).getId(), index);
-    }
-
-    private RecyclerView findRecycler(View view) {
-        if (view instanceof RecyclerView recycler && view != mBinding.recycler) return recycler;
-        if (!(view instanceof android.view.ViewGroup group)) return null;
-        for (int i = 0; i < group.getChildCount(); i++) {
-            RecyclerView result = findRecycler(group.getChildAt(i));
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    private void restoreVodFocus(FocusedItem focused) {
-        int index = focused.index;
-        List<Vod> values = requestState.getItems();
-        for (int i = 0; i < values.size(); i++) if (values.get(i).getId().equals(focused.id)) { index = i; break; }
-        int rowPosition = resultStartPosition + index / COLUMN;
-        int column = index % COLUMN;
-        int finalIndex = index;
-        mBinding.recycler.setSelectedPosition(rowPosition);
-        mBinding.recycler.postDelayed(() -> {
-            if (isInactive()) return;
-            RecyclerView.ViewHolder rowHolder = mBinding.recycler.findViewHolderForAdapterPosition(rowPosition);
-            RecyclerView row = rowHolder == null ? null : findRecycler(rowHolder.itemView);
-            RecyclerView.ViewHolder itemHolder = row == null ? null : row.findViewHolderForAdapterPosition(column);
-            if (itemHolder != null) itemHolder.itemView.requestFocus();
-            else if (finalIndex >= 0) restorePosition(rowPosition);
-        }, 100);
-    }
-
-    private static final class FocusedItem {
-        private final String id;
-        private final int index;
-
-        private FocusedItem(String id, int index) {
-            this.id = id;
-            this.index = index;
-        }
-    }
-
-    private View findSelected(View view) {
-        if (view == null || !view.isShown() || !view.isEnabled()) return null;
-        if (view.isSelected() || (view instanceof android.widget.Checkable checkable && checkable.isChecked())) return view;
-        if (!(view instanceof android.view.ViewGroup group)) return null;
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View result = findSelected(group.getChildAt(i));
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    private View findFocusable(View view) {
-        if (view == null || !view.isShown() || !view.isEnabled()) return null;
-        if (view.isFocusable()) return view;
-        if (!(view instanceof android.view.ViewGroup group)) return null;
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View target = findFocusable(group.getChildAt(i));
-            if (target != null) return target;
-        }
-        return null;
+    private DiscoverFilterOption yearOption(String label, String start, String end) {
+        return new DiscoverFilterOption(label, label, start, end, start.equals(dateStart) && end.equals(dateEnd));
     }
 
     @Override
-    public void onFilterClick(int row, DiscoverFilterOption option, View view) {
+    public void onFilterClick(int row, DiscoverFilterOption option) {
         boolean changed;
         switch (row) {
             case FILTER_MEDIA -> {
@@ -481,7 +449,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
                     mediaType = option.getValue();
                     genreId = "";
                     genres = List.of();
-                    loadGenres(mediaType, true);
+                    loadGenres(mediaType);
                 }
             }
             case FILTER_GENRE -> { changed = !genreId.equals(option.getValue()); genreId = option.getValue(); }
@@ -490,7 +458,9 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
             case FILTER_SORT -> { changed = !sort.equals(option.getValue()); sort = option.getValue(); }
             default -> changed = false;
         }
-        if (changed) refreshResults(view, false);
+        if (!changed) return;
+        updateFilterPanel();
+        refreshResults(false);
     }
 
     @Override
@@ -505,23 +475,56 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private void openItem(Vod item, View poster) {
         DiscoverMediaKey key = DiscoverMediaKey.parse(item.getId());
-        if (key == null) return;
-        DiscoverDetailActivity.start(this, key, item.getName(), item.getPic(), item.getBackdrop(), item.getContent(), item.getYear(), item.getRemarks(), poster);
+        if (key != null) {
+            openTmdb(key, item, poster);
+            return;
+        }
+        if (!item.getId().startsWith("douban:")) return;
+        Notify.show(R.string.discover_loading_match);
+        DiscoverApi.fetchDoubanDetail(item, requestTag, new DiscoverApi.DoubanDetailListener() {
+            @Override
+            public void onSuccess(DoubanDetail detail) {
+                if (isInactive()) return;
+                applyDoubanDetail(item, detail);
+                DiscoverApi.matchDoubanToTmdb(detail, BuildConfig.TMDB_API_KEY, requestTag, new DiscoverApi.MatchListener() {
+                    @Override
+                    public void onMatch(DiscoverMediaKey key) {
+                        if (!isInactive()) openTmdb(key, item, poster);
+                    }
+
+                    @Override
+                    public void onNoMatch() {
+                        if (!isInactive()) DiscoverDialog.create(detail).show(DiscoverActivity.this);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        if (!isInactive()) DiscoverDialog.create(detail).show(DiscoverActivity.this);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (!isInactive()) DiscoverDialog.create(fallbackDetail(item)).show(DiscoverActivity.this);
+            }
+        });
+    }
+
+    private DoubanDetail fallbackDetail(Vod item) {
+        String subject = item.getId().substring("douban:".length());
+        return new DoubanDetail(subject, item.getTypeName(), item.getName(), item.getPic(), item.getRemarks(),
+                item.getYear(), item.getTypeName(), item.getArea(), "", item.getDirector(), item.getActor(), item.getContent());
+    }
+
+    private void openTmdb(DiscoverMediaKey key, Vod item, View poster) {
+        DiscoverDetailActivity.start(this, key, item.getName(), item.getPic(), item.getBackdrop(),
+                item.getContent(), item.getYear(), item.getRemarks(), poster);
     }
 
     @Override
     public boolean onLongClick(Vod item) {
         return false;
-    }
-
-    @Override
-    public void onShelfClick(DiscoverShelf shelf) {
-        if (DiscoverFacet.TOP_TV.equals(shelf.getFacetKind())) mediaType = DiscoverMediaKey.TV;
-        else mediaType = DiscoverMediaKey.MOVIE;
-        genreId = "";
-        sort = shelf.getType() == DiscoverShelf.Type.RANKING ? DiscoverQuery.SORT_RATING : DiscoverQuery.SORT_POPULAR;
-        loadGenres(mediaType, true);
-        refreshResults(null, false);
     }
 
     @Override
@@ -533,24 +536,14 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (featureFinished && queryFinished && mAdapter.size() == 0 && event.getAction() == KeyEvent.ACTION_UP &&
-                (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-            loadFeatured();
-            refreshResults(null, true);
-            return true;
-        }
-        return super.dispatchKeyEvent(event);
-    }
-
-    @Override
     protected void onDestroy() {
+        destroyed = true;
         DiscoverApi.cancel(requestTag);
         if (scroller != null) mBinding.recycler.removeOnScrollListener(scroller);
         super.onDestroy();
     }
 
     private boolean isInactive() {
-        return isFinishing() || isDestroyed();
+        return destroyed || isFinishing() || isDestroyed();
     }
 }

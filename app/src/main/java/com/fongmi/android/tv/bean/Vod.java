@@ -144,7 +144,9 @@ public class Vod implements Parcelable, Diffable<Vod> {
     }
 
     public String getName() {
-        return TextUtils.isEmpty(vodName) ? "" : Html.fromHtml(vodName, Html.FROM_HTML_MODE_LEGACY).toString().trim();
+        if (TextUtils.isEmpty(vodName)) return "";
+        CharSequence value = Html.fromHtml(vodName, Html.FROM_HTML_MODE_LEGACY);
+        return value == null ? vodName.trim() : value.toString().trim();
     }
 
     public void setName(String vodName) {
@@ -160,7 +162,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
     }
 
     public String getPic() {
-        return normalizePic(TextUtils.isEmpty(vodPic) ? "" : vodPic.trim());
+        return normalizePic(vodPic == null || vodPic.isEmpty() ? "" : vodPic.trim());
     }
 
     public void setPic(String vodPic) {
@@ -168,7 +170,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
     }
 
     public String getRemarks() {
-        return TextUtils.isEmpty(vodRemarks) ? "" : vodRemarks.trim();
+        return vodRemarks == null || vodRemarks.isEmpty() ? "" : vodRemarks.trim();
     }
 
     public void setRemarks(String vodRemarks) {
@@ -187,6 +189,10 @@ public class Vod implements Parcelable, Diffable<Vod> {
         return TextUtils.isEmpty(vodArea) ? "" : vodArea.trim();
     }
 
+    public void setArea(String vodArea) {
+        this.vodArea = vodArea;
+    }
+
     public String getDirector() {
         return TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
     }
@@ -197,6 +203,10 @@ public class Vod implements Parcelable, Diffable<Vod> {
 
     public String getActor() {
         return TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
+    }
+
+    public void setActor(String vodActor) {
+        this.vodActor = vodActor;
     }
 
     public String getContent() {
