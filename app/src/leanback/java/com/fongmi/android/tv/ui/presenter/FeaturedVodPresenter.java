@@ -81,6 +81,7 @@ public class FeaturedVodPresenter extends Presenter {
 
         private static final long AUTO_DELAY = 6500;
         private static final long CROSS_FADE = 900;
+        private static final long ARTWORK_FADE = 600;
         private static final long FOCUS_FADE = 160;
 
         private final AdapterFeaturedVodBinding binding;
@@ -95,6 +96,7 @@ public class FeaturedVodPresenter extends Presenter {
         private ShapeableImageView front;
         private String artworkRequest;
         private String currentArtwork;
+        private long artworkGeneration;
         private boolean windowFocusListenerRegistered;
         private int index;
 
@@ -145,6 +147,7 @@ public class FeaturedVodPresenter extends Presenter {
             this.front = binding.imageA;
             this.artworkRequest = null;
             this.currentArtwork = null;
+            this.artworkGeneration++;
             if (posterCache.prepare(row.getItems())) {
                 artworkCache.clear();
                 artworkMissing.clear();
@@ -155,6 +158,8 @@ public class FeaturedVodPresenter extends Presenter {
             binding.imageA.setVisibility(View.VISIBLE);
             binding.imageB.setAlpha(0f);
             binding.imageB.setVisibility(View.GONE);
+            binding.imageA.setTag(null);
+            binding.imageB.setTag(null);
             bindIndicator(row.size());
             setActionVisible(binding.getRoot().hasFocus(), false);
             show(0, false);
@@ -180,43 +185,47 @@ public class FeaturedVodPresenter extends Presenter {
             front.animate().cancel();
             next.setAlpha(0f);
             next.setVisibility(View.VISIBLE);
+            next.setTag(null);
             ShapeableImageView old = front;
             front = next;
             loadFeaturedArtwork(item, next);
-            next.animate().alpha(1f).setDuration(CROSS_FADE).start();
-            old.animate().alpha(0f).setDuration(CROSS_FADE).withEndAction(() -> {
+            next.animate().alpha(1f).setDuration(CROSS_FADE).withEndAction(() -> {
                 if (old != front) old.setVisibility(View.GONE);
             }).start();
+            old.animate().alpha(0f).setDuration(CROSS_FADE).start();
         }
 
         private void loadFeaturedArtwork(Vod item, ShapeableImageView target) {
             String key = FeaturedPosterCache.keyOf(item);
             String requestSignature = posterCache.getSignature();
             artworkRequest = key;
+            long generation = ++artworkGeneration;
             String cached = posterCache.get(item);
             if (!TextUtils.isEmpty(cached)) {
                 artworkCache.put(key, cached);
-                loadArtwork(item, cached, target);
+                loadArtwork(item, cached, target, null);
                 return;
             }
             cached = artworkCache.get(key);
             if (!TextUtils.isEmpty(cached)) {
-                loadArtwork(item, cached, target);
+                loadArtwork(item, cached, target, null);
                 return;
             }
-            loadArtwork(item, item.getPic(), target);
-            if (TextUtils.isEmpty(item.getName()) || artworkMissing.contains(key)) return;
+            loadFallbackArtwork(item, target, key, generation);
+            if (TextUtils.isEmpty(item.getName()) || artworkMissing.contains(key)) {
+                revealFallbackArtwork(item, target, key, generation);
+                return;
+            }
             TmdbLogoHelper.findPoster(BuildConfig.TMDB_API_KEY, item.getName(), item.getYear(), item.getTypeName(), new TmdbLogoHelper.ImageCallback() {
                 @Override
                 public void onFound(@NonNull String imageUrl) {
                     if (!posterCache.isCurrent(requestSignature)) return;
                     artworkCache.put(key, imageUrl);
-                    if (isArtworkRequestActive(key)) loadArtwork(item, imageUrl, front);
+                    if (isArtworkRequestActive(key, generation)) transitionToArtwork(item, imageUrl, target, key, generation);
                     posterCache.put(requestSignature, item, imageUrl, new FeaturedPosterCache.Callback() {
                         @Override
                         public void success(@NonNull String cachedUrl) {
                             artworkCache.put(key, cachedUrl);
-                            if (isArtworkRequestActive(key)) loadArtwork(item, cachedUrl, front);
                         }
 
                         @Override
@@ -229,18 +238,65 @@ public class FeaturedVodPresenter extends Presenter {
                 public void onNotFound() {
                     if (!posterCache.isCurrent(requestSignature)) return;
                     artworkMissing.add(key);
+                    revealFallbackArtwork(item, target, key, generation);
                 }
 
                 @Override
                 public void onError(@NonNull Exception error) {
                     if (!posterCache.isCurrent(requestSignature)) return;
                     artworkMissing.add(key);
+                    revealFallbackArtwork(item, target, key, generation);
                 }
             });
         }
 
-        private void loadArtwork(Vod item, String url, ShapeableImageView target) {
-            ImgUtil.load(item.getName(), url, target);
+        private void loadFallbackArtwork(Vod item, ShapeableImageView target, String key, long generation) {
+            ImgUtil.loadBlurred(item.getName(), item.getPic(), target, success -> {
+                if (!success && isArtworkRequestActive(key, generation)) target.setAlpha(1f);
+            });
+            setCurrentArtwork(item.getPic());
+        }
+
+        private void revealFallbackArtwork(Vod item, ShapeableImageView target, String key, long generation) {
+            if (!isArtworkRequestActive(key, generation)) return;
+            transitionToArtwork(item, item.getPic(), target, key, generation);
+        }
+
+        private void transitionToArtwork(Vod item, String url, ShapeableImageView target, String key, long generation) {
+            if (!isArtworkRequestActive(key, generation)) return;
+            if (TextUtils.equals(url, String.valueOf(target.getTag()))) return;
+            ShapeableImageView next = target == binding.imageA ? binding.imageB : binding.imageA;
+            ImgUtil.clear(next);
+            next.animate().cancel();
+            target.animate().cancel();
+            next.setAlpha(0f);
+            next.setVisibility(View.INVISIBLE);
+            ImgUtil.loadForTransition(item.getName(), url, next, success -> {
+                if (!isArtworkRequestActive(key, generation)) return;
+                if (!success) {
+                    next.setVisibility(View.GONE);
+                    target.setAlpha(1f);
+                    target.setVisibility(View.VISIBLE);
+                    return;
+                }
+                front = next;
+                next.setTag(url);
+                next.setVisibility(View.VISIBLE);
+                next.animate().alpha(1f).setDuration(ARTWORK_FADE).start();
+                target.animate().alpha(0f).setDuration(ARTWORK_FADE).withEndAction(() -> {
+                    if (target != front) target.setVisibility(View.GONE);
+                }).start();
+                setCurrentArtwork(url);
+            });
+        }
+
+        private void loadArtwork(Vod item, String url, ShapeableImageView target, ImgUtil.LoadCallback callback) {
+            target.setTag(url);
+            ImgUtil.load(item.getName(), url, target, callback);
+            setCurrentArtwork(url);
+        }
+
+        private void setCurrentArtwork(String url) {
             currentArtwork = url;
             publishCurrentArtwork();
         }
@@ -252,8 +308,8 @@ public class FeaturedVodPresenter extends Presenter {
             }
         }
 
-        private boolean isArtworkRequestActive(String key) {
-            return row != null && TextUtils.equals(key, artworkRequest);
+        private boolean isArtworkRequestActive(String key, long generation) {
+            return row != null && generation == artworkGeneration && TextUtils.equals(key, artworkRequest);
         }
 
         private void bindText(Vod item) {
@@ -357,6 +413,7 @@ public class FeaturedVodPresenter extends Presenter {
             row = null;
             artworkRequest = null;
             currentArtwork = null;
+            artworkGeneration++;
             binding.getRoot().setOnClickListener(null);
             JetStreamAnimator.reset(binding.getRoot());
             ImgUtil.clear(binding.imageA);
