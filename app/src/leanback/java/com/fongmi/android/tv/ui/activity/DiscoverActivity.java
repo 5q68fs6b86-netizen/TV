@@ -10,6 +10,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
+import androidx.lifecycle.Lifecycle;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.BuildConfig;
@@ -44,10 +45,12 @@ import com.google.common.collect.Lists;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class DiscoverActivity extends BaseActivity implements VodPresenter.OnClickListener,
         DiscoverFilterPanelPresenter.Listener, CustomScroller.Callback {
@@ -65,6 +68,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private final DiscoverRequestState requestState = new DiscoverRequestState();
     private final DiscoverHero hero = new DiscoverHero();
     private final DiscoverFilterPanel filterPanel = new DiscoverFilterPanel();
+    private final Set<String> heroDetailRequests = new HashSet<>();
     private final Object requestTag = new Object();
     private ActivityDiscoverBinding mBinding;
     private ArrayObjectAdapter mAdapter;
@@ -199,7 +203,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         List<Vod> values = assembleHero(content);
         for (Vod item : values) {
             if (!item.getId().startsWith("douban:") || !item.getContent().isEmpty()) continue;
-            loadHeroDoubanDetail(item);
+            if (heroDetailRequests.add(item.getId())) loadHeroDoubanDetail(item);
         }
         hero.replace(values);
         mAdapter.notifyArrayItemRangeChanged(0, 1);
@@ -494,21 +498,27 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
                     @Override
                     public void onNoMatch() {
-                        if (!isInactive()) DiscoverDialog.create(detail).show(DiscoverActivity.this);
+                        showDiscoverDialog(detail);
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        if (!isInactive()) DiscoverDialog.create(detail).show(DiscoverActivity.this);
+                        showDiscoverDialog(detail);
                     }
                 });
             }
 
             @Override
             public void onError(Exception e) {
-                if (!isInactive()) DiscoverDialog.create(fallbackDetail(item)).show(DiscoverActivity.this);
+                showDiscoverDialog(fallbackDetail(item));
             }
         });
+    }
+
+    private void showDiscoverDialog(DoubanDetail detail) {
+        if (isInactive() || !getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)
+                || getSupportFragmentManager().isStateSaved()) return;
+        DiscoverDialog.create(detail).show(this);
     }
 
     private DoubanDetail fallbackDetail(Vod item) {
