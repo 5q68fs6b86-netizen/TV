@@ -118,15 +118,16 @@ Forward Widget 可作為 `type: 3` 的 JavaScript 來源使用，`api` 支援單
 
 目前支援：
 
-- 視頻類 modules：列表、篩選、詳情、搜尋、播放地址。
-- `Widget.http.get/post`、`Widget.html.load`、`Widget.storage`、基本 `Widget.tmdb.get`。
+- `type: "video"`、`type: "list"` 或省略 `type` 的視頻 modules：列表、篩選、詳情、搜尋、播放地址。
+- `type: "stream"` 的播放源 modules：按片名搜尋並返回可直接播放的資源；可用 `ext.streamType` 固定為 `tv` 或 `movie`。
+- `Widget.http.get/post`（含 timeout）、同步 `Widget.html.load`、同步或 `await` 形式的 `Widget.storage`（含 TTL）、`Widget.tmdb.get`。
 - `videoUrl`、`customHeaders` 播放資料。
 - TMDB 相對圖片路徑（如 `/abc.jpg`）會自動轉為 `https://image.tmdb.org/t/p/w500/abc.jpg`。
 - Bangumi/TMDB 這類資料源可作為索引源；本身沒有 `videoUrl` 時，需開啟 `changeable`，由應用按片名搜尋其他可換源站點播放。
 
 暫不支援：
 
-- `type: "danmu"`、`type: "subtitle"`、`type: "stream"`。
+- `type: "danmu"`、`type: "subtitle"`。
 - `requiresWebView: true`。
 - `FWENC1` 加密 Widget。
 - `type: "tmdb"` 不會自動轉成可播放 URL；需要依賴換源站點搜尋到同名影片。
@@ -178,7 +179,7 @@ Forward Widget 可作為 `type: 3` 的 JavaScript 來源使用，`api` 支援單
 }
 ```
 
-`ext.widgets` 可限制只載入合集中的指定 Widget，值可填 Widget `id`、標題或 URL。需要 TMDB API 的 Widget 可在 `ext.tmdbToken` 或 `ext.tmdbBearer` 中填入 Bearer token。
+`ext.widgets` 可限制只載入合集中的指定 Widget，值可填 Widget `id`、標題或 URL。需要 TMDB API 的 Widget 可在 `ext.tmdbToken` / `ext.tmdbBearer` 中填入 Bearer token，或在 `ext.tmdbApiKey` / `ext.TMDB_API_KEY` 中填入 v3 API key；均未配置時會使用應用構建时的 `TMDB_API_KEY`。
 
 資料源直跳播放依賴應用既有換源流程：目前站點詳情沒有播放線路時，會用片名搜尋其他站點，並自動切到第一個同名結果。要生效，資料源需允許換源（`changeable: 1` 或省略），被搜尋的播放站點也需 `searchable: 1` 且 `changeable: 1`；自動換源只接受片名完全相同的結果。
 
