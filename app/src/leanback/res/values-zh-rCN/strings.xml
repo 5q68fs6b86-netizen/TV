@@ -29,7 +29,9 @@
     <string name="discover_companies">电影公司</string>
     <string name="discover_providers">播出平台</string>
     <string name="discover_filter_title">按条件推荐</string>
+    <string name="discover_filter_hint">选择分类，再在下方快速切换条件</string>
     <string name="discover_filter_results">推荐结果</string>
+    <string name="discover_top_ten">本周 Top 10</string>
     <string name="discover_filter_media">类型</string>
     <string name="discover_filter_genre">题材</string>
     <string name="discover_filter_region">地区</string>

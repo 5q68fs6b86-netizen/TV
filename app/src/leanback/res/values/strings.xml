@@ -29,7 +29,9 @@
     <string name="discover_companies">Studios</string>
     <string name="discover_providers">Streaming providers</string>
     <string name="discover_filter_title">Recommended for you</string>
+    <string name="discover_filter_hint">Choose a group, then refine it below</string>
     <string name="discover_filter_results">Results</string>
+    <string name="discover_top_ten">Top 10 this week</string>
     <string name="discover_filter_media">Type</string>
     <string name="discover_filter_genre">Genre</string>
     <string name="discover_filter_region">Region</string>

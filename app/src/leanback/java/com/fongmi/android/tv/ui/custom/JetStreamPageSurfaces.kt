@@ -487,6 +487,31 @@ class JetStreamDiscoverHeroLayout @JvmOverloads constructor(
     }
 }
 
+class JetStreamDiscoverImmersiveHeroLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
+
+    init {
+        foreground = jetStreamFocusForeground(cornerRadiusDp = 28, strokeWidthDp = 3)
+        clipChildren = false
+        clipToPadding = false
+    }
+}
+
+class JetStreamDiscoverRankLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
+
+    init {
+        clipChildren = false
+        clipToPadding = false
+    }
+}
+
 class JetStreamDiscoverHeroPosterView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
