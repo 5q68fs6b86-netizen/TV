@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fongmi.android.tv.ui.custom.JetStreamDiscoverRankLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="196dp"
+    android:layout_height="226dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <com.fongmi.android.tv.ui.custom.JetStreamHeroTitleTextView
+        android:id="@+id/rank"
+        android:layout_width="116dp"
+        android:layout_height="190dp"
+        android:layout_gravity="start|bottom"
+        android:fontFamily="sans-serif-black"
+        android:gravity="start|bottom"
+        android:includeFontPadding="false"
+        android:letterSpacing="-0.08"
+        android:shadowColor="#CC000000"
+        android:shadowDx="4"
+        android:shadowDy="5"
+        android:shadowRadius="2"
+        android:textColor="#E8FFFFFF"
+        android:textSize="100sp"
+        tools:text="1" />
+
+    <com.fongmi.android.tv.ui.custom.JetStreamVodPosterLayout
+        android:id="@+id/poster"
+        android:layout_width="132dp"
+        android:layout_height="176dp"
+        android:layout_gravity="end|top"
+        android:duplicateParentState="true">
+
+        <com.fongmi.android.tv.ui.custom.JetStreamPosterImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.fongmi.android.tv.ui.custom.JetStreamVodPosterLayout>
+
+    <com.fongmi.android.tv.ui.custom.JetStreamVodTitleTextView
+        android:id="@+id/name"
+        android:layout_width="132dp"
+        android:layout_height="42dp"
+        android:layout_gravity="end|bottom"
+        android:ellipsize="end"
+        android:gravity="start|center_vertical"
+        android:maxLines="2"
+        tools:text="本周热门影片" />
+
+</com.fongmi.android.tv.ui.custom.JetStreamDiscoverRankLayout>
