@@ -70,6 +70,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.common.collect.Lists;
 
@@ -746,7 +747,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             return;
         }
         // 3) Already on top nav / title → exit or background.
-        if (PlaybackService.isRunning()) moveTaskToBack(true);
+        if (PlaybackService.isRunning()) Util.moveToBackground(this);
         else super.onBackInvoked();
     }
 

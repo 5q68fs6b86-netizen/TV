@@ -1263,7 +1263,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
         @Override
         public void onAudio() {
-            moveTaskToBack(true);
+            Util.moveToBackground(VideoActivity.this);
             setAudioOnly(true);
         }
     };
