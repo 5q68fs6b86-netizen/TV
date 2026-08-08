@@ -23,8 +23,6 @@ import okhttp3.Response;
 
 public final class TmdbLogoHelper {
 
-    private static final String API_BASE = "https://tapi.coolmarket.eu.org/3/";
-    private static final String IMAGE_BASE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DEFAULT_LOGO_SIZE = "w500";
     private static final String DEFAULT_POSTER_SIZE = "original";
     private static final String INCLUDE_IMAGE_LANGUAGE = "zh,en,null";
@@ -173,7 +171,7 @@ public final class TmdbLogoHelper {
     }
 
     private static HttpUrl buildSearchUrl(String apiKey, MediaType type, String title, String year) {
-        HttpUrl url = HttpUrl.parse(API_BASE + type.searchPath);
+        HttpUrl url = HttpUrl.parse(TmdbEndpoint.getApiBase() + type.searchPath);
         if (url == null) throw new IllegalArgumentException("Invalid TMDB search URL");
         HttpUrl.Builder builder = url.newBuilder()
                 .addQueryParameter("query", title)
@@ -185,7 +183,7 @@ public final class TmdbLogoHelper {
     }
 
     private static HttpUrl buildImagesUrl(String apiKey, MediaType type, int id) {
-        HttpUrl url = HttpUrl.parse(API_BASE + type.detailPath + "/" + id + "/images");
+        HttpUrl url = HttpUrl.parse(TmdbEndpoint.getApiBase() + type.detailPath + "/" + id + "/images");
         if (url == null) throw new IllegalArgumentException("Invalid TMDB images URL");
         HttpUrl.Builder builder = url.newBuilder()
                 .addQueryParameter("include_image_language", INCLUDE_IMAGE_LANGUAGE);
@@ -233,7 +231,7 @@ public final class TmdbLogoHelper {
     }
 
     private static String buildImageUrl(String imageSize, String filePath) {
-        return IMAGE_BASE + imageSize + (filePath.startsWith("/") ? filePath : "/" + filePath);
+        return TmdbEndpoint.getImageBase() + imageSize + (filePath.startsWith("/") ? filePath : "/" + filePath);
     }
 
     private static MediaType guessMediaType(@Nullable String typeName) {

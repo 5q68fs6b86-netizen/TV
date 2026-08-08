@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
+import com.fongmi.android.tv.api.DiscoverApi;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
@@ -42,6 +44,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.TmdbEndpoint;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -108,6 +111,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.flagFilterText.setText(getFilterStatus(Setting.getFlagFilter()));
         mBinding.detailFilterText.setText(getFilterStatus(Setting.getDetailFilter()));
+        mBinding.tmdbProxyText.setText(getTmdbProxyStatus());
         mBinding.toastFilterText.setText(Setting.getSwitch(Setting.isToastFilter()));
         mBinding.toastFilterKeysText.setText(getFilterStatus(Setting.getToastFilterRaw()));
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
@@ -136,6 +140,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
+        mBinding.tmdbProxy.setOnClickListener(this::setTmdbProxy);
         mBinding.flagFilter.setOnClickListener(this::setFlagFilter);
         mBinding.detailFilter.setOnClickListener(this::setDetailFilter);
         mBinding.toastFilter.setOnClickListener(this::setToastFilter);
@@ -300,6 +305,20 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
     }
 
+    private void setTmdbProxy(View view) {
+        setApiUrl(R.string.setting_tmdb_proxy, TmdbEndpoint.getCustomRoot(), value -> {
+            String root = TmdbEndpoint.normalizeRoot(value);
+            if (!TextUtils.equals(root, TmdbEndpoint.getCustomRoot())) DiscoverApi.clearTmdbCache();
+            Setting.putTmdbProxyUrl(root);
+            mBinding.tmdbProxyText.setText(getTmdbProxyStatus());
+        });
+    }
+
+    private String getTmdbProxyStatus() {
+        String root = TmdbEndpoint.getCustomRoot();
+        return TextUtils.isEmpty(root) ? getString(R.string.setting_default) : root;
+    }
+
     private void setTextFilter(int title, String value, Consumer<String> callback) {
         EditText input = new EditText(requireActivity());
         int padding = ResUtil.dp2px(24);
@@ -310,6 +329,23 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
         new MaterialAlertDialogBuilder(requireActivity()).setTitle(title).setView(input).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
+    }
+
+    private void setApiUrl(int title, String value, Consumer<String> callback) {
+        EditText input = new EditText(requireActivity());
+        FrameLayout container = new FrameLayout(requireActivity());
+        int horizontalPadding = ResUtil.dp2px(24);
+        int verticalPadding = ResUtil.dp2px(12);
+        input.setHint(title);
+        input.setSingleLine(true);
+        input.setText(value);
+        input.setMinHeight(ResUtil.dp2px(56));
+        input.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setSelection(TextUtils.isEmpty(value) ? 0 : value.length());
+        container.setPadding(0, ResUtil.dp2px(8), 0, 0);
+        container.addView(input, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(title).setView(container).setPositiveButton(R.string.dialog_positive, (dialog, which) -> callback.accept(input.getText().toString().trim())).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
     private void onVersion(View view) {

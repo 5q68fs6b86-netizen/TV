@@ -2,13 +2,15 @@ package com.fongmi.android.tv.bean;
 
 import androidx.annotation.Nullable;
 
+import com.fongmi.android.tv.utils.TmdbEndpoint;
+
 import java.util.Objects;
 
 import okhttp3.HttpUrl;
 
 public final class DiscoverQuery {
 
-    public static final String DEFAULT_TMDB_BASE = "https://tapi.coolmarket.eu.org/3/";
+    public static final String DEFAULT_TMDB_BASE = TmdbEndpoint.DEFAULT_API_BASE;
 
     public static final String SORT_POPULAR = "popular";
     public static final String SORT_RATING = "rating";
