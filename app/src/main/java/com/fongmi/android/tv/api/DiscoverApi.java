@@ -11,6 +11,7 @@ import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.DiscoverQuery;
 import com.fongmi.android.tv.bean.DoubanDetail;
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.utils.TmdbEndpoint;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -37,8 +38,6 @@ import okhttp3.Response;
 public class DiscoverApi {
 
     private static final String TAG = "DiscoverApi";
-    private static final String TMDB_BASE = "https://tapi.coolmarket.eu.org/3/";
-    private static final String TMDB_IMAGE = "https://tapi.coolmarket.eu.org/t/p/";
     private static final String DOUBAN_LIST = "https://movie.douban.com/j/search_subjects";
     private static final String DOUBAN_ABSTRACT = "https://movie.douban.com/j/subject_abstract";
     private static final String DOUBAN_PIC_SUFFIX = "@Referer=https://movie.douban.com/@User-Agent=Mozilla/5.0";
@@ -141,6 +140,10 @@ public class DiscoverApi {
         for (Call call : OkHttp.client().dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
     }
 
+    public static void clearTmdbCache() {
+        for (Row row : Row.values()) if (!isDouban(row)) CACHE.remove(row);
+    }
+
     private static boolean isDouban(Row row) {
         return row == Row.DOUBAN_HOT_MOVIE || row == Row.DOUBAN_HOT_TV || row == Row.DOUBAN_NEW_MOVIE;
     }
@@ -196,7 +199,7 @@ public class DiscoverApi {
     @Nullable
     private static HttpUrl buildTmdbUrl(String path, @Nullable String apiKey) {
         if (isEmpty(apiKey)) return null;
-        HttpUrl url = HttpUrl.parse(TMDB_BASE + path);
+        HttpUrl url = HttpUrl.parse(TmdbEndpoint.getApiBase() + path);
         if (url == null) return null;
         return url.newBuilder()
                 .addQueryParameter("api_key", apiKey.trim())
@@ -293,7 +296,7 @@ public class DiscoverApi {
     private static String tmdbImage(String size, String value) {
         if (isEmpty(value)) return "";
         String path = value.trim();
-        return TMDB_IMAGE + size + (path.startsWith("/") ? path : "/" + path);
+        return TmdbEndpoint.getImageBase() + size + (path.startsWith("/") ? path : "/" + path);
     }
 
     static String tmdbType(@Nullable JsonObject result) {
@@ -436,7 +439,7 @@ public class DiscoverApi {
     }
 
     public static void fetch(DiscoverQuery query, @Nullable String apiKey, Object tag, QueryListener listener) {
-        HttpUrl url = query.buildUrl(apiKey);
+        HttpUrl url = query.buildUrl(TmdbEndpoint.getApiBase(), apiKey);
         if (url == null) {
             post(() -> listener.onError(new IOException("Discover query url unavailable")));
             return;

@@ -59,6 +59,14 @@ public class Setting {
         Prefers.put("hot", hot);
     }
 
+    public static String getTmdbProxyUrl() {
+        return Prefers.getString("tmdb_proxy_url", "");
+    }
+
+    public static void putTmdbProxyUrl(String url) {
+        Prefers.put("tmdb_proxy_url", url == null ? "" : url.trim());
+    }
+
     public static String getDetailFilter() {
         return Prefers.getString("detail_filter");
     }
