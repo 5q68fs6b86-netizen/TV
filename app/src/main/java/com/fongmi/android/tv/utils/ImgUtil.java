@@ -19,6 +19,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -77,7 +78,19 @@ public class ImgUtil {
     }
 
     public static void load(String text, String url, ImageView view) {
-        load(text, url, view, true);
+        load(text, url, view, true, false, false, null);
+    }
+
+    public static void load(String text, String url, ImageView view, LoadCallback callback) {
+        load(text, url, view, true, false, false, callback);
+    }
+
+    public static void loadBlurred(String text, String url, ImageView view, LoadCallback callback) {
+        load(text, url, view, true, true, false, callback);
+    }
+
+    public static void loadForTransition(String text, String url, ImageView view, LoadCallback callback) {
+        load(text, url, view, true, false, true, callback);
     }
 
     public static void clear(ImageView view) {
@@ -85,15 +98,23 @@ public class ImgUtil {
     }
 
     public static void load(String text, String url, ImageView view, boolean vod) {
+        load(text, url, view, vod, false, false, null);
+    }
+
+    private static void load(String text, String url, ImageView view, boolean vod, boolean blurred, boolean keepCurrentOnError, @Nullable LoadCallback callback) {
         view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
-        if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
-        else try {
-            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).transition(DrawableTransitionOptions.withCrossFade(CROSS_FADE)).listener(getListener(text, url, view, vod));
-            if (vod) builder.centerCrop().into(view);
+        if (TextUtils.isEmpty(url) || failed.contains(url)) {
+            view.setImageDrawable(getTextDrawable(text, vod));
+            notifyLoad(callback, false);
+        } else try {
+            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).transition(DrawableTransitionOptions.withCrossFade(CROSS_FADE)).listener(getListener(text, url, view, vod, keepCurrentOnError, callback));
+            if (blurred) builder.transform(new CenterCrop(), new GaussianBlurTransformation()).into(view);
+            else if (vod) builder.centerCrop().into(view);
             else builder.fitCenter().into(view);
         } catch (Throwable e) {
             e.printStackTrace();
+            notifyLoad(callback, false);
         }
     }
 
@@ -122,19 +143,30 @@ public class ImgUtil {
         return builder.buildRoundRect(text, ColorGenerator.get400(text), ResUtil.dp2px(4));
     }
 
-    private static RequestListener<Drawable> getListener(String text, String url, ImageView view, boolean vod) {
+    private static RequestListener<Drawable> getListener(String text, String url, ImageView view, boolean vod, boolean keepCurrentOnError, @Nullable LoadCallback callback) {
         return new RequestListener<>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                view.setImageDrawable(getTextDrawable(text, vod));
+                if (!keepCurrentOnError) view.setImageDrawable(getTextDrawable(text, vod));
                 failed.add(url);
+                notifyLoad(callback, false);
                 return true;
             }
 
             @Override
             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                notifyLoad(callback, true);
                 return false;
             }
         };
+    }
+
+    private static void notifyLoad(@Nullable LoadCallback callback, boolean success) {
+        if (callback != null) callback.onComplete(success);
+    }
+
+    public interface LoadCallback {
+
+        void onComplete(boolean success);
     }
 }
