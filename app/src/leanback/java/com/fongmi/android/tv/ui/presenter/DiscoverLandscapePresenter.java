@@ -9,6 +9,7 @@ import androidx.leanback.widget.Presenter;
 
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterDiscoverLandscapeBinding;
+import com.fongmi.android.tv.ui.custom.JetStreamAnimator;
 import com.fongmi.android.tv.ui.theme.JetStreamAmbient;
 import com.fongmi.android.tv.utils.ImgUtil;
 
@@ -39,18 +40,24 @@ public class DiscoverLandscapePresenter extends Presenter {
         if (!TextUtils.isEmpty(vod.getTypeName())) values.add(vod.getTypeName());
         String meta = TextUtils.join(" · ", values);
         holder.binding.meta.setText(meta);
+        holder.binding.meta.setVisibility(TextUtils.isEmpty(meta) ? android.view.View.GONE : android.view.View.VISIBLE);
         ImgUtil.load(vod.getName(), vod.getBackdrop(), holder.binding.image);
         holder.view.setOnClickListener(view -> listener.onItemClick(vod, holder.binding.image));
         holder.view.setOnLongClickListener(view -> listener.onLongClick(vod));
         holder.view.setOnFocusChangeListener((view, focused) -> {
-            com.fongmi.android.tv.ui.custom.JetStreamAnimator.animateFocus(view, focused, com.fongmi.android.tv.ui.custom.JetStreamAnimator.FOCUS_SCALE_CARD, 0);
+            JetStreamAnimator.animateFocus(view, focused, JetStreamAnimator.FOCUS_SCALE_CARD, 0);
             if (focused) JetStreamAmbient.push(vod.getBackdrop());
         });
     }
 
     @Override
     public void onUnbindViewHolder(@NonNull ViewHolder viewHolder) {
-        ImgUtil.clear(((Holder) viewHolder).binding.image);
+        Holder holder = (Holder) viewHolder;
+        holder.view.setOnClickListener(null);
+        holder.view.setOnLongClickListener(null);
+        holder.view.setOnFocusChangeListener(null);
+        JetStreamAnimator.reset(holder.view);
+        ImgUtil.clear(holder.binding.image);
     }
 
     private static class Holder extends ViewHolder {

@@ -26,6 +26,7 @@ import com.fongmi.android.tv.bean.DiscoverFilterPanel;
 import com.fongmi.android.tv.bean.DiscoverHero;
 import com.fongmi.android.tv.bean.DiscoverMediaKey;
 import com.fongmi.android.tv.bean.DiscoverQuery;
+import com.fongmi.android.tv.bean.DiscoverRankItem;
 import com.fongmi.android.tv.bean.DiscoverRequestState;
 import com.fongmi.android.tv.bean.DoubanDetail;
 import com.fongmi.android.tv.bean.Style;
@@ -38,6 +39,8 @@ import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.dialog.DiscoverDialog;
 import com.fongmi.android.tv.ui.presenter.DiscoverFilterPanelPresenter;
 import com.fongmi.android.tv.ui.presenter.DiscoverHeroPresenter;
+import com.fongmi.android.tv.ui.presenter.DiscoverLandscapePresenter;
+import com.fongmi.android.tv.ui.presenter.DiscoverRankPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
@@ -65,9 +68,13 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     private static final int FILTER_REGION = 2;
     private static final int FILTER_YEAR = 3;
     private static final int FILTER_SORT = 4;
+    private static final int RANK_LIMIT = 10;
 
     private final Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
     private final Map<DiscoverApi.Row, ArrayObjectAdapter> posterRows = new EnumMap<>(DiscoverApi.Row.class);
+    private final Map<DiscoverApi.Row, ArrayObjectAdapter> landscapeRows = new EnumMap<>(DiscoverApi.Row.class);
+    private final Map<DiscoverApi.Row, ArrayObjectAdapter> rankRows = new EnumMap<>(DiscoverApi.Row.class);
+    private final Map<Integer, Integer> sectionPositions = new LinkedHashMap<>();
     private final List<ArrayObjectAdapter> resultAdapters = new ArrayList<>();
     private final DiscoverRequestState requestState = new DiscoverRequestState();
     private final DiscoverHero hero = new DiscoverHero();
@@ -120,7 +127,9 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         selector.addPresenter(String.class, new ProgressPresenter());
         selector.addPresenter(DiscoverHero.class, new DiscoverHeroPresenter(this));
         selector.addPresenter(DiscoverFilterPanel.class, new DiscoverFilterPanelPresenter(this));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE));
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(18, FocusHighlight.ZOOM_FACTOR_NONE), DiscoverLandscapePresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(10, FocusHighlight.ZOOM_FACTOR_NONE), DiscoverRankPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setItemAnimator(null);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(10));
@@ -131,24 +140,44 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private void buildStablePage() {
         mAdapter.add(hero);
-        addPosterSection(R.string.discover_douban_hot_movie, DiscoverApi.Row.DOUBAN_HOT_MOVIE);
-        addPosterSection(R.string.discover_douban_hot_tv, DiscoverApi.Row.DOUBAN_HOT_TV);
-        addPosterSection(R.string.discover_douban_new_movie, DiscoverApi.Row.DOUBAN_NEW_MOVIE);
         mAdapter.add(filterPanel);
+        addLandscapeSection(R.string.discover_today_trending, DiscoverApi.Row.TMDB_DAY);
+        addRankSection(R.string.discover_top_ten, DiscoverApi.Row.TMDB_WEEK);
+        addPosterSection(R.string.discover_douban_hot_movie, DiscoverApi.Row.DOUBAN_HOT_MOVIE, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
+        addLandscapeSection(R.string.discover_week_trending, DiscoverApi.Row.TMDB_WEEK);
+        addPosterSection(R.string.discover_douban_hot_tv, DiscoverApi.Row.DOUBAN_HOT_TV, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
+        addPosterSection(R.string.discover_douban_new_movie, DiscoverApi.Row.DOUBAN_NEW_MOVIE, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
+        addPosterSection(R.string.discover_now_playing, DiscoverApi.Row.TMDB_NOW_PLAYING, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
+        addPosterSection(R.string.discover_popular_selection, DiscoverApi.Row.TMDB_POPULAR_MOVIE, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
+        addPosterSection(R.string.discover_top_rated, DiscoverApi.Row.TMDB_TOP_MOVIE, new int[]{ResUtil.dp2px(132), ResUtil.dp2px(176)});
         mAdapter.add(R.string.discover_filter_results);
         resultStartPosition = mAdapter.size();
         mAdapter.add("discover_filter_progress");
         resultRowCount = 1;
-        addPosterSection(R.string.discover_now_playing, DiscoverApi.Row.TMDB_NOW_PLAYING);
-        addPosterSection(R.string.discover_popular_selection, DiscoverApi.Row.TMDB_POPULAR_MOVIE);
-        addPosterSection(R.string.discover_top_rated, DiscoverApi.Row.TMDB_TOP_MOVIE);
         updateFilterPanel();
     }
 
-    private void addPosterSection(int title, DiscoverApi.Row row) {
+    private void addPosterSection(int title, DiscoverApi.Row row, int[] size) {
+        sectionPositions.put(title, mAdapter.size());
         mAdapter.add(title);
-        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, Style.rect()));
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, Style.rect(), size));
         posterRows.put(row, adapter);
+        mAdapter.add(new ListRow(adapter));
+    }
+
+    private void addLandscapeSection(int title, DiscoverApi.Row row) {
+        sectionPositions.put(title, mAdapter.size());
+        mAdapter.add(title);
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new DiscoverLandscapePresenter(this));
+        landscapeRows.put(row, adapter);
+        mAdapter.add(new ListRow(adapter));
+    }
+
+    private void addRankSection(int title, DiscoverApi.Row row) {
+        sectionPositions.put(title, mAdapter.size());
+        mAdapter.add(title);
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new DiscoverRankPresenter(this));
+        rankRows.put(row, adapter);
         mAdapter.add(new ListRow(adapter));
     }
 
@@ -182,10 +211,42 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void updatePosterRow(DiscoverApi.Row row, List<Vod> items) {
-        ArrayObjectAdapter adapter = posterRows.get(row);
-        if (adapter == null) return;
-        adapter.clear();
-        adapter.addAll(0, items);
+        ArrayObjectAdapter posterAdapter = posterRows.get(row);
+        if (posterAdapter != null) {
+            posterAdapter.clear();
+            posterAdapter.addAll(0, items);
+        }
+        ArrayObjectAdapter landscapeAdapter = landscapeRows.get(row);
+        if (landscapeAdapter != null) {
+            landscapeAdapter.clear();
+            landscapeAdapter.addAll(0, items);
+        }
+        ArrayObjectAdapter rankAdapter = rankRows.get(row);
+        if (rankAdapter != null) {
+            rankAdapter.clear();
+            List<DiscoverRankItem> ranks = new ArrayList<>();
+            for (int i = 0; i < Math.min(RANK_LIMIT, items.size()); i++) ranks.add(new DiscoverRankItem(i + 1, items.get(i)));
+            rankAdapter.addAll(0, ranks);
+        }
+        if (posterAdapter == null && landscapeAdapter == null && rankAdapter == null) return;
+        Integer title = switch (row) {
+            case TMDB_DAY -> R.string.discover_today_trending;
+            case TMDB_WEEK -> R.string.discover_week_trending;
+            case DOUBAN_HOT_MOVIE -> R.string.discover_douban_hot_movie;
+            case DOUBAN_HOT_TV -> R.string.discover_douban_hot_tv;
+            case DOUBAN_NEW_MOVIE -> R.string.discover_douban_new_movie;
+            case TMDB_NOW_PLAYING -> R.string.discover_now_playing;
+            case TMDB_POPULAR_MOVIE -> R.string.discover_popular_selection;
+            case TMDB_TOP_MOVIE -> R.string.discover_top_rated;
+            default -> null;
+        };
+        if (title != null) notifySection(title);
+        if (row == DiscoverApi.Row.TMDB_WEEK) notifySection(R.string.discover_top_ten);
+    }
+
+    private void notifySection(int title) {
+        Integer header = sectionPositions.get(title);
+        if (header != null) mAdapter.notifyArrayItemRangeChanged(header, 2);
     }
 
     private void updateHero() {
@@ -200,25 +261,23 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     static List<Vod> assembleHero(Map<DiscoverApi.Row, List<Vod>> content) {
         DiscoverApi.Row[] preferred = {
-                DiscoverApi.Row.TMDB_DAY, DiscoverApi.Row.DOUBAN_HOT_MOVIE, DiscoverApi.Row.TMDB_WEEK,
-                DiscoverApi.Row.DOUBAN_HOT_TV, DiscoverApi.Row.TMDB_NOW_PLAYING
+                DiscoverApi.Row.TMDB_DAY, DiscoverApi.Row.TMDB_WEEK, DiscoverApi.Row.TMDB_NOW_PLAYING,
+                DiscoverApi.Row.TMDB_POPULAR_MOVIE, DiscoverApi.Row.TMDB_POPULAR_TV
         };
         DiscoverApi.Row[] fallback = {
-                DiscoverApi.Row.TMDB_POPULAR_MOVIE, DiscoverApi.Row.TMDB_POPULAR_TV, DiscoverApi.Row.TMDB_TOP_MOVIE,
-                DiscoverApi.Row.TMDB_TOP_TV, DiscoverApi.Row.DOUBAN_NEW_MOVIE
+                DiscoverApi.Row.TMDB_TOP_MOVIE, DiscoverApi.Row.TMDB_TOP_TV,
+                DiscoverApi.Row.DOUBAN_HOT_MOVIE, DiscoverApi.Row.DOUBAN_HOT_TV, DiscoverApi.Row.DOUBAN_NEW_MOVIE
         };
         LinkedHashMap<String, Vod> result = new LinkedHashMap<>();
-        for (DiscoverApi.Row row : preferred) addHeroCandidate(result, content.get(row));
+        for (DiscoverApi.Row row : preferred) {
+            addHeroCandidates(result, content.get(row));
+            if (result.size() >= 5) break;
+        }
         for (DiscoverApi.Row row : fallback) {
             if (result.size() >= 5) break;
             addHeroCandidates(result, content.get(row));
         }
         return new ArrayList<>(result.values()).subList(0, Math.min(5, result.size()));
-    }
-
-    private static void addHeroCandidate(Map<String, Vod> result, List<Vod> items) {
-        if (items == null) return;
-        for (Vod item : items) if (putHero(result, item)) return;
     }
 
     private static void addHeroCandidates(Map<String, Vod> result, List<Vod> items) {
@@ -231,6 +290,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private static boolean putHero(Map<String, Vod> result, Vod item) {
         if (item == null || item.getName().isEmpty() || item.getPic().isEmpty()) return false;
+        if (!item.getId().startsWith("douban:") && item.getBackdrop().equals(item.getPic())) return false;
         String title = item.getName().toLowerCase(Locale.ROOT).replaceAll("[\\s\\p{Punct}\\p{IsPunctuation}]", "");
         if (title.isEmpty() || result.containsKey(title)) return false;
         result.put(title, item);
@@ -297,6 +357,13 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         if (position >= 0) mAdapter.notifyArrayItemRangeChanged(position, 1);
     }
 
+    @Override
+    public void onFilterGroupClick(int row) {
+        filterPanel.setExpandedRow(filterPanel.getExpandedRow() == row ? -1 : row);
+        int position = findObjectPosition(filterPanel);
+        if (position >= 0) mAdapter.notifyArrayItemRangeChanged(position, 1);
+    }
+
     private int findObjectPosition(Object object) {
         for (int i = 0; i < mAdapter.size(); i++) if (mAdapter.get(i) == object) return i;
         return -1;
@@ -350,6 +417,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void replaceResultRows(List<Vod> values, boolean loading) {
+        int previousCount = resultRowCount;
         if (resultRowCount > 0) mAdapter.removeItems(resultStartPosition, resultRowCount);
         resultAdapters.clear();
         List<Object> rows = new ArrayList<>();
@@ -365,6 +433,8 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         }
         if (!rows.isEmpty()) mAdapter.addAll(resultStartPosition, rows);
         resultRowCount = rows.size();
+        int delta = resultRowCount - previousCount;
+        if (delta != 0) sectionPositions.replaceAll((title, position) -> position >= resultStartPosition ? position + delta : position);
     }
 
     private void appendResultRows(List<Vod> values) {
@@ -388,8 +458,10 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
             resultAdapters.add(adapter);
             rows.add(new ListRow(adapter));
         }
+        int addedCount = rows.size();
         mAdapter.addAll(resultStartPosition + resultRowCount, rows);
-        resultRowCount += rows.size();
+        resultRowCount += addedCount;
+        sectionPositions.replaceAll((title, position) -> position >= resultStartPosition ? position + addedCount : position);
     }
 
     private boolean interceptFocusBoundary(KeyEvent event) {
@@ -402,16 +474,18 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         if (filterPosition < 0 || currentPosition == RecyclerView.NO_POSITION) return false;
         View focused = getCurrentFocus();
         if (down && isNearestNavigable(currentPosition, filterPosition, 1) && focusSearchSkips(focused, View.FOCUS_DOWN, filterPosition)) {
-            return requestAdapterFocus(filterPosition, R.id.media);
+            return requestAdapterFocus(filterPosition, R.id.summary);
         }
         if (up && isNearestNavigable(currentPosition, filterPosition, -1) && focusSearchSkips(focused, View.FOCUS_UP, filterPosition)) {
-            return requestAdapterFocus(filterPosition, R.id.sort);
+            int target = filterPanel.getExpandedRow() >= 0 ? R.id.options : R.id.summary;
+            return requestAdapterFocus(filterPosition, target);
         }
         if (currentPosition != filterPosition || focused == null) return false;
-        if (up && focused.getId() == R.id.media) {
+        if (up && focused.getId() == R.id.summary) {
             return requestAdapterFocus(findNavigablePosition(filterPosition, -1), View.NO_ID);
         }
-        if (down && focused.getId() == R.id.sort) {
+        boolean atBottom = focused.getId() == R.id.options || filterPanel.getExpandedRow() < 0 && focused.getId() == R.id.summary;
+        if (down && atBottom) {
             return requestAdapterFocus(findNavigablePosition(filterPosition, 1), View.NO_ID);
         }
         return false;

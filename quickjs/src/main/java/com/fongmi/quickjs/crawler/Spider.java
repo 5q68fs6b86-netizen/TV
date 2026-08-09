@@ -40,6 +40,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     private final ExecutorService executor;
     private final DexClassLoader dex;
+    private final String tmdbApiKey;
     private final String api;
 
     private QuickJSContext ctx;
@@ -48,7 +49,12 @@ public class Spider extends com.github.catvod.crawler.Spider {
     private boolean cat;
 
     public Spider(String api, DexClassLoader dex) {
+        this(api, dex, "");
+    }
+
+    public Spider(String api, DexClassLoader dex, String tmdbApiKey) {
         this.executor = Executors.newSingleThreadExecutor();
+        this.tmdbApiKey = tmdbApiKey == null ? "" : tmdbApiKey;
         this.api = api;
         this.dex = dex;
     }
@@ -231,6 +237,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
         ctx.evaluateModule("import * as cheerio from 'lib/cheerio.min.js'; globalThis.__FORWARD_CHEERIO__ = cheerio;", "forward-cheerio.js");
         String script = Asset.read("js/lib/forward.js")
                 .replace("__FORWARD_API_PLACEHOLDER__", JSONObject.quote(api))
+                .replace("__FORWARD_TMDB_KEY_PLACEHOLDER__", JSONObject.quote(tmdbApiKey))
                 .replace("__FORWARD_SOURCE_PLACEHOLDER__", JSONObject.quote(content));
         ctx.evaluate(script);
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);

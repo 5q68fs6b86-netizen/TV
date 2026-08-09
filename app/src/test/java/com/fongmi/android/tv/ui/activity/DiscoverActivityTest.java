@@ -27,7 +27,8 @@ public class DiscoverActivityTest {
 
         assertEquals(5, hero.size());
         assertEquals("同名", hero.get(0).getName());
-        assertEquals("豆瓣电影", hero.get(1).getName());
+        assertEquals("今日二", hero.get(1).getName());
+        assertEquals("豆瓣电影", hero.get(4).getName());
     }
 
     @Test
@@ -38,6 +39,29 @@ public class DiscoverActivityTest {
         content.put(DiscoverApi.Row.TMDB_POPULAR_MOVIE, List.of(vod("tmdb:3", "三"), vod("tmdb:4", "四"), vod("tmdb:5", "五")));
 
         assertEquals(5, DiscoverActivity.assembleHero(content).size());
+    }
+
+    @Test
+    public void shouldSkipTmdbItemsWithoutBackdrop() {
+        Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
+        Vod posterOnly = vod("tmdb:movie:1", "竖图");
+        posterOnly.setBackdrop("poster");
+        Vod immersive = vod("tmdb:movie:2", "横图");
+        immersive.setBackdrop("backdrop");
+        content.put(DiscoverApi.Row.TMDB_DAY, List.of(posterOnly, immersive));
+
+        List<Vod> hero = DiscoverActivity.assembleHero(content);
+
+        assertEquals(1, hero.size());
+        assertEquals("横图", hero.get(0).getName());
+    }
+
+    @Test
+    public void shouldKeepDoubanPosterAsHeroFallback() {
+        Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
+        content.put(DiscoverApi.Row.DOUBAN_HOT_MOVIE, List.of(vod("douban:1", "豆瓣兜底")));
+
+        assertEquals(1, DiscoverActivity.assembleHero(content).size());
     }
 
     @Test
@@ -57,6 +81,7 @@ public class DiscoverActivityTest {
         item.setId(id);
         item.setName(name);
         item.setPic("poster");
+        item.setBackdrop(id.startsWith("douban:") ? "poster" : "backdrop-" + id);
         return item;
     }
 }

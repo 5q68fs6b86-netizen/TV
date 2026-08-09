@@ -1,11 +1,14 @@
 package com.fongmi.android.tv.ui.presenter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.DiscoverFilterOption;
 import com.fongmi.android.tv.bean.DiscoverFilterPanel;
 import com.fongmi.android.tv.databinding.AdapterDiscoverFilterPanelBinding;
@@ -16,7 +19,10 @@ import java.util.List;
 
 public final class DiscoverFilterPanelPresenter extends Presenter {
 
+    private static final int ROW_COUNT = 5;
+
     public interface Listener {
+        void onFilterGroupClick(int row);
         void onFilterClick(int row, DiscoverFilterOption option);
     }
 
@@ -44,40 +50,75 @@ public final class DiscoverFilterPanelPresenter extends Presenter {
 
     private static final class Holder extends ViewHolder {
 
-        private final JetStreamChipRow[] rows;
+        private final AdapterDiscoverFilterPanelBinding binding;
 
         private Holder(AdapterDiscoverFilterPanelBinding binding) {
             super(binding.getRoot());
-            rows = new JetStreamChipRow[]{binding.media, binding.genre, binding.region, binding.year, binding.sort};
+            this.binding = binding;
         }
 
         private void bind(DiscoverFilterPanel panel, Listener listener) {
-            for (int row = 0; row < rows.length; row++) bindRow(rows[row], row, panel.getRow(row), listener);
-            for (int row = 0; row < rows.length; row++) {
-                rows[row].setNextFocusLeftId(rows[row].getId());
-                rows[row].setNextFocusRightId(rows[row].getId());
-                if (row > 0) rows[row].setNextFocusUp(rows[row - 1].getId());
-                if (row < rows.length - 1) rows[row].setNextFocusDown(rows[row + 1].getId());
-            }
-        }
+            List<String> summaries = new ArrayList<>();
+            for (int row = 0; row < ROW_COUNT; row++) summaries.add(summaryLabel(binding.getRoot().getContext(), row, selected(panel.getRow(row))));
+            int expanded = panel.getExpandedRow();
+            int focused = binding.summary.getFocusedPosition();
+            binding.summary.setItems(summaries, expanded);
+            if (focused >= 0) binding.summary.setFocusedPosition(Math.min(focused, ROW_COUNT - 1));
+            binding.summary.setOnChipClickListener(listener::onFilterGroupClick);
+            binding.summary.setNextFocusLeftId(binding.summary.getId());
+            binding.summary.setNextFocusRightId(binding.summary.getId());
+            binding.options.setNextFocusLeftId(binding.options.getId());
+            binding.options.setNextFocusRightId(binding.options.getId());
 
-        private void bindRow(JetStreamChipRow chipRow, int row, List<DiscoverFilterOption> options, Listener listener) {
+            boolean expandedVisible = expanded >= 0 && expanded < ROW_COUNT;
+            binding.optionsContainer.setVisibility(expandedVisible ? View.VISIBLE : View.GONE);
+            if (!expandedVisible) {
+                binding.options.clearListeners();
+                return;
+            }
+            List<DiscoverFilterOption> options = panel.getRow(expanded);
             List<String> labels = new ArrayList<>();
             int selected = -1;
             for (int i = 0; i < options.size(); i++) {
                 labels.add(options.get(i).getLabel());
                 if (options.get(i).isSelected()) selected = i;
             }
-            int focused = chipRow.getFocusedPosition();
-            chipRow.setItems(labels, selected);
-            if (focused >= 0) chipRow.setFocusedPosition(Math.min(focused, Math.max(0, labels.size() - 1)));
-            chipRow.setOnChipClickListener(position -> {
+            binding.optionTitle.setText(groupName(binding.getRoot().getContext(), expanded));
+            binding.options.setItems(labels, selected);
+            int row = expanded;
+            binding.options.setOnChipClickListener(position -> {
                 if (position >= 0 && position < options.size()) listener.onFilterClick(row, options.get(position));
             });
         }
 
+        private String summaryLabel(Context context, int row, DiscoverFilterOption selected) {
+            String group = groupName(context, row);
+            if (selected == null || row == 0) return selected == null ? group : selected.getLabel();
+            if (row == 1 && selected.getValue().isEmpty()) return group;
+            if (row == 2 && selected.getValue().isEmpty()) return group;
+            if (row == 3 && selected.getStartDate().isEmpty() && selected.getEndDate().isEmpty()) return group;
+            return group + " · " + selected.getLabel();
+        }
+
+        private DiscoverFilterOption selected(List<DiscoverFilterOption> options) {
+            for (DiscoverFilterOption option : options) if (option.isSelected()) return option;
+            return null;
+        }
+
+        private String groupName(Context context, int row) {
+            int resource = switch (row) {
+                case 0 -> R.string.discover_filter_media;
+                case 1 -> R.string.discover_filter_genre;
+                case 2 -> R.string.discover_filter_region;
+                case 3 -> R.string.discover_filter_year;
+                default -> R.string.discover_filter_sort;
+            };
+            return context.getString(resource);
+        }
+
         private void unbind() {
-            for (JetStreamChipRow row : rows) row.clearListeners();
+            binding.summary.clearListeners();
+            binding.options.clearListeners();
         }
     }
 }
