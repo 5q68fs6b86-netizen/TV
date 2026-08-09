@@ -26,7 +26,6 @@ import okhttp3.Response;
 public final class MediaRatingHelper {
 
     private static final String TAG = "MediaRatingHelper";
-    private static final String TMDB_API_BASE = "https://tapi.coolmarket.eu.org/3/";
     private static final String DOUBAN_SUGGEST = "https://movie.douban.com/j/subject_suggest";
     private static final String DOUBAN_ABSTRACT = "https://movie.douban.com/j/subject_abstract";
     private static final Pattern YEAR = Pattern.compile("(?:19|20)\\d{2}");
@@ -162,7 +161,7 @@ public final class MediaRatingHelper {
 
     @Nullable
     private static HttpUrl buildTmdbSearchUrl(String apiKey, MediaType type, String title, String year) {
-        HttpUrl url = HttpUrl.parse(TMDB_API_BASE + type.searchPath);
+        HttpUrl url = HttpUrl.parse(TmdbEndpoint.getApiBase() + type.searchPath);
         if (url == null) return null;
         HttpUrl.Builder builder = url.newBuilder()
                 .addQueryParameter("query", title)

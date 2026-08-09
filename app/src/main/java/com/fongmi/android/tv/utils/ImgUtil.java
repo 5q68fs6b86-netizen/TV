@@ -97,7 +97,6 @@ public class ImgUtil {
         Glide.with(App.get()).clear(view);
     }
 
-
     public static void load(String text, String url, ImageView view, boolean vod) {
         load(text, url, view, vod, false, false, null);
     }

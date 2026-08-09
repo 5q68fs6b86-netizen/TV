@@ -14,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
+import com.fongmi.android.tv.api.DiscoverApi;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
@@ -55,6 +56,7 @@ import com.fongmi.android.tv.utils.MpvLogCollector;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.TmdbEndpoint;
 import com.fongmi.quickjs.utils.QuickLog;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
@@ -130,6 +132,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         setRowValue(JetStreamSettingView.KEY_VOD, VodConfig.getDesc());
         setRowValue(JetStreamSettingView.KEY_LIVE, LiveConfig.getDesc());
         setRowValue(JetStreamSettingView.KEY_WALL, WallConfig.getDesc());
+        setRowValue(JetStreamSettingView.KEY_TMDB_PROXY, getTmdbProxyStatus());
     }
 
     private void refreshPlaybackRows() {
@@ -255,6 +258,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             case JetStreamSettingView.KEY_VOD -> onVod();
             case JetStreamSettingView.KEY_LIVE -> onLive();
             case JetStreamSettingView.KEY_WALL -> onWall();
+            case JetStreamSettingView.KEY_TMDB_PROXY -> onTmdbProxy();
             case JetStreamSettingView.KEY_VOD_HOME -> onVodHome();
             case JetStreamSettingView.KEY_VOD_HISTORY -> onVodHistory();
             case JetStreamSettingView.KEY_LIVE_HOME -> onLiveHome();
@@ -387,6 +391,22 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void onWall() {
         ConfigDialog.create().wall().show(this);
+    }
+
+    private void onTmdbProxy() {
+        setApiUrl(R.string.setting_tmdb_proxy, TmdbEndpoint.getCustomRoot(), this::setTmdbProxy);
+    }
+
+    private void setTmdbProxy(String url) {
+        String root = TmdbEndpoint.normalizeRoot(url);
+        if (!TextUtils.equals(root, TmdbEndpoint.getCustomRoot())) DiscoverApi.clearTmdbCache();
+        Setting.putTmdbProxyUrl(root);
+        setRowValue(JetStreamSettingView.KEY_TMDB_PROXY, getTmdbProxyStatus());
+    }
+
+    private String getTmdbProxyStatus() {
+        String root = TmdbEndpoint.getCustomRoot();
+        return TextUtils.isEmpty(root) ? getString(R.string.setting_default) : root;
     }
 
     private void onVodEdit() {

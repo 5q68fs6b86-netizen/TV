@@ -23,8 +23,7 @@ public final class DiscoverRequestState {
     }
 
     public void addAll(int requestGeneration, List<Vod> values) {
-        if (!accepts(requestGeneration) || values == null) return;
-        for (Vod item : values) if (item != null && !item.getId().isEmpty()) items.putIfAbsent(item.getId(), item);
+        addAllAndGetAdded(requestGeneration, values);
     }
 
     public List<Vod> getItems() {
@@ -37,5 +36,16 @@ public final class DiscoverRequestState {
 
     public int size() {
         return items.size();
+    }
+
+    public List<Vod> addAllAndGetAdded(int requestGeneration, List<Vod> values) {
+        List<Vod> added = new ArrayList<>();
+        if (!accepts(requestGeneration) || values == null) return added;
+        for (Vod item : values) {
+            if (item == null || item.getId().isEmpty() || items.containsKey(item.getId())) continue;
+            items.put(item.getId(), item);
+            added.add(item);
+        }
+        return added;
     }
 }

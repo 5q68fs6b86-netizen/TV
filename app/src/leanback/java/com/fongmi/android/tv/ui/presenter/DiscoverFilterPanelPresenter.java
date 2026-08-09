@@ -65,6 +65,10 @@ public final class DiscoverFilterPanelPresenter extends Presenter {
             binding.summary.setItems(summaries, expanded);
             if (focused >= 0) binding.summary.setFocusedPosition(Math.min(focused, ROW_COUNT - 1));
             binding.summary.setOnChipClickListener(listener::onFilterGroupClick);
+            binding.summary.setNextFocusLeftId(binding.summary.getId());
+            binding.summary.setNextFocusRightId(binding.summary.getId());
+            binding.options.setNextFocusLeftId(binding.options.getId());
+            binding.options.setNextFocusRightId(binding.options.getId());
 
             boolean expandedVisible = expanded >= 0 && expanded < ROW_COUNT;
             binding.optionsContainer.setVisibility(expandedVisible ? View.VISIBLE : View.GONE);

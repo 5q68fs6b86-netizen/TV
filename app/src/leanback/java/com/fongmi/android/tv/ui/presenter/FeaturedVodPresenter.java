@@ -211,7 +211,7 @@ public class FeaturedVodPresenter extends Presenter {
                 loadArtwork(item, cached, target, null);
                 return;
             }
-            loadFallbackArtwork(item, target, key, generation);
+            loadFallbackArtwork(item, target, key, generation, !TextUtils.isEmpty(item.getName()) && !artworkMissing.contains(key));
             if (TextUtils.isEmpty(item.getName()) || artworkMissing.contains(key)) {
                 revealFallbackArtwork(item, target, key, generation);
                 return;
@@ -250,10 +250,13 @@ public class FeaturedVodPresenter extends Presenter {
             });
         }
 
-        private void loadFallbackArtwork(Vod item, ShapeableImageView target, String key, long generation) {
-            ImgUtil.loadBlurred(item.getName(), item.getPic(), target, success -> {
+        private void loadFallbackArtwork(Vod item, ShapeableImageView target, String key, long generation, boolean blurred) {
+            ImgUtil.LoadCallback callback = success -> {
                 if (!success && isArtworkRequestActive(key, generation)) target.setAlpha(1f);
-            });
+            };
+            if (blurred) ImgUtil.loadBlurred(item.getName(), item.getPic(), target, callback);
+            else ImgUtil.load(item.getName(), item.getPic(), target, callback);
+            target.setTag(item.getPic());
             setCurrentArtwork(item.getPic());
         }
 
