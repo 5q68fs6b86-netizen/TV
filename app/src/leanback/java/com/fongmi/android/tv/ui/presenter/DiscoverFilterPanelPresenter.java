@@ -54,6 +54,8 @@ public final class DiscoverFilterPanelPresenter extends Presenter {
         private void bind(DiscoverFilterPanel panel, Listener listener) {
             for (int row = 0; row < rows.length; row++) bindRow(rows[row], row, panel.getRow(row), listener);
             for (int row = 0; row < rows.length; row++) {
+                rows[row].setNextFocusLeftId(rows[row].getId());
+                rows[row].setNextFocusRightId(rows[row].getId());
                 if (row > 0) rows[row].setNextFocusUp(rows[row - 1].getId());
                 if (row < rows.length - 1) rows[row].setNextFocusDown(rows[row + 1].getId());
             }

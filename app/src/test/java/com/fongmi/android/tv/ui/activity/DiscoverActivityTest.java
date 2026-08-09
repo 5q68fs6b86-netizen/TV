@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
 import com.fongmi.android.tv.api.DiscoverApi;
+import com.fongmi.android.tv.bean.DiscoverRequestState;
 import com.fongmi.android.tv.bean.Vod;
 
 import org.junit.Test;
@@ -37,6 +38,18 @@ public class DiscoverActivityTest {
         content.put(DiscoverApi.Row.TMDB_POPULAR_MOVIE, List.of(vod("tmdb:3", "三"), vod("tmdb:4", "四"), vod("tmdb:5", "五")));
 
         assertEquals(5, DiscoverActivity.assembleHero(content).size());
+    }
+
+    @Test
+    public void shouldReturnOnlyNewResultsWhenAppendingPages() {
+        DiscoverRequestState state = new DiscoverRequestState();
+        int generation = state.reset();
+        state.addAll(generation, List.of(vod("tmdb:1", "一"), vod("tmdb:3", "三")));
+
+        List<Vod> added = state.addAllAndGetAdded(generation, List.of(vod("tmdb:2", "二"), vod("tmdb:3", "三"), vod("tmdb:4", "四")));
+
+        assertEquals(List.of("tmdb:2", "tmdb:4"), added.stream().map(Vod::getId).toList());
+        assertEquals(List.of("tmdb:1", "tmdb:3", "tmdb:2", "tmdb:4"), state.getItems().stream().map(Vod::getId).toList());
     }
 
     private static Vod vod(String id, String name) {

@@ -4,13 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
 import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.BuildConfig;
@@ -38,6 +41,7 @@ import com.fongmi.android.tv.ui.presenter.DiscoverHeroPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.common.collect.Lists;
@@ -64,7 +68,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
 
     private final Map<DiscoverApi.Row, List<Vod>> content = new EnumMap<>(DiscoverApi.Row.class);
     private final Map<DiscoverApi.Row, ArrayObjectAdapter> posterRows = new EnumMap<>(DiscoverApi.Row.class);
-    private final Map<Integer, Integer> sectionPositions = new LinkedHashMap<>();
+    private final List<ArrayObjectAdapter> resultAdapters = new ArrayList<>();
     private final DiscoverRequestState requestState = new DiscoverRequestState();
     private final DiscoverHero hero = new DiscoverHero();
     private final DiscoverFilterPanel filterPanel = new DiscoverFilterPanel();
@@ -120,6 +124,7 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setItemAnimator(null);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(10));
+        mBinding.recycler.setOnKeyInterceptListener(this::interceptFocusBoundary);
         mBinding.recycler.addOnScrollListener(scroller = new CustomScroller(this));
         mBinding.progressLayout.showProgress();
     }
@@ -141,7 +146,6 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
     }
 
     private void addPosterSection(int title, DiscoverApi.Row row) {
-        sectionPositions.put(title, mAdapter.size());
         mAdapter.add(title);
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, Style.rect()));
         posterRows.put(row, adapter);
@@ -182,21 +186,6 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         if (adapter == null) return;
         adapter.clear();
         adapter.addAll(0, items);
-        Integer title = switch (row) {
-            case DOUBAN_HOT_MOVIE -> R.string.discover_douban_hot_movie;
-            case DOUBAN_HOT_TV -> R.string.discover_douban_hot_tv;
-            case DOUBAN_NEW_MOVIE -> R.string.discover_douban_new_movie;
-            case TMDB_NOW_PLAYING -> R.string.discover_now_playing;
-            case TMDB_POPULAR_MOVIE -> R.string.discover_popular_selection;
-            case TMDB_TOP_MOVIE -> R.string.discover_top_rated;
-            default -> null;
-        };
-        if (title != null) notifySection(title);
-    }
-
-    private void notifySection(int title) {
-        Integer header = sectionPositions.get(title);
-        if (header != null) mAdapter.notifyArrayItemRangeChanged(header, 2);
     }
 
     private void updateHero() {
@@ -334,11 +323,12 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
             @Override
             public void onSuccess(List<Vod> items, int responsePage, int responseTotalPages) {
                 if (isInactive() || !requestState.accepts(generation) || !query.equals(currentQuery(query.getPage()))) return;
-                requestState.addAll(generation, items);
+                List<Vod> added = requestState.addAllAndGetAdded(generation, items);
                 page = responsePage;
                 totalPages = responseTotalPages;
                 queryFinished = true;
-                syncResultSection();
+                if (query.getPage() == 1) replaceResultRows(requestState.getItems(), false);
+                else appendResultRows(added);
                 if (scroller != null) {
                     if (query.getPage() > 1) scroller.endLoading(newResult(items));
                     scroller.setEnable(responseTotalPages);
@@ -359,13 +349,9 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
         });
     }
 
-    private void syncResultSection() {
-        replaceResultRows(requestState.getItems(), false);
-    }
-
     private void replaceResultRows(List<Vod> values, boolean loading) {
-        int previousCount = resultRowCount;
         if (resultRowCount > 0) mAdapter.removeItems(resultStartPosition, resultRowCount);
+        resultAdapters.clear();
         List<Object> rows = new ArrayList<>();
         if (loading) rows.add("discover_filter_progress");
         else {
@@ -373,13 +359,121 @@ public class DiscoverActivity extends BaseActivity implements VodPresenter.OnCli
             for (List<Vod> part : Lists.partition(values, Product.getColumn(Style.rect()))) {
                 ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
                 adapter.addAll(0, part);
+                resultAdapters.add(adapter);
                 rows.add(new ListRow(adapter));
             }
         }
         if (!rows.isEmpty()) mAdapter.addAll(resultStartPosition, rows);
         resultRowCount = rows.size();
-        int delta = resultRowCount - previousCount;
-        if (delta != 0) sectionPositions.replaceAll((title, position) -> position >= resultStartPosition ? position + delta : position);
+    }
+
+    private void appendResultRows(List<Vod> values) {
+        if (values.isEmpty()) return;
+        int column = Product.getColumn(Style.rect());
+        int offset = 0;
+        if (!resultAdapters.isEmpty()) {
+            ArrayObjectAdapter last = resultAdapters.get(resultAdapters.size() - 1);
+            int count = Math.min(column - last.size(), values.size());
+            if (count > 0) {
+                last.addAll(last.size(), values.subList(0, count));
+                offset = count;
+            }
+        }
+        if (offset >= values.size()) return;
+        VodPresenter presenter = new VodPresenter(this, Style.rect());
+        List<Object> rows = new ArrayList<>();
+        for (List<Vod> part : Lists.partition(values.subList(offset, values.size()), column)) {
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
+            adapter.addAll(0, part);
+            resultAdapters.add(adapter);
+            rows.add(new ListRow(adapter));
+        }
+        mAdapter.addAll(resultStartPosition + resultRowCount, rows);
+        resultRowCount += rows.size();
+    }
+
+    private boolean interceptFocusBoundary(KeyEvent event) {
+        if (!KeyUtil.isActionDown(event) || mAdapter == null) return false;
+        boolean up = KeyUtil.isUpKey(event);
+        boolean down = KeyUtil.isDownKey(event);
+        if (!up && !down) return false;
+        int filterPosition = findObjectPosition(filterPanel);
+        int currentPosition = getFocusedAdapterPosition();
+        if (filterPosition < 0 || currentPosition == RecyclerView.NO_POSITION) return false;
+        View focused = getCurrentFocus();
+        if (down && isNearestNavigable(currentPosition, filterPosition, 1) && focusSearchSkips(focused, View.FOCUS_DOWN, filterPosition)) {
+            return requestAdapterFocus(filterPosition, R.id.media);
+        }
+        if (up && isNearestNavigable(currentPosition, filterPosition, -1) && focusSearchSkips(focused, View.FOCUS_UP, filterPosition)) {
+            return requestAdapterFocus(filterPosition, R.id.sort);
+        }
+        if (currentPosition != filterPosition || focused == null) return false;
+        if (up && focused.getId() == R.id.media) {
+            return requestAdapterFocus(findNavigablePosition(filterPosition, -1), View.NO_ID);
+        }
+        if (down && focused.getId() == R.id.sort) {
+            return requestAdapterFocus(findNavigablePosition(filterPosition, 1), View.NO_ID);
+        }
+        return false;
+    }
+
+    private boolean isNearestNavigable(int origin, int target, int step) {
+        return findNavigablePosition(origin, step) == target;
+    }
+
+    private boolean focusSearchSkips(View focused, int direction, int targetPosition) {
+        View next = focused == null ? null : focused.focusSearch(direction);
+        if (next == null) return true;
+        RecyclerView.ViewHolder holder = mBinding.recycler.findContainingViewHolder(next);
+        return holder == null || holder.getBindingAdapterPosition() != targetPosition;
+    }
+
+    private int getFocusedAdapterPosition() {
+        View focused = getCurrentFocus();
+        if (focused == null) return RecyclerView.NO_POSITION;
+        RecyclerView.ViewHolder holder = mBinding.recycler.findContainingViewHolder(focused);
+        if (holder == null) return RecyclerView.NO_POSITION;
+        return holder.getBindingAdapterPosition();
+    }
+
+    private int findNavigablePosition(int origin, int step) {
+        for (int position = origin + step; position >= 0 && position < mAdapter.size(); position += step) {
+            Object item = mAdapter.get(position);
+            if (item instanceof DiscoverHero value && !value.isEmpty()) return position;
+            if (item instanceof DiscoverFilterPanel) return position;
+            if (item instanceof ListRow row && row.getAdapter() != null && row.getAdapter().size() > 0) return position;
+        }
+        return RecyclerView.NO_POSITION;
+    }
+
+    private boolean requestAdapterFocus(int position, int targetId) {
+        if (position < 0 || position >= mAdapter.size()) return false;
+        mBinding.recycler.setSelectedPosition(position, holder -> requestHolderFocus(holder.itemView, targetId));
+        return true;
+    }
+
+    private void requestHolderFocus(View root, int targetId) {
+        View target = targetId == View.NO_ID ? findFocusable(root) : root.findViewById(targetId);
+        if (canRequestFocus(target) && target.requestFocus()) return;
+        mBinding.recycler.post(() -> {
+            View fallback = targetId == View.NO_ID ? findFocusable(root) : root.findViewById(targetId);
+            if (canRequestFocus(fallback)) fallback.requestFocus();
+        });
+    }
+
+    private View findFocusable(View view) {
+        if (!canRequestFocus(view)) return null;
+        if (view.isFocusable()) return view;
+        if (!(view instanceof ViewGroup group)) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View target = findFocusable(group.getChildAt(i));
+            if (target != null) return target;
+        }
+        return null;
+    }
+
+    private boolean canRequestFocus(View view) {
+        return view != null && view.isShown() && view.isEnabled();
     }
 
     private void showContentIfReady() {

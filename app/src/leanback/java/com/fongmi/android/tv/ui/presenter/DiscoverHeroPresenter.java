@@ -65,6 +65,8 @@ public final class DiscoverHeroPresenter extends Presenter {
         }
 
         private void bind(DiscoverHero hero) {
+            int focusedIndex = getFocusedIndex();
+            String focusedId = focusedIndex < 0 ? null : items.get(focusedIndex).getId();
             unbind();
             items.addAll(hero.getItems().subList(0, Math.min(MAX_POSTERS, hero.getItems().size())));
             if (items.isEmpty()) return;
@@ -75,7 +77,9 @@ public final class DiscoverHeroPresenter extends Presenter {
             binding.posters.getLayoutParams().height = spec[1] + ResUtil.dp2px(24);
             binding.getRoot().getLayoutParams().height = spec[1] + ResUtil.dp2px(48);
             for (int i = 0; i < items.size(); i++) addPoster(items.get(i), i, spec, overlap);
+            bindHorizontalFocus();
             show(items.get(0));
+            restoreFocus(focusedId, focusedIndex);
         }
 
         private void addPoster(Vod item, int index, int[] spec, int overlap) {
@@ -84,6 +88,7 @@ public final class DiscoverHeroPresenter extends Presenter {
             params.leftMargin = index * (spec[0] - overlap);
             params.topMargin = index % 2 == 0 ? ResUtil.dp2px(2) : ResUtil.dp2px(16);
             poster.setLayoutParams(params);
+            poster.setId(View.generateViewId());
             poster.setElevation(index);
             poster.setContentDescription(item.getName());
             poster.setOnFocusChangeListener((view, hasFocus) -> {
@@ -95,6 +100,31 @@ public final class DiscoverHeroPresenter extends Presenter {
             ImgUtil.load(item.getName(), item.getPic(), poster);
             posters.add(poster);
             binding.posters.addView(poster);
+        }
+
+        private int getFocusedIndex() {
+            for (int i = 0; i < posters.size(); i++) if (posters.get(i).hasFocus()) return i;
+            return -1;
+        }
+
+        private void bindHorizontalFocus() {
+            for (int i = 0; i < posters.size(); i++) {
+                View poster = posters.get(i);
+                poster.setNextFocusLeftId(posters.get(Math.max(0, i - 1)).getId());
+                poster.setNextFocusRightId(posters.get(Math.min(posters.size() - 1, i + 1)).getId());
+            }
+        }
+
+        private void restoreFocus(String id, int previousIndex) {
+            if (previousIndex < 0 || posters.isEmpty()) return;
+            int target = Math.min(previousIndex, posters.size() - 1);
+            for (int i = 0; i < items.size(); i++) {
+                if (TextUtils.equals(id, items.get(i).getId())) {
+                    target = i;
+                    break;
+                }
+            }
+            posters.get(target).requestFocus();
         }
 
         private void show(Vod item) {
