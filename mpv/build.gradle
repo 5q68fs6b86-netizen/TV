@@ -1,0 +1,69 @@
+plugins {
+    alias libs.plugins.android.library
+}
+
+android {
+    namespace = 'is.xyz.mpv.compat'
+    compileSdk libs.versions.compileSdk.get().toInteger()
+
+    defaultConfig {
+        minSdk libs.versions.minSdk.get().toInteger()
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+}
+
+def baseAar = rootProject.file('app/libs/mpv-android-lib-v0.0.3.aar')
+def ffmpeg9Archive = rootProject.file('third_party/mpv/mpv-android-ffmpeg9-native.zip')
+def generatedDir = layout.buildDirectory.dir('generated/ffmpeg9')
+
+def prepareFfmpeg9 = tasks.register('prepareFfmpeg9') {
+    inputs.files(baseAar, ffmpeg9Archive)
+    outputs.dir(generatedDir)
+
+    doLast {
+        def output = generatedDir.get().asFile
+        delete(output)
+        copy {
+            from zipTree(baseAar)
+            into output
+            exclude 'jni/**', 'AndroidManifest.xml'
+        }
+        new File(output, 'AndroidManifest.xml').text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android" />\n'
+        copy {
+            from zipTree(ffmpeg9Archive)
+            into new File(output, 'jni')
+            // The app's JNI bridge exposes extra APIs that FongMi's stock bridge does not.
+            exclude '**/libplayer.so'
+        }
+        copy {
+            from zipTree(baseAar)
+            into new File(output, 'jni')
+            include 'jni/arm64-v8a/libplayer.so', 'jni/armeabi-v7a/libplayer.so'
+            eachFile { details ->
+                details.path = details.path.replaceFirst('^jni/', '')
+            }
+            includeEmptyDirs = false
+        }
+    }
+}
+
+android.sourceSets.main {
+    manifest.srcFile generatedDir.map { it.file('AndroidManifest.xml') }
+    assets.srcDir generatedDir.map { it.dir('assets') }
+    jniLibs.srcDir generatedDir.map { it.dir('jni') }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn prepareFfmpeg9
+}
+
+def generatedClasses = files(generatedDir.map { it.file('classes.jar') })
+generatedClasses.builtBy(prepareFfmpeg9)
+
+dependencies {
+    api generatedClasses
+}

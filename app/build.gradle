@@ -128,7 +128,8 @@ androidComponents {
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.aar"])
+    implementation fileTree(dir: "libs", include: ["*.aar"], exclude: ["mpv-android-lib-*.aar"])
+    implementation project(":mpv")
     implementation files('libs/sherpa-onnx-v1.13.4.jar')
     implementation project(':catvod')
     implementation project(':chaquo')
