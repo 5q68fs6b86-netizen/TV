@@ -97,7 +97,7 @@ public class Tv {
         }
 
         public String getTitle() {
-            return title == null ? "" : title.stream().map(Title::getText).filter(text -> !text.isEmpty()).findFirst().orElse("");
+            return title == null ? "" : title.stream().map(Title::getText).filter(text -> text != null && !text.isEmpty()).findFirst().orElse("");
         }
     }
 
