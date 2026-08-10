@@ -639,9 +639,10 @@ public class PlayerManager implements ParseCallback {
 
         @Override
         public void onPlayerError(@NonNull PlaybackException e) {
-            App.removeCallbacks(runnable);
             if (spec == null) return;
-            switch (engine.handleError(e)) {
+            PlayerEngine.ErrorAction action = engine.handleError(e);
+            if (action != PlayerEngine.ErrorAction.RECOVERED) App.removeCallbacks(runnable);
+            switch (action) {
                 case DECODE -> handleDecodeError(e);
                 case TUNNEL -> handleTunnelError(e);
                 case PLATFORM -> handlePlatformDecoderFallback(e);

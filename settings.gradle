@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 }
 
 include ':app'
+include ':mpv'
 include ':catvod'
 include ':chaquo'
 include ':quickjs'
