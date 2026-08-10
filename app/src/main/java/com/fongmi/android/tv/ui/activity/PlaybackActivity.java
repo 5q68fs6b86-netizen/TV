@@ -248,18 +248,16 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         return C.TIME_UNSET;
     }
 
-    protected void seekTo(long deltaMs) {
+    protected boolean seekTo(long deltaMs) {
         MediaController controller = mController;
-        if (mService == null || controller == null) return;
-        controller.seekTo(resolveSeekPositionMs(deltaMs));
-        controller.play();
-    }
-
-    private long resolveSeekPositionMs(long deltaMs) {
+        if (mService == null || controller == null) return false;
         PlayerManager player = player();
         long targetMs = Math.max(0, player.getPosition() + deltaMs);
         long durationMs = player.getDuration();
-        return durationMs > 0 ? Math.min(targetMs, durationMs) : targetMs;
+        boolean seekToEnd = durationMs > 0 && targetMs >= durationMs;
+        controller.seekTo(seekToEnd ? durationMs : targetMs);
+        if (!seekToEnd) controller.play();
+        return seekToEnd;
     }
 
     protected void startPlayer(String key, Result result, boolean useParse, long timeout, MediaMetadata metadata) {
